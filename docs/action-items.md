@@ -12,7 +12,7 @@ Three facts we are currently guessing at. All are cheap to check and expensive t
 
 | # | Question | Why it matters |
 |---|---|---|
-| 0.1 | **Was RAG's `retrieval_api.md` v0 signed off?** It says "proposed for team sign-off on 2026-10-08" | If signed, our conforming is settled and the ask narrows to two additive fields. If not, `section_id` is far cheaper to get in now than later |
+| 0.1 | **Was the RAG *contract* v0 signed off?** `kpmg-rag-retrieval/docs/retrieval_api.md`, "Final v0, proposed for team sign-off on 2026-10-08". Not the gold sets — both of those are self-declared drafts | If signed, our conforming is settled and the ask narrows to two additive fields. If not, `section_id` is far cheaper to get in now than later |
 | 0.2 | **Did INT-0 happen, and is the envelope frozen?** Notion puts it at W4 · 12 Oct | We have been editing the evidence shape after its own freeze date. Either INT-0 slipped, or the change needs an explicit amendment note before Agents builds on the old shape |
 | 0.3 | **When does the W3 gate close — 9 Oct or 23 Oct?** The Notion home page says 23 Oct; the data contract, all handovers and the class master say 9 Oct | The same page puts INT-0 at 12 Oct, which would close W3 eleven days after W4 starts. One of them is wrong |
 
@@ -81,7 +81,8 @@ Data, RAG and Eval in one room. Blocks both our extraction unit and RAG's filter
 
 Send [eval-ask.md](./eval-ask.md) to Yulei Ding.
 
-- [ ] **Ask for a multi-hop tranche** — 15–20 questions inside their existing format. Nothing in the current 30 measures the graph arm
+- [ ] **Ask for a traversal tranche** — 15–20 questions inside their existing format. Two gold sets exist (30 MSFT questions in `gold_set_v0.md`, 12 across six companies in `eval/gold_v0.jsonl`). The JSONL has four cross-company questions, but all four are fan-out — three parallel lookups compared afterwards. Neither set has a question requiring traversal
+- [ ] **Ask which pilot corpus is real** — MSFT, the six banks and industrials, or the `pilot-corpus-setup` branch. Our stress sample to Data should match it
 - [ ] Corpus requirement: 10-Ks not only 10-Qs, three companies, overlapping Ex-21 lists, one company across 3+ years, one 10-K/A. Same stress sample already outstanding with Data
 - [ ] Propose shapes, let Eval own the wording. We should not author the benchmark our own arm is graded on
 - [ ] Ask for a `multihop` tier label so graph questions report as their own slice

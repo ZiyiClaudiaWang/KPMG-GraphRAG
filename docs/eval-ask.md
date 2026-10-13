@@ -10,11 +10,27 @@ We want **one more tranche inside their set, in their format**, covering the que
 
 ## Why a tranche is needed
 
-`gold_set_v0.md` is 30 questions over a **single Microsoft 10-Q**. The file says so plainly: "There is no cross-company or cross-document coverage yet."
+There are two gold sets, and neither contains a traversal question.
 
-Every question is answerable from one filing. None requires traversal. So the current set cannot distinguish the graph arm from a well-tuned vector index — if Eval round 1 runs at W8 against this set, the graph scores on questions vector already answers, and we finish the project with no evidence the graph earned its place.
+| | `gold_set_v0.md` | `eval/gold_v0.jsonl` |
+|---|---|---|
+| Questions | 30 | 12 |
+| Companies | MSFT only | JPM, BAC, C, CAT, DE, HON |
+| Cross-company questions | none | 4 |
+| `chunk_ids` populated | — | 0 of 12 |
+| Status | draft, no human review | all 12 draft |
 
-This is a coverage gap in the benchmark, not a criticism of the set. The set is good at what it covers, and its conventions are sound.
+The markdown set says so itself: "There is no cross-document coverage yet." The JSONL set does have four cross-company questions — C01 and C03 compare three banks, C02 and C04 compare three industrials.
+
+But those four are **fan-out, not traversal**. Each is three independent lookups with a ticker filter, compared afterwards. A vector index with metadata filtering does that well, and does not need a graph to do it.
+
+What neither set has is a question where the answer requires following a relationship to something you could not name in the query. No "which subsidiaries", no "after the acquisition", no entity that must be resolved before it can be retrieved. That is the whole argument for the graph arm, and it is currently unmeasured.
+
+So if Eval round 1 runs at W8 against either set, the graph scores on work a tuned vector index already does, and we finish the project with no evidence the graph earned its place.
+
+This is a coverage gap, not a criticism. Both sets are good at what they cover.
+
+**One thing to settle alongside it:** the two sets imply two different pilot corpora, and there is a `pilot-corpus-setup` branch as well. Which corpus is real? Our stress-sample request to Data should match it — and if the pilot is six companies across banking and industrials, the overlapping-Exhibit-21 requirement may already be satisfiable without asking for anything new.
 
 ## What we are asking for
 
@@ -66,7 +82,7 @@ We would also like a `hops` or `tier: "multihop"` label so graph-requiring quest
 
 ## Three smaller things
 
-**1 · Scoring should stay on evidence matching, not XPath.** The markdown gold set locates evidence by `Original HTML XPath` into the pinned EDGAR HTML, explicitly "not cleaned-text offsets". That is a third coordinate system — we cite normalized-document offsets and UI highlights by quote. Nobody owns the XPath-to-section mapping.
+**1 · Scoring already runs on evidence matching, and should stay there.** Zero of the 12 JSONL questions have `chunk_ids` populated, so every one of them is already scored by `contains` strings. This is not a proposal, just a request not to switch away from it. The markdown gold set locates evidence by `Original HTML XPath` into the pinned EDGAR HTML, explicitly "not cleaned-text offsets". That is a third coordinate system — we cite normalized-document offsets and UI highlights by quote. Nobody owns the XPath-to-section mapping.
 
 The fix is already in their contract: `retrieval_api.md` §10 grades by `contains` strings when gold chunk IDs are absent, and says gold labels survive re-chunking only through evidence matching. So **keep XPath as a human audit trail and score on `contains`.** Nothing new to build.
 
