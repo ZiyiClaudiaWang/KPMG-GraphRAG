@@ -20,10 +20,10 @@ Our contracts are in good shape. Our implementation is a week behind two teams w
 
 - [x] Mock tools at the agreed shape, with 47 conformance tests — `mock/mock_retrieval_tools.py`, `graphrag/contract.py`
 - [ ] Tell Agents it exists so they can build routing against it
-- [ ] **Extraction prototype against public EDGAR filings.** Two or three 10-Ks, Pydantic plus structured outputs, mentions resolved to entities in a separate stage, loaded into Neo4j, one working `find_path`. Does not wait on Data
+- [ ] **The toy graph — this week's deliverable.** Two or three 10-Ks from EDGAR, Pydantic plus structured outputs, mentions resolved to entities in a separate stage, loaded into Neo4j, one working `find_path`. Does not wait on Data, and it is the only test the revised ontology has
 - [ ] Fact loader over the same filings, into DuckDB
 
-Imperfect is fine. Absent is not — W8 Eval round 1 scores what exists.
+Imperfect is fine. Absent is not — W8 Eval round 1 scores what exists. The toy graph is also what validates `SECTION CONTAINS SECTION`, `DOCUMENT`, `TABLE` and `CELL` against a real filing; all four were added this week from reading Data's schema and none has been tested.
 
 ## 2 · Data
 
