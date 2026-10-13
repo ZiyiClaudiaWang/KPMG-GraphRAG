@@ -16,7 +16,18 @@ Three facts we are currently guessing at. All are cheap to check and expensive t
 | 0.2 | **Did INT-0 happen, and is the envelope frozen?** Notion puts it at W4 · 12 Oct | We have been editing the evidence shape after its own freeze date. Either INT-0 slipped, or the change needs an explicit amendment note before Agents builds on the old shape |
 | 0.3 | **When does the W3 gate close — 9 Oct or 23 Oct?** The Notion home page says 23 Oct; the data contract, all handovers and the class master say 9 Oct | The same page puts INT-0 at 12 Oct, which would close W3 eleven days after W4 starts. One of them is wrong |
 
+| 0.4 | **Did the sample filings arrive?** The contract asked for 2–3 filings in final format by **Mon 12 Oct**, which has passed | If they slipped, the EDGAR fallback below fires today rather than whenever someone notices |
+| 0.5 | **Which pilot corpus is real?** MSFT, the six banks and industrials in `gold_v0.jsonl`, or the `pilot-corpus-setup` branch | Our stress sample to Data has to match it, and six companies may already satisfy the overlapping-Ex-21 requirement |
+
 Also unresolved and lower stakes: final readout 11 Dec vs 17 Dec (confirm with PM).
+
+---
+
+## 0b · The one thing that does not wait for anyone
+
+- [ ] **Start the prototype extraction pipeline against public EDGAR filings now.** The data contract already names this as the fallback if the sample slips, and 12 Oct has passed. Pull two or three 10-Ks straight from EDGAR, run extraction end to end, and find the problems that only real records surface — missing dimensions, negative-number formatting, offsets that do not line up.
+
+  This is a stopgap for our own testing, not a substitute for the corpus, and the code must not assume anything the contract has not agreed. But every day spent waiting on Data is a day we cannot get back, and W4 is on the critical path for both arms.
 
 ---
 
@@ -117,6 +128,7 @@ Send [agent-notes.md](./agent-notes.md).
 - [ ] Decide whether to port the two all-workstreams diagrams from Notion
 - [ ] Walk the contested ontology list — EVENT, OFFICER, RISKFACTOR, FINANCIALMETRIC, PEER. Each needs a question it unlocks or it is cut
 - [ ] Confirm `PEER_OF` is sourced from SIC, or drop it
+- [ ] **Assign an owner to each item in this file.** Seven people, two hats each, and nothing here currently has a name against it — which is how cross-team asks quietly become nobody's job
 
 ---
 
