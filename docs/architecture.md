@@ -31,9 +31,9 @@ Either way the graph stores a pointer, never a number.
 
 **Traceability is not correctness.** A pointer gets stamped whether or not the span supports the claim. An extraction that invents a relationship still carries a valid key and a resolvable accession — the citation renders, the UI looks right, and the edge is wrong. Provenance buys auditability, not accuracy. Checking that the span supports the edge is what the W4 acceptance thresholds with Eval are for.
 
-**The key has three shapes.** Graph edges cite `source_section_id + accession + span`, because we extract from whole sections. RAG cites `source_chunk_id + accession + span`, because chunks are what it retrieves. XBRL facts sit in neither — they live in the instance document and are identified by `accession + context_ref + unit_ref`. Specced once, it gets specced for chunks, and both the graph arm and the structured arm end up with a null key.
+**The key has three shapes.** Graph edges cite `section_id + accession_number`, because we extract from whole sections. RAG cites `chunk_id + accession_number`, because chunks are what it retrieves. XBRL facts sit in neither — they live in the instance document and are identified by `accession_number + context_ref + unit_ref`. Specced once, it gets specced for chunks, and both the graph arm and the structured arm end up with a null key.
 
-**It is a versioning contract with Data, and it is already at risk.** Data's plan runs refinement of extraction, cleaning, chunking and metadata from W6 through W9. The moment they re-chunk, every `source_chunk_id` built in W5 is stale.
+**It is a versioning contract with Data, and it is already at risk.** Data's plan runs refinement of extraction, cleaning, chunking and metadata from W6 through W9. The moment they re-chunk, every `chunk_id` built in W5 is stale. RAG's own contract says as much — `chunk_id` is "stable across rebuilds as long as `chunking_version` does not change" — which is exactly the guarantee the graph cannot rely on, and the reason we need `section_id`.
 
 ## 3 · Internal pipeline
 
@@ -98,52 +98,100 @@ sequenceDiagram
 
 The graph resolves *which* entity and *when*, the fact layer supplies the numbers, vector supplies the prose. No single projection answers it alone.
 
-## 7 · Tool signature and evidence envelope
+## 7 · Tool signature and evidence shape
 
-Agreed once at **INT-0 (W4)** and not renegotiated. Later checkpoints swap implementations behind it.
+**Aligned to RAG's Retrieval API v0 on 2026-10-13.** Their contract shipped first, has conformance tests and three other consumers, so we adopt their names and shape rather than asking four teams to carry two vocabularies. We ask for two additive fields and nothing else. See [interface-rag-gap.md](./interface-rag-gap.md) for what changed and why.
+
+### Signatures
+
+Same shape as `rag.retrieve.retrieve` — `query` not `question`, a `filters` dict, `top_k`, and a plain list back.
 
 ```python
 def graph_search(
-    question: str,
-    filters: dict | None = None,   # cik, ticker, form_type, period_start, period_end
-    max_hops: int = 3,
+    query: str,
+    filters: dict | None = None,
     top_k: int = 10,
-) -> RetrievalResult: ...
+) -> list[Evidence]: ...
 
 def structured_search(
-    question: str,
-    filters: dict | None = None,   # cik, concept, fiscal_year, segment, basis
+    query: str,
+    filters: dict | None = None,
     top_k: int = 10,
-) -> RetrievalResult: ...
+) -> list[Evidence]: ...
+```
 
-RetrievalResult = {
-    "answers": [...],
-    "evidence": [
-        {
-            "source_section_id": str | None, # what the graph arm anchors on
-            "section_path": str | None,      # "Item 7 > Liquidity and Capital Resources"
-            "source_chunk_id": str | None,   # what RAG cites, null for XBRL facts
-            "accession": str,                # always present
-            "company_name": str,
-            "source_url": str,               # EDGAR document, document-level, no deep anchors
-            "span": [int, int],              # char offsets into the normalized doc
-            "quote": str | None,             # verbatim span text - what UI highlights on
-            "fact_id": str | None,
-            "context_ref": str | None,
-            "unit_ref": str | None,
-            "basis": str | None,             # as_filed | as_restated
-            "corpus_version": str,
-        }
-    ],
-    "path": [...],            # traversed nodes and edges, graph arm only
-    "latency_ms": int,
-    "tokens": int,
+**Filters.** Their ten keys exactly — `ticker`, `cik`, `form`, `accession_number`, `filing_date`, `reporting_period_end`, `fiscal_year`, `fiscal_period`, `section`, `is_table` — with the same rules: a list means OR within a key, AND across keys, `None` is ignored, and `section` matches whole-word prefix on the canonical key.
+
+Ours add `max_hops` (graph) and `concept`, `segment`, `basis` (structured). Note `form`, not `form_type`; `reporting_period_end`, not `period_end`.
+
+**Errors, ordering and scores are identical to theirs**, so the Agent has one rule across all three tools:
+
+- Unknown filter key raises `ValueError("unsupported filter: <key>")` — never silently ignored
+- A valid request with no matches returns `[]`; never `None`, never raises
+- Store unavailable raises `RetrievalUnavailableError`
+- `[]` means "no evidence found". An exception means "retrieval is broken". The Agent must not answer as though there is no evidence when an exception was raised
+- Ordered by `score` descending, ties broken ascending by `chunk_id`, else `section_id`, else `fact_id`, so order is deterministic
+- `score` is raw and not normalised, comparable only within one call. **Do not threshold on it, and do not compare scores across tools**
+
+### Evidence
+
+```python
+Evidence = {
+    # --- identical to RAG's RetrievedChunk ---
+    "rank": int,
+    "chunk_id": str | None,          # null for our two arms, non-null for RAG
+    "text": str,                     # exact stored text, never rewritten
+    "score": float,
+    "section": str | None,           # canonical SEC key, "Part I Item 2"
+    "ticker": str | None,
+    "cik": str,                      # 10-digit zero-padded
+    "company_name": str,
+    "form": str,
+    "accession_number": str,         # with dashes - the cross-team document key
+    "filing_date": str,              # YYYY-MM-DD
+    "reporting_period_end": str | None,
+    "source_url": str | None,
+    "chunking_version": str | None,  # null for our arms, we do not chunk
+    "extraction_version": str,       # the Data corpus build we read
+    "index_version": str,            # graph build hash / fact table build hash
+    "metadata": dict,
+
+    # --- the two additive fields we are asking RAG to carry as well ---
+    "section_id": str | None,        # stable across re-chunking, what the graph anchors on
+    "quote": str | None,             # the matched span inside `text`, for highlighting
 }
 ```
 
-Exactly one of `source_section_id` / `source_chunk_id` / `fact_id` is populated per evidence object.
+`text` is always populated. For the structured arm it is a rendered statement of the fact — "Research and development expense, FY2023: USD 29,915 million" — because UI needs something to show and Eval needs something to match on.
 
-> ⚠️ **This envelope does not currently match RAG's shipped v0 contract.** See [interface-rag-gap.md](./interface-rag-gap.md). Reconcile before building against it.
+**Documented `metadata` keys for our arms.** Read with `.get()`; do not depend on anything not listed.
+
+| Key | Arm | Meaning |
+|---|---|---|
+| `section_title` | both | human-readable title, e.g. "Liquidity and Capital Resources" |
+| `corpus_version` | both | Data's corpus build identifier |
+| `path`, `hops`, `edge_types` | graph | nodes and edges traversed |
+| `graph_version` | graph | graph build identifier |
+| `fact_id`, `context_ref`, `unit_ref`, `basis` | structured | XBRL provenance; `basis` is `as_filed` or `as_restated` |
+| `concept`, `period_start`, `period_end`, `dimensions`, `value_raw`, `value_num` | structured | the fact itself |
+| `request_id` | both | joins to the call log |
+
+### Three provenance shapes, unchanged in substance
+
+Exactly one of `chunk_id` / `section_id` / `metadata.fact_id` identifies any evidence object. RAG populates `chunk_id`, the graph arm populates `section_id`, the structured arm populates `fact_id`. Specced once it gets specced for chunks, and two of the three arms end up with a null key and no substitute.
+
+### What moved, and where latency went
+
+The old `RetrievalResult` wrapper is gone, and `answers` with it — retrieval returns evidence, the Agent composes. `latency_ms` and `tokens` move to an internal envelope for Eval and the CLI, mirroring their `Retriever.search()`:
+
+```python
+search(query, filters, top_k, method) -> {
+    "request_id", "index_version", "method", "top_k",
+    "latency_ms", "tokens", "warnings", "results": [Evidence]
+}
+```
+
+Internal API for Evaluation, not part of the Agent contract.
 
 ## 8 · Staged integration
 

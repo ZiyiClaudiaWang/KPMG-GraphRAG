@@ -41,14 +41,18 @@ This is why the `EDGE` key hashes `source_section_id` and **not** `source_chunk_
 
 ### Three provenance key shapes
 
+Field names follow RAG's Retrieval API v0 as of 2026-10-13.
+
 | For | Key |
 |---|---|
-| Text, graph arm | `source_section_id` · `accession` · character span. Survives re-chunking |
-| Text, RAG | `source_chunk_id` · `accession` · character span |
-| XBRL facts | `accession` · `context_ref` · `unit_ref`, giving `fact_id`. **No `source_chunk_id`** — facts are not in a text chunk |
-| Everything, always | `corpus_version` — which corpus build it came from |
+| Text, graph arm | `section_id` · `accession_number`. Survives re-chunking, which `chunk_id` does not |
+| Text, RAG | `chunk_id` · `accession_number` |
+| XBRL facts | `accession_number` · `context_ref` · `unit_ref`, giving `fact_id`. **No `chunk_id`** — facts are not in a text chunk |
+| Everything, always | `extraction_version` and `index_version`, plus `metadata.corpus_version` for the Data build |
 
-If the provenance contract gets specced once it will be specced for chunks, and then both the graph arm and the structured arm end up with a null `source_chunk_id` and no agreed substitute. Specify all three shapes in the same document.
+If the provenance contract gets specced once it will be specced for chunks, and then both the graph arm and the structured arm end up with a null `chunk_id` and no agreed substitute. Specify all three shapes in the same document.
+
+`chunk_id` is **opaque** — RAG's §5 says do not parse it, and its format may change when Data's `sec.chunks` becomes the source of truth. Nothing of ours may derive meaning from it, which is a second reason the `EDGE` key below uses `section_id`.
 
 ### Known problems with Layer 0
 

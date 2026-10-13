@@ -8,11 +8,12 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 | [architecture.md](./architecture.md) | How the pieces fit, the tool signature and the evidence envelope | Agents, RAG |
 | [schema-ids-operations.md](./schema-ids-operations.md) | **Canonical.** Ontology, deterministic keys, provenance shapes, operations, question routing | Data, RAG, Agents |
 | [interface-rag-gap.md](./interface-rag-gap.md) | Our envelope vs RAG's shipped v0 contract, and what to do about it | — |
-| [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval | Eval, RAG |
+| [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval, with candidate questions | Eval, RAG |
+| [agent-notes.md](./agent-notes.md) | What changes for Agents now that we conform to RAG's contract | Agents, UI |
 
 ## Open items, most urgent first
 
-1. **Reconcile the evidence envelope with RAG's v0.** Their `retrieval_api.md` on `Rachel-xs/KPMG_RAG@contract-v0` is final and has tests, three other consumers, and different field names from ours. See [interface-rag-gap.md](./interface-rag-gap.md).
+1. **Get the two additive fields agreed with RAG** — `section_id` and `quote`. We have adopted their names everywhere else; these two are the only things we cannot get from their schema. Eight further reconciliation items are listed in [interface-rag-gap.md](./interface-rag-gap.md), of which the unowned structured-tool contract and the Notes-are-not-Items section vocabulary are the two that block work.
 2. **Ask Eval for multi-hop coverage.** The current gold set is one 10-Q, so nothing in it measures the graph arm. See [eval-ask.md](./eval-ask.md).
 3. **Four additions to the data contract** not yet raised with Data: `basis`, table-cell provenance, notes-are-not-Items, and keeping the gold set out of the corpus.
 4. **Fix the two Layer 0 key problems** — the section key is offset-dependent, and `section_id` has two competing definitions.

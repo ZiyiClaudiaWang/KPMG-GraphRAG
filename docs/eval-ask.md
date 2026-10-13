@@ -74,6 +74,60 @@ The fix is already in their contract: `retrieval_api.md` §10 grades by `contain
 
 **3 · The quantitative split confirms a decision on our side.** 10 of 30 questions are quantitative and 10 are comparative. Our architecture note said to abandon a separate fact table if numeric and comparative work fell below about a third of real demand. It is over half, so the fact table stays. Useful to have that on the record before INT-0.
 
+## Candidate questions
+
+Shapes and intent, not final wording — Eval owns the wording and the gold evidence. `X`, `Y` are two companies with overlapping Exhibit 21 lists; `Z` is a segment.
+
+### Subsidiary traversal — graph only
+
+| # | Question | Why vector cannot do it |
+|---|---|---|
+| M01 | Which subsidiaries does X list in Exhibit 21, and how many are incorporated outside the United States? | Answer requires reading a list and aggregating by jurisdiction |
+| M02 | Do X and Y have any subsidiaries incorporated in the same jurisdiction? | Two filings, two exhibits, one join |
+| M03 | Which of X's listed subsidiaries also file with the SEC under their own CIK? | Requires resolving a name to a registrant in another filing |
+
+### Same company across years — graph plus temporal
+
+| # | Question | Why |
+|---|---|---|
+| M04 | How did X's reportable segments change between FY2021 and FY2023? | Three filings aligned on a changing segment set |
+| M05 | In which fiscal year did X first report segment Z? | Requires ordering filings, not retrieving one |
+| M06 | Which risk factors appear in X's FY2023 10-K that were absent in FY2021? | Set difference across two Item 1As |
+
+### Entity resolution — the fuzzy branch
+
+| # | Question | Why |
+|---|---|---|
+| M07 | What was X called before FY2022, and what did it report under the earlier name? | One identity, two legal names |
+| M08 | After X acquired Y, in which filing did Y stop appearing as a separate registrant? | Requires the acquisition event and a filing-history join |
+
+### Numeric plus relational — graph plus structured
+
+| # | Question | Why |
+|---|---|---|
+| M09 | How did X's R&D spend change in the two fiscal years after the 2023 acquisition? | Graph resolves the event date, structured supplies the values |
+| M10 | Compare segment operating margin for X and Y in the same fiscal year. | Two companies, dimensional facts, a derived ratio |
+| M11 | Which of X's segments contributed most to revenue growth between FY2022 and FY2023? | Dimensional facts plus arithmetic, total vs part |
+
+### Amendments and basis — structured plus temporal
+
+| # | Question | Why |
+|---|---|---|
+| M12 | What did X report as FY2023 revenue as filed, and what did the 10-K/A restate it to? | Both versions must survive ingestion |
+| M13 | Which figures changed between X's 10-K and its 10-K/A? | Requires `basis` and `amends_accession` |
+
+### Abstention controls — the ones that catch invention
+
+These matter more than the rest. A graph that invents edges scores well on every question above and fails only here.
+
+| # | Question | Expected behaviour |
+|---|---|---|
+| M14 | Does X own Y? *(asked of a pair with no ownership relationship)* | "No evidence", not a fabricated edge |
+| M15 | Which subsidiaries did X list in a year whose 10-K is not in the corpus? | Abstain, state the gap |
+| M16 | A question about a company absent from the corpus | `[]` and an abstention, not a plausible answer from a similar company |
+
+Also worth agreeing at W4: a **provenance-correctness sample**. For N answers, does the cited evidence actually support the claim? Provenance buys auditability, not accuracy — an invented relationship still carries a valid key and a resolvable accession, so the citation renders and the edge is wrong. Nothing in `evidence_recall` catches that.
+
 ## What we are not asking for
 
 - Not a change to their metrics, their harness, or `RetrievedChunk`
