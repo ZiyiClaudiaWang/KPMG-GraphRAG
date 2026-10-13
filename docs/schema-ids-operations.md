@@ -101,7 +101,7 @@ Found 2026-10-13:
 |---|---|---|
 | **EVENT** | Needed for anything phrased "after the 2023 acquisition" | Hard to extract reliably. May be better as typed edges with a date |
 | **EXECUTIVE / OFFICER** | Named officers connect companies | No deterministic key. Is there a single business question that needs it? |
-| **RISKFACTOR** | Item 1A is where comparative risk questions live | Item 1A is already a SECTION. Probably a topic tag |
+| ~~**RISKFACTOR**~~ | Item 1A is where comparative risk questions live | **Cut 2026-10-13.** Data's `section_types` already has a `risk_factors` code. The topic tag exists; the node is redundant |
 | **FINANCIALMETRIC** | Named metrics like revenue | Overlaps FACT almost entirely |
 | **PEER** | Cross-company comparison needs a peer set | Not a node — a relation |
 

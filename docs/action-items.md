@@ -33,7 +33,7 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 - [x] Withdraw the asks they have already satisfied — [data-contract.md](./data-contract.md) now opens with twelve of them
 - [ ] **Expose the natural key alongside the UUID**, so we anchor on `(report_id, section_key)` rather than a `gen_random_uuid()` that may not survive a rebuild. Ask whether `section_key` is content-derived or positional
 - [ ] **`basis` on facts**, or confirmation we derive it from `amendment_of_id`. Confirmed absent; our most load-bearing gap
-- [ ] **Note-level codes in `section_types`** — a lookup table, so an INSERT rather than a migration
+- [ ] **Note-level sections.** A new `section_types` code is an INSERT, but the parser also has to detect note boundaries and emit a row per note — inline XBRL marks them, so it is structural, but it is not free
 - [ ] `sic`, `state_of_incorp`, `exchange`, `fiscal_year`, `fiscal_period`
 - [ ] When do chunks land on `main`, and is `reports.sections` or `sec.report_sections` authoritative?
 - [x] Reverse our position on XPath in writing — done in the contract, `architecture.md` §2 and the schema doc
