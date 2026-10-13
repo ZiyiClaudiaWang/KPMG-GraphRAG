@@ -33,6 +33,8 @@ Either way the graph stores a pointer, never a number.
 
 **The key has three shapes.** Graph edges cite `section_id + accession_number`, because we extract from whole sections. RAG cites `chunk_id + accession_number`, because chunks are what it retrieves. XBRL facts sit in neither — they live in the instance document and are identified by `accession_number + context_ref + unit_ref`. Specced once, it gets specced for chunks, and both the graph arm and the structured arm end up with a null key.
 
+**XPath is the cross-team locator, not our offsets.** Revised 2026-10-13. Data requires an `xpath` in `source_locator` on table cells and sections, Eval's gold set locates evidence by XPath, and RAG reserves `source_locator` as a metadata key for it. We were the only team insisting on character offsets into normalized text. Settled position: XPath identifies a region across teams and is what Eval scores against; normalized offsets stay for extraction and highlighting; the verbatim `quote` is what UI matches on, so rendering never depends on either coordinate system. When they disagree, XPath wins and the offsets get rebuilt.
+
 **It is a versioning contract with Data, and it is already at risk.** Data's plan runs refinement of extraction, cleaning, chunking and metadata from W6 through W9. The moment they re-chunk, every `chunk_id` built in W5 is stale. RAG's own contract says as much — `chunk_id` is "stable across rebuilds as long as `chunking_version` does not change" — which is exactly the guarantee the graph cannot rely on, and the reason we need `section_id`.
 
 ## 3 · Internal pipeline

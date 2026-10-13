@@ -4,6 +4,8 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 
 | Document | What it is | Agreed with |
 |---|---|---|
+| [action-items.md](./action-items.md) | **Start here.** Five headings, not fifty-eight items | — |
+| [data-team-state.md](./data-team-state.md) | What Data has already built, and which asks to withdraw | Data |
 | [data-contract.md](./data-contract.md) | What we need from the Data team — three layers, record schemas, semantics | Data |
 | [architecture.md](./architecture.md) | How the pieces fit, the tool signature and the evidence envelope | Agents, RAG |
 | [schema-ids-operations.md](./schema-ids-operations.md) | **Canonical.** Ontology, deterministic keys, provenance shapes, operations, question routing | Data, RAG, Agents |
@@ -12,13 +14,9 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 | [section-vocabulary.md](./section-vocabulary.md) | Why one Item-level label isn't enough, and the three-field fix | Data, RAG, Eval |
 | [agent-notes.md](./agent-notes.md) | What changes for Agents now that we conform to RAG's contract | Agents, UI |
 
-## Open items, most urgent first
+## Open items
 
-1. **Get the two additive fields agreed with RAG** — `section_id` and `quote`. We have adopted their names everywhere else; these two are the only things we cannot get from their schema. Eight further reconciliation items are listed in [interface-rag-gap.md](./interface-rag-gap.md), of which the unowned structured-tool contract and the Notes-are-not-Items section vocabulary are the two that block work.
-2. **Ask Eval for multi-hop coverage.** The current gold set is one 10-Q, so nothing in it measures the graph arm. See [eval-ask.md](./eval-ask.md).
-3. **Take the section-vocabulary question to Data, RAG and Eval together.** Segments and subsidiaries both sit below Item level, so a single Item-level label cannot reach them. See [section-vocabulary.md](./section-vocabulary.md).
-4. **Re-send the data contract.** It now uses RAG's vocabulary end to end and adds `basis`, table-cell provenance, sub-Item sections and the `extraction_version` / `chunking_version` split.
-5. **Fix the two Layer 0 key problems** — the section key is offset-dependent, and `section_id` has two competing definitions. Proposed: Data's IDs are canonical and ours are deleted.
+Moved to [action-items.md](./action-items.md), which consolidates everything open across Data, RAG, Eval, Agents and our own schema.
 
 ## Other team repos
 
@@ -26,3 +24,15 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 |---|---|---|
 | Data | `michaelliruoxi/data_engineering_kpmg` | AWS RDS Postgres, not the file drop our contract assumes |
 | RAG | `Rachel-xs/KPMG_RAG` | Contract and working retriever live on branch `contract-v0`, not `main` |
+
+## Code
+
+| Path | What |
+|---|---|
+| `graphrag/contract.py` | Evidence shape and validation, mirroring RAG's `rag/contract.py` |
+| `mock/mock_retrieval_tools.py` | INT-0 mocks for `graph_search` and `structured_search`. Standalone, standard library only |
+| `tests/test_contract.py` | 47 conformance tests. They run against the mock now and the real tools later |
+
+```bash
+python3 -m pytest tests/ -q
+```
