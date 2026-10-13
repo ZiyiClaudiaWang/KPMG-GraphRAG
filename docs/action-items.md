@@ -33,29 +33,34 @@ Also unresolved and lower stakes: final readout 11 Dec vs 17 Dec (confirm with P
 
 ## 1 · Data team
 
-The rewritten contract is in [data-contract.md](./data-contract.md). It differs materially from what they last read, so it needs re-sending rather than a nudge.
+⚠️ **Read [data-team-state.md](./data-team-state.md) before sending anything.** Most of our contract is already built on `michaelliruoxi/data_engineering_kpmg@main`, including sections as first-class records, table-cell provenance with XPath, inline-XBRL cell-to-fact links, dimensions, namespaces, raw-plus-parsed values and the normalized full text. Sending a team a list of things they finished last week costs credibility we need for the asks that remain.
 
-**Send**
-- [ ] Re-send the data contract, pointing at the change table at the bottom
-- [ ] Tell them `gold_set_v0.md` must never be indexed — their repo already holds the same MSFT filing
+**Withdraw before re-sending**
+- [ ] Cut the sections-as-first-class ask — `sec.report_sections` exists
+- [ ] Cut the table-cell provenance ask — `sec.table_cells` exists, with a required XPath
+- [ ] Cut the inline-XBRL offsets ask — `sec.cell_fact_links` does this
+- [ ] Cut the keep-dimensions, keep-namespace, raw-plus-parsed and precision asks — all present
+- [ ] Cut the "is the normalized document retrievable" question — `reports.full_text`
+- [ ] Note that their naming already matches RAG's, so our rename is confirmed from two directions
 
-**The asks, largest first**
-- [ ] **Sections as first-class records**, with chunks carrying a parent `section_id`. Our single biggest ask
-- [ ] **Sections below Item level**, so a note is its own section — see [section-vocabulary.md](./section-vocabulary.md)
-- [ ] `basis` on facts (`as_filed` / `as_restated`), or confirmation that we derive it from `amends_accession_number`
-- [ ] A provenance shape for table cells — `table_id` + row + col — and `section_id` on table records. Ex-21 edges have no citable key today
-- [ ] Split `corpus_version` into `extraction_version` and `chunking_version`. Re-normalising invalidates every offset in the corpus and nothing currently catches it
-- [ ] Confirm `section_id` and `fact_id` are theirs to define, so we delete our competing definitions
+**The asks that survive, smallest and most concrete first**
+- [ ] **Expose the natural key alongside the UUID**, so we anchor on `(report_id, section_key)` rather than a `gen_random_uuid()` that may not survive a rebuild into a fresh database. Costs them nothing
+- [ ] Ask whether `section_key` is derived from content or from position in the parse
+- [ ] **`basis` on facts** (`as_filed` / `as_restated`), or confirmation we derive it from `amendment_of_id`. Confirmed absent, and still our most load-bearing gap
+- [ ] **Note-level codes in `section_types`** — it is a lookup table, so this is an INSERT rather than a schema change. See [section-vocabulary.md](./section-vocabulary.md)
+- [ ] `sic`, `state_of_incorp`, `exchange` on `companies`
+- [ ] `fiscal_year`, `fiscal_period` on `filings` — RAG filters on both
+- [ ] Ask when chunks land on `main`. `chunking.py` and `section_id_for_chunk` exist but no chunk table is merged; likely on `ruby/chunking-citations`
+- [ ] Ask which is authoritative — `reports.sections` jsonb or the `sec.report_sections` table — and what stops them drifting
+- [ ] **Reverse our position on XPath in writing.** They require it, Eval uses it, RAG reserves a key for it. We were the outlier insisting on normalized offsets
 - [ ] File exports **in addition to** the Postgres, framed as database-as-record / files-as-interface
-- [ ] Read-only database credentials for Adeline
+- [ ] **Read-only database credentials**, so this stops being archaeology from migration files
+- [ ] Tell them `gold_set_v0.md` must never be indexed
 
-**Still unanswered from the original contract**
+**Still unanswered**
 - [ ] Which tickers, which years, which form types
-- [ ] Are exhibits parsed at all, and is Ex-21 among them
 - [ ] Are DEF 14A or Form 4 in scope, or do officers come out of the graph
-- [ ] Which XBRL library, and does it keep dimensions
-- [ ] Is the normalized document retrievable, or only chunks
-- [ ] Where the corpus lives and how we read it
+- [ ] Are exhibits parsed in practice? `source_documents.role` and `document_type` allow it — is Ex-21 actually among them?
 
 ---
 

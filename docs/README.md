@@ -5,6 +5,7 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 | Document | What it is | Agreed with |
 |---|---|---|
 | [action-items.md](./action-items.md) | **Start here.** Everything open, by counterparty | — |
+| [data-team-state.md](./data-team-state.md) | What Data has already built, and which asks to withdraw | Data |
 | [data-contract.md](./data-contract.md) | What we need from the Data team — three layers, record schemas, semantics | Data |
 | [architecture.md](./architecture.md) | How the pieces fit, the tool signature and the evidence envelope | Agents, RAG |
 | [schema-ids-operations.md](./schema-ids-operations.md) | **Canonical.** Ontology, deterministic keys, provenance shapes, operations, question routing | Data, RAG, Agents |
