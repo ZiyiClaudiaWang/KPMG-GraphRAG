@@ -54,6 +54,15 @@ If the provenance contract gets specced once it will be specced for chunks, and 
 
 `chunk_id` is **opaque** — RAG's §5 says do not parse it, and its format may change when Data's `sec.chunks` becomes the source of truth. Nothing of ours may derive meaning from it, which is a second reason the `EDGE` key below uses `section_id`.
 
+### XPath, and which coordinate system wins
+
+Revised 2026-10-13. Data's `source_locator` requires an `xpath` on both sections and table cells; Eval's gold set uses XPath; RAG reserves a key for it. **XPath is the shared locator and our normalized offsets were the outlier.**
+
+- XPath identifies a region across teams, and is what Eval scores against
+- Normalized offsets stay for extraction and for highlighting
+- The verbatim `quote` is what UI matches on, so rendering depends on neither
+- When XPath and offsets disagree, XPath wins and the offsets are rebuilt
+
 ### Known problems with Layer 0
 
 Found 2026-10-13:
