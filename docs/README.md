@@ -4,7 +4,7 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 
 | Document | What it is | Agreed with |
 |---|---|---|
-| [action-items.md](./action-items.md) | **Start here.** Everything open, by counterparty | — |
+| [action-items.md](./action-items.md) | **Start here.** Five headings, not fifty-eight items | — |
 | [data-team-state.md](./data-team-state.md) | What Data has already built, and which asks to withdraw | Data |
 | [data-contract.md](./data-contract.md) | What we need from the Data team — three layers, record schemas, semantics | Data |
 | [architecture.md](./architecture.md) | How the pieces fit, the tool signature and the evidence envelope | Agents, RAG |
@@ -24,3 +24,15 @@ Moved to [action-items.md](./action-items.md), which consolidates everything ope
 |---|---|---|
 | Data | `michaelliruoxi/data_engineering_kpmg` | AWS RDS Postgres, not the file drop our contract assumes |
 | RAG | `Rachel-xs/KPMG_RAG` | Contract and working retriever live on branch `contract-v0`, not `main` |
+
+## Code
+
+| Path | What |
+|---|---|
+| `graphrag/contract.py` | Evidence shape and validation, mirroring RAG's `rag/contract.py` |
+| `mock/mock_retrieval_tools.py` | INT-0 mocks for `graph_search` and `structured_search`. Standalone, standard library only |
+| `tests/test_contract.py` | 47 conformance tests. They run against the mock now and the real tools later |
+
+```bash
+python3 -m pytest tests/ -q
+```
