@@ -19,13 +19,19 @@ They join on `cik` and `fact_id`. The graph stores `(COMPANY {cik})-[:REPORTS]->
 
 ### Deterministic keys
 
-Every key is derived from content. Never a counter, never a random UUID.
+Revised 2026-10-13 after reading Data's migrations. **We adopt Data's natural keys rather than hashing our own.** Their primary keys are `gen_random_uuid()`, but every table carries a natural key underneath — `accession_number`, `section_key`, `cell_key`, `occurrence_key` — and those are what we anchor on. Earlier versions defined competing hashes for `section_id` and `fact_id`; those are gone. Only the keys we genuinely own are still derived here.
 
 ```
+# adopted from Data - do not re-derive
 COMPANY      cik
-FILING       accession
-SECTION      hash(accession + item + char_start)
-FACT         hash(accession + concept + context_ref + unit)
+FILING       accession_number
+DOCUMENT     accession_number + role          # primary doc, EX-21, EX-99 ...
+SECTION      accession_number + section_key   # any level: Item, or a note inside one
+TABLE        accession_number + table_key
+CELL         table_key + cell_key             # row and column within a table
+FACT         source_document_id + extraction_version + occurrence_key
+
+# ours, because Data does not model them
 SEGMENT      hash(cik + normalised_name)
 SUBSIDIARY   hash(parent_cik + normalised_name)
 EDGE         hash(source_key + type + target_key + source_section_id)
@@ -67,10 +73,11 @@ Revised 2026-10-13. Data's `source_locator` requires an `xpath` on both sections
 
 Found 2026-10-13:
 
-- **`SECTION hash(accession + item + char_start)` is offset-dependent.** Offsets move when Data's *normalizer* changes, not just the chunker — so `section_id` survives re-chunking but not re-normalizing, which undercuts the reason we anchored on it. Key it off `accession + section_path + ordinal` instead.
-- **Two definitions of the same ID.** The data contract has Data emitting `section_id` and `fact_id`; this page has us hashing our own. Pick one as canonical.
-- **`normalized_doc_id` is missing from the provenance shapes.** A span is meaningless without naming the document it indexes into.
-- **Table-derived edges have no shape.** Nothing covers `table_id` plus cell coordinates, which is how Ex-21 subsidiary edges arrive.
+- ~~`SECTION hash(accession + item + char_start)` is offset-dependent~~ — **resolved.** We now adopt Data's `section_key`, which is not offset-derived.
+- ~~Two definitions of the same ID~~ — **resolved.** Data's are canonical; ours are deleted.
+- ~~Table-derived edges have no shape~~ — **resolved.** `CELL` is now a node, keyed `table_key + cell_key`.
+- **Open: is `section_key` content-derived or positional?** If positional, inserting a section upstream shifts every key after it. This is the one question the whole scheme rests on.
+- **Open: do Data's UUIDs survive a rebuild into a fresh database?** We anchor on natural keys to avoid depending on the answer, but `report_id` is itself a UUID, so `(accession_number, section_key)` needs exposing.
 
 ## Layer 1 · Ontology
 
@@ -84,6 +91,9 @@ Found 2026-10-13:
 | **FACT** | `fact_id` | One XBRL fact. Concept, value, unit, period, `basis`, `context_ref` |
 | **SEGMENT** | `segment_id` | Reportable segments. Facts are dimensioned by these |
 | **SUBSIDIARY** | `sub_id` | Exhibit 21. The main source of cross-company multi-hop questions |
+| **DOCUMENT** | `accession_number` + `role` | A filing is several documents. Exhibit 21 is its own, with its own offset space |
+| **TABLE** | `accession_number` + `table_key` | Ex-21 and the segment note are tables, not prose |
+| **CELL** | `table_key` + `cell_key` | Where table-derived edges cite. Carries a required XPath in Data's schema |
 
 ### Contested — each needs a question to earn its place
 
@@ -99,17 +109,34 @@ Found 2026-10-13:
 
 ```mermaid
 erDiagram
-  COMPANY ||--o{ FILING : FILES
-  FILING  ||--o| FILING : AMENDS
-  FILING  ||--o{ SECTION : CONTAINS
-  FILING  ||--o{ FACT : REPORTS
-  COMPANY ||--o{ SUBSIDIARY : OWNS
-  COMPANY ||--o{ SEGMENT : REPORTS_SEGMENT
-  SEGMENT ||--o{ FACT : SCOPES
-  COMPANY }o--o{ COMPANY : PEER_OF
+  COMPANY  ||--o{ FILING : FILES
+  FILING   ||--o| FILING : AMENDS
+  FILING   ||--o{ DOCUMENT : HAS_DOCUMENT
+  DOCUMENT ||--o{ SECTION : CONTAINS
+  SECTION  ||--o{ SECTION : CONTAINS
+  SECTION  ||--o{ TABLE : CONTAINS
+  TABLE    ||--o{ CELL : HAS_CELL
+  CELL     }o--o{ FACT : EVIDENCES
+  FILING   ||--o{ FACT : REPORTS
+  COMPANY  ||--o{ SUBSIDIARY : OWNS
+  COMPANY  ||--o{ SEGMENT : REPORTS_SEGMENT
+  SEGMENT  ||--o{ FACT : SCOPES
+  COMPANY  }o--o{ COMPANY : PEER_OF
 ```
 
 `PEER_OF` is sourced from the SIC code in EDGAR metadata, which is free and reliable. Self-declared peer groups live in DEF 14A proxies, which are not in scope. Sourced from SIC and stated as such, or it does not go in.
+
+### Four changes on 2026-10-13, from reading Data's schema
+
+The old sketch was flat and stopped at Item level, which is exactly where our most valuable content starts.
+
+**`SECTION` now contains `SECTION`** — the granularity fix. A 10-Q labels the whole financial statements, statements and twenty-odd notes together, as Part I Item 1. So segment data sits in Note 16, a *child* of an Item rather than an Item itself. A flat list cannot reach it, which means we cannot filter to it, cite it precisely, or use it as an extraction unit. A hierarchy lets a note be addressed directly while the Item-level label RAG filters on stays exactly as it is. Data's `report_sections` already carries `section_order` and `offset_start`, so the ordering a split needs is present.
+
+**`DOCUMENT` sits between `FILING` and `SECTION`.** A filing is several documents, the primary one plus exhibits, which Data models as `source_documents` with a `role`. Exhibit 21 is its own document with its own coordinate system — a 10-K and its subsidiary exhibit share an accession number but not an offset space.
+
+**`TABLE` and `CELL` are nodes now.** Our highest-confidence edges come from the Exhibit 21 subsidiary list, which is a table, and the ontology had nowhere for a cell to live and no way for an edge to cite one. Data's `table_cells` carries row and column indices, spans, headings and a required XPath, so the provenance already exists — we just had no node for it.
+
+**`CELL` evidences `FACT`.** Data's `cell_fact_links` ties a rendered table cell to the XBRL fact behind it by inline-XBRL id. That is the join that lets a cited number point at both the figure an analyst sees and the tagged fact underneath.
 
 ## Layer 2 · Operation catalog
 
