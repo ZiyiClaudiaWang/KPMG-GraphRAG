@@ -30,13 +30,13 @@ Imperfect is fine. Absent is not — W8 Eval round 1 scores what exists.
 Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell provenance with XPath, inline-XBRL cell-to-fact links, dimensions, namespaces, raw-plus-parsed values and `reports.full_text` are all already built.
 
 - [ ] **Read-only database credentials.** Everything we know is archaeology from migration files
-- [ ] Withdraw the asks they have already satisfied, explicitly, before asking for anything else
+- [x] Withdraw the asks they have already satisfied — [data-contract.md](./data-contract.md) now opens with twelve of them
 - [ ] **Expose the natural key alongside the UUID**, so we anchor on `(report_id, section_key)` rather than a `gen_random_uuid()` that may not survive a rebuild. Ask whether `section_key` is content-derived or positional
 - [ ] **`basis` on facts**, or confirmation we derive it from `amendment_of_id`. Confirmed absent; our most load-bearing gap
 - [ ] **Note-level codes in `section_types`** — a lookup table, so an INSERT rather than a migration
 - [ ] `sic`, `state_of_incorp`, `exchange`, `fiscal_year`, `fiscal_period`
 - [ ] When do chunks land on `main`, and is `reports.sections` or `sec.report_sections` authoritative?
-- [ ] Reverse our position on XPath in writing — they require it, Eval uses it, RAG reserves a key for it
+- [x] Reverse our position on XPath in writing — done in the contract, `architecture.md` §2 and the schema doc
 
 ## 3 · RAG
 
