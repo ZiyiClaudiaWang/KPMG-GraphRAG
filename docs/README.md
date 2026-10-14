@@ -13,8 +13,8 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 | [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval, with candidate questions | Eval, RAG |
 | [section-vocabulary.md](./section-vocabulary.md) | Why one Item-level label isn't enough, and the three-field fix | Data, RAG, Eval |
 | [agent-notes.md](./agent-notes.md) | What changes for Agents now that we conform to RAG's contract | Agents, UI |
-| [Ontology_v1.md](./Ontology_v1.md) | Ontology draft — entities, claims, two business use cases. Overlaps schema-ids-operations.md and disagrees with it on names | — |
-| [ontology-reconciliation.md](./ontology-reconciliation.md) | **Working document.** Merges the two ontologies into one. Naming rule, eight decisions, each needing a question it unlocks | — |
+| [ontology-proposal-claudia.md](./ontology-proposal-claudia.md) | A proposal against the standing schema. Adds the Claim node with claim_type, extraction_status, and two business use cases | — |
+| [ontology-reconciliation.md](./ontology-reconciliation.md) | **Read before the session.** Where the two differ, a strawman for v1, and eight decisions — each needing a question it unlocks | — |
 | [sprints/](./sprints/) | One file per week: owners, done conditions, decisions the week is waiting on | — |
 
 ## Open items

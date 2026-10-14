@@ -2,7 +2,7 @@
 
 Two documents in this repo describe the same ontology and disagree.
 [schema-ids-operations.md](./schema-ids-operations.md) is marked canonical and has
-been through several revisions. [Ontology_v1.md](./Ontology_v1.md) is a newer draft
+been through several revisions. [ontology-proposal-claudia.md](./ontology-proposal-claudia.md) is a newer draft
 with things the canonical version lacks.
 
 This file exists to merge them into one. Fill it in during the session, then it
@@ -15,6 +15,93 @@ Groups add and never subtract, and ontologies are made good by subtraction.
 **Test for v1:** if it is not loaded in `toy_graph/` by Friday, it is not in v1. The
 toy graph is small enough that adding a node type takes ten minutes, so this is a
 real test rather than a threat.
+
+---
+
+## Where the two documents differ
+
+Read this before the session so nobody spends the first twenty minutes discovering
+the overlap.
+
+### Nodes
+
+| Concept | Standing schema | Proposal | Note |
+| --- | --- | --- | --- |
+| Company | `COMPANY`, key `cik`, valid-from / valid-to for renames | `Company`, no key | Same thing |
+| Filing | `FILING`, key `accession`, `amends_accession` | `Filing`, no key | Same thing |
+| Section | `SECTION`, key plus `section_path` and offsets | `Section`, no key | Same thing |
+| Chunk | A property. Explicitly opaque — RAG §5 says do not parse it | `SourceChunk`, a node | **Decision 2.2** |
+| A reported number | `FACT` — concept, value, unit, period, `basis`, `context_ref` | `MetricObservation` plus `FinancialMetric` | **Decision 2.1** |
+| Segment | `SEGMENT`, facts dimensioned by it | `Segment` | Same thing |
+| Subsidiary | `SUBSIDIARY`, from Exhibit 21 | absent | **Decision 2.6** |
+| Risk | Contested, probably a tag on Section | `RiskFactor` | **Decision 2.4** |
+| Claim | absent | `Claim` with `claim_type` | **Decision 2.3** |
+| Officer | Contested, no key | `Executive` | **Decision 2.5** |
+
+### Relationships
+
+Eight against eleven. Three pairs are the same link named differently, covered in
+Part 0. Five of the proposal's extra links exist only to wire the chunk-and-claim
+model, and `OF_METRIC` exists only because of the metric split — so two decisions
+account for most of the difference.
+
+### In the standing schema only
+
+Deterministic keys for every node type · three provenance shapes, including the one
+for XBRL facts which have no chunk · the two-store split, with the graph holding a
+pointer and never a number · `AMENDS` and `basis` · `SUBSIDIARY` · the operation
+catalog, with comparisons computed at query time and never stored · question
+routing · the contracts index · the XPath conflict rule · a list of four known
+defects in its own Layer 0.
+
+### In the proposal only
+
+`Claim` with `claim_type` — the difference between a company's hedge and a company's
+assertion. Nothing in the standing schema can record it, and the stated objective is
+evidence-grounded retrieval.
+
+`extraction_status` — confidence and review state. The standing schema assumes
+extraction is correct.
+
+Two business questions written out in full. The standing schema's contested table
+says "name the question it unlocks" five times and names none. The proposal's Use
+Case B is exactly the question `RiskFactor` was missing, so by the standing
+schema's own rule the proposal earns a node the standing schema was about to cut.
+
+### Fair reading
+
+The standing schema is further along as an engineering specification; it could be
+built tomorrow, and the proposal could not, because nothing in it says how an entity
+is identified. It has also been through a charter reconciliation, a working session
+and several revisions, while the proposal is two days old and ends with five open
+questions. A fourth draft beating a first one is not evidence of much.
+
+The useful split: one is the engineering, the other is the epistemics. Without the
+proposal, the system states a company's hedge as a fact. Without the standing
+schema, nothing loads.
+
+---
+
+## Strawman for v1
+
+A starting position to react to, not a decision. Six rows below follow from evidence
+already in the two documents; two are genuinely open and are left blank.
+
+| | Proposed | Comes from |
+| --- | --- | --- |
+| `Company`, `Filing`, `Section`, `Segment` | keep | both |
+| `Fact` | keep, with `basis` | standing schema |
+| `Subsidiary` | keep | standing schema |
+| `Claim` with `claim_type` | **add** | proposal |
+| `extraction_status` on everything extracted | **add** | proposal |
+| `RiskFactor` | **keep**, justified by Use Case B | proposal |
+| `Executive` | **cut** until someone names the question | — |
+| `AMENDS`, plus the fact-level replacement rule | keep | standing schema, toy graph |
+| `CONSOLIDATED_INTO` | ? | toy graph |
+| `FinancialMetric` / `MetricObservation` | ? | open |
+| `SourceChunk` as a node | ? | open |
+
+Node labels PascalCase, relationship types UPPER_SNAKE, per Part 0.
 
 ---
 
@@ -177,7 +264,7 @@ Say these are open rather than letting them look settled.
 2. `schema-ids-operations.md` keeps its non-ontology content — keys, provenance
    shapes, the operation catalog, question routing — and points here for the
    ontology.
-3. `Ontology_v1.md` is replaced by a line pointing here.
+3. `ontology-proposal-claudia.md` is replaced by a line pointing here.
 4. `toy_graph/toy_graph.py` is updated to match, which is the test that the result
    is implementable.
 
