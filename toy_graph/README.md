@@ -30,7 +30,35 @@ Nothing else changes. `.env` is gitignored; never commit credentials.
 | --- | --- |
 | `toy_graph.py` | Node and edge definitions, deterministic keys, provenance shapes, loader |
 | `check_findings.py` | The two findings, each as the natural query and the corrected one |
+| `render.py` | Draws `images/*.png` from whatever database `.env` points at |
 | `.env.example` | Connection template |
+
+## Pictures
+
+```bash
+python3 render.py
+```
+
+Reads the graph back out of the database and draws four views. Positions are placed
+by hand, so the same picture comes out every time and it can sit in a document
+without shifting. Change the schema and you add a line to `POS` — the script says
+which nodes it skipped.
+
+![The answer path](./images/2-answer-path.png)
+
+Two figures for the same segment, the same concept and the same period. They differ
+only in `basis`, and each points back to a different filing. Nothing inside either
+document says which to quote. The `AMENDS` link between them does.
+
+| Image | Shows |
+| --- | --- |
+| `images/1-whole-graph.png` | All 11 nodes and 15 relationships |
+| `images/2-answer-path.png` | The answer path, above |
+| `images/3-hop1-ambiguous.png` | Subsidiary to segment as the schema stands — two segments back |
+| `images/4-restatement.png` | The correction alone, sized for a slide |
+
+Neo4j Browser draws `CONSOLIDATED_INTO` exactly like the settled links, so a
+screenshot cannot show that it is a proposal. These can, which is why they exist.
 
 ## The source passage
 
