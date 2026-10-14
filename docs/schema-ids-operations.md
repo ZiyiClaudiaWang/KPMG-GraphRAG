@@ -1,6 +1,6 @@
 # Schema, IDs, operations and contracts
 
-> Ported from Notion on 2026-10-13. **Canonical** for schema, IDs, operations and question routing.
+> **Canonical** for schema, IDs, operations and question routing. The Notion page of the same name is an archive as of 2026-10-14 and should not be cited — its tables froze at 6 Oct while its prose kept moving.
 
 Three layers, deliberately separate. Merging them is the most common way a knowledge graph gets bloated.
 
