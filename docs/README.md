@@ -1,6 +1,6 @@
 # GraphRAG docs
 
-Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all its free blocks**, so new pages and new blocks cannot be created there and even table-cell edits fail. This directory is now the editable home for our contracts. Notion stays readable as a snapshot; change things here.
+**This directory is the live home for our contracts.** The Columbia Notion workspace is out of free blocks — paragraph and code-block edits work, but anything creating a block fails, and Notion rebuilds a table row when a cell is edited, so every table edit fails. Rather than maintain a page that is half-current, the Notion ontology page is now an archive pointing here. Change things in this directory.
 
 | Document | What it is | Agreed with |
 |---|---|---|
