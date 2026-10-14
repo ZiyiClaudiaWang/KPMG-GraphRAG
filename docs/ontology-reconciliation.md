@@ -18,24 +18,56 @@ point at it.
 **Who:** Claudia and Alina. Split it however you like — we are not assuming you work
 through it in one sitting or in the same room.
 
-**By:** Friday 17 October, end of day.
-
 **What we need back, in this form:**
 
-| # | Deliverable | Where it goes | Done when |
-| --- | --- | --- | --- |
-| 1 | This file, with every `Answer:` and `Question it answers:` line filled in | Committed to `docs/` on a branch, as a pull request | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
-| 2 | `toy_graph/toy_graph.py` updated to match what you agreed | Same pull request | `python3 toy_graph.py` runs and reports idempotent |
-| 3 | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request description, or a file in `docs/` | The three are verified on EDGAR and the amendment is identified |
-| 4 | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | The labels exist before the `Claim` node is designed, not after |
+| # | Deliverable | Where it goes | Due | Done when |
+| --- | --- | --- | --- | --- |
+| 1 | This file, with every `Answer:` and `Question it answers:` line filled in | A pull request | **Fri 17 Oct** | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
+| 2 | `toy_graph/toy_graph.py` updated to match what was agreed | Same pull request | **Fri 17 Oct** | `python3 toy_graph.py` runs and reports idempotent |
+| 3 | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | **Thu 16 Oct** | The labels exist before `Claim` is designed, not after |
+| 4 | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request, or a file in `docs/` | **Mon 20 Oct** | All three verified on EDGAR, with the amendment identified |
 
-Items 1 and 2 are the main thing. Items 3 and 4 are what makes next week possible —
-3 because without an amendment in the corpus we cannot test corrections at all, and
-4 because the `Claim` node should be shaped by sentences that actually exist.
+**Why these dates, and why they differ.**
 
-**Why Friday:** the extraction prototype starts next week and every prompt written
-after that point assumes a settled ontology. Changing it later means redoing that
-work.
+Item 3 comes first because it feeds decision 2.3. Designing the `Claim` node and
+then looking for sentences that fit it is how you end up modelling an imaginary
+filing. An hour's work, and it has to happen before the merge rather than after.
+
+Items 1 and 2 are due Friday because the extraction prototype starts next week, and
+every prompt written after that point assumes a settled ontology. Changing it later
+means redoing that work.
+
+Item 4 can wait until Monday. Nothing is blocked by it until real filings get
+loaded, and verifying amendments on EDGAR is fiddlier than it sounds.
+
+---
+
+## What this file should look like on Friday
+
+So it is clear what finished means.
+
+**Part 0** — the `Agreed` columns filled in. One casing convention, one name per
+link.
+
+**Part 2** — all eight decisions answered, two lines each, initials and a date. Two
+of the eight coming back `Unresolved` with an owner against them is a fine result,
+not a failure. `SourceChunk` is the likeliest, because it depends on whether the
+section-first corpus proposal lands, and that is not ours to decide. Forcing a
+decision we do not have the standing to make produces an agreement that gets
+reopened.
+
+**Part 3** — still open, which is the correct state for it. The point is that it
+says so out loud.
+
+**The starting draft** — either deleted, or rewritten as the agreed list with the
+question marks replaced.
+
+**A short summary at the top** — the nodes and links we ended up with, so a reader
+does not have to reconstruct them from eight separate answers.
+
+**The real test is item 2, not this file.** If a decision cannot be loaded into
+eleven nodes, it was not finished. That check takes half an hour and it is what
+tells us whether we agreed something buildable or something that only reads well.
 
 **If you get stuck:** a half-finished file with owners against the open rows is a
 good outcome, and far better than a complete one nobody remembers agreeing to. Say
