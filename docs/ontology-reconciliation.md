@@ -7,11 +7,44 @@ following. It has been revised several times.
 [ontology-proposal-claudia.md](./ontology-proposal-claudia.md) is newer, and has
 things the first one is missing.
 
-This file is for merging them. Fill in the blanks during the session. When it is
-done, it becomes the ontology and both of the other documents point at it.
+This file is for merging them. Fill in the blanks as you work through it, together or
+separately. When it is done, it becomes the ontology and both of the other documents
+point at it.
+
+---
+
+## The ask
+
+**Who:** Claudia and Alina. Split it however you like — we are not assuming you work
+through it in one sitting or in the same room.
+
+**By:** Friday 17 October, end of day.
+
+**What we need back, in this form:**
+
+| # | Deliverable | Where it goes | Done when |
+| --- | --- | --- | --- |
+| 1 | This file, with every `Answer:` and `Question it answers:` line filled in | Committed to `docs/` on a branch, as a pull request | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
+| 2 | `toy_graph/toy_graph.py` updated to match what you agreed | Same pull request | `python3 toy_graph.py` runs and reports idempotent |
+| 3 | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request description, or a file in `docs/` | The three are verified on EDGAR and the amendment is identified |
+| 4 | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | The labels exist before the `Claim` node is designed, not after |
+
+Items 1 and 2 are the main thing. Items 3 and 4 are what makes next week possible —
+3 because without an amendment in the corpus we cannot test corrections at all, and
+4 because the `Claim` node should be shaped by sentences that actually exist.
+
+**Why Friday:** the extraction prototype starts next week and every prompt written
+after that point assumes a settled ontology. Changing it later means redoing that
+work.
+
+**If you get stuck:** a half-finished file with owners against the open rows is a
+good outcome, and far better than a complete one nobody remembers agreeing to. Say
+what is unresolved rather than guessing.
+
+---
 
 **The rule we agreed:** every node and every link needs a question it helps answer,
-named out loud by someone in the room. Anything without one gets cut. It is easy to
+written down by whoever takes that row. Anything without one gets cut. It is easy to
 keep adding to an ontology and hard to take things out, so the rule has to do that
 work for us.
 
@@ -23,7 +56,7 @@ this is a reasonable test, not a punishment.
 
 ## Where the two documents differ
 
-Read this before we meet, so we are not working it out in the first twenty minutes.
+Read this first. It saves working out the overlap from scratch.
 
 ### Nodes
 
@@ -113,7 +146,7 @@ Node names in PascalCase, link names in UPPER_SNAKE — see Part 0.
 
 ---
 
-## Part 0 · Names — settle this first, 10 minutes
+## Part 0 · Names — do this one first
 
 Not a matter of taste. Neo4j has its own convention: **node names in PascalCase**,
 **link names in UPPER_SNAKE**.
@@ -142,7 +175,7 @@ result is fine. This is worth a short conversation, not a long one.
 
 ---
 
-## Part 1 · Nodes we already agree on, 5 minutes
+## Part 1 · Nodes we already agree on
 
 Confirm these and move on.
 
@@ -155,7 +188,7 @@ Confirm these and move on.
 
 ---
 
-## Part 2 · The eight real decisions, 5 minutes each
+## Part 2 · The eight real decisions
 
 Each one needs an answer and the question that justifies it. If the question line is
 empty, the row is cut.
@@ -259,7 +292,7 @@ Question it answers:
 
 ---
 
-## Part 3 · Still open, 5 minutes
+## Part 3 · Still open
 
 Write these down as open, rather than letting them look settled.
 
@@ -271,6 +304,24 @@ Write these down as open, rather than letting them look settled.
 
 ---
 
+## How to work through it
+
+However suits you. Split the rows between you, take a call, or do it in a pull
+request — the file is in the repo, so comments on a diff work as well as talking.
+
+Two things that make the async version work:
+
+**Put your initials next to any row you answer.** Then it is obvious who to ask, and
+obvious which rows nobody has touched.
+
+**Part 0 first, whoever gets there.** The naming rule comes from Neo4j rather than
+from either of us, so it does not need both people present. Everything else reads
+more easily once the names are consistent.
+
+If you do talk it through live, the eight decisions are about five minutes each, and
+the whole thing is a bit over an hour. If any single row runs long, it is bigger
+than it looks — pull it out as its own piece of work rather than solve it tired.
+
 ## What we should have at the end
 
 1. This file, filled in. It becomes the ontology.
@@ -280,20 +331,5 @@ Write these down as open, rather than letting them look settled.
 4. `toy_graph/toy_graph.py` updated to match, which is how we find out whether what
    we agreed can actually be built.
 
-If we do not get to the end, stop after Part 2 and write down which rows are
-unresolved and who owns each one. Half a decision with a name on it beats a whole
-one nobody remembers making.
-
-## Timings
-
-| Part | Minutes |
-| --- | --- |
-| 0 · Names | 10 |
-| 1 · Nodes we agree on | 5 |
-| 2 · Eight decisions | 40 |
-| 3 · Still open | 5 |
-| Writing it up | 15 |
-
-Seventy-five minutes. If we go past ninety, something in Part 2 is bigger than it
-looks, and we should pull it out as its own piece of work rather than solve it
-tired.
+Getting partway is fine. Write down which rows are unresolved and who owns each one.
+Half a decision with a name on it beats a whole one nobody remembers making.
