@@ -193,6 +193,36 @@ Confirm these and move on.
 Each one needs an answer and the question that justifies it. If the question line is
 empty, the row is cut.
 
+### What a filled-in row looks like
+
+Two short lines. Not an essay — the reasoning above each decision is already written
+down, so the answer only has to say what was chosen and what it is for.
+
+> **2.5 `Executive` — cut unless someone names a question**
+>
+> Answer: **Cut.** AS/CW, 16 Oct. Revisit if a question turns up that needs it.
+> Question it answers: none. Neither of us could name one.
+
+And one that stays in:
+
+> **2.6 `Subsidiary` — take it from the other document**
+>
+> Answer: **Keep**, with `sub_id` as its ID, built from the parent company ID and a
+> tidied-up name. CW, 16 Oct.
+> Question it answers: "Which companies does Northwind own, and what do their
+> segments report?" Exhibit 21 is the only place this comes from.
+
+A row you could not settle looks like this, and it is a perfectly good outcome:
+
+> **2.2 Is a chunk of text its own node, or just an ID on other things**
+>
+> Answer: **Unresolved.** Depends on whether the section-first proposal lands, and
+> that is not ours to decide. Owner: CW, carried to next week.
+> Question it answers: pending.
+
+Initials and a date on each row mean we know who to ask later, and which rows nobody
+has touched yet.
+
 ### 2.1 Two nodes for metrics, or one
 
 The proposal separates the concept ("Revenue") from the value ("revenue in FY2025
