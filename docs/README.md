@@ -13,6 +13,8 @@ Ported from Notion on 2026-10-13. **The Columbia Notion workspace has used all i
 | [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval, with candidate questions | Eval, RAG |
 | [section-vocabulary.md](./section-vocabulary.md) | Why one Item-level label isn't enough, and the three-field fix | Data, RAG, Eval |
 | [agent-notes.md](./agent-notes.md) | What changes for Agents now that we conform to RAG's contract | Agents, UI |
+| [Ontology_v1.md](./Ontology_v1.md) | Ontology draft — entities, claims, two business use cases. **Overlaps schema-ids-operations.md and disagrees with it on names.** One of the two needs to be canonical | — |
+| [sprints/](./sprints/) | One file per week: owners, done conditions, decisions the week is waiting on | — |
 
 ## Open items
 
@@ -32,7 +34,12 @@ Moved to [action-items.md](./action-items.md), which consolidates everything ope
 | `graphrag/contract.py` | Evidence shape and validation, mirroring RAG's `rag/contract.py` |
 | `mock/mock_retrieval_tools.py` | INT-0 mocks for `graph_search` and `structured_search`. Standalone, standard library only |
 | `tests/test_contract.py` | 47 conformance tests. They run against the mock now and the real tools later |
+| `toy_graph/` | A small graph in Neo4j, used to test the schema against a question that needs several hops. Found two gaps — see its README |
 
 ```bash
 python3 -m pytest tests/ -q
+```
+
+```bash
+cd toy_graph && python3 toy_graph.py && python3 check_findings.py
 ```
