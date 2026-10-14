@@ -1,3 +1,16 @@
+# Ontology proposal — Claudia
+
+> First draft, 2026-10-14. A proposal against
+> [schema-ids-operations.md](./schema-ids-operations.md), which is the standing
+> schema.
+>
+> Three things here are not in the standing schema and should be taken into it: the
+> `Claim` node with `claim_type`, `extraction_status`, and the two written-out
+> business use cases — one of which supplies the justification `RiskFactor` was
+> missing.
+>
+> Being merged — see [ontology-reconciliation.md](./ontology-reconciliation.md).
+
 ### 1. Objective
 
 Design a small, evidence-grounded knowledge graph for SEC financial filings (10-K, 10-Q, and 8-K) to support cross-company comparisons, multi-period analysis, and multi-hop financial question answering.
