@@ -18,27 +18,28 @@ point at it.
 **Who:** Claudia and Alina. Split it however you like — we are not assuming you work
 through it in one sitting or in the same room.
 
-**What we need back, in this form:**
+**What we need back**, in date order — they are not all due at once.
 
-| # | Deliverable | Where it goes | Due | Done when |
-| --- | --- | --- | --- | --- |
-| 1 | This file, with every `Answer:` and `Question it answers:` line filled in | A pull request | **Fri 17 Oct** | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
-| 2 | `toy_graph/toy_graph.py` updated to match what was agreed | Same pull request | **Fri 17 Oct** | `python3 toy_graph.py` runs and reports idempotent |
-| 3 | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | **Thu 16 Oct** | The labels exist before `Claim` is designed, not after |
-| 4 | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request, or a file in `docs/` | **Mon 20 Oct** | All three verified on EDGAR, with the amendment identified |
+| Due | Deliverable | Where it goes | Done when |
+| --- | --- | --- | --- |
+| **Thu 16 Oct** | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | The labels exist before `Claim` is designed, not after |
+| **Fri 17 Oct** | This file, with every `Answer:` and `Question it answers:` line filled in | A pull request | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
+| **Fri 17 Oct** | `toy_graph/toy_graph.py` updated to match what was agreed | Same pull request | `python3 toy_graph.py` runs and reports idempotent |
+| **Mon 20 Oct** | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request, or a file in `docs/` | All three verified on EDGAR, with the amendment identified |
 
 **Why these dates, and why they differ.**
 
-Item 3 comes first because it feeds decision 2.3. Designing the `Claim` node and
-then looking for sentences that fit it is how you end up modelling an imaginary
-filing. An hour's work, and it has to happen before the merge rather than after.
+The labelled sentences come first because they feed decision 2.3. Designing the
+`Claim` node and then looking for sentences that fit it is how you end up modelling
+an imaginary filing. An hour's work, and it has to happen before the merge rather
+than after.
 
-Items 1 and 2 are due Friday because the extraction prototype starts next week, and
-every prompt written after that point assumes a settled ontology. Changing it later
-means redoing that work.
+The merge and the loader are due Friday because the extraction prototype starts next
+week, and every prompt written after that point assumes a settled ontology. Changing
+it later means redoing that work.
 
-Item 4 can wait until Monday. Nothing is blocked by it until real filings get
-loaded, and verifying amendments on EDGAR is fiddlier than it sounds.
+The three filings can wait until Monday. Nothing is blocked by them until real
+filings get loaded, and verifying amendments on EDGAR is fiddlier than it sounds.
 
 ---
 
@@ -65,7 +66,7 @@ question marks replaced.
 **A short summary at the top** — the nodes and links we ended up with, so a reader
 does not have to reconstruct them from eight separate answers.
 
-**The real test is item 2, not this file.** If a decision cannot be loaded into
+**The real test is the loader, not this file.** If a decision cannot be loaded into
 eleven nodes, it was not finished. That check takes half an hour and it is what
 tells us whether we agreed something buildable or something that only reads well.
 
