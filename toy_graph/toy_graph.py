@@ -43,11 +43,17 @@ def normalise(name):
 # Three shapes, because one contract does not cover all three sources.
 # Neo4j has no nested maps, so these flatten to prov_* properties.
 
-def from_text(chunk_id, start, end):
-    """Anything extracted from prose."""
+def from_text(chunk_id, start, end, section_id=None):
+    """Anything extracted from prose.
+
+    Pass section_id when the passage sits in a section we model. Edge keys
+    anchor on it, so the key survives a re-chunk. Keep the chunk id too - it
+    is what cites an exact span.
+    """
     return {
         "prov_shape": "text",
         "prov_source_chunk_id": chunk_id,
+        "prov_section_id": section_id,
         "prov_accession": chunk_id.split("#")[0],
         "prov_char_start": start,
         "prov_char_end": end,
@@ -82,6 +88,10 @@ COASTAL = "0000987654"
 TENK = "0000123456-25-000012"
 TENKA = "0000123456-25-000031"
 
+# This key is built from a character offset, which the schema doc lists as a
+# solved problem - we are meant to adopt Data's section_key instead. We cannot
+# yet, because nobody has read-only credentials to look one up. Swap it when
+# the credentials land, and the edge keys below change with it.
 SEC_ITEM7 = key("sec", TENK, "Item 7", 184_205)
 SUB_HARBOR = key("sub", NORTHWIND, normalise("Harbor Logistics LLC"))
 SEG_FREIGHT = key("seg", NORTHWIND, normalise("Freight Services"))
@@ -158,7 +168,8 @@ EDGES = [
     (NORTHWIND, TENK, "FILES", from_metadata("EDGAR submissions API")),
     (NORTHWIND, TENKA, "FILES", from_metadata("EDGAR submissions API")),
     (TENKA, TENK, "AMENDS", from_metadata("EDGAR submissions API")),
-    (TENK, SEC_ITEM7, "CONTAINS", from_text(f"{TENK}#c0412", 184_205, 191_880)),
+    (TENK, SEC_ITEM7, "CONTAINS",
+     from_text(f"{TENK}#c0412", 184_205, 191_880, section_id=SEC_ITEM7)),
     (NORTHWIND, SUB_HARBOR, "OWNS", {
         "valid_from": "2024-04-03",
         "quote": "Harbor Logistics LLC — Delaware — wholly owned",
@@ -183,7 +194,7 @@ EDGES = [
         "valid_from": "2024-04-03",
         "quote": "Harbor's results are consolidated within the Freight Services "
                  "segment from the acquisition date.",
-        **from_text(f"{TENK}#c0412", 184_612, 184_726),
+        **from_text(f"{TENK}#c0412", 184_612, 184_726, section_id=SEC_ITEM7),
     }),
 ]
 
@@ -191,8 +202,16 @@ LABELS = sorted({label for _, label, _ in NODES})
 
 
 def edge_key(src, rel, dst, props):
-    """Edge keys include the chunk they came from, so two sources give two edges."""
-    return key("e", src, rel, dst, props.get("prov_source_chunk_id", "-"))
+    """Two sources for the same relationship give two edges, so the source is
+    part of the key.
+
+    Never the chunk id. Data re-chunks between W6 and W9, which would give the
+    same sentence a new chunk id and MERGE a second copy of an edge we already
+    have. Section ids do not move. Where we have not modelled the section yet,
+    fall back to the accession, which does not move either.
+    """
+    anchor = props.get("prov_section_id") or props.get("prov_accession", "-")
+    return key("e", src, rel, dst, anchor)
 
 
 # ------------------------------------------------------------------ loading
