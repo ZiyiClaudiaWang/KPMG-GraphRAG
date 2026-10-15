@@ -48,7 +48,7 @@ This is a coverage gap, not a criticism. Both sets are good at what they cover.
 - **10-Ks, not only 10-Qs.** Ex-21 is filed with the 10-K. No 10-K, no subsidiary edges, no traversal questions.
 - **At least three companies**, with at least one pair sharing overlapping Ex-21 subsidiary lists.
 - **At least one company across three or more years**, and ideally one that renamed or was acquired.
-- **One 10-K/A beside the original it amends**, so the as-filed vs as-restated distinction is testable.
+- **One 10-K/A beside the original it amends**, so the `as_filed` vs `as_restated` distinction is testable.
 
 That is the same stress sample already requested from Data in the data contract, so this does not add a new corpus ask — it reuses one that is already outstanding.
 

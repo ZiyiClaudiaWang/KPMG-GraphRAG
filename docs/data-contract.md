@@ -69,7 +69,15 @@ And one question that decides how much this matters: **is `section_key` derived 
 
 This is our most load-bearing gap. Without it, "what was R&D spend in FY2023" has two correct answers that disagree, and nothing in the data says which is which. Every numeric answer we return has to name its basis and cite an accession.
 
-Either assert it on the fact, or confirm we derive it from `amendment_of_id` and we will build that. We only need to know which.
+**We need two things, and the second is the one usually left out.**
+
+**One — the label.** Either assert `basis` on the fact, or confirm we derive it from `amendment_of_id` and we will build that. We only need to know which. The values are `as_filed` and `as_restated`; we have settled that spelling our end so the field has one name wherever it appears.
+
+**Two — what identifies which fact replaced which.** `amendment_of_id` is filing-level, and a correction is not. Asking "was this filing amended" marks every number in the original out of date, including periods the amendment never touched — we built a graph on 14 Oct that does exactly this, and it left a year-on-year comparison with no baseline. Concept plus period is the minimum; an explicit pointer from the replacement to what it replaced is better.
+
+A number is out of date only when the amendment replaces **that same concept for that same period**. The label alone cannot tell us that.
+
+Note that `basis` says where a number came from, not whether it is current. Whether it is current is computed from the amendment relation at query time. A fact can be `as_filed` and perfectly current — most of them are.
 
 ### 3 · Note-level codes in `section_types`
 

@@ -58,7 +58,7 @@ ORDER BY superseded_by IS NULL DESC
 def show(rows):
     for r in rows:
         state = f"superseded by {r['superseded_by']}" if r["superseded_by"] else "CURRENT"
-        print(f"    ${r['value']:>13,.0f}  {r['basis']:<9} in {r['filed_in']:<7} — {state}")
+        print(f"    ${r['value']:>13,.0f}  {r['basis']:<12} in {r['filed_in']:<7} — {state}")
 
 
 class CheckFailed(AssertionError):
@@ -141,7 +141,7 @@ def main():
         a = live["2023-12-31"]["value"]
         b = live["2024-12-31"]["value"]
         stale = 412_000_000.0
-        expect(live["2024-12-31"]["basis"] == "restated",
+        expect(live["2024-12-31"]["basis"] == "as_restated",
                "FY2024 current value is not the restated one")
         expect(b != stale,
                "FY2024 came back as the superseded figure — the correct query is "

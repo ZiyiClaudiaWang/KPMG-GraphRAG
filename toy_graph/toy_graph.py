@@ -143,17 +143,17 @@ NODES = [
     }),
     (FACT_24_FILED, "FACT", {
         "concept": "Revenues", "value": 412_000_000.0, "unit": "USD",
-        "period_start": "2024-01-01", "period_end": "2024-12-31", "basis": "as-filed",
+        "period_start": "2024-01-01", "period_end": "2024-12-31", "basis": "as_filed",
         **from_xbrl(TENK, "c-freight-FY2024", "USD"),
     }),
     (FACT_24_REST, "FACT", {
         "concept": "Revenues", "value": 388_400_000.0, "unit": "USD",
-        "period_start": "2024-01-01", "period_end": "2024-12-31", "basis": "restated",
+        "period_start": "2024-01-01", "period_end": "2024-12-31", "basis": "as_restated",
         **from_xbrl(TENKA, "c-freight-FY2024", "USD"),
     }),
     (FACT_23_FILED, "FACT", {
         "concept": "Revenues", "value": 286_500_000.0, "unit": "USD",
-        "period_start": "2023-01-01", "period_end": "2023-12-31", "basis": "as-filed",
+        "period_start": "2023-01-01", "period_end": "2023-12-31", "basis": "as_filed",
         **from_xbrl(TENK, "c-freight-FY2023", "USD"),
     }),
 ]
@@ -256,8 +256,11 @@ def set_captions(session):
         ("SECTION", "n.item"),
         ("SUBSIDIARY", "n.name"),
         ("SEGMENT", "n.name"),
+        # basis is stored as as_filed / as_restated; the caption reads better
+        # with a space, and nothing but the picture reads the caption.
         ("FACT", "n.concept + ' ' + left(n.period_end, 4) + ' $' + "
-                 "toString(round(n.value / 1000000.0, 1)) + 'm (' + n.basis + ')'"),
+                 "toString(round(n.value / 1000000.0, 1)) + 'm (' + "
+                 "replace(n.basis, '_', ' ') + ')'"),
     ]
     for label, expr in captions:
         session.run(f"MATCH (n:{label}) SET n.display = {expr}")
