@@ -83,17 +83,27 @@ Found 2026-10-13:
 
 ### Settled
 
-| Node | Key | Why it exists |
+A node ships only if the third column is filled in. An empty cell means nobody has
+named a question the node unlocks, and a node that answers no question is weight.
+This rule was always written down and never enforced; the toy graph on 14 Oct is why
+it is now a column.
+
+| Node | Key | Question it answers |
 |---|---|---|
-| **COMPANY** | `cik` | The join key for both arms. Ticker, legal name, SIC, valid-from / valid-to for renames |
-| **FILING** | `accession` | Form type, filed date, period end, `amends_accession` for 10-K/A |
-| **SECTION** | `section_id` | Item 1A, Item 7 and so on. `section_id` is the text provenance key our edges point at, carrying `section_path` and character offsets. Chunks hang off sections, not the other way round |
-| **FACT** | `fact_id` | One XBRL fact. Concept, value, unit, period, `basis`, `context_ref` |
-| **SEGMENT** | `segment_id` | Reportable segments. Facts are dimensioned by these |
-| **SUBSIDIARY** | `sub_id` | Exhibit 21. The main source of cross-company multi-hop questions |
-| **DOCUMENT** | `accession_number` + `role` | A filing is several documents. Exhibit 21 is its own, with its own offset space |
-| **TABLE** | `accession_number` + `table_key` | Ex-21 and the segment note are tables, not prose |
-| **CELL** | `table_key` + `cell_key` | Where table-derived edges cite. Carries a required XPath in Data's schema |
+| **COMPANY** | `cik` | M07 — "What was X called before FY2022, and what did it report under the earlier name?" One identity across two legal names, which is why it carries valid-from / valid-to |
+| **FILING** | `accession` | M13 — "Which figures changed between X's 10-K and its 10-K/A?" Needs `amends_accession` |
+| **SECTION** | `section_id` | M06 — "Which risk factors appear in X's FY2023 10-K that were absent in FY2021?" A set difference across two Item 1As |
+| **FACT** | `fact_id` | M12 — "What did X report as FY2023 revenue as filed, and what did the 10-K/A restate it to?" Both versions must survive ingestion, which is what `basis` is for |
+| **SEGMENT** | `segment_id` | M11 — "Which of X's segments contributed most to revenue growth between FY2022 and FY2023?" Dimensional facts, total versus part |
+| **SUBSIDIARY** | `sub_id` | M01 — "Which subsidiaries does X list in Exhibit 21, and how many are incorporated outside the United States?" Settled in the reconciliation worksheet, 2.6 |
+| **DOCUMENT** | `accession_number` + `role` | **Unnamed.** Added 13 Oct from reading Data's `source_documents`. The argument is that Exhibit 21 has its own offset space, which is a reason it is *correct*, not a question it answers |
+| **TABLE** | `accession_number` + `table_key` | **Unnamed.** Added 13 Oct. Ex-21 and the segment note are tables rather than prose, but no question yet needs the table as an addressable thing |
+| **CELL** | `table_key` + `cell_key` | **Unnamed.** Added 13 Oct. Carries a required XPath in Data's schema. The candidate is citing a rendered figure and its XBRL fact together — nobody has written it as a question |
+
+The three unnamed rows are exactly the three nodes added by reading Data's migration
+files rather than by asking something. Name a question for each before W5 or cut them.
+`CELL` is the one most likely to survive, and it is also the one to put to KPMG: is
+cell-level citation what an audit trail wants, or further than anyone needs?
 
 ### Contested — each needs a question to earn its place
 
@@ -137,6 +147,38 @@ The old sketch was flat and stopped at Item level, which is exactly where our mo
 **`TABLE` and `CELL` are nodes now.** Our highest-confidence edges come from the Exhibit 21 subsidiary list, which is a table, and the ontology had nowhere for a cell to live and no way for an edge to cite one. Data's `table_cells` carries row and column indices, spans, headings and a required XPath, so the provenance already exists — we just had no node for it.
 
 **`CELL` evidences `FACT`.** Data's `cell_fact_links` ties a rendered table cell to the XBRL fact behind it by inline-XBRL id. That is the join that lets a cited number point at both the figure an analyst sees and the tagged fact underneath.
+
+### What the toy graph found, 2026-10-14
+
+Eleven nodes in Neo4j, one constructed 10-K and its amendment, one question needing
+several hops. Schema v1 could not answer it, in two places. Both reproduce by running
+`toy_graph/check_findings.py`.
+
+**A number is superseded only when the amendment replaces that same concept for that
+same period.** `AMENDS` is filing-level, and judging staleness by "was this filing
+amended" marks every fact in the original out of date — including periods the
+amendment never touched. In the toy filing that leaves FY2023 with no current value
+and the year-on-year comparison with no baseline: +35.6% and +43.8% are both
+defensible from the filing text, and only one is current.
+
+This is a grain mismatch, not an oversight. The source gives supersession at filing
+grain because that is what `amendment_of_id` is; the question needs it at
+concept-and-period grain. **Check every edge for the same gap** — at what grain does
+the source supply this, and at what grain does the question need it. `SCOPES`,
+`EVIDENCES`, `REPORTS` and `CONTAINS` have not been checked.
+
+It also lands on an existing ask. `basis` on facts is already our most load-bearing
+gap; this is the demonstration of what it costs. Until Data either asserts `basis` or
+confirms we derive it from `amendment_of_id`, the rule above is written down and not
+enforceable.
+
+**Nothing links a subsidiary to the segment it consolidates into.** The only route is
+up to the parent and back down, which returns every segment the company has, so the
+first hop fails. The toy graph loads a proposed `CONSOLIDATED_INTO` edge flagged
+`in_schema_v1: false` purely so the rest of the question runs. It is not in the schema
+above. Whether it becomes an edge or a property on `OWNS` is decision 2.8 in
+[ontology-reconciliation.md](./ontology-reconciliation.md), due 17 Oct — and by the
+rule at the top of Layer 1, it ships only if someone names the question first.
 
 ## Layer 2 · Operation catalog
 
