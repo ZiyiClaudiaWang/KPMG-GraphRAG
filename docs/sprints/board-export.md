@@ -14,10 +14,9 @@ Status came across as 81 not started and 7 in progress. W3 and W4 are both past,
 anything unticked there is overdue rather than planned. The three W3 plan-and-finish
 cards were confirmed done on 15 Oct and are ticked here.
 
-One card needs rewording before it is built: W4's *provenance stamping: source_chunk_id
-on every node and edge*. Keeping `source_chunk_id` as an attribute is right; letting it
-reach the edge key is what duplicated every edge on a re-chunk. See Layer 0 of
-[schema-ids-operations.md](../schema-ids-operations.md).
+One card was reworded on 15 Oct — W4's *provenance stamping*, under Extraction 1. It
+said to stamp `source_chunk_id` on every node and edge, and that is how the loader
+came to key on it. Carrying the chunk id is right; keying on it is not.
 
 ## W3 · week of 2026-10-05
 
@@ -75,7 +74,7 @@ reach the edge key is what duplicated every edge on a re-chunk. See Layer 0 of
 
 - [ ] Toy graph loaded, roughly 100 nodes. *(in progress)* Due 2026-10-16.
 - [ ] Extraction prototype running on 2-3 filings. Due 2026-10-14. Blocked by: Data parsed chunks.
-- [ ] Provenance stamping: source_chunk_id on every node and edge. Due 2026-10-16.
+- [ ] Provenance stamping: `section_id` and `accession_number` on every node and edge, with `source_chunk_id` carried alongside as an attribute. **Keys anchor on the section, never the chunk** — chunk ids change when Data re-chunks, and a chunk-keyed edge then loads a second copy of a relationship we already have. Due 2026-10-16. Reworded 15 Oct; the original said to stamp `source_chunk_id` on every node and edge, which is how the loader came to key on it. See Layer 0 of [schema-ids-operations.md](../schema-ids-operations.md).
 
 ### Extraction 2 — Alina
 
