@@ -180,7 +180,7 @@ claim that an exhibit has its own offset space is also untested. `DOCUMENT`, `TA
 and `CELL` are the same three nodes with no named question in Layer 1 above. No
 question and no instance, which is one problem rather than two.
 
-The three filings due 20 Oct are what unblocks the bottom half of the table.
+The three filings due 19 Oct are what unblocks the bottom half of the table.
 
 It also lands on an existing ask. `basis` on facts is already our most load-bearing
 gap; this is the demonstration of what it costs. Until Data either asserts `basis` or

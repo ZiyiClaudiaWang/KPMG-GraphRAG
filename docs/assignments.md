@@ -40,23 +40,56 @@ Oversight, not build. Between them they own everything that is nobody else's job
 
 **Contract discussions — one co-lead holds all of these.** A second voice on a cross-team contract is how teams end up with two answers to the same question.
 
-| # | Item | Counterparty |
-|---|---|---|
-| 1 | Read-only database credentials | Data |
-| 2 | Stable identifier — `uuid5(namespace, accession_number + section_key)`, or expose the natural key. Is `section_key` content-derived or positional? | Data |
-| 3 | `basis` on facts, or confirmation we derive it | Data |
-| 4 | Note-level codes in `section_types` | Data |
-| 5 | `sic`, `state_of_incorp`, `exchange`, `fiscal_year`, `fiscal_period` | Data |
-| 6 | When do chunks land on `main`; is `reports.sections` or `sec.report_sections` authoritative | Data |
-| 7 | Was `retrieval_api.md` v0 signed off on 8 Oct? | RAG |
-| 8 | Ask for `section_id` and `quote` | RAG |
-| 9 | `section_coverage` for the 10-Qs, and `None` vs `"Unlabeled"` | RAG |
-| 10 | Schedule the three-way section conversation | RAG, Data, Eval |
-| 11 | Send [eval-ask.md](./eval-ask.md) — traversal tranche, abstention controls, which pilot corpus is real | Eval |
-| 12 | Send [agent-notes.md](./agent-notes.md), and tell them the mock exists | Agents |
-| 13 | Get a review slot for the structured tool contract | Agents |
+The co-lead is the only person who sends. The **second** column names the seat that
+interfaces most with that counterparty: they draft the technical content, and they
+read the reply and say whether it answers the question. Nobody but the co-lead
+writes to the other team.
+
+| # | Item | Counterparty | Second |
+|---|---|---|---|
+| 1 | Read-only database credentials | Data | Platform |
+| 2 | Stable identifier — `uuid5(namespace, accession_number + section_key)`, or expose the natural key. Is `section_key` content-derived or positional? | Data | Platform |
+| 3 | `basis` on facts, or confirmation we derive it | Data | Structured |
+| 4 | Note-level codes in `section_types` | Data | Extraction 2 |
+| 5 | `sic`, `state_of_incorp`, `exchange`, `fiscal_year`, `fiscal_period` | Data | Structured |
+| 6 | When do chunks land on `main`; is `reports.sections` or `sec.report_sections` authoritative | Data | Platform |
+| 7 | Was `retrieval_api.md` v0 signed off on 8 Oct? | RAG | Retrieval |
+| 8 | Ask for `section_id` and `quote` | RAG | Retrieval |
+| 9 | `section_coverage` for the 10-Qs, and `None` vs `"Unlabeled"` | RAG | Retrieval |
+| 10 | Schedule the three-way section conversation | RAG, Data, Eval | Extraction 2 |
+| 11 | Send [eval-ask.md](./eval-ask.md) — traversal tranche, abstention controls, which pilot corpus is real | Eval | Extraction 2 |
+| 12 | Send [agent-notes.md](./agent-notes.md), and tell them the mock exists | Agents | Retrieval |
+| 13 | Get a review slot for the structured tool contract | Agents | Structured |
 
 Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messages, about a morning.
+
+### Why each second
+
+**Platform** takes the three identity and plumbing asks, because that seat implements
+whichever scheme Data agrees and already owns corpus verification. Item 2 is the one
+the whole key scheme rests on.
+
+**Structured** takes `basis`, the company metadata fields and the structured tool
+contract. `basis` is a fact-table join on `amendment_of_id`, and this seat already
+holds the contingency if Data says to derive it rather than assert it.
+
+**Retrieval** takes everything with RAG and the tool handoffs to Agents, because
+`graphrag/contract.py` is the single definition of the evidence shape and this seat
+owns it. If the real tools need a field the mock lacks, the contract changes first.
+
+**Extraction 2** takes note-level sections, the three-way section conversation and
+the Eval ask. Section grain is an ontology question, and this seat's second hat is
+quality and evaluation — it is already the one specifying what each gold question
+should exercise.
+
+Carried over to the board's wider list, the same rule puts the KPMG schema sign-off
+and the acceptance thresholds behind Extraction 2, the numbers decision and the
+table-to-SQL scope question behind Structured, and INT-0 and the API integration
+behind Retrieval.
+
+**Watch the load.** Retrieval seconds eight threads while also replacing the INT-0
+mock with real tools, which is the heaviest single build item in W5 and W6. If one
+seat has to be relieved, it is that one.
 
 **Plan and finish — the other co-lead.**
 
