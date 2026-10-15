@@ -164,8 +164,23 @@ defensible from the filing text, and only one is current.
 This is a grain mismatch, not an oversight. The source gives supersession at filing
 grain because that is what `amendment_of_id` is; the question needs it at
 concept-and-period grain. **Check every edge for the same gap** — at what grain does
-the source supply this, and at what grain does the question need it. `SCOPES`,
-`EVIDENCES`, `REPORTS` and `CONTAINS` have not been checked.
+the source supply this, and at what grain does the question need it.
+
+Four edges are still unchecked, and they are not equivalent work:
+
+| Edge | State | What it needs |
+|---|---|---|
+| `SCOPES` | Three instances, traversed by the toy question but never interrogated for grain | An afternoon. Checkable today |
+| `REPORTS` | Same | An afternoon. Checkable today |
+| `CONTAINS` | One instance, `FILING → SECTION`. **`SECTION CONTAINS SECTION` is never built**, and that nesting is the whole reason for the 13 Oct change | A nested section in the toy graph |
+| `EVIDENCES` | **Not in the graph at all.** No `TABLE` or `CELL` nodes exist | A table and its cells in the toy graph |
+
+`DOCUMENT` is skipped too — the toy filing connects straight to a section, so the
+claim that an exhibit has its own offset space is also untested. `DOCUMENT`, `TABLE`
+and `CELL` are the same three nodes with no named question in Layer 1 above. No
+question and no instance, which is one problem rather than two.
+
+The three filings due 20 Oct are what unblocks the bottom half of the table.
 
 It also lands on an existing ask. `basis` on facts is already our most load-bearing
 gap; this is the demonstration of what it costs. Until Data either asserts `basis` or
