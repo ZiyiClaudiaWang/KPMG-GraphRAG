@@ -34,11 +34,18 @@ It does not wait on Data. Two or three 10-Ks pulled straight from EDGAR are enou
 
 **Owners: Adeline, Kelly.**
 
-> **Undecided:** which co-lead takes contract discussions and which takes plan-and-finish. Settle it before the first message goes out, because item 1 below is a single-voice job.
+> **Settled 15 Oct.** **Adeline takes contract discussions** — the seat the board calls
+> Co-lead 1, 25 tasks, every one of them facing Data, RAG, Eval, Agents or KPMG.
+> **Kelly takes plan and finish** — Co-lead 2, 18 tasks: freeze, dry run,
+> documentation, handoff, the integration checkpoints and the final readout.
+>
+> It follows what each has been doing. The data contract, the Eval ask and reply, the
+> agent notes and the schema document are Adeline's; the roster, the seat chart and
+> the three W3 planning cards are Kelly's.
 
 Oversight, not build. Between them they own everything that is nobody else's job. The split below is by kind of work, not by seniority — swap it if the other division suits you better.
 
-**Contract discussions — one co-lead holds all of these.** A second voice on a cross-team contract is how teams end up with two answers to the same question.
+**Contract discussions — Adeline holds all of these.** A second voice on a cross-team contract is how teams end up with two answers to the same question.
 
 The co-lead is the only person who sends. The **second** column names the seat that
 interfaces most with that counterparty: they draft the technical content, and they
@@ -52,7 +59,7 @@ writes to the other team.
 | 3 | `basis` on facts, or confirmation we derive it | Data | Structured |
 | 4 | Note-level codes in `section_types` | Data | Extraction 2 |
 | 5 | `sic`, `state_of_incorp`, `exchange`, `fiscal_year`, `fiscal_period` | Data | Structured |
-| 6 | When do chunks land on `main`; is `reports.sections` or `sec.report_sections` authoritative | Data | Platform |
+| 6 | When do chunks land on `main`; is `reports.sections` or `sec.report_sections` authoritative | Data | Extraction 1 |
 | 7 | Was `retrieval_api.md` v0 signed off on 8 Oct? | RAG | Retrieval |
 | 8 | Ask for `section_id` and `quote` | RAG | Retrieval |
 | 9 | `section_coverage` for the 10-Qs, and `None` vs `"Unlabeled"` | RAG | Retrieval |
@@ -65,9 +72,15 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ### Why each second
 
-**Platform** takes the three identity and plumbing asks, because that seat implements
+**Platform** takes the two identity and plumbing asks, because that seat implements
 whichever scheme Data agrees and already owns corpus verification. Item 2 is the one
 the whole key scheme rests on.
+
+**Extraction 1** takes item 6 only. Which section table is authoritative, and when
+chunks land, is the answer this seat's extraction consumes — a wrong answer surfaces
+there first. One thread, deliberately: every one of this seat's eight tasks is on the
+critical path through W4 and W5, which `assignments.md` already calls the collision
+point. Do not add a second.
 
 **Structured** takes `basis`, the company metadata fields and the structured tool
 contract. `basis` is a fact-table join on `amendment_of_id`, and this seat already

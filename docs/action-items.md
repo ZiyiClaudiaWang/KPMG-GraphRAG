@@ -68,11 +68,16 @@ Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-
 
 ## Owners
 
-Five of the seven seats are claimed and named in [assignments.md](./assignments.md). The two co-lead seats are Adeline and Kelly; which of them takes contract discussions and which takes plan-and-finish is still undecided, and item 1 under RAG and Data is a single-voice job that waits on it.
+All seven seats are claimed and named in [assignments.md](./assignments.md). Settled 15 Oct: **Adeline holds contract discussions, Kelly holds plan and finish.** Every contract item above also names a second seat — the one that interfaces most with that counterparty, who drafts the content and reads the reply. Adeline is still the only one who sends.
 
-## Still unconfirmed
+## Confirmed 15 Oct
 
-Fold these into the messages above rather than chasing separately: whether INT-0 happened, whether the W3 gate is 9 or 23 Oct, whether the 12 Oct sample filings arrived, and the 11 vs 17 Dec readout date.
+The four open dates, closed:
+
+- **INT-0 happened**, a day late. The mocks are at the final signature with 63 conformance tests. Agents have still not been told they exist, which is the outstanding half.
+- **The W3 gate is 9 Oct**, and it has not closed. The board resolves the charter-versus-class conflict: sign-off gates v1, not the build start, so work proceeds on v0 against public filings.
+- **The 12 Oct sample filings did not arrive.** The EDGAR fallback is now the path, not the contingency. It was always the plan for the toy graph, so nothing is blocked — but the read-only credentials ask gets more urgent, not less, because archaeology from migration files is now the only thing we know about their schema.
+- **The readout is Fri 11 Dec.** Freeze Mon 30 Nov, INT-4 Tue 1 Dec, dry run Thu 3 Dec.
 
 ## Deferred
 
