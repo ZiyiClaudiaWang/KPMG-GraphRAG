@@ -4,8 +4,6 @@ Created 2026-10-13. Maps the open items in [action-items.md](./action-items.md) 
 
 Seat labels stay fixed, so the plan survives a swap. Names go in the `Owner` lines and in the `Assignee` field on each task.
 
-> **Fill the Owner lines before sharing this.** A seat chart with no names reads as a suggestion rather than an allocation.
-
 ---
 
 ## This week: the toy graph
@@ -24,7 +22,7 @@ It does not wait on Data. Two or three 10-Ks pulled straight from EDGAR are enou
 
 ## Co-leads
 
-**Owners:**
+**Owners: Adeline & Kelly** 
 
 Oversight, not build. Between them they own everything that is nobody else's job. The split below is by kind of work, not by seniority — swap it if the other division suits you better.
 
@@ -59,7 +57,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Extraction 1
 
-**Owner:**
+**Owner: Claudia**
 
 ### Primary hat — graph construction
 
@@ -75,7 +73,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Extraction 2
 
-**Owner:**
+**Owner: Alina**
 
 ### Primary hat — ontology now, fuzzy entity resolution after
 
@@ -93,7 +91,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Structured
 
-**Owner:**
+**Owner: Ashley**
 
 ### Primary hat — XBRL fact layer and deterministic entity resolution
 
@@ -110,7 +108,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Retrieval
 
-**Owner:**
+**Owner: Alison**
 
 ### Primary hat — both retrieval tools behind the shared signature
 
@@ -125,7 +123,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Platform
 
-**Owner:**
+**Owner: Jacob**
 
 ### Primary hat — stores, loaders, builds, environments
 
