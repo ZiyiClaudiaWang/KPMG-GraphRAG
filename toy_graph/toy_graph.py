@@ -256,11 +256,13 @@ def set_captions(session):
         ("SECTION", "n.item"),
         ("SUBSIDIARY", "n.name"),
         ("SEGMENT", "n.name"),
-        # basis is stored as as_filed / as_restated; the caption reads better
-        # with a space, and nothing but the picture reads the caption.
+        # basis is stored as as_filed / as_restated. The caption shortens
+        # as_restated, because the full string wraps inside the node box and
+        # these pictures go on slides. Display only - nothing reads it.
         ("FACT", "n.concept + ' ' + left(n.period_end, 4) + ' $' + "
                  "toString(round(n.value / 1000000.0, 1)) + 'm (' + "
-                 "replace(n.basis, '_', ' ') + ')'"),
+                 "CASE n.basis WHEN 'as_restated' THEN 'restated' "
+                 "ELSE 'as filed' END + ')'"),
     ]
     for label, expr in captions:
         session.run(f"MATCH (n:{label}) SET n.display = {expr}")
