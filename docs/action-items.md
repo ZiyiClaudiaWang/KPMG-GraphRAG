@@ -8,7 +8,7 @@ Rewritten 2026-10-13 after reading the Data and RAG repos. The earlier version h
 |---|---|
 | Data | 53 Python files, 5 migrations, tests, CI |
 | RAG | 18 Python files, conformance tests, a mock, an eval harness |
-| Us | the INT-0 mock in this repo, and nine documents |
+| Us | the INT-0 mock in this repo, and ten documents |
 
 Our contracts are in good shape. Our implementation is a week behind two teams who have been shipping.
 
@@ -18,7 +18,7 @@ Our contracts are in good shape. Our implementation is a week behind two teams w
 
 **INT-0 was due 12 Oct** — mock `graph_search` and `structured_search` at the final signature, contract only, no real data.
 
-- [x] Mock tools at the agreed shape, with 47 conformance tests — `mock/mock_retrieval_tools.py`, `graphrag/contract.py`
+- [x] Mock tools at the agreed shape, with 63 conformance tests — `mock/mock_retrieval_tools.py`, `graphrag/contract.py`
 - [ ] Tell Agents it exists so they can build routing against it
 - [ ] **The toy graph — this week's deliverable.** Two or three 10-Ks from EDGAR, Pydantic plus structured outputs, mentions resolved to entities in a separate stage, loaded into Neo4j, one working `find_path`. Does not wait on Data, and it is the only test the revised ontology has
 - [ ] Fact loader over the same filings, into DuckDB
@@ -47,10 +47,16 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 
 ## 4 · Eval
 
+Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-reply.md](./eval-reply.md).
+
 - [ ] Send [eval-ask.md](./eval-ask.md) to Yulei Ding
 - [ ] **The traversal tranche.** Neither gold set has a question requiring traversal. Without it, W8 cannot show the graph earned its place
 - [ ] The abstention controls, M14–M16 — the only questions that catch a graph inventing edges
 - [ ] Which pilot corpus is real: MSFT, the six banks and industrials, or `pilot-corpus-setup`?
+- [ ] **Citation scoring must join on the provenance key, not `chunk_id`.** Ours is always null, so graph and structured evidence would score as uncited rather than scoring badly
+- [ ] Confirm whether rerun scoring keys on `index_version` alone — ours moves `extraction_version`
+- [ ] Get it in writing that scores are not comparable across tools, before an abstention threshold is fitted on one arm and applied to all three
+- [x] `trace_id` on both tools, echoed at `metadata.trace_id`
 
 ## 5 · Agents
 
@@ -62,7 +68,7 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 
 ## Owners
 
-Nothing above has a name against it. Seven people, two hats each, and the two teams moving fastest have four or five contributors in parallel branches. This is the item that makes the rest happen.
+Five of the seven seats are claimed and named in [assignments.md](./assignments.md). The two co-lead seats are Adeline and Kelly; which of them takes contract discussions and which takes plan-and-finish is still undecided, and item 1 under RAG and Data is a single-voice job that waits on it.
 
 ## Still unconfirmed
 

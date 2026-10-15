@@ -4,7 +4,15 @@ Created 2026-10-13. Maps the open items in [action-items.md](./action-items.md) 
 
 Seat labels stay fixed, so the plan survives a swap. Names go in the `Owner` lines and in the `Assignee` field on each task.
 
-> **Fill the Owner lines before sharing this.** A seat chart with no names reads as a suggestion rather than an allocation.
+| Seat | Owner | GitHub |
+|---|---|---|
+| Co-lead | Adeline | `halfabluebanana` |
+| Co-lead | Kelly | `wenyu-kelly-zhou` |
+| Extraction 1 | Claudia | `ZiyiClaudiaWang` |
+| Extraction 2 | Alina | `Alinanil16` |
+| Structured | Ashley | `Ashley-379` |
+| Retrieval | Alison | `alisoniyuanchen` |
+| Platform | Jacob | `JacobKHiser03` |
 
 ---
 
@@ -24,7 +32,9 @@ It does not wait on Data. Two or three 10-Ks pulled straight from EDGAR are enou
 
 ## Co-leads
 
-**Owners:**
+**Owners: Adeline, Kelly.**
+
+> **Undecided:** which co-lead takes contract discussions and which takes plan-and-finish. Settle it before the first message goes out, because item 1 below is a single-voice job.
 
 Oversight, not build. Between them they own everything that is nobody else's job. The split below is by kind of work, not by seniority — swap it if the other division suits you better.
 
@@ -59,7 +69,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Extraction 1
 
-**Owner:**
+**Owner: Claudia.**
 
 ### Primary hat — graph construction
 
@@ -75,12 +85,12 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Extraction 2
 
-**Owner:**
+**Owner: Alina.**
 
 ### Primary hat — ontology now, fuzzy entity resolution after
 
 - [ ] **Validate the four new nodes against the toy graph's filings**, with Extraction 1. Does `SECTION CONTAINS SECTION` hold for a 10-K Item 8? Is `CELL` the right grain for an Exhibit 21? See [schema-ids-operations.md](./schema-ids-operations.md)
-- [ ] **Close the contested list.** `EVENT`, `OFFICER`, `RISKFACTOR`, `FINANCIALMETRIC`, `PEER` — each needs a named question it unlocks, or it is cut
+- [ ] **Close the contested list.** `EVENT`, `OFFICER`, `FINANCIALMETRIC`, `PEER` — each needs a named question it unlocks, or it is cut. `RISKFACTOR` was already cut on 13 Oct, because Data's `section_types` has a `risk_factors` code
 - [ ] Confirm `PEER_OF` is sourced from SIC, or drop it
 - [ ] Then: subsidiary and segment-name matching
 
@@ -93,7 +103,7 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Structured
 
-**Owner:**
+**Owner: Ashley.**
 
 ### Primary hat — XBRL fact layer and deterministic entity resolution
 
@@ -110,11 +120,11 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Retrieval
 
-**Owner:**
+**Owner: Alison.**
 
 ### Primary hat — both retrieval tools behind the shared signature
 
-- [ ] **Replace the INT-0 mock with the real tools without breaking a test.** `mock/mock_retrieval_tools.py` and the 47 conformance tests in `tests/test_contract.py` define the target exactly
+- [ ] **Replace the INT-0 mock with the real tools without breaking a test.** `mock/mock_retrieval_tools.py` and the 63 conformance tests in `tests/test_contract.py` define the target exactly
 - [ ] Keep `graphrag/contract.py` the single definition of the evidence shape. If the real tools need a field the mock lacks, change the contract first
 
 ### Second hat — fuzzy entity resolution
@@ -125,12 +135,12 @@ Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messag
 
 ## Platform
 
-**Owner:**
+**Owner: Jacob.**
 
 ### Primary hat — stores, loaders, builds, environments
 
 - [ ] Neo4j and DuckDB running locally and reproducibly, so the toy graph has somewhere to land and nobody loses a day to setup
-- [ ] **CI on this repo.** Data has `.github/workflows/`; we have 47 tests that nobody runs automatically
+- [ ] **CI on this repo.** Data has `.github/workflows/`; we have 63 tests that nobody runs automatically
 - [ ] Database connection once the credentials land
 - [ ] Implement whichever identity scheme Data agrees to — `uuid5` or the natural key — in the loaders
 
