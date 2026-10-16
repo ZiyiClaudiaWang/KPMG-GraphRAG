@@ -305,8 +305,9 @@ it naturally.
 which is happening between W6 and W9. It also overlaps `Section` if the section-first
 proposal goes through, because then sections come first and chunks hang off them.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Do not include `SourceChunk` as a separate node in v1.** CW, 2026-10-16; pending review. Anchor Claim evidence on `Section` through `SUPPORTS`. Retain `source_chunk_id` as optional provenance metadata when available, never as part of a Claim or relationship key. Revisit if a concrete query requires chunk-level traversal.
+
+Question it answers: “Where in the filing is the evidence for this Claim?” A section reference, verbatim quote and supporting context answer this without a separate chunk node. No additional question currently justifies that node.
 
 ### 2.3 `Claim`, with a type — take it from the proposal
 
