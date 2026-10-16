@@ -72,7 +72,7 @@ came to key on it. Carrying the chunk id is right; keying on it is not.
 
 ### Extraction 1 — Claudia
 
-- [ ] Toy graph loaded, roughly 100 nodes. *(in progress)* Due 2026-10-16.
+- [ ] Toy graph loaded, roughly 100 nodes. **Not started** — corrected from *in progress* on 16 Oct. The repo holds no extraction code and no real accession numbers; the only filings in it are the invented Northwind pair. The 11-node schema probe in `toy_graph/` is a different deliverable and is done. Due 2026-10-16, which is today.
 - [ ] Extraction prototype running on 2-3 filings. Due 2026-10-14. Blocked by: Data parsed chunks.
 - [ ] Provenance stamping: `section_id` and `accession_number` on every node and edge, with `source_chunk_id` carried alongside as an attribute. **Keys anchor on the section, never the chunk** — chunk ids change when Data re-chunks, and a chunk-keyed edge then loads a second copy of a relationship we already have. Due 2026-10-16. Reworded 15 Oct; the original said to stamp `source_chunk_id` on every node and edge, which is how the loader came to key on it. See Layer 0 of [schema-ids-operations.md](../schema-ids-operations.md).
 
