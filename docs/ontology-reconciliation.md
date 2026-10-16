@@ -25,7 +25,23 @@ through it in one sitting or in the same room.
 | **Fri 16 Oct** | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | The labels exist before `Claim` is designed, not after |
 | **Sat 17 Oct** | This file, with every `Answer:` and `Question it answers:` line filled in | A pull request | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
 | **Sat 17 Oct** | `toy_graph/toy_graph.py` updated to match what was agreed | Same pull request | `python3 toy_graph.py` runs and reports idempotent |
-| **Mon 19 Oct** | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request, or a file in `docs/` | All three verified on EDGAR, with the amendment identified |
+| **Mon 19 Oct** | Accession numbers for **MSFT, JPM and AAPL** — start here. Plus a fourth company with a *recent* 10-K/A, see the note below | A short list in the pull request, or a file in `docs/` | All verified on EDGAR, with the amendment identified |
+
+**The three companies, and why they are not enough on their own.**
+
+MSFT, JPM and AAPL are the starting set, checked against EDGAR on 16 Oct. They give
+us segments, subsidiaries and three different Exhibit 21 shapes, which is most of
+what the graph needs.
+
+None of them gives us a usable restatement. Microsoft has filed **no 10-K/A ever**,
+across 33 annual reports since 1994. JPMorgan has ten, the most recent in **2006**.
+Apple has two, the most recent in **2010**. Both of those predate or sit on the edge
+of the XBRL phase-in, so they probably carry no tagged facts — and tagged facts for
+the same concept and period are exactly what the restatement rule compares.
+
+So a fourth company is needed, chosen for having amended an annual report recently
+enough to have XBRL in both the original and the amendment. Until that exists, the
+restatement finding can only be demonstrated on the constructed Northwind pair.
 
 **Why these dates, and why they differ.**
 
