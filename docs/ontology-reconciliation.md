@@ -315,8 +315,7 @@ company hedging rather than stating a fact. Given we have said the whole point i
 evidence-grounded answers, that is a gap in the middle of the thing.
 
 Suggested: **take it.** Then work out the smallest set of properties it needs.
-Alina is hand-labelling real sentences first, so the shape comes from what actual
-sentences need rather than from what we imagine they need.
+Six real Item 1A sentences have been annotated by CW with AI assistance; see the examples below.
 
 Answer: **Proposed: Keep `Claim`.** CW, 2026-10-16; pending review.
 The six annotated examples in [claim_examples.md](../toy_graph/claim_examples.md) show why statement type, qualifiers and context must be preserved. For v1, retain one complete sentence per Claim, assign a primary type, and record mixed content in a note. Automatic splitting into multiple claims is deferred.
