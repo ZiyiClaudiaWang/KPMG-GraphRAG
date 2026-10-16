@@ -102,7 +102,7 @@ written down by whoever takes that row. Anything without one gets cut. It is eas
 keep adding to an ontology and hard to take things out, so the rule has to do that
 work for us.
 
-**How we check it is real:** if it is not loaded into `toy_graph/` by Friday, it is
+**How we check it is real:** if it is not loaded into `toy_graph/` by Saturday 17 Oct, it is
 not in v1. The toy graph is small — adding a node type takes about ten minutes — so
 this is a reasonable test, not a punishment.
 
