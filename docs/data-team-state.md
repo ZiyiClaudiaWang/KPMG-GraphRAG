@@ -60,7 +60,7 @@ Revised position: carry both. XPath for cross-team identity and for Eval, normal
 
 ### 3 · Still missing, and still worth asking for
 
-- **`basis` on facts.** Confirmed absent from `financial_facts`. `amendment_of_id` makes as-filed versus as-restated derivable, but nobody has asserted it. Still our most load-bearing gap
+- **`basis` on facts.** Confirmed absent from `financial_facts`. `amendment_of_id` makes `as_filed` versus `as_restated` derivable, but nobody has asserted it. Still our most load-bearing gap
 - **`sic`, `state_of_incorp`, `exchange`** on `companies` — absent
 - **`fiscal_year`, `fiscal_period`** on `filings` — absent, and RAG filters on both
 - **Chunks are not on `main`.** `chunking.py` exists and `sections.py` has `section_id_for_chunk`, so chunks are designed to hang off sections — which is exactly the shape we asked for — but no chunk table is merged. Likely on `ruby/chunking-citations`

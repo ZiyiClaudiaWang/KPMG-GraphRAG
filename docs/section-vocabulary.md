@@ -57,6 +57,16 @@ Our own data contract already had one — `section_path` as `"Item 7 > Liquidity
 
 `section_path` can live top-level or in `metadata` — RAG's call, since `metadata` is additive and needs no contract version bump.
 
+## What `section_types` is, and is not
+
+Data's `section_types` is a topic taxonomy for Items, not a document hierarchy. Twenty-five codes — `business`, `risk_factors`, `mda`, `financial_statements`, `exhibits` and so on — grouped into seven topics. Each code names what an Item is *about*.
+
+`risk_factors` is the code for Item 1A. `financial_statements` is the code for Item 8 in a 10-K, or Part I Item 1 in a 10-Q — which means the income statement, the balance sheet and all twenty-odd notes carry the same code.
+
+There is no note-level code, and adding one has two parts. The vocabulary is an INSERT. The parser detecting note boundaries and emitting a row per note is the real work, even with inline XBRL marking them.
+
+**Side effect worth taking:** `risk_factors` existing as a topic tag settles one of our contested ontology nodes. `RISKFACTOR` was a candidate node whose argument against was "Item 1A is already a SECTION, this may be a topic tag." Data built the tag. Cut the node.
+
 ## The lever for Data
 
 The expected objection is that detecting note boundaries means heuristics over bold headings. It does not, and Eval's own gold set proves it. The XPath for the segment note is:

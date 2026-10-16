@@ -142,6 +142,49 @@ def test_dimensional_facts_are_distinguishable_from_totals():
     assert part["dimensions"]["StatementBusinessSegmentsAxis"] == "Intelligent Cloud"
 
 
+@pytest.mark.parametrize("tool,allowed", TOOLS)
+def test_trace_id_is_echoed_on_every_result(tool, allowed):
+    results = tool(QUERY, trace_id="eval-q-017")
+    assert results
+    assert all(i["metadata"]["trace_id"] == "eval-q-017" for i in results)
+
+
+@pytest.mark.parametrize("tool,allowed", TOOLS)
+def test_trace_id_is_null_when_unset(tool, allowed):
+    assert all(i["metadata"]["trace_id"] is None for i in tool(QUERY))
+
+
+@pytest.mark.parametrize("tool,allowed", TOOLS)
+def test_trace_id_does_not_change_results(tool, allowed):
+    """Eval must be able to add it to a run without moving the scores."""
+    traced = tool(QUERY, trace_id="eval-q-017")
+    plain = tool(QUERY)
+    strip = lambda rows: [  # noqa: E731
+        {**r, "metadata": {k: v for k, v in r["metadata"].items() if k != "trace_id"}}
+        for r in rows
+    ]
+    assert strip(traced) == strip(plain)
+
+
+@pytest.mark.parametrize("tool,allowed", TOOLS)
+@pytest.mark.parametrize("bad", ["", "   ", 7, []])
+def test_bad_trace_id_raises(tool, allowed, bad):
+    with pytest.raises(ValueError, match="trace_id must be"):
+        tool(QUERY, trace_id=bad)
+
+
+def test_evidence_requires_a_trace_id_key():
+    item = graph_search(QUERY)[0]
+    del item["metadata"]["trace_id"]
+    with pytest.raises(ValueError, match="must carry trace_id"):
+        contract.validate_evidence(item)
+
+
+def test_validate_trace_id_passes_through():
+    assert contract.validate_trace_id(None) is None
+    assert contract.validate_trace_id("eval-q-017") == "eval-q-017"
+
+
 def test_evidence_rejects_two_provenance_keys():
     item = graph_search(QUERY)[0]
     item["chunk_id"] = "also-a-chunk"

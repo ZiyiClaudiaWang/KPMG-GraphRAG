@@ -58,7 +58,27 @@ ORDER BY superseded_by IS NULL DESC
 def show(rows):
     for r in rows:
         state = f"superseded by {r['superseded_by']}" if r["superseded_by"] else "CURRENT"
-        print(f"    ${r['value']:>13,.0f}  {r['basis']:<9} in {r['filed_in']:<7} — {state}")
+        print(f"    ${r['value']:>13,.0f}  {r['basis']:<12} in {r['filed_in']:<7} — {state}")
+
+
+class CheckFailed(AssertionError):
+    """A finding stopped reproducing, or started reproducing differently."""
+
+
+def expect(condition, message):
+    """Fail loudly. A Cypher MATCH that finds nothing returns no rows and no
+    error, so every query here states what it expects to get back."""
+    if not condition:
+        raise CheckFailed(message)
+
+
+def current(rows, period):
+    """The one row not superseded. Two would mean the graph cannot say which
+    figure to quote, which is the bug this file exists to catch."""
+    live = [r for r in rows if not r["superseded_by"]]
+    expect(live, f"{period}: no current value — every row came back superseded")
+    expect(len(live) == 1, f"{period}: {len(live)} current values, expected exactly 1")
+    return live[0]
 
 
 def main():
@@ -73,10 +93,17 @@ def main():
             print(f"    {r['name']}")
         print(f"  {len(v1)} rows. Ambiguous — the graph cannot say which segment "
               f"absorbed Harbor.\n")
+        expect(len(v1) > 1,
+               "finding 1 stopped reproducing: schema v1 returned "
+               f"{len(v1)} segments, so the hop is no longer ambiguous. If an edge "
+               "was added, move this check and update the schema doc.")
 
         print("  with the proposed CONSOLIDATED_INTO edge:")
         proposed = rows(Q1_PROPOSED, sub=tg.SUB_HARBOR)
+        expect(len(proposed) == 1,
+               f"the proposed edge returned {len(proposed)} segments, expected 1")
         hit = proposed[0]
+        expect(hit["quote"], "the proposed edge carries no quote, so it cannot be cited")
         print(f"    {hit['name']}")
         print(f'    evidence: "{hit["quote"]}"')
         print(f"              {hit['chunk']} [{hit['start']}:{hit['end']}]\n")
@@ -86,25 +113,39 @@ def main():
         print("FINDING 2 — what counts as superseded\n")
 
         print("  judged at filing level (wrong):")
+        by_filing = {}
         for period in ("2024-12-31", "2023-12-31"):
             print(f"    {period}")
-            show(rows(Q2_BY_FILING, seg=seg, concept="Revenues", period_end=period))
+            got = rows(Q2_BY_FILING, seg=seg, concept="Revenues", period_end=period)
+            expect(got, f"{period}: no facts at all — the MATCH found nothing")
+            show(got)
+            by_filing[period] = got
         print("  FY2023 has no current value. The amendment restated FY2024 only,")
         print("  but every fact in the amended filing comes back stale, so a")
         print("  year-over-year comparison has no baseline.\n")
+        expect(all(r["superseded_by"] for r in by_filing["2023-12-31"]),
+               "finding 2 stopped reproducing: filing-level judgement left FY2023 "
+               "with a current value, so the bug is gone. Check whether AMENDS "
+               "changed grain before deleting this check.")
 
         print("  judged by fact-level replacement (correct):")
         live = {}
         for period in ("2024-12-31", "2023-12-31"):
             print(f"    {period}")
             got = rows(Q2_BY_FACT, seg=seg, concept="Revenues", period_end=period)
+            expect(got, f"{period}: no facts at all — the MATCH found nothing")
             show(got)
-            live[period] = next(r for r in got if not r["superseded_by"])
+            live[period] = current(got, period)
         print()
 
         a = live["2023-12-31"]["value"]
         b = live["2024-12-31"]["value"]
         stale = 412_000_000.0
+        expect(live["2024-12-31"]["basis"] == "as_restated",
+               "FY2024 current value is not the restated one")
+        expect(b != stale,
+               "FY2024 came back as the superseded figure — the correct query is "
+               "returning the wrong number")
         print("COMPARISON — computed at query time, never stored")
         print(f"  FY2023 ${a:,.0f} -> FY2024 ${b:,.0f}   {(b - a) / a * 100:+.1f}%")
         print(f"  quoting the superseded figure instead gives "

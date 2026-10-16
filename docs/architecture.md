@@ -113,14 +113,22 @@ def graph_search(
     query: str,
     filters: dict | None = None,
     top_k: int = 10,
+    trace_id: str | None = None,
 ) -> list[Evidence]: ...
 
 def structured_search(
     query: str,
     filters: dict | None = None,
     top_k: int = 10,
+    trace_id: str | None = None,
 ) -> list[Evidence]: ...
 ```
+
+**`trace_id`** was added on 2026-10-14 at Eval's request, so a log row still points at the
+benchmark question after the Agent has rewritten the query. It is optional and opaque — we
+echo it and never parse it. Until the `search()` envelope exists it is returned at
+`metadata.trace_id` on every result, always present and null when unset. See
+[eval-reply.md](./eval-reply.md).
 
 **Filters.** Their ten keys exactly — `ticker`, `cik`, `form`, `accession_number`, `filing_date`, `reporting_period_end`, `fiscal_year`, `fiscal_period`, `section`, `is_table` — with the same rules: a list means OR within a key, AND across keys, `None` is ignored, and `section` matches whole-word prefix on the canonical key.
 

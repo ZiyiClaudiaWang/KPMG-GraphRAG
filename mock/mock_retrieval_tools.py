@@ -12,6 +12,9 @@ shape is guaranteed. Swap the import when the real tools land:
 Content comes from Microsoft's 10-Q, accession 0001193125-26-191507,
 the same filing Eval's gold set is built on, so values here match their
 reference answers.
+
+`trace_id` is optional and opaque. We echo it at `metadata.trace_id` on
+every result so Eval can join back to a benchmark question id.
 """
 
 from __future__ import annotations
@@ -122,13 +125,15 @@ _FACT_ROWS = [
 ]
 
 
-def _validate(query, filters, top_k, allowed):
+def _validate(query, filters, top_k, allowed, trace_id):
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query must be a non-empty string")
     if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
         raise ValueError("top_k must be a positive integer")
     if top_k > MAX_TOP_K:
         raise ValueError(f"top_k must be <= {MAX_TOP_K}")
+    if trace_id is not None and (not isinstance(trace_id, str) or not trace_id.strip()):
+        raise ValueError("trace_id must be a non-empty string or None")
     if filters is None:
         return {}
     if not isinstance(filters, dict):
@@ -214,8 +219,13 @@ def _finish(rows, top_k):
     return rows
 
 
-def graph_search(query: str, filters: dict | None = None, top_k: int = 10) -> list[dict]:
-    active = _validate(query, filters, top_k, GRAPH_FILTERS)
+def graph_search(
+    query: str,
+    filters: dict | None = None,
+    top_k: int = 10,
+    trace_id: str | None = None,
+) -> list[dict]:
+    active = _validate(query, filters, top_k, GRAPH_FILTERS, trace_id)
     max_hops = active.get("max_hops", 3)
 
     out = []
@@ -235,6 +245,7 @@ def graph_search(query: str, filters: dict | None = None, top_k: int = 10) -> li
             score=score,
             section=row["section"],
             metadata={
+                "trace_id": trace_id,
                 "section_title": row["section_title"],
                 "corpus_version": "mock",
                 "path": row["path"],
@@ -247,8 +258,13 @@ def graph_search(query: str, filters: dict | None = None, top_k: int = 10) -> li
     return _finish(out, top_k)
 
 
-def structured_search(query: str, filters: dict | None = None, top_k: int = 10) -> list[dict]:
-    active = _validate(query, filters, top_k, STRUCTURED_FILTERS)
+def structured_search(
+    query: str,
+    filters: dict | None = None,
+    top_k: int = 10,
+    trace_id: str | None = None,
+) -> list[dict]:
+    active = _validate(query, filters, top_k, STRUCTURED_FILTERS, trace_id)
 
     out = []
     for row in _FACT_ROWS:
@@ -266,6 +282,7 @@ def structured_search(query: str, filters: dict | None = None, top_k: int = 10) 
             score=score,
             section="Part I Item 1",
             metadata={
+                "trace_id": trace_id,
                 "section_title": "Financial Statements",
                 "corpus_version": "mock",
                 "fact_id": row["fact_id"],

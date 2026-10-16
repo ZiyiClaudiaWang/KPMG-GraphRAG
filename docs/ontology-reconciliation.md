@@ -22,10 +22,10 @@ through it in one sitting or in the same room.
 
 | Due | Deliverable | Where it goes | Done when |
 | --- | --- | --- | --- |
-| **Thu 16 Oct** | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | The labels exist before `Claim` is designed, not after |
-| **Fri 17 Oct** | This file, with every `Answer:` and `Question it answers:` line filled in | A pull request | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
-| **Fri 17 Oct** | `toy_graph/toy_graph.py` updated to match what was agreed | Same pull request | `python3 toy_graph.py` runs and reports idempotent |
-| **Mon 20 Oct** | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request, or a file in `docs/` | All three verified on EDGAR, with the amendment identified |
+| **Fri 16 Oct** | Five to eight sentences from a real Item 1A, each hand-labelled as a stated fact, a forward-looking statement, or a hedged risk | A file next to the toy graph | The labels exist before `Claim` is designed, not after |
+| **Sat 17 Oct** | This file, with every `Answer:` and `Question it answers:` line filled in | A pull request | No blank answer lines in Part 2. Rows nobody could agree on say "unresolved" and name an owner |
+| **Sat 17 Oct** | `toy_graph/toy_graph.py` updated to match what was agreed | Same pull request | `python3 toy_graph.py` runs and reports idempotent |
+| **Mon 19 Oct** | Three accession numbers for the real toy graph, one of them a company that has filed a 10-K/A | A short list in the pull request, or a file in `docs/` | All three verified on EDGAR, with the amendment identified |
 
 **Why these dates, and why they differ.**
 

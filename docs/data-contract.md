@@ -69,7 +69,15 @@ And one question that decides how much this matters: **is `section_key` derived 
 
 This is our most load-bearing gap. Without it, "what was R&D spend in FY2023" has two correct answers that disagree, and nothing in the data says which is which. Every numeric answer we return has to name its basis and cite an accession.
 
-Either assert it on the fact, or confirm we derive it from `amendment_of_id` and we will build that. We only need to know which.
+**We need two things, and the second is the one usually left out.**
+
+**One — the label.** Either assert `basis` on the fact, or confirm we derive it from `amendment_of_id` and we will build that. We only need to know which. The values are `as_filed` and `as_restated`; we have settled that spelling our end so the field has one name wherever it appears.
+
+**Two — what identifies which fact replaced which.** `amendment_of_id` is filing-level, and a correction is not. Asking "was this filing amended" marks every number in the original out of date, including periods the amendment never touched — we built a graph on 14 Oct that does exactly this, and it left a year-on-year comparison with no baseline. Concept plus period is the minimum; an explicit pointer from the replacement to what it replaced is better.
+
+A number is out of date only when the amendment replaces **that same concept for that same period**. The label alone cannot tell us that.
+
+Note that `basis` says where a number came from, not whether it is current. Whether it is current is computed from the amendment relation at query time. A fact can be `as_filed` and perfectly current — most of them are.
 
 ### 3 · Note-level codes in `section_types`
 
@@ -77,7 +85,7 @@ All 25 codes are Item-level. A 10-Q puts segment data in Note 16, which sits ins
 
 Segment data and the relationships around it are among the most valuable content in the filing for us, and at Item granularity we cannot filter to them or cite them precisely.
 
-`section_types` is a lookup table, so adding note-level codes is an INSERT rather than a schema change. `section_order` and `offset_start` already provide everything a sub-section split would need. Reasoning and the open decisions in [section-vocabulary.md](./section-vocabulary.md) — this one needs RAG and Eval in the room too, since all three of us label sections differently.
+Two parts, and we should be honest that the second is the real one. Adding a code — something like `financial_note` — is an INSERT into a lookup table, with the note's own number and title living in `original_title` and `section_order`. But the vocabulary is the cheap half: the parser also has to detect note boundaries and emit a row per note. Inline XBRL marks those boundaries with `ix:continuation` and `ix:nonnumeric`, so it is structural rather than heading heuristics, but it is still work. `section_order` and `offset_start` already provide the ordering a split would need. Reasoning and the open decisions in [section-vocabulary.md](./section-vocabulary.md) — this one needs RAG and Eval in the room too, since all three of us label sections differently.
 
 ### 4 · Five metadata fields
 

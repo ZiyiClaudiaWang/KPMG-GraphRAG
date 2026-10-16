@@ -7,6 +7,12 @@ Our two tools differ from theirs in one way only: `chunk_id` is null,
 because the graph arm cites sections and the structured arm cites facts.
 Exactly one of `chunk_id`, `section_id` or `metadata.fact_id` identifies
 any evidence object.
+
+Both tools take an optional `trace_id`, which Eval asked for on 2026-10-14
+so log rows still point at a benchmark question after the Agent has
+rewritten the query. We have no log yet, so every evidence object carries
+it at `metadata.trace_id` instead. Move it to the `search()` envelope once
+that exists.
 """
 
 from __future__ import annotations
@@ -94,6 +100,15 @@ def validate_top_k(top_k: object) -> int:
     return top_k
 
 
+def validate_trace_id(trace_id: object) -> str | None:
+    """Optional, and opaque to us. We echo it back and never parse it."""
+    if trace_id is None:
+        return None
+    if not isinstance(trace_id, str) or not trace_id.strip():
+        raise ValueError("trace_id must be a non-empty string or None")
+    return trace_id
+
+
 def validate_filters(filters: object, allowed: frozenset[str]) -> dict:
     if filters is None:
         return {}
@@ -129,6 +144,11 @@ def validate_evidence(item: object) -> None:
 
     if not isinstance(item["metadata"], dict):
         raise ValueError("evidence metadata must be a dict")
+
+    # Always present, null when the caller sent none. Eval joins on this
+    # key, so a tool that omits it when unused would break the join.
+    if "trace_id" not in item["metadata"]:
+        raise ValueError("evidence metadata must carry trace_id, null if unset")
 
     cik = item["cik"]
     if not (isinstance(cik, str) and len(cik) == 10 and cik.isdigit()):
