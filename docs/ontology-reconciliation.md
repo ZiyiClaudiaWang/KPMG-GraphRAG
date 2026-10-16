@@ -1,5 +1,10 @@
 # Merging the two ontologies — worksheet
 
+Status: First draft by CW, 2026-10-16; pending Alina's and team review.
+The decisions below are proposals, not joint sign-off.
+
+Summary: Propose eight node types — Company, Filing, Section, Segment, Fact, Subsidiary, Claim and RiskFactor. Exclude SourceChunk, FinancialMetric, MetricObservation and Executive/Officer as separate nodes in v1. Propose section-based Claim evidence and a separate CONSOLIDATED_INTO relationship. Document, Table and Cell remain unresolved. Loader alignment and validation are still pending.
+
 We have two documents describing the same thing, and they disagree.
 
 [schema-ids-operations.md](./schema-ids-operations.md) is the one we have been
@@ -50,7 +55,7 @@ The labelled sentences come first because they feed decision 2.3. Designing the
 an imaginary filing. An hour's work, and it has to happen before the merge rather
 than after.
 
-The merge and the loader are due Friday because the extraction prototype starts next
+The merge and the loader are due Saturday 17 Oct because the extraction prototype starts next
 week, and every prompt written after that point assumes a settled ontology. Changing
 it later means redoing that work.
 
@@ -59,7 +64,7 @@ filings get loaded, and verifying amendments on EDGAR is fiddlier than it sounds
 
 ---
 
-## What this file should look like on Friday
+## Expected worksheet state
 
 So it is clear what finished means.
 
@@ -172,24 +177,25 @@ document, nothing loads at all.
 
 ---
 
-## A starting draft to argue with
+## Current proposal summary — pending review
 
-Not decided. Six of these follow from evidence already sitting in the two documents.
-Two are genuinely open and left blank.
-
-| | Suggested | Why |
+| Item | Proposed decision | Reference |
 | --- | --- | --- |
-| `Company`, `Filing`, `Section`, `Segment` | keep | both documents have them |
-| `Fact`, including whether it was corrected | keep | the one we follow |
-| `Subsidiary` | keep | the one we follow |
-| `Claim`, with a type | **add** | the proposal |
-| `extraction_status` on anything extracted | **add** | the proposal |
-| `RiskFactor` | **keep** — Use Case B is the question it needed | the proposal |
-| `Executive` | **cut** until someone names a question for it | — |
-| `AMENDS`, plus a rule for what replaces what | keep | the one we follow, and the toy graph |
-| `CONSOLIDATED_INTO` | ? | the toy graph |
-| `FinancialMetric` and `MetricObservation` | ? | open |
-| `SourceChunk` as its own node | ? | open |
+| Company, Filing, Section, Segment | Keep | Part 1 |
+| Fact | Keep one node type with a concept property | 2.1 |
+| FinancialMetric / MetricObservation | Do not introduce separate node types | 2.1 |
+| SourceChunk | Do not introduce a separate node; retain optional chunk provenance | 2.2 |
+| Claim | Add, with statement type and review status | 2.3 |
+| RiskFactor | Keep as a specific risk theme | 2.4 |
+| Executive / Officer | Exclude from v1 | 2.5 |
+| Subsidiary | Keep | 2.6 |
+| Amendments and restatements | Preserve observations; establish replacement at fact level | 2.7 |
+| CONSOLIDATED_INTO | Add as a separate relationship | 2.8 |
+| Document / Table / Cell | Unresolved; owner: CW to coordinate with Alina | Pending named questions and real-filing validation |
+
+Naming: PascalCase for nodes and UPPER_SNAKE for relationships.
+
+This summary does not replace the detailed decisions or imply that the loader has been updated.
 
 Node names in PascalCase, link names in UPPER_SNAKE — see Part 0.
 
@@ -384,6 +390,8 @@ changed between two years. That is the justification that was missing.
 
 Answer: **Proposed: Keep `RiskFactor` as a specific risk theme, distinct from the section-level `risk_factors` label.** CW, 2026-10-16; pending review. Connect `Claim -[:CONCERNS_RISK]-> RiskFactor`. For the prototype, use a small, documented set of manually reviewed themes rather than creating a new theme for every wording variation. Retain the original claims and their provenance.
 
+Identity: Assign each manually reviewed theme a stable `risk_id` from a documented theme list. Match wording variants to that ID rather than generating a new node from each extracted phrase. The initial theme list remains to be created.
+
 Question it answers: “How did Apple's disclosures about supply-chain risk change between two fiscal years?” The section label identifies where risk disclosures occur; the theme groups relevant claims across filings. This comparison requires evidence from both years and has not yet been validated by the single-year examples.
 
 ### 2.5 `Executive` — cut unless someone names a question
@@ -453,8 +461,7 @@ Write these down as open, rather than letting them look settled.
 | --- | --- |
 | `PEER_OF` | In both documents, and neither says where the data comes from. From 10-K filings the honest source is the SIC code in EDGAR. Companies' own lists of their peers are in proxy statements, which we are not reading. Either we source it or we drop it |
 | Working out which mentions are the same company | Both documents assume this step happens somewhere. Neither says how. The rule that matters: pull out mentions, work out which entity each one refers to as a separate step, and never let the model pick the ID itself |
-| `extraction_status` | In the proposal, nowhere in the other document. Related to `Claim` but applies to everything we extract |
-
+| `extraction_status` | Proposed for Claim in 2.3. Whether the same review-status convention applies to other extracted nodes and relationships remains open. Owner: CW |
 ---
 
 ## How to work through it
