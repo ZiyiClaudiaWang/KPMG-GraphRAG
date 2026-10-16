@@ -197,6 +197,9 @@ Node names in PascalCase, link names in UPPER_SNAKE — see Part 0.
 
 ## Part 0 · Names — do this one first
 
+Status: Draft by CW, 2026-10-16. Pending Alina's review.
+The entries below are proposed naming choices, not joint sign-off.
+
 Not a matter of taste. Neo4j has its own convention: **node names in PascalCase**,
 **link names in UPPER_SNAKE**.
 
@@ -207,16 +210,18 @@ the database.
 
 | | Now, in the one we follow | Now, in the proposal | Convention | Agreed |
 | --- | --- | --- | --- | --- |
-| Node names | `COMPANY` | `Company` | PascalCase | |
-| Link names | `FILES` | `FILED` | UPPER_SNAKE | |
+| Node names | `COMPANY` | `Company` | PascalCase | Proposed: PascalCase, e.g. `Company`, `Filing`. CW, 2026-10-16; pending review |
+| Link names | `FILES` | `FILED` | UPPER_SNAKE | Proposed: UPPER_SNAKE. CW, 2026-10-16; pending review |
 
 Then pick one name per link. These three are the same link twice:
 
 | The link | One document | The other | Agreed |
 | --- | --- | --- | --- |
-| Company to filing | `FILES` | `FILED` | |
-| Filing to section | `CONTAINS` | `HAS_SECTION` | |
-| Company to segment | `REPORTS_SEGMENT` | `HAS_SEGMENT` | |
+| Company to filing | `FILES` | `FILED` | Proposed: `FILES`. CW, 2026-10-16; pending review |
+| Filing to section | `CONTAINS` | `HAS_SECTION` | Proposed: `CONTAINS`. CW, 2026-10-16; pending review |
+| Company to segment | `REPORTS_SEGMENT` | `HAS_SEGMENT` | Proposed: `HAS_SEGMENT`. CW, 2026-10-16; pending review |
+
+These proposals standardize relationship names only. The final Filing–Document–Section structure will be addressed separately.
 
 If we cannot agree, use present tense, because the graph describes how things are
 rather than something that happened: `FILES`, `CONTAINS`, `HAS_SEGMENT`. A mixed
