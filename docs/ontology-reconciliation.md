@@ -293,8 +293,43 @@ already has it.
 **How to settle it without arguing:** write the query for Use Case A both ways and
 see which one reads better. Fifteen minutes, and it never comes up again.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Use one `Fact` node with a `concept` property; do not add a separate `FinancialMetric` node in v1.** CW, 2026-10-16; pending review.
+
+Query-writing comparison for Use Case A:
+
+Option A — Fact with concept as a property:
+
+```cypher
+MATCH (c:Company)-[:FILES]->(filing:Filing)-[:REPORTS]->(f:Fact)
+WHERE c.cik IN $company_ciks
+  AND f.concept IN $concepts
+RETURN c.cik AS cik,
+       filing.accession_number AS accession_number,
+       f.fact_id AS fact_id,
+       f.concept AS concept
+```
+
+Option B — separate metric and observation nodes:
+
+```cypher
+MATCH (c:Company)-[:FILES]->(filing:Filing)
+      -[:REPORTS_METRIC]->(o:MetricObservation)
+      -[:OF_METRIC]->(m:FinancialMetric)
+WHERE c.cik IN $company_ciks
+  AND m.concept IN $concepts
+RETURN c.cik AS cik,
+       filing.accession_number AS accession_number,
+       o.fact_id AS fact_id,
+       m.concept AS concept
+```
+
+Both return candidate fact references. For this use case, Option B adds a node type and traversal without simplifying the required numeric work. Values, units, periods and dimensions remain in the fact table. The structured query layer must select comparable observations and the requested basis, then calculate growth and margin. Revenue growth also requires the prior-year baseline.
+
+`$concepts` must contain the actual source concept identifiers selected for each company, not assumed universal labels.
+
+Question it answers: “How do Company A and Company B compare in FY2025 revenue growth and operating margin?” A separate metric node is not required for this use case. Revisit if metric hierarchies or other concept-level relationships become necessary.
+
+Validation status: Query-writing comparison only. These queries describe the candidate models and have not been executed against the current schema probe. No runtime or performance advantage is claimed.
 
 ### 2.2 Is a chunk of text its own node, or just an ID on other things
 
@@ -347,8 +382,9 @@ The other document called this doubtful, because no question needed it. Use Case
 in the proposal is that question: how a company's supply chain risk disclosures
 changed between two years. That is the justification that was missing.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Keep `RiskFactor` as a specific risk theme, distinct from the section-level `risk_factors` label.** CW, 2026-10-16; pending review. Connect `Claim -[:CONCERNS_RISK]-> RiskFactor`. For the prototype, use a small, documented set of manually reviewed themes rather than creating a new theme for every wording variation. Retain the original claims and their provenance.
+
+Question it answers: “How did Apple's disclosures about supply-chain risk change between two fiscal years?” The section label identifies where risk disclosures occur; the theme groups relevant claims across filings. This comparison requires evidence from both years and has not yet been validated by the single-year examples.
 
 ### 2.5 `Executive` — cut unless someone names a question
 
@@ -380,8 +416,17 @@ correction **replaces that same figure for that same period**. If we treat the w
 filing as out of date, we also mark last year's number stale even though nobody
 touched it, and then there is nothing to compare against.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Keep filing-level `AMENDS`, preserve original and amended facts, and determine supersession at fact level.** CW, 2026-10-16; pending review.
+
+`AMENDS` records that one filing amends another; it does not automatically invalidate every fact in the original. Treat a fact as superseded only when evidence establishes that the amendment replaces that specific observation. Match the reporting entity, concept, period and dimensions, with compatible units, or use an explicit replacement link supplied by Data.
+
+Keep `basis` (`as_filed` / `as_restated`) separate from currentness. An `as_filed` fact can remain current. Do not label every fact in a 10-K/A as restated merely because of the filing form. If replacement cannot be established, retain both observations and flag the ambiguity.
+
+Numeric values remain in the fact table; the graph retains fact references and filing relationships.
+
+Question it answers: “What value was originally reported, what was subsequently corrected, and which observation should be used for the requested period and reporting scope?”
+
+Validation status: The constructed schema probe demonstrates the filing-level supersession error. Validation against a real original/amendment pair and the Data replacement contract is still pending.
 
 ### 2.8 `CONSOLIDATED_INTO` — new, from the toy graph
 
@@ -392,8 +437,11 @@ question can run.
 
 Open: its own link, or a property on `OWNS`?
 
-Answer:
-Question it answers:
+Answer: **Proposed: Add `Subsidiary -[:CONSOLIDATED_INTO]-> Segment` as a separate relationship.** CW, 2026-10-16; pending review. Create it only when a filing explicitly supports the subsidiary-to-segment mapping. Retain the source accession, section reference and supporting quote. Record effective dates when disclosed; do not invent them or infer segment membership from parent ownership alone.
+
+Question it answers: “Which reporting segment includes the results of a named subsidiary or acquired business?” Going through the parent company returns all its segments and does not establish this mapping.
+
+Validation status: Demonstrated in the constructed schema probe; requires validation against a real filing.
 
 ---
 
