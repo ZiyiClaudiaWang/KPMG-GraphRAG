@@ -82,13 +82,13 @@ came to key on it. Carrying the chunk id is right; keying on it is not.
 
 ### Structured — Ashley
 
-- [ ] Mock structured tool at the final signature. Due 2026-10-14.
+- [x] Mock structured tool at the final signature. *(done — `mock/mock_retrieval_tools.py` implements both tools; written by Adeline, not Ashley, so it was never ticked here.)* Due 2026-10-14.
 - [ ] Deterministic entity resolution on CIK, ticker and LEI. Due 2026-10-16. Blocked by: Moved to Structured 6 Oct: this is already the fact table's primary key, so splitting it means doing the same work twice.
 - [ ] XBRL fact table loading with company and period dimensions. Due 2026-10-16. Blocked by: Data XBRL facts with dimensions intact.
 
 ### Retrieval — Alison
 
-- [ ] Mock graph tool at the final signature. Due 2026-10-14.
+- [x] Mock graph tool at the final signature. *(done — `mock/mock_retrieval_tools.py` implements both tools; written by Adeline, not Alison, so it was never ticked here.)* Due 2026-10-14.
 
 ### Platform — Jacob
 
