@@ -356,16 +356,18 @@ There is no reliable way to tell two people with the same name apart, so it need
 fuzzy matching, and neither document says what question it answers. By our own rule
 it gets cut.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Exclude `Executive` / `Officer` from v1.** CW, 2026-10-16; pending review. No agreed business question currently requires this node. Revisit when a concrete question, a suitable source and an identity-resolution approach are available.
+
+Question it answers: None currently agreed; therefore excluded from v1.
 
 ### 2.6 `Subsidiary` — take it from the other document
 
 Exhibit 21 is where most of our cross-company questions come from, and the proposal
 has no node for it.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Keep `Subsidiary`.** CW, 2026-10-16; pending review. Use `Company -[:OWNS]-> Subsidiary`, supported by the filing's Exhibit 21 disclosures. Follow the existing `sub_id` scheme based on parent CIK and normalized subsidiary name, while retaining the original name and source provenance. This key is provisional identity, not proof that name variants have been resolved. Do not infer ownership percentages or segment membership unless explicitly supported.
+
+Question it answers: “Which subsidiaries does a company list in Exhibit 21, and where are they incorporated?” Cross-year comparisons additionally require name-resolution and filing-specific evidence.
 
 ### 2.7 Corrections and restatements — take them from the other document
 
