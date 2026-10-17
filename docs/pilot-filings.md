@@ -43,3 +43,45 @@ These are initial pilot candidates, pending alignment with the team's evaluation
 - These filings have not yet been automatically extracted or loaded as a real-filing graph.
 - A fourth company with a recent original 10-K and corresponding 10-K/A remains to be selected.
 - The amendment pair must support a documented financial correction with relevant tagged facts; a 10-K/A form alone does not establish restatement.
+
+## Fourth-company amendment candidate: ADM
+
+Status: Verified candidate; pending team confirmation.
+
+Company: Archer-Daniels-Midland Company (ADM)
+CIK: 0000007084
+Fiscal year end: 2023-12-31
+
+| Form | Filing date | Accession number |
+| --- | --- | --- |
+| 10-K | 2024-03-12 | 0000007084-24-000009 |
+| 10-K/A | 2024-11-18 | 0000007084-24-000051 |
+
+### SEC sources
+
+- [Original filing index](https://www.sec.gov/Archives/edgar/data/7084/000000708424000009/0000007084-24-000009-index.htm)
+- [Amended filing index](https://www.sec.gov/Archives/edgar/data/7084/000000708424000051/0000007084-24-000051-index.htm)
+- [Amended report](https://www.sec.gov/Archives/edgar/data/7084/000000708424000051/adm-20231231.htm)
+
+### Relevant correction
+
+Note 17 presents corrections to segment disclosures.
+Nutrition intersegment revenues for 2023 changed from
+USD 114 million previously reported to USD 48 million restated.
+
+Both amounts are tagged in inline XBRL using `us-gaap:Revenues`.
+The Nutrition segment and intersegment-elimination dimensions
+must be retained when interpreting these facts.
+
+The original filing encodes the elimination amount with a negative
+sign; the amendment presents the restated amount with a positive
+sign. Preserve source signs and presentation context rather than
+matching facts by concept and period alone.
+
+This is a segment-disclosure correction. The amendment states
+that the consolidated financial statements listed in its
+Explanatory Note were not affected.
+
+Validation scope: Filing metadata, correction disclosure and
+relevant inline XBRL tags inspected. Not yet loaded or tested
+through the extraction pipeline.
