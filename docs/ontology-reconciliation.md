@@ -453,6 +453,29 @@ Validation status: Demonstrated in the constructed schema probe; requires valida
 
 ---
 
+## Real-filing prototype findings — CW, 2026-10-17
+
+Reported from selected Item 1A excerpts in AAPL, MSFT and JPM. The candidate graph
+contains 87 Claims, 96 nodes and 93 relationships. CW's recorded Colab checks cover
+all 87 provenance paths, repeated loading and two simulated chunk-metadata changes
+with restoration. Claim classifications remain `needs_review`; full-section
+completeness and actual Data-team re-chunking are not established.
+
+These rows report constraints exposed by real source text. They distinguish
+prototype implementation from decisions awaiting team review.
+
+| Finding | What the real source exposed | Handling and evidence | Status / owner |
+| --- | --- | --- | --- |
+| A Claim can span multiple HTML blocks | JPM's national-regulator sentence continues across blocks 47–48. One XPath/span cannot represent its complete evidence. | Preserve an ordered array of exact source fragments, each with block order, XPath and normalized-text start/end. Validate adjacent-block joins; retain Section-based `SUPPORTS`. See [verified paths](../extraction_prototype/multi_filing/gap_recovery/results/verified_paths.json). | Implemented and technically checked in the prototype. Production provenance-contract alignment remains open. Owner: CW. |
+| List structure breaks a simple sentence-per-Claim rule | JPM uses an introductory clause followed by bullet items. The model skipped intervening items in some joins, and source-valid drafts sometimes stopped at a colon or the first bullet. | Withhold eight source-invalid drafts and four additional boundary-held drafts. Preserve five complete source groups: 26–34, 35–40, 43–46, 49–56 and 57–63. See [deferred drafts](../extraction_prototype/multi_filing/gap_recovery/results/deferred_drafts.json) and [complete groups](../extraction_prototype/multi_filing/gap_recovery/results/boundary_review_groups.json). These groups are evidence for review, not additional Claim nodes. | Unresolved: choose whether a complete list forms one Claim or requires a separate, explicitly scoped representation. The last group extends beyond the initial excerpt. Owner: CW; seek Alina's review. |
+| A literal quote can still lack necessary context | JPM's “This situation” and “These types of changes” sentences depend on earlier source text; the latter needs the introductory clause and its complete list. A model also returned paraphrased context despite supplying exact context fragments. | Preserve `context` together with `context_evidence_fragments`; render context from checked source fragments while retaining the raw model response and rendering audit. Initial context corrections are recorded in [quality revision changes](../extraction_prototype/multi_filing/quality_revision/results/changes.json). | Source-backed rendering implemented and technically checked. Context sufficiency still requires semantic review. Owner: CW. |
+| One primary type does not remove mixed modality or issuer-defined scope | Some sentences combine past events with possible future outcomes. JPM's definitions explain the issuer's usage; they are not independent verification of legal facts. | Retain the proposed primary label, subject scope and annotation; flag mixed-modality and definition candidates in the [review queue](../extraction_prototype/multi_filing/gap_recovery/results/review_queue.csv). Do not treat source alignment as classification approval. | Classification and scope review pending. No additional node type is justified by these examples alone. Owner: CW; seek Alina's review. |
+
+Saved technical evidence: [verification](../extraction_prototype/multi_filing/gap_recovery/results/verification.json).
+This finding report does not constitute joint ontology sign-off.
+
+---
+
 ## Part 3 · Still open
 
 Write these down as open, rather than letting them look settled.
