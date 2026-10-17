@@ -1,5 +1,10 @@
 # Three-filing extraction prototype
 
+Latest: [source revision 1](quality_revision/README.md) records 39 Claims, 48 nodes
+and 45 relationships after recovering one Apple sentence and adding context to
+two JPM Claims. The original 38-Claim run and its source responses below remain
+unchanged. Quality review and broader recall checks remain open.
+
 Selected Item 1A passages from Apple, Microsoft and JPMorgan Chase. CW ran this
 workflow in Colab against a Neo4j Sandbox. The saved record contains 38 Claims,
 47 nodes and 44 relationships. This is a technical prototype; all Claims remain

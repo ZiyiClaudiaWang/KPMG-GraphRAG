@@ -8,7 +8,12 @@
     "source_block": 4,
     "evidence": "As a result, the Company’s operations and performance depend significantly on global and regional economic conditions.",
     "finding": "This complete sentence was returned by the initial single-paragraph pilot but omitted from the larger excerpt extraction. The selected passage was not exhaustively extracted.",
-    "next_action": "Add a sentence-coverage check and re-extract smaller batches; keep original model output unchanged."
+    "next_action": "Add a sentence-coverage check and re-extract smaller batches; keep original model output unchanged.",
+    "revision1": {
+      "state": "known_sentence_recovered_full_recall_still_open",
+      "claim_id": "claim_db07a5c3b920fe4e21842040",
+      "record": "quality_revision/results/changes.json"
+    }
   },
   {
     "id": "F02",
@@ -19,7 +24,12 @@
     "claim_id": "claim_d8d8d592118884cb6fe0747b",
     "source_block": 41,
     "finding": "The sentence starting This situation has context=null. Its preceding sentence in block 41 explains the regulator reinterpretation scenario.",
-    "next_action": "Add source-grounded context in a separately recorded revision, rerun graph loading and verification."
+    "next_action": "Add source-grounded context in a separately recorded revision, rerun graph loading and verification.",
+    "revision1": {
+      "state": "source_patch_verified_pending_review",
+      "claim_id": "claim_d8d8d592118884cb6fe0747b",
+      "record": "quality_revision/results/changes.json"
+    }
   },
   {
     "id": "F03",
@@ -48,6 +58,11 @@
     "ticker": "JPM",
     "claim_id": "claim_dfa29cb3c5a3b246d89bb9d4",
     "finding": "These types of changes has an introductory context sentence, but the intervening list is absent from the context evidence. The original model note acknowledges incomplete referent resolution.",
-    "next_action": "Review and retain the relevant list as context evidence, without treating noun-phrase bullets as independent sentence Claims."
+    "next_action": "Review and retain the relevant list as context evidence, without treating noun-phrase bullets as independent sentence Claims.",
+    "revision1": {
+      "state": "source_patch_verified_pending_review",
+      "claim_id": "claim_dfa29cb3c5a3b246d89bb9d4",
+      "record": "quality_revision/results/changes.json"
+    }
   }
 ]
