@@ -1,0 +1,53 @@
+[
+  {
+    "id": "F01",
+    "status": "open",
+    "owner": "CW",
+    "category": "claim_recall",
+    "ticker": "AAPL",
+    "source_block": 4,
+    "evidence": "As a result, the Company’s operations and performance depend significantly on global and regional economic conditions.",
+    "finding": "This complete sentence was returned by the initial single-paragraph pilot but omitted from the larger excerpt extraction. The selected passage was not exhaustively extracted.",
+    "next_action": "Add a sentence-coverage check and re-extract smaller batches; keep original model output unchanged."
+  },
+  {
+    "id": "F02",
+    "status": "open",
+    "owner": "CW",
+    "category": "missing_context",
+    "ticker": "JPM",
+    "claim_id": "claim_d8d8d592118884cb6fe0747b",
+    "source_block": 41,
+    "finding": "The sentence starting This situation has context=null. Its preceding sentence in block 41 explains the regulator reinterpretation scenario.",
+    "next_action": "Add source-grounded context in a separately recorded revision, rerun graph loading and verification."
+  },
+  {
+    "id": "F03",
+    "status": "open",
+    "owner": "CW",
+    "category": "issuer_mention_recall",
+    "ticker": "MSFT",
+    "finding": "The model returned no issuer mention despite We/Our references in extracted Claims. The Microsoft Company node comes from filing metadata, not a successful model issuer-mention extraction.",
+    "next_action": "Improve mention recall separately from deterministic identity resolution."
+  },
+  {
+    "id": "F04",
+    "status": "open",
+    "owner": "CW",
+    "category": "classification_scope",
+    "ticker": "JPM",
+    "claim_id": "claim_d66f4b115b0d583a5ac5b9b0",
+    "finding": "The applicable-law sentence is an issuer-defined term. stated_fact is a primary label and must not imply independent legal verification. The model note and definition_candidate flag preserve this distinction.",
+    "next_action": "Review whether definitions belong in the target Claim scope."
+  },
+  {
+    "id": "F05",
+    "status": "open",
+    "owner": "CW",
+    "category": "context_completeness",
+    "ticker": "JPM",
+    "claim_id": "claim_dfa29cb3c5a3b246d89bb9d4",
+    "finding": "These types of changes has an introductory context sentence, but the intervening list is absent from the context evidence. The original model note acknowledges incomplete referent resolution.",
+    "next_action": "Review and retain the relevant list as context evidence, without treating noun-phrase bullets as independent sentence Claims."
+  }
+]
