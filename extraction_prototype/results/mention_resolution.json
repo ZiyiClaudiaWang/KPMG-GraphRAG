@@ -1,0 +1,90 @@
+[
+  {
+    "surface_text": "The Company",
+    "candidate_type": "Company",
+    "block_order": 4,
+    "accession_number": "0000320193-25-000079",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[149]"
+    },
+    "source_spans": [
+      {
+        "start": 0,
+        "end": 11
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": {
+      "label": "Company",
+      "cik": "0000320193",
+      "legal_name": "Apple Inc."
+    },
+    "resolution_status": "resolved_by_filing_context",
+    "resolution_rule": "issuer_reference_v1"
+  },
+  {
+    "surface_text": "global supply chain",
+    "candidate_type": "Other",
+    "block_order": 4,
+    "accession_number": "0000320193-25-000079",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[149]"
+    },
+    "source_spans": [
+      {
+        "start": 154,
+        "end": 173
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": null,
+    "resolution_status": "unresolved",
+    "resolution_rule": null
+  },
+  {
+    "surface_text": "supplier facilities",
+    "candidate_type": "Other",
+    "block_order": 4,
+    "accession_number": "0000320193-25-000079",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[149]"
+    },
+    "source_spans": [
+      {
+        "start": 227,
+        "end": 246
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": null,
+    "resolution_status": "unresolved",
+    "resolution_rule": null
+  },
+  {
+    "surface_text": "global and regional economic conditions",
+    "candidate_type": "RiskFactor",
+    "block_order": 4,
+    "accession_number": "0000320193-25-000079",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[149]"
+    },
+    "source_spans": [
+      {
+        "start": 399,
+        "end": 438
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": null,
+    "resolution_status": "needs_review",
+    "resolution_rule": "risk_theme_mapping_pending"
+  }
+]

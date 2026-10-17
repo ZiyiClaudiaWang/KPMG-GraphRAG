@@ -1,0 +1,50 @@
+{
+  "AAPL": {
+    "target_gaps": 9,
+    "assessed_gaps": 9,
+    "decisions": {
+      "extract": 9,
+      "exclude": 0,
+      "needs_review": 0
+    },
+    "claim_drafts": 18,
+    "review_files": [
+      "AAPL_a51d0960d6fdac01.json",
+      "AAPL_5a04cbb9ade6222f.json",
+      "AAPL_f8d17c9d43cea064.json"
+    ],
+    "review_status": "needs_review"
+  },
+  "MSFT": {
+    "target_gaps": 10,
+    "assessed_gaps": 10,
+    "decisions": {
+      "extract": 10,
+      "exclude": 0,
+      "needs_review": 0
+    },
+    "claim_drafts": 25,
+    "review_files": [
+      "MSFT_94ca9b5d4a71c304.json",
+      "MSFT_8d285493dae3815b.json"
+    ],
+    "review_status": "needs_review"
+  },
+  "JPM": {
+    "target_gaps": 20,
+    "assessed_gaps": 20,
+    "decisions": {
+      "extract": 8,
+      "exclude": 3,
+      "needs_review": 9
+    },
+    "claim_drafts": 9,
+    "review_files": [
+      "JPM_073d0909345b87d3.json",
+      "JPM_b95184e3abe33789.json",
+      "JPM_4643c8248ef91a58.json",
+      "JPM_01d9e2442b7fd71e.json"
+    ],
+    "review_status": "needs_review"
+  }
+}

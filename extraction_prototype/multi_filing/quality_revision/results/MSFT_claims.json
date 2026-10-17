@@ -1,0 +1,527 @@
+[
+  {
+    "claim_id": "claim_f712c75cba79f50b1adfae94",
+    "quote": "We face intense competition across all markets for our products and services, which could adversely affect our results of operations.",
+    "claim_type": "hedged_risk",
+    "subject_scope": "We",
+    "context": null,
+    "annotation_note": "Mixed: the first clause asserts existing competition (stated fact); the adverse effect is conditional (\"could\"), so the primary type is hedged_risk.",
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 2,
+        "quote_fragment": "We face intense competition across all markets for our products and services, which could adversely affect our results of operations.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[4]"
+        },
+        "start": 0,
+        "end": 133,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_ffc57437635d7d4be1f94b13",
+    "quote": "Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms whose narrower product lines may let them be more effective in deploying technical, marketing, and financial resources.",
+    "claim_type": "stated_fact",
+    "subject_scope": "Our competitors",
+    "context": null,
+    "annotation_note": "Contains an embedded hedge (\"may let them be more effective\") about small firms, but the main assertion is descriptive.",
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 4,
+        "quote_fragment": "Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms whose narrower product lines may let them be more effective in deploying technical, marketing, and financial resources.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[6]"
+        },
+        "start": 0,
+        "end": 263,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_9c2e794269fd655b7acddf51",
+    "quote": "Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services.",
+    "claim_type": "stated_fact",
+    "subject_scope": "Barriers to entry in many of our businesses",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 4,
+        "quote_fragment": "Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[6]"
+        },
+        "start": 264,
+        "end": 493,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_2dd8285300bcc5a80c941b0e",
+    "quote": "If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.",
+    "claim_type": "hedged_risk",
+    "subject_scope": "we",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 4,
+        "quote_fragment": "If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[6]"
+        },
+        "start": 494,
+        "end": 734,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_53a4698d41697c30586d908e",
+    "quote": "An important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions.",
+    "claim_type": "stated_fact",
+    "subject_scope": "An important element of our business model",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 6,
+        "quote_fragment": "An important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[8]"
+        },
+        "start": 0,
+        "end": 143,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_212afcaa00e893ae212054bf",
+    "quote": "We face significant competition from firms that provide competing platforms.",
+    "claim_type": "stated_fact",
+    "subject_scope": "We",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 6,
+        "quote_fragment": "We face significant competition from firms that provide competing platforms.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[8]"
+        },
+        "start": 434,
+        "end": 510,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_88e985cbe1596e7ae075c231",
+    "quote": "We also offer some vertically-integrated hardware and software products and services.",
+    "claim_type": "stated_fact",
+    "subject_scope": "We",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 7,
+        "quote_fragment": "We also offer some vertically-integrated hardware and software products and services.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/div[1]/div"
+        },
+        "start": 576,
+        "end": 661,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_79f16fd4559807adf6fba58a",
+    "quote": "Shifting a portion of our business to a vertically-integrated model may increase our cost of revenue and reduce our operating margins.",
+    "claim_type": "hedged_risk",
+    "subject_scope": "Shifting a portion of our business to a vertically-integrated model",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 7,
+        "quote_fragment": "Shifting a portion of our business to a vertically-integrated model may increase our cost of revenue and reduce our operating margins.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/div[1]/div"
+        },
+        "start": 662,
+        "end": 796,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_5c873dc93bb8b2b45d3db8ff",
+    "quote": "We derive substantial revenue from licenses of Windows operating systems on PCs.",
+    "claim_type": "stated_fact",
+    "subject_scope": "We",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 8,
+        "quote_fragment": "We derive substantial revenue from licenses of Windows operating systems on PCs.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/div[2]/div"
+        },
+        "start": 0,
+        "end": 80,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_2aceefc10109c34af4f53720",
+    "quote": "Competing with operating systems licensed at low or no cost may decrease our PC operating system margins.",
+    "claim_type": "hedged_risk",
+    "subject_scope": "Competing with operating systems licensed at low or no cost",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 8,
+        "quote_fragment": "Competing with operating systems licensed at low or no cost may decrease our PC operating system margins.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/div[2]/div"
+        },
+        "start": 624,
+        "end": 729,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_5c890f3a35ff43144189b6cf",
+    "quote": "For all of these reasons, we may not be able to compete successfully against our current and future competitors, which could adversely affect our business, operations, financial condition, and results of operations.",
+    "claim_type": "hedged_risk",
+    "subject_scope": "we",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 10,
+        "quote_fragment": "For all of these reasons, we may not be able to compete successfully against our current and future competitors, which could adversely affect our business, operations, financial condition, and results of operations.",
+        "source_locator": {
+          "xpath": "/html/body/div[48]/p[9]"
+        },
+        "start": 0,
+        "end": 215,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_d3e405a8dab5293925a4961b",
+    "quote": "Companies compete with us based on a growing variety of business models.",
+    "claim_type": "stated_fact",
+    "subject_scope": "Companies",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 12,
+        "quote_fragment": "Companies compete with us based on a growing variety of business models.",
+        "source_locator": {
+          "xpath": "/html/body/div[51]/p[2]"
+        },
+        "start": 0,
+        "end": 72,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_b94ae30c1d2da47110179758",
+    "quote": "We are investing in artificial intelligence (“AI”) across the entire company and infusing generative AI capabilities into our consumer and commercial offerings.",
+    "claim_type": "stated_fact",
+    "subject_scope": "We",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 14,
+        "quote_fragment": "We are investing in artificial intelligence (“AI”) across the entire company and infusing generative AI capabilities into our consumer and commercial offerings.",
+        "source_locator": {
+          "xpath": "/html/body/div[51]/div[2]/div"
+        },
+        "start": 0,
+        "end": 160,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_65f1a7b73f51479afc1b0a70",
+    "quote": "We will bear significant development and operational costs to build and support the AI models, services, platforms, and infrastructure necessary to meet the needs of our customers.",
+    "claim_type": "forward_looking",
+    "subject_scope": "We",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 14,
+        "quote_fragment": "We will bear significant development and operational costs to build and support the AI models, services, platforms, and infrastructure necessary to meet the needs of our customers.",
+        "source_locator": {
+          "xpath": "/html/body/div[51]/div[2]/div"
+        },
+        "start": 292,
+        "end": 472,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  },
+  {
+    "claim_id": "claim_a46e18f84398ceb44e5d2187",
+    "quote": "Other competitors develop and offer free applications, online services, and content, and make money by selling third-party advertising.",
+    "claim_type": "stated_fact",
+    "subject_scope": "Other competitors",
+    "context": null,
+    "annotation_note": null,
+    "review_flags": [],
+    "extraction_status": "needs_review",
+    "issuer_cik": "0000789019",
+    "accession_number": "0000950170-25-100235",
+    "section_id": "0000950170-25-100235/item_1a",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+    "evidence_fragments": [
+      {
+        "block_order": 16,
+        "quote_fragment": "Other competitors develop and offer free applications, online services, and content, and make money by selling third-party advertising.",
+        "source_locator": {
+          "xpath": "/html/body/div[51]/div[4]/div"
+        },
+        "start": 0,
+        "end": 135,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ],
+    "context_evidence_fragments": [],
+    "cross_block": false,
+    "quote_text_basis": "normalized_dom_fragments_joined_with_spaces",
+    "source_chunk_id": null,
+    "extraction_model": "claude-sonnet-5-5",
+    "extraction_request_hash": "28dccb09f3c7d9f88c1f158ac78b6456b54521a29b7617bed3b06bced7237e82"
+  }
+]

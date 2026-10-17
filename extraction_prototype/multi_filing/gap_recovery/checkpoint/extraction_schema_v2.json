@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "ClaimDraftV2": {
+      "additionalProperties": false,
+      "properties": {
+        "quote": {
+          "description": "One complete source sentence. For a sentence spanning blocks, join its evidence fragments with one space.",
+          "title": "Quote",
+          "type": "string"
+        },
+        "evidence_fragments": {
+          "description": "Source fragments in document order. Include every part of the sentence, including qualifiers.",
+          "items": {
+            "$ref": "#/$defs/EvidenceFragment"
+          },
+          "title": "Evidence Fragments",
+          "type": "array"
+        },
+        "claim_type": {
+          "enum": [
+            "stated_fact",
+            "forward_looking",
+            "hedged_risk"
+          ],
+          "title": "Claim Type",
+          "type": "string"
+        },
+        "subject_text": {
+          "title": "Subject Text",
+          "type": "string"
+        },
+        "context": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Context"
+        },
+        "context_fragments": {
+          "description": "Exact evidence for context, in document order. Use an empty list when context is null.",
+          "items": {
+            "$ref": "#/$defs/EvidenceFragment"
+          },
+          "title": "Context Fragments",
+          "type": "array"
+        },
+        "annotation_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Annotation Note"
+        }
+      },
+      "required": [
+        "quote",
+        "evidence_fragments",
+        "claim_type",
+        "subject_text",
+        "context",
+        "context_fragments",
+        "annotation_note"
+      ],
+      "title": "ClaimDraftV2",
+      "type": "object"
+    },
+    "EvidenceFragment": {
+      "additionalProperties": false,
+      "properties": {
+        "block_order": {
+          "description": "The original source block number.",
+          "title": "Block Order",
+          "type": "integer"
+        },
+        "quote_fragment": {
+          "description": "An exact, non-empty substring copied from this source block. Do not rewrite or add punctuation.",
+          "title": "Quote Fragment",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_order",
+        "quote_fragment"
+      ],
+      "title": "EvidenceFragment",
+      "type": "object"
+    },
+    "MentionDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "surface_text": {
+          "description": "Exact text appearing in the source block.",
+          "title": "Surface Text",
+          "type": "string"
+        },
+        "candidate_type": {
+          "enum": [
+            "Company",
+            "Subsidiary",
+            "Segment",
+            "RiskFactor",
+            "Other"
+          ],
+          "title": "Candidate Type",
+          "type": "string"
+        },
+        "block_order": {
+          "description": "The source block number supplied in the input.",
+          "title": "Block Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "surface_text",
+        "candidate_type",
+        "block_order"
+      ],
+      "title": "MentionDraft",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "mentions": {
+      "items": {
+        "$ref": "#/$defs/MentionDraft"
+      },
+      "title": "Mentions",
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/ClaimDraftV2"
+      },
+      "title": "Claims",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mentions",
+    "claims"
+  ],
+  "title": "ExtractionBatchV2",
+  "type": "object"
+}

@@ -1,5 +1,10 @@
 # Merging the two ontologies — worksheet
 
+Status: First draft by CW, 2026-10-16; pending Alina's and team review.
+The decisions below are proposals, not joint sign-off.
+
+Summary: Propose eight node types — Company, Filing, Section, Segment, Fact, Subsidiary, Claim and RiskFactor. Exclude SourceChunk, FinancialMetric, MetricObservation and Executive/Officer as separate nodes in v1. Propose section-based Claim evidence and a separate CONSOLIDATED_INTO relationship. Document, Table and Cell remain unresolved. Loader alignment and validation are still pending.
+
 We have two documents describing the same thing, and they disagree.
 
 [schema-ids-operations.md](./schema-ids-operations.md) is the one we have been
@@ -50,7 +55,7 @@ The labelled sentences come first because they feed decision 2.3. Designing the
 an imaginary filing. An hour's work, and it has to happen before the merge rather
 than after.
 
-The merge and the loader are due Friday because the extraction prototype starts next
+The merge and the loader are due Saturday 17 Oct because the extraction prototype starts next
 week, and every prompt written after that point assumes a settled ontology. Changing
 it later means redoing that work.
 
@@ -59,7 +64,7 @@ filings get loaded, and verifying amendments on EDGAR is fiddlier than it sounds
 
 ---
 
-## What this file should look like on Friday
+## Expected worksheet state
 
 So it is clear what finished means.
 
@@ -97,7 +102,7 @@ written down by whoever takes that row. Anything without one gets cut. It is eas
 keep adding to an ontology and hard to take things out, so the rule has to do that
 work for us.
 
-**How we check it is real:** if it is not loaded into `toy_graph/` by Friday, it is
+**How we check it is real:** if it is not loaded into `toy_graph/` by Saturday 17 Oct, it is
 not in v1. The toy graph is small — adding a node type takes about ten minutes — so
 this is a reasonable test, not a punishment.
 
@@ -172,30 +177,34 @@ document, nothing loads at all.
 
 ---
 
-## A starting draft to argue with
+## Current proposal summary — pending review
 
-Not decided. Six of these follow from evidence already sitting in the two documents.
-Two are genuinely open and left blank.
-
-| | Suggested | Why |
+| Item | Proposed decision | Reference |
 | --- | --- | --- |
-| `Company`, `Filing`, `Section`, `Segment` | keep | both documents have them |
-| `Fact`, including whether it was corrected | keep | the one we follow |
-| `Subsidiary` | keep | the one we follow |
-| `Claim`, with a type | **add** | the proposal |
-| `extraction_status` on anything extracted | **add** | the proposal |
-| `RiskFactor` | **keep** — Use Case B is the question it needed | the proposal |
-| `Executive` | **cut** until someone names a question for it | — |
-| `AMENDS`, plus a rule for what replaces what | keep | the one we follow, and the toy graph |
-| `CONSOLIDATED_INTO` | ? | the toy graph |
-| `FinancialMetric` and `MetricObservation` | ? | open |
-| `SourceChunk` as its own node | ? | open |
+| Company, Filing, Section, Segment | Keep | Part 1 |
+| Fact | Keep one node type with a concept property | 2.1 |
+| FinancialMetric / MetricObservation | Do not introduce separate node types | 2.1 |
+| SourceChunk | Do not introduce a separate node; retain optional chunk provenance | 2.2 |
+| Claim | Add, with statement type and review status | 2.3 |
+| RiskFactor | Keep as a specific risk theme | 2.4 |
+| Executive / Officer | Exclude from v1 | 2.5 |
+| Subsidiary | Keep | 2.6 |
+| Amendments and restatements | Preserve observations; establish replacement at fact level | 2.7 |
+| CONSOLIDATED_INTO | Add as a separate relationship | 2.8 |
+| Document / Table / Cell | Unresolved; owner: CW to coordinate with Alina | Pending named questions and real-filing validation |
+
+Naming: PascalCase for nodes and UPPER_SNAKE for relationships.
+
+This summary does not replace the detailed decisions or imply that the loader has been updated.
 
 Node names in PascalCase, link names in UPPER_SNAKE — see Part 0.
 
 ---
 
 ## Part 0 · Names — do this one first
+
+Status: Draft by CW, 2026-10-16. Pending Alina's review.
+The entries below are proposed naming choices, not joint sign-off.
 
 Not a matter of taste. Neo4j has its own convention: **node names in PascalCase**,
 **link names in UPPER_SNAKE**.
@@ -207,16 +216,18 @@ the database.
 
 | | Now, in the one we follow | Now, in the proposal | Convention | Agreed |
 | --- | --- | --- | --- | --- |
-| Node names | `COMPANY` | `Company` | PascalCase | |
-| Link names | `FILES` | `FILED` | UPPER_SNAKE | |
+| Node names | `COMPANY` | `Company` | PascalCase | Proposed: PascalCase, e.g. `Company`, `Filing`. CW, 2026-10-16; pending review |
+| Link names | `FILES` | `FILED` | UPPER_SNAKE | Proposed: UPPER_SNAKE. CW, 2026-10-16; pending review |
 
 Then pick one name per link. These three are the same link twice:
 
 | The link | One document | The other | Agreed |
 | --- | --- | --- | --- |
-| Company to filing | `FILES` | `FILED` | |
-| Filing to section | `CONTAINS` | `HAS_SECTION` | |
-| Company to segment | `REPORTS_SEGMENT` | `HAS_SEGMENT` | |
+| Company to filing | `FILES` | `FILED` | Proposed: `FILES`. CW, 2026-10-16; pending review |
+| Filing to section | `CONTAINS` | `HAS_SECTION` | Proposed: `CONTAINS`. CW, 2026-10-16; pending review |
+| Company to segment | `REPORTS_SEGMENT` | `HAS_SEGMENT` | Proposed: `HAS_SEGMENT`. CW, 2026-10-16; pending review |
+
+These proposals standardize relationship names only. The final Filing–Document–Section structure will be addressed separately.
 
 If we cannot agree, use present tense, because the graph describes how things are
 rather than something that happened: `FILES`, `CONTAINS`, `HAS_SEGMENT`. A mixed
@@ -288,8 +299,43 @@ already has it.
 **How to settle it without arguing:** write the query for Use Case A both ways and
 see which one reads better. Fifteen minutes, and it never comes up again.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Use one `Fact` node with a `concept` property; do not add a separate `FinancialMetric` node in v1.** CW, 2026-10-16; pending review.
+
+Query-writing comparison for Use Case A:
+
+Option A — Fact with concept as a property:
+
+```cypher
+MATCH (c:Company)-[:FILES]->(filing:Filing)-[:REPORTS]->(f:Fact)
+WHERE c.cik IN $company_ciks
+  AND f.concept IN $concepts
+RETURN c.cik AS cik,
+       filing.accession_number AS accession_number,
+       f.fact_id AS fact_id,
+       f.concept AS concept
+```
+
+Option B — separate metric and observation nodes:
+
+```cypher
+MATCH (c:Company)-[:FILES]->(filing:Filing)
+      -[:REPORTS_METRIC]->(o:MetricObservation)
+      -[:OF_METRIC]->(m:FinancialMetric)
+WHERE c.cik IN $company_ciks
+  AND m.concept IN $concepts
+RETURN c.cik AS cik,
+       filing.accession_number AS accession_number,
+       o.fact_id AS fact_id,
+       m.concept AS concept
+```
+
+Both return candidate fact references. For this use case, Option B adds a node type and traversal without simplifying the required numeric work. Values, units, periods and dimensions remain in the fact table. The structured query layer must select comparable observations and the requested basis, then calculate growth and margin. Revenue growth also requires the prior-year baseline.
+
+`$concepts` must contain the actual source concept identifiers selected for each company, not assumed universal labels.
+
+Question it answers: “How do Company A and Company B compare in FY2025 revenue growth and operating margin?” A separate metric node is not required for this use case. Revisit if metric hierarchies or other concept-level relationships become necessary.
+
+Validation status: Query-writing comparison only. These queries describe the candidate models and have not been executed against the current schema probe. No runtime or performance advantage is claimed.
 
 ### 2.2 Is a chunk of text its own node, or just an ID on other things
 
@@ -300,8 +346,9 @@ it naturally.
 which is happening between W6 and W9. It also overlaps `Section` if the section-first
 proposal goes through, because then sections come first and chunks hang off them.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Do not include `SourceChunk` as a separate node in v1.** CW, 2026-10-16; pending review. Anchor Claim evidence on `Section` through `SUPPORTS`. Retain `source_chunk_id` as optional provenance metadata when available, never as part of a Claim or relationship key. Revisit if a concrete query requires chunk-level traversal.
+
+Question it answers: “Where in the filing is the evidence for this Claim?” A section reference, verbatim quote and supporting context answer this without a separate chunk node. No additional question currently justifies that node.
 
 ### 2.3 `Claim`, with a type — take it from the proposal
 
@@ -310,12 +357,30 @@ company hedging rather than stating a fact. Given we have said the whole point i
 evidence-grounded answers, that is a gap in the middle of the thing.
 
 Suggested: **take it.** Then work out the smallest set of properties it needs.
-Alina is hand-labelling real sentences first, so the shape comes from what actual
-sentences need rather than from what we imagine they need.
+Six real Item 1A sentences have been annotated by CW with AI assistance; see the examples below.
 
-Answer:
+Answer: **Proposed: Keep `Claim`.** CW, 2026-10-16; pending review.
+The six annotated examples in [claim_examples.md](../toy_graph/claim_examples.md) show why statement type, qualifiers and context must be preserved. For v1, retain one complete sentence per Claim, assign a primary type, and record mixed content in a note. Automatic splitting into multiple claims is deferred.
+
 Properties:
-Question it answers:
+
+| Property | Requirement | Purpose |
+| --- | --- | --- |
+| `claim_id` | Required | Assigned deterministically by the loader using stable source and statement identity; never generated by the LLM or keyed on a chunk ID |
+| `quote` | Required | Verbatim source sentence, preserving qualifiers |
+| `claim_type` | Required | `stated_fact`, `forward_looking`, or `hedged_risk`; a primary label rather than a guarantee that categories never overlap |
+| `accession_number` | Required | Identifies the source filing |
+| `section_id` | Required | Identifies the source section under the shared provenance rules |
+| `extraction_status` | Required | `needs_review`, `reviewed`, or `rejected`; records review status, not independent factual verification |
+| `context` | Optional | Supporting context needed to interpret references such as “Such disruptions” |
+| `subject_scope` | Optional | Identifies what the statement concerns, such as global attacks rather than Apple-specific attacks |
+| `annotation_note` | Optional | Records mixed content, ambiguity and interpretation limits |
+
+Proposed relationship: `Section -[:SUPPORTS]-> Claim`, with provenance on the supporting relationship. This provides a section-based evidence link without requiring a decision on whether `SourceChunk` is a separate node.
+
+Question it answers: “Which statements in Apple's risk disclosures describe existing conditions, which express future expectations, and which describe possible adverse outcomes, and what source wording supports each classification?”
+
+Validation status: Supported by the annotated examples; not yet implemented or tested in the schema probe.
 
 ### 2.4 `RiskFactor` — its own node, or a label on a section
 
@@ -323,8 +388,11 @@ The other document called this doubtful, because no question needed it. Use Case
 in the proposal is that question: how a company's supply chain risk disclosures
 changed between two years. That is the justification that was missing.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Keep `RiskFactor` as a specific risk theme, distinct from the section-level `risk_factors` label.** CW, 2026-10-16; pending review. Connect `Claim -[:CONCERNS_RISK]-> RiskFactor`. For the prototype, use a small, documented set of manually reviewed themes rather than creating a new theme for every wording variation. Retain the original claims and their provenance.
+
+Identity: Assign each manually reviewed theme a stable `risk_id` from a documented theme list. Match wording variants to that ID rather than generating a new node from each extracted phrase. The initial theme list remains to be created.
+
+Question it answers: “How did Apple's disclosures about supply-chain risk change between two fiscal years?” The section label identifies where risk disclosures occur; the theme groups relevant claims across filings. This comparison requires evidence from both years and has not yet been validated by the single-year examples.
 
 ### 2.5 `Executive` — cut unless someone names a question
 
@@ -332,16 +400,18 @@ There is no reliable way to tell two people with the same name apart, so it need
 fuzzy matching, and neither document says what question it answers. By our own rule
 it gets cut.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Exclude `Executive` / `Officer` from v1.** CW, 2026-10-16; pending review. No agreed business question currently requires this node. Revisit when a concrete question, a suitable source and an identity-resolution approach are available.
+
+Question it answers: None currently agreed; therefore excluded from v1.
 
 ### 2.6 `Subsidiary` — take it from the other document
 
 Exhibit 21 is where most of our cross-company questions come from, and the proposal
 has no node for it.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Keep `Subsidiary`.** CW, 2026-10-16; pending review. Use `Company -[:OWNS]-> Subsidiary`, supported by the filing's Exhibit 21 disclosures. Follow the existing `sub_id` scheme based on parent CIK and normalized subsidiary name, while retaining the original name and source provenance. This key is provisional identity, not proof that name variants have been resolved. Do not infer ownership percentages or segment membership unless explicitly supported.
+
+Question it answers: “Which subsidiaries does a company list in Exhibit 21, and where are they incorporated?” Cross-year comparisons additionally require name-resolution and filing-specific evidence.
 
 ### 2.7 Corrections and restatements — take them from the other document
 
@@ -354,8 +424,17 @@ correction **replaces that same figure for that same period**. If we treat the w
 filing as out of date, we also mark last year's number stale even though nobody
 touched it, and then there is nothing to compare against.
 
-Answer:
-Question it answers:
+Answer: **Proposed: Keep filing-level `AMENDS`, preserve original and amended facts, and determine supersession at fact level.** CW, 2026-10-16; pending review.
+
+`AMENDS` records that one filing amends another; it does not automatically invalidate every fact in the original. Treat a fact as superseded only when evidence establishes that the amendment replaces that specific observation. Match the reporting entity, concept, period and dimensions, with compatible units, or use an explicit replacement link supplied by Data.
+
+Keep `basis` (`as_filed` / `as_restated`) separate from currentness. An `as_filed` fact can remain current. Do not label every fact in a 10-K/A as restated merely because of the filing form. If replacement cannot be established, retain both observations and flag the ambiguity.
+
+Numeric values remain in the fact table; the graph retains fact references and filing relationships.
+
+Question it answers: “What value was originally reported, what was subsequently corrected, and which observation should be used for the requested period and reporting scope?”
+
+Validation status: The constructed schema probe demonstrates the filing-level supersession error. Validation against a real original/amendment pair and the Data replacement contract is still pending.
 
 ### 2.8 `CONSOLIDATED_INTO` — new, from the toy graph
 
@@ -366,8 +445,34 @@ question can run.
 
 Open: its own link, or a property on `OWNS`?
 
-Answer:
-Question it answers:
+Answer: **Proposed: Add `Subsidiary -[:CONSOLIDATED_INTO]-> Segment` as a separate relationship.** CW, 2026-10-16; pending review. Create it only when a filing explicitly supports the subsidiary-to-segment mapping. Retain the source accession, section reference and supporting quote. Record effective dates when disclosed; do not invent them or infer segment membership from parent ownership alone.
+
+Question it answers: “Which reporting segment includes the results of a named subsidiary or acquired business?” Going through the parent company returns all its segments and does not establish this mapping.
+
+Validation status: Demonstrated in the constructed schema probe; requires validation against a real filing.
+
+---
+
+## Real-filing prototype findings — CW, 2026-10-17
+
+Reported from selected Item 1A excerpts in AAPL, MSFT and JPM. The candidate graph
+contains 87 Claims, 96 nodes and 93 relationships. CW's recorded Colab checks cover
+all 87 provenance paths, repeated loading and two simulated chunk-metadata changes
+with restoration. Claim classifications remain `needs_review`; full-section
+completeness and actual Data-team re-chunking are not established.
+
+These rows report constraints exposed by real source text. They distinguish
+prototype implementation from decisions awaiting team review.
+
+| Finding | What the real source exposed | Handling and evidence | Status / owner |
+| --- | --- | --- | --- |
+| A Claim can span multiple HTML blocks | JPM's national-regulator sentence continues across blocks 47–48. One XPath/span cannot represent its complete evidence. | Preserve an ordered array of exact source fragments, each with block order, XPath and normalized-text start/end. Validate adjacent-block joins; retain Section-based `SUPPORTS`. See [verified paths](../extraction_prototype/multi_filing/gap_recovery/results/verified_paths.json). | Implemented and technically checked in the prototype. Production provenance-contract alignment remains open. Owner: CW. |
+| List structure breaks a simple sentence-per-Claim rule | JPM uses an introductory clause followed by bullet items. The model skipped intervening items in some joins, and source-valid drafts sometimes stopped at a colon or the first bullet. | Withhold eight source-invalid drafts and four additional boundary-held drafts. Preserve five complete source groups: 26–34, 35–40, 43–46, 49–56 and 57–63. See [deferred drafts](../extraction_prototype/multi_filing/gap_recovery/results/deferred_drafts.json) and [complete groups](../extraction_prototype/multi_filing/gap_recovery/results/boundary_review_groups.json). These groups are evidence for review, not additional Claim nodes. | Unresolved: choose whether a complete list forms one Claim or requires a separate, explicitly scoped representation. The last group extends beyond the initial excerpt. Owner: CW; seek Alina's review. |
+| A literal quote can still lack necessary context | JPM's “This situation” and “These types of changes” sentences depend on earlier source text; the latter needs the introductory clause and its complete list. A model also returned paraphrased context despite supplying exact context fragments. | Preserve `context` together with `context_evidence_fragments`; render context from checked source fragments while retaining the raw model response and rendering audit. Initial context corrections are recorded in [quality revision changes](../extraction_prototype/multi_filing/quality_revision/results/changes.json). | Source-backed rendering implemented and technically checked. Context sufficiency still requires semantic review. Owner: CW. |
+| One primary type does not remove mixed modality or issuer-defined scope | Some sentences combine past events with possible future outcomes. JPM's definitions explain the issuer's usage; they are not independent verification of legal facts. | Retain the proposed primary label, subject scope and annotation; flag mixed-modality and definition candidates in the [review queue](../extraction_prototype/multi_filing/gap_recovery/results/review_queue.csv). Do not treat source alignment as classification approval. | Classification and scope review pending. No additional node type is justified by these examples alone. Owner: CW; seek Alina's review. |
+
+Saved technical evidence: [verification](../extraction_prototype/multi_filing/gap_recovery/results/verification.json).
+This finding report does not constitute joint ontology sign-off.
 
 ---
 
@@ -379,8 +484,7 @@ Write these down as open, rather than letting them look settled.
 | --- | --- |
 | `PEER_OF` | In both documents, and neither says where the data comes from. From 10-K filings the honest source is the SIC code in EDGAR. Companies' own lists of their peers are in proxy statements, which we are not reading. Either we source it or we drop it |
 | Working out which mentions are the same company | Both documents assume this step happens somewhere. Neither says how. The rule that matters: pull out mentions, work out which entity each one refers to as a separate step, and never let the model pick the ID itself |
-| `extraction_status` | In the proposal, nowhere in the other document. Related to `Claim` but applies to everything we extract |
-
+| `extraction_status` | Proposed for Claim in 2.3. Whether the same review-status convention applies to other extracted nodes and relationships remains open. Owner: CW |
 ---
 
 ## How to work through it

@@ -1,252 +1,125 @@
-# Toy graph — schema v1, tested against a question
+# CW draft ontology — executable schema probe
 
-A minimum graph in Neo4j built from one constructed filing, used to find out
-whether the settled ontology can answer a question that needs more than one hop.
+This is the implementation companion to the proposed decisions in
+[ontology-reconciliation.md](../docs/ontology-reconciliation.md). It is pending
+team review, not a jointly signed-off ontology or a real extraction pipeline.
 
-11 node instances across the 6 settled node types, 15 relationships.
+The probe has **26 nodes, 30 relationships and eight node types**: Company,
+Filing, Section, Segment, Subsidiary, Fact, Claim and RiskFactor.
 
-It found two gaps. Both are reproducible by running `check_findings.py`.
+## Sources and scope
 
-## Run it
+- The Northwind 10-K and amendment are **constructed fixtures**, retained to
+  reproduce the subsidiary-to-segment and fact-supersession findings.
+- Six Apple FY2025 Item 1A sentences are manually selected annotations from
+  [claim_examples.md](claim_examples.md). The script reads this file; it does not
+  use an LLM to extract statements from a filing.
+- Claim-to-theme assignments and the five-theme vocabulary are **new candidate
+  annotations requiring review**. An international-sales fact is tagged as
+  international exposure; it is not itself evidence that a loss occurred.
+- Document, Table, Cell, nested sections, fuzzy entity resolution, real amendment
+  ingestion, automatic extraction and the production evidence API are not tested.
+- The earlier committed PNGs show the historical 11-node probe. Regenerate them
+  to obtain this draft's views; they are not evidence that the new loader ran.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `toy_graph.py` | Definitions, IDs, scoped loader, repeated-load/re-chunk checks |
+| `check_findings.py` | Historical failures and corrected results, plus Claim paths |
+| `claim_examples.md` | Six source sentences, proposed labels and interpretation notes |
+| `render.py` | Optional diagrams read back from the live probe |
+| `.env.example` | Connection template; never commit your actual `.env` |
+
+## Run
+
+From the repository root, without a database or third-party packages:
+
+```bash
+python toy_graph/toy_graph.py --check-only
+```
+
+For live checks, use a Neo4j 5.26 development database. For example, if Docker is
+installed:
 
 ```bash
 docker run -d --name kpmg-graph -p 7474:7474 -p 7687:7687 \
   -e NEO4J_AUTH=neo4j/sketchpass neo4j:5.26
-
-pip install -r requirements.txt
-cp .env.example .env          # edit if you are not on the default local setup
-
-python3 toy_graph.py          # wipe, constraints, load twice, prove idempotent
-python3 check_findings.py     # the two findings, each as a before/after pair
 ```
 
-Browser at http://localhost:7474 — user `neo4j`, password `sketchpass`,
-connect URL `bolt://localhost:7687`.
-
-To point at Aura instead, put its URI, username and password in `.env`.
-Nothing else changes. `.env` is gitignored; never commit credentials.
-
-| File | Holds |
-| --- | --- |
-| `toy_graph.py` | Node and edge definitions, deterministic keys, provenance shapes, loader |
-| `check_findings.py` | The two findings, each as the natural query and the corrected one |
-| `render.py` | Draws `images/*.png` from whatever database `.env` points at |
-| `.env.example` | Connection template |
-
-## Pictures
+Then:
 
 ```bash
-python3 render.py
+pip install -r toy_graph/requirements.txt
+cp toy_graph/.env.example toy_graph/.env
 ```
 
-Reads the graph back out of the database and draws four views. Positions are placed
-by hand, so the same picture comes out every time and it can sit in a document
-without shifting. Change the schema and you add a line to `POS` — the script says
-which nodes it skipped.
+Edit `.env` for your database, using `NEO4J_URI`, `NEO4J_USER` and
+`NEO4J_PASSWORD`. A remote Sandbox/Aura connection works through the same driver.
+The script explicitly loads `.env` from its own directory. Environment variables
+take precedence.
 
-![The answer path](./images/2-answer-path.png)
-
-Two figures for the same segment, the same concept and the same period. They differ
-only in `basis`, and each points back to a different filing. Nothing inside either
-document says which to quote. The `AMENDS` link between them does.
-
-| Image | Shows |
-| --- | --- |
-| `images/1-whole-graph.png` | All 11 nodes and 15 relationships |
-| `images/2-answer-path.png` | The answer path, above |
-| `images/3-hop1-ambiguous.png` | Subsidiary to segment as the schema stands — two segments back |
-| `images/4-restatement.png` | The correction alone, sized for a slide |
-
-Neo4j Browser draws `CONSOLIDATED_INTO` exactly like the settled links, so a
-screenshot cannot show that it is a proposal. These can, which is why they exist.
-
-## The source passage
-
-Invented. Shaped like a 10-K and its amendment, because a clean filing would not
-exercise the open parts of the schema.
-
-> Northwind Industries, Inc. (CIK 0000123456), Form 10-K for fiscal year ended
-> 31 Dec 2024, filed 18 Feb 2025, accession 0000123456-25-000012.
->
-> *Item 7, MD&A:* "On 3 April 2024 the Company completed its acquisition of
-> Harbor Logistics LLC. Harbor's results are consolidated within the Freight
-> Services segment from the acquisition date. Freight Services revenue was
-> $412.0 million for fiscal 2024, compared with $286.5 million in fiscal 2023."
->
-> *Exhibit 21:* Harbor Logistics LLC — Delaware — wholly owned.
->
-> Form 10-K/A, accession 0000123456-25-000031, filed 9 Sep 2025: "The Company is
-> restating segment revenue for fiscal 2024. Freight Services revenue is restated
-> to $388.4 million, reflecting correction of the timing of revenue recognised on
-> Harbor Logistics contracts assumed at acquisition."
->
-> EDGAR metadata: Northwind SIC 4731. Coastal Freight Corp (CIK 0000987654) also
-> SIC 4731.
-
-## The question
-
-> Which segment absorbed Harbor Logistics, how did its FY2024 revenue move, and is
-> the figure we would quote still the one the company stands behind?
-
-Hybrid in the Layer 3 taxonomy. Graph resolves the acquisition and the amendment
-chain, structured supplies the values, vector supplies the prose.
-
-Four hops: subsidiary to segment, segment to facts, facts back to the filings that
-reported them, filings out along `AMENDS`.
-
-## Finding 1 — we cannot link a subsidiary to its segment
-
-Nothing in the schema connects a subsidiary to the segment it reports under. The
-only way across is up to the parent company and back down through
-`REPORTS_SEGMENT`, which hands back every segment that company has — two here, a
-dozen for a real company with several business lines.
-
-```
-schema v1 only:
-  Freight Services
-  Warehousing Solutions
-2 rows. Ambiguous.
+```bash
+python toy_graph/toy_graph.py
+python toy_graph/check_findings.py
+python -m pytest tests/ -q
 ```
 
-The graph is loaded with a proposed edge, flagged `in_schema_v1: false`:
+Expected loader output:
 
-```
-CONSOLIDATED_INTO (SUBSIDIARY -> SEGMENT)
-  valid_from, quote, text provenance
-```
-
-With it, hop 1 returns one row and carries the sentence it came from.
-
-**Decision needed:** is this an edge of its own, or an attribute on the existing
-`OWNS` edge? It is loaded as an edge here only to make the question runnable.
-
-## Finding 2 — a correction applies to numbers, not to whole filings
-
-The obvious query asks "was the filing that reported this number ever amended?"
-That is true of the FY2023 figure — it was in the 10-K, and the 10-K was later
-amended. But the amendment only corrected FY2024. It left FY2023 alone.
-
-```
-judged at filing level (wrong):
-  2023-12-31
-    $286,500,000  as-filed  in 10-K  — superseded by 10-K/A
+```text
+Fixture valid: 26 nodes, 30 relationships; 8 node types
+Repeated load: (26, 30) — idempotent
+Simulated re-chunk: (26, 30) — no duplicates
 ```
 
-So FY2023 is left with no current value at all, and the year-on-year comparison has
-nothing to stand on. In an earlier version this showed up as a crash rather than a
-wrong number, which is the only reason anyone noticed.
+A mismatch raises an error instead of printing success. Running
+`python toy_graph/toy_graph.py --reset` deletes only nodes tagged with this
+probe's `probe_id`, then reloads them. The default run does not delete data.
+Queries and counts are scoped to the probe; unrelated nodes do not inflate counts.
+Composite uniqueness uses `(probe_id, key)`. If your database already enforces a
+conflicting global key constraint, use a separate development database rather
+than removing that constraint.
 
-The rule we need: a number is out of date only when the amendment actually
-**replaces that same concept for that same period**. Checking whether the filing
-was amended is not enough.
+In Neo4j Browser, display the probe with:
 
-```
-judged by fact-level replacement (correct):
-  2024-12-31   $388,400,000  restated   CURRENT
-  2024-12-31   $412,000,000  as-filed   superseded by 10-K/A
-  2023-12-31   $286,500,000  as-filed   CURRENT
-```
-
-**Decision needed:** this belongs in the temporal model, alongside valid-from /
-valid-to and `basis` on FACT. `basis` on its own is not sufficient — it labels a
-fact but does not say what replaces what.
-
-## Why this matters
-
-```
-FY2023 $286,500,000 -> FY2024 $388,400,000    +35.6%
-quoting the superseded figure instead          +43.8%
+```cypher
+MATCH (n {probe_id: 'cw-ontology-draft-20261016'})
+OPTIONAL MATCH (n)-[r]->(m {probe_id: 'cw-ontology-draft-20261016'})
+RETURN n, r, m
 ```
 
-Both numbers can be defended from the text of the filing. Only one of them is
-current. What tells them apart is a link between two documents, not a sentence
-inside either one. That is the argument for the graph, put concretely.
+## What the checks establish
 
-## What is deliberately not here
+1. Parent-only traversal returns two candidate segments; explicit
+   `CONSOLIDATED_INTO` returns Freight Services with a quote and stable provenance.
+2. Filing-level supersession wrongly invalidates FY2023. An explicit fixture
+   replacement mapping preserves FY2023 and selects the corrected FY2024 value.
+   The illustrative comparison is **35.6%**, versus 43.8% with the old value.
+3. Six Company–Filing–Section–Claim–RiskFactor paths exist. The reference-dependent
+   sentence retains context; the global prediction retains its scope and mixed
+   content note. Review status remains `needs_review`.
+4. Loading twice and changing chunk attributes yields the same node and edge
+   counts. Text relationship keys include accession and section, never chunk ID.
+5. Numeric values are absent from Neo4j Fact nodes. `FACT_VALUES` is a local fixture
+   lookup standing in for Structured's future store, **not a DuckDB implementation**.
+   `FACT_REPLACEMENTS` is explicit constructed evidence; matching concept/period
+   or merely having a 10-K/A does not establish replacement.
 
-- **No community detection.** Eleven nodes cannot support Leiden. That is a W9 question.
-- **No entity resolution.** Keys are assigned directly, because the passage has no
-  name variants. The real pipeline must extract *mentions* and resolve them to
-  entities in a separate stage.
-- **No real filings.** The passage is constructed. Checked against EDGAR: Apple has
-  filed zero 10-K/A amendments in the last decade, so a naive AAPL corpus would not
-  exercise finding 2 at all. Whichever companies the real toy graph uses, at least
-  one needs an amendment.
-- **No Claim or RiskFactor nodes.** See the ontology comparison below.
+Local probe keys are clearly distinguished from Data's production identifiers.
+Apple's section uses a local section key; Data's section ID and XPath are still
+pending. Chunk IDs are opaque and never parsed. Identical sentences within the
+same section deduplicate in this prototype; separate repeated occurrences will
+need stable occurrence locators before scale-up. `Fact` remains a graph pointer,
+with numeric values obtained outside Neo4j.
 
-## This week — who does what
+## Optional diagrams
 
-Three vocabularies currently describe the same domain: this one, the GraphRAG
-ontology draft, and whatever Data Engineering has defined. The risk is extraction
-starting before they reconcile. So this week is scoped to decisions, with the toy
-graph as the test harness, not to volume.
+```bash
+python toy_graph/render.py
+```
 
-**Pick the filings.** Choose the three real filings for the toy graph. One hard
-constraint: at least one company must have filed a 10-K/A, or the restatement
-finding cannot be exercised at all. Apple, the obvious default, has filed zero
-amendments in ten years — checked. Deliverable: three accession numbers verified on
-EDGAR, with the amendment identified.
-
-**Settle FinancialMetric / MetricObservation vs FACT.** By experiment, not debate.
-Write the Cypher for Use Case A under both models and compare. Whichever is simpler
-to write and read wins. Half a day, and it ends a question that would otherwise run
-for weeks.
-
-**Define the Claim node.** Take 5–8 sentences from one real Item 1A. Hand-label each
-as reported fact / forward-looking / hedged risk. From those labels, define the
-minimal `Claim` node — the properties it actually needs — plus the `SUPPORTS` edge
-from chunk to claim, and add it to `toy_graph.py` as an extension. Labelling first
-means the node shape comes from real sentences rather than from imagination.
-
-**Reconcile the names (shared, about an hour).** One table: concept, name here,
-name in the draft, name in Data's definitions, agreed name. This has to exist before
-anyone writes an extraction prompt. `FILED`/`FILES` and `HAS_SEGMENT`/
-`REPORTS_SEGMENT` are the same relationships under different names, and two people
-loading into one graph with different edge names get traversals that return nothing,
-silently.
-
-**Not this week:** volume extraction, entity resolution, community detection,
-`Executive`. All W5 or later, or cut.
-
-## Against the GraphRAG ontology draft
-
-Both documents describe the same domain and agree on most of it. Three conflicts
-and one gap, all worth settling before extraction starts.
-
-**We use different names for the same links.** `FILED` and `FILES`, `HAS_SECTION`
-and `CONTAINS`, `HAS_SEGMENT` and `REPORTS_SEGMENT`. Easy to fix and expensive to
-leave. If two people load data into one graph using different names for the same
-link, queries come back empty and nothing reports an error.
-
-**FinancialMetric and MetricObservation, or one FACT.** The draft separates the
-concept ("Revenue") from the value ("FY2025 revenue was X"). This version keeps one
-FACT and stores the concept as a property.
-
-There is a real argument for splitting them: a FinancialMetric node turns "every
-company that reports Revenue" into following links, rather than scanning properties
-on every node. The argument against is that the concept comes from the published
-XBRL taxonomy, so it is a lookup list rather than anything we extract from filings,
-and the fact table already carries it. Either is defensible. We need one of them,
-not both.
-
-**SourceChunk as a node, or as a property.** The draft makes the chunk a node. This
-version stores `source_chunk_id` as a property. Making it a node lets you ask what
-else a chunk supports. Keeping it a property is lighter and copes better when the
-corpus is re-chunked. This also overlaps the section-first proposal — if sections
-become first-class and chunks hang off them, a SourceChunk node partly repeats what
-SECTION already does.
-
-**The draft has no model of amendments.** No `AMENDS`, no `basis`, no rule for what
-replaces what. Finding 2 shows the cost: a system that returns an out-of-date
-number with a citation that looks perfectly correct. This version has `AMENDS` and
-`basis` — but neither document yet has the rule about replacing a specific number
-for a specific period.
-
-**What to take from the draft:** the `Claim` node, with a type attached. There is
-nowhere here to record that "supply constraints may affect production" is a hedged
-statement rather than a fact, and the draft is right that it matters.
-`extraction_status` does the same job for confidence.
-
-**What the draft should drop, by its own rule:** `Executive`. It has no stable ID
-and no question that needs it. `RiskFactor` is the opposite case — the draft's Use
-Case B is exactly the question it needed, which is what was missing here.
+This writes four updated finding views and a fifth Claim-extension view to
+`toy_graph/images/`. All views are draft illustrations, not a real-filing
+extraction benchmark.

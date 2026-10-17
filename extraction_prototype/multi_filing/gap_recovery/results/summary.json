@@ -1,0 +1,42 @@
+{
+  "source_validation": "passed_for_candidate_records",
+  "gap_assessments": 39,
+  "recorded_gap_decisions": {
+    "extract": 27,
+    "needs_review": 9,
+    "exclude": 3
+  },
+  "gap_review_retained_drafts_before_boundary_screen": 52,
+  "deferred_source_drafts": 8,
+  "deferred_retained_boundary_drafts": 4,
+  "duplicate_candidates": 0,
+  "candidate_claims": {
+    "AAPL": 28,
+    "MSFT": 40,
+    "JPM": 19
+  },
+  "total_candidate_claims": 87,
+  "complete_list_source_groups": 5,
+  "review_cache_files": [
+    "AAPL_5a04cbb9ade6222f.json",
+    "AAPL_a51d0960d6fdac01.json",
+    "AAPL_f8d17c9d43cea064.json",
+    "MSFT_8d285493dae3815b.json",
+    "MSFT_94ca9b5d4a71c304.json",
+    "JPM_01d9e2442b7fd71e.json",
+    "JPM_073d0909345b87d3.json",
+    "JPM_4643c8248ef91a58.json",
+    "JPM_b95184e3abe33789.json"
+  ],
+  "review_status": "needs_review",
+  "database_updated": false,
+  "scope": "Selected excerpts from three filings; not complete Item 1A extraction.",
+  "limits": [
+    "Source alignment does not establish classification accuracy or completeness.",
+    "Gap discovery uses an 80-character text-gap heuristic, not sentence recall.",
+    "Source spans address whitespace-normalized block text, not raw HTML offsets.",
+    "Raw HTML is absent from this checkpoint; recorded SEC hashes are cross-checked, not recomputed.",
+    "Mention candidates remain unresolved; only prior baseline issuer resolution is available.",
+    "List groups are evidence for a pending boundary policy, not additional Claim nodes."
+  ]
+}
