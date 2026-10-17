@@ -1,12 +1,5 @@
 # Real-filing extraction pilot
 
-Latest recorded draft: [source revision 1](multi_filing/quality_revision/README.md),
-with 39 Claims, 48 nodes and 45 relationships. Review and completeness work remain open.
-
-The expanded [three-filing prototype](multi_filing/README.md) records 38 Claims,
-47 nodes and 44 relationships, with multi-fragment evidence and open quality
-findings. The files below retain the original single-paragraph pilot.
-
 CW's working prototype: one paragraph from Apple FY2025 Item 1A,
 accession `0000320193-25-000079`, extracted with Claude structured output
 and Pydantic. This is separate from the constructed schema probe in `toy_graph/`.

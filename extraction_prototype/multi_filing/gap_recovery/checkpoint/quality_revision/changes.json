@@ -1,0 +1,123 @@
+[
+  {
+    "operation": "recover_prior_extraction",
+    "claim_id": "claim_db07a5c3b920fe4e21842040",
+    "prior_request_hash": "f10ba6db6558b7006419cefa283b659bc689f5def40d90e84b74aa7344c5b209"
+  },
+  {
+    "operation": "add_source_context",
+    "claim_id": "claim_d8d8d592118884cb6fe0747b",
+    "previous_context": null,
+    "revised_context": "Furthermore, regulators or governmental authorities could adopt new interpretations of applicable law or supervisory expectations, and in certain circumstances, JPMorganChase could be required to demonstrate that prior conduct complies with these new interpretations.",
+    "evidence_fragments": [
+      {
+        "block_order": 41,
+        "quote_fragment": "Furthermore, regulators or governmental authorities could adopt new interpretations of applicable law or supervisory expectations, and in certain circumstances, JPMorganChase could be required to demonstrate that prior conduct complies with these new interpretations.",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[3]/div[11]"
+        },
+        "start": 0,
+        "end": 267,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ]
+  },
+  {
+    "operation": "add_source_context",
+    "claim_id": "claim_dfa29cb3c5a3b246d89bb9d4",
+    "previous_context": "JPMorganChase has in the past and could in the future be required to modify its business and operations in response to changes in applicable law, regulatory decisions or supervisory expectations, such as:",
+    "revised_context": "JPMorganChase has in the past and could in the future be required to modify its business and operations in response to changes in applicable law, regulatory decisions or supervisory expectations, such as: •limiting the products and services that it offers •increasing the prices that it charges for products and services, which could reduce the demand for them •reducing the liquidity that it provides through market-making activities •paying higher taxes or other governmental charges •absorbing losses arising from fraudulent transactions perpetrated against its clients and customers •disposing of certain assets, and doing so at disadvantageous times or prices •forgoing business opportunities that it might otherwise pursue, or •otherwise restricting its business activities.",
+    "evidence_fragments": [
+      {
+        "block_order": 26,
+        "quote_fragment": "JPMorganChase has in the past and could in the future be required to modify its business and operations in response to changes in applicable law, regulatory decisions or supervisory expectations, such as:",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[1]/div[12]"
+        },
+        "start": 0,
+        "end": 204,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 27,
+        "quote_fragment": "•limiting the products and services that it offers",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[1]/div[13]"
+        },
+        "start": 0,
+        "end": 50,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 28,
+        "quote_fragment": "•increasing the prices that it charges for products and services, which could reduce the demand for them",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[1]/div[14]"
+        },
+        "start": 0,
+        "end": 104,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 29,
+        "quote_fragment": "•reducing the liquidity that it provides through market-making activities",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[1]/div[15]"
+        },
+        "start": 0,
+        "end": 73,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 30,
+        "quote_fragment": "•paying higher taxes or other governmental charges",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[1]/div[16]"
+        },
+        "start": 0,
+        "end": 50,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 31,
+        "quote_fragment": "•absorbing losses arising from fraudulent transactions perpetrated against its clients and customers",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[3]/div[1]"
+        },
+        "start": 0,
+        "end": 100,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 32,
+        "quote_fragment": "•disposing of certain assets, and doing so at disadvantageous times or prices",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[3]/div[2]"
+        },
+        "start": 0,
+        "end": 77,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 33,
+        "quote_fragment": "•forgoing business opportunities that it might otherwise pursue, or",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[3]/div[3]"
+        },
+        "start": 0,
+        "end": 67,
+        "span_coordinate_system": "normalized_block_text"
+      },
+      {
+        "block_order": 34,
+        "quote_fragment": "•otherwise restricting its business activities.",
+        "source_locator": {
+          "xpath": "/html/body/div[90]/div[3]/div[4]"
+        },
+        "start": 0,
+        "end": 47,
+        "span_coordinate_system": "normalized_block_text"
+      }
+    ]
+  }
+]

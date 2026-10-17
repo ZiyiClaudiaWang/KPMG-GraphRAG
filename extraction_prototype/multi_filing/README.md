@@ -1,9 +1,11 @@
 # Three-filing extraction prototype
 
-Latest: [source revision 1](quality_revision/README.md) records 39 Claims, 48 nodes
-and 45 relationships after recovering one Apple sentence and adding context to
-two JPM Claims. The original 38-Claim run and its source responses below remain
-unchanged. Quality review and broader recall checks remain open.
+Latest: [gap-review candidate graph](gap_recovery/README.md) records 87 candidate
+Claims, 96 nodes and 93 relationships. CW's saved Colab run verifies all 87 source
+paths, repeated loading and two simulated chunk-metadata changes with restoration.
+All classifications remain `needs_review`; full-section completeness is unestablished.
+The [39-Claim source revision](quality_revision/README.md) and original 38-Claim
+run below remain available as historical records.
 
 Selected Item 1A passages from Apple, Microsoft and JPMorgan Chase. CW ran this
 workflow in Colab against a Neo4j Sandbox. The saved record contains 38 Claims,
@@ -78,7 +80,8 @@ matching does not measure recall or independently verify financial assertions.
 This is a roughly 6,000-character initial passage per company, not complete Item
 1A extraction or a production end-to-end pipeline. Sections use provisional local
 keys pending Data alignment. The live path query is not integrated with the team
-API. The roughly 100-node graph and Extraction v1 milestones remain outstanding.
+API. The latest candidate version reaches a roughly 100-node technical graph;
+the broader Extraction v1 milestone remains incomplete.
 Claim identity groups equal normalized sentences within a section; production
 occurrence identity and cross-parser stability require further decisions.
 

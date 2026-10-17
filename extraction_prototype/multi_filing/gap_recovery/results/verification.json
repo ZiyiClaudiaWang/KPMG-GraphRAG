@@ -1,0 +1,23 @@
+{
+  "prototype_id": "cw-extraction-three-filings-gap-v1",
+  "counts": {
+    "nodes": 96,
+    "relationships": 93
+  },
+  "claim_counts": {
+    "AAPL": 28,
+    "MSFT": 40,
+    "JPM": 19
+  },
+  "verified_path_count": 87,
+  "repeated_loading": "passed",
+  "path_and_provenance_verification": "passed",
+  "stored_claims_contexts_and_source_locations": "passed",
+  "simulated_chunk_metadata_changes": "passed",
+  "original_metadata_restored": "passed",
+  "classification_review_status": "needs_review",
+  "extraction_completeness": "not_established",
+  "actual_data_team_rechunking": "not_tested",
+  "scope": "Selected excerpts from three SEC filings.",
+  "verified_at_utc": "2026-10-17T04:12:49.665609+00:00"
+}

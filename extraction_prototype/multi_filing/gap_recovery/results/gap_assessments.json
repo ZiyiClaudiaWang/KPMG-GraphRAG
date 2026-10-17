@@ -1,0 +1,1344 @@
+[
+  {
+    "gap_id": "review_gap_d6a97e9e9d238bfedcc48c58",
+    "decision": "extract",
+    "reason": "Two complete hedged-risk sentences; the second uses 'These and other impacts', resolved by the first sentence.",
+    "claims": [
+      {
+        "quote": "Adverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments.",
+        "evidence_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "Adverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Adverse economic conditions",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Risk is expressed as a possibility ('can'); not stated to have occurred."
+      },
+      {
+        "quote": "These and other impacts can materially adversely affect the Company’s business, results of operations, financial condition and stock price.",
+        "evidence_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "These and other impacts can materially adversely affect the Company’s business, results of operations, financial condition and stock price."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "These and other impacts",
+        "context": "Adverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments.",
+        "context_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "Adverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments."
+          }
+        ],
+        "annotation_note": "Possibility, not an occurrence."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "the Company",
+        "candidate_type": "Company",
+        "block_order": 7
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_5a04cbb9ade6222f.json"
+  },
+  {
+    "gap_id": "review_gap_29b177cd5c2b14a62793ea8f",
+    "decision": "extract",
+    "reason": "Complete sentence expressing a risk that the business can be impacted by listed events.",
+    "claims": [
+      {
+        "quote": "The Company’s business can be impacted by political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "The Company’s business can be impacted by political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "The Company’s business",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Risk possibility, not stated as having occurred."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "The Company",
+        "candidate_type": "Company",
+        "block_order": 8
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_5a04cbb9ade6222f.json"
+  },
+  {
+    "gap_id": "review_gap_f44af3a4eea4a77f4ba8c42a",
+    "decision": "extract",
+    "reason": "Complete hedged-risk sentence.",
+    "claims": [
+      {
+        "quote": "Political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions can have a material adverse effect on the Company and its customers, employees, suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "Political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions can have a material adverse effect on the Company and its customers, employees, suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Risk possibility ('can'), not an occurrence."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "the Company",
+        "candidate_type": "Company",
+        "block_order": 9
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_5a04cbb9ade6222f.json"
+  },
+  {
+    "gap_id": "review_gap_f770378a9f15f06d3855f26a",
+    "decision": "extract",
+    "reason": "One complete sentence mixing stated fact and a belief about benefits from international trade growth.",
+    "claims": [
+      {
+        "quote": "The Company has a large, global business with sales outside the U.S. representing a majority of the Company’s total net sales, and the Company believes that it generally benefits from growth in international trade.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "The Company has a large, global business with sales outside the U.S. representing a majority of the Company’s total net sales, and the Company believes that it generally benefits from growth in international trade."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "The Company",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Mixed content: factual statement about sales outside the U.S. plus a belief about benefiting from growth in international trade."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "The Company",
+        "candidate_type": "Company",
+        "block_order": 10
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_5a04cbb9ade6222f.json"
+  },
+  {
+    "gap_id": "review_gap_fab2eb2b84f09460c5205197",
+    "decision": "extract",
+    "reason": "Gap contains several complete hedged-risk sentences; sentences referring to 'restrictive measures' or 'such restrictions' rely on preceding context in block 10.",
+    "claims": [
+      {
+        "quote": "The impact can be particularly significant if these restrictive measures apply to countries and regions where the Company derives a significant portion of its revenues and/or has significant supply chain operations.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "The impact can be particularly significant if these restrictive measures apply to countries and regions where the Company derives a significant portion of its revenues and/or has significant supply chain operations."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "The impact",
+        "context": "Restrictions on international trade, such as tariffs and other controls on imports or exports of goods, technology or data, can materially adversely affect the Company’s business and supply chain.",
+        "context_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Restrictions on international trade, such as tariffs and other controls on imports or exports of goods, technology or data, can materially adversely affect the Company’s business and supply chain."
+          }
+        ],
+        "annotation_note": "Possibility, not an occurrence."
+      },
+      {
+        "quote": "Restrictive measures can increase the cost or limit the availability of the Company’s products and the components and rare earths and other raw materials that go into them.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Restrictive measures can increase the cost or limit the availability of the Company’s products and the components and rare earths and other raw materials that go into them."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Restrictive measures",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Restrictive measures can also require the Company to change suppliers, restructure business relationships and operations, refrain from offering and distributing or cease to offer and distribute affected products, services and third-party applications to its customers, and increase the prices of its products and services.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Restrictive measures can also require the Company to change suppliers, restructure business relationships and operations, refrain from offering and distributing or cease to offer and distribute affected products, services and third-party applications to its customers, and increase the prices of its products and services."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Restrictive measures",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Changing the Company’s business and supply chain in accordance with new or changed restrictions on international trade can be expensive, time-consuming and disruptive to the Company’s business and results of operations.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Changing the Company’s business and supply chain in accordance with new or changed restrictions on international trade can be expensive, time-consuming and disruptive to the Company’s business and results of operations."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Changing the Company’s business and supply chain in accordance with new or changed restrictions on international trade",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Trade and other international disputes can also have an adverse impact on the overall macroeconomic environment and result in shifts and reductions in consumer spending and negative consumer sentiment for the Company’s products and services, all of which can further adversely affect the Company’s business and results of operations.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Trade and other international disputes can also have an adverse impact on the overall macroeconomic environment and result in shifts and reductions in consumer spending and negative consumer sentiment for the Company’s products and services, all of which can further adversely affect the Company’s business and results of operations."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Trade and other international disputes",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Such restrictions can be announced with little or no advance notice, which can create uncertainty, and the Company may not be able to effectively mitigate any or all adverse impacts from such measures.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Such restrictions can be announced with little or no advance notice, which can create uncertainty, and the Company may not be able to effectively mitigate any or all adverse impacts from such measures."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Such restrictions",
+        "context": "Restrictions on international trade, such as tariffs and other controls on imports or exports of goods, technology or data, can materially adversely affect the Company’s business and supply chain.",
+        "context_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Restrictions on international trade, such as tariffs and other controls on imports or exports of goods, technology or data, can materially adversely affect the Company’s business and supply chain."
+          }
+        ],
+        "annotation_note": "Mixed content: announcement risk and the Company's possible inability to mitigate."
+      },
+      {
+        "quote": "Global supply chains can be highly concentrated, and an escalation of geopolitical tensions or conflict could result in significant disruptions.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Global supply chains can be highly concentrated, and an escalation of geopolitical tensions or conflict could result in significant disruptions."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Global supply chains",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Mixed content: a general statement that supply chains can be concentrated, plus a conditional risk of disruption."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "the Company",
+        "candidate_type": "Company",
+        "block_order": 10
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_5a04cbb9ade6222f.json"
+  },
+  {
+    "gap_id": "review_gap_d8dec08ea06f80b327c2c093",
+    "decision": "extract",
+    "reason": "The target is a complete heading-style sentence stating a risk about dependence on economic conditions and their potential adverse effects.",
+    "claims": [
+      {
+        "quote": "The Company’s operations and performance depend significantly on global and regional economic conditions and adverse economic conditions can materially adversely affect the Company’s business, results of operations, financial condition and stock price.",
+        "evidence_fragments": [
+          {
+            "block_order": 3,
+            "quote_fragment": "The Company’s operations and performance depend significantly on global and regional economic conditions and adverse economic conditions can materially adversely affect the Company’s business, results of operations, financial condition and stock price."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "The Company’s operations and performance",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Mixed content: the first clause is a dependency statement and the second is a hedged risk (\"can materially adversely affect\"). Classified as hedged_risk. It does not assert that harm has occurred."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "The Company",
+        "candidate_type": "Company",
+        "block_order": 3
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_a51d0960d6fdac01.json"
+  },
+  {
+    "gap_id": "review_gap_86e8354e3776a4e55517cd89",
+    "decision": "extract",
+    "reason": "The target is a complete sentence expressing a hedged risk about consumer confidence and spending.",
+    "claims": [
+      {
+        "quote": "In addition, consumer confidence and spending can be materially adversely affected in response to changes in fiscal and monetary policy, financial market volatility, declines in income or asset values, and other economic factors.",
+        "evidence_fragments": [
+          {
+            "block_order": 5,
+            "quote_fragment": "In addition, consumer confidence and spending can be materially adversely affected in response to changes in fiscal and monetary policy, financial market volatility, declines in income or asset values, and other economic factors."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "consumer confidence and spending",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "The sentence is hedged with \"can\" and does not state that the effects have occurred."
+      }
+    ],
+    "mentions": [],
+    "ticker": "AAPL",
+    "review_file": "AAPL_a51d0960d6fdac01.json"
+  },
+  {
+    "gap_id": "review_gap_72a85738b65fc15b8e5e71dd",
+    "decision": "extract",
+    "reason": "The target is a complete sentence that depends on the preceding sentence to identify what the \"potential outcomes\" refer to. The context is available in the adjacent text.",
+    "claims": [
+      {
+        "quote": "Potential outcomes include financial instability; inability to obtain credit to finance business operations; and insolvency.",
+        "evidence_fragments": [
+          {
+            "block_order": 6,
+            "quote_fragment": "Potential outcomes include financial instability; inability to obtain credit to finance business operations; and insolvency."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Potential outcomes",
+        "context": "Uncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers.",
+        "context_fragments": [
+          {
+            "block_order": 6,
+            "quote_fragment": "Uncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers."
+          }
+        ],
+        "annotation_note": "The subject \"Potential outcomes\" is resolved using the preceding sentence. The statement is a potential risk and does not assert that these outcomes have occurred."
+      }
+    ],
+    "mentions": [],
+    "ticker": "AAPL",
+    "review_file": "AAPL_a51d0960d6fdac01.json"
+  },
+  {
+    "gap_id": "review_gap_7f2c9f8495d8ed32b1d1fa19",
+    "decision": "extract",
+    "reason": "The target span covers three complete substantive sentences in block 10: the first (retaliatory tariffs), the second (modifications to U.S. Tariffs and possible further changes), and the third (Section 232 investigation). The text is a risk-factor disclosure with specific factual statements and one hedged/forward-looking statement.",
+    "claims": [
+      {
+        "quote": "In response, several countries have imposed, or threatened to impose, reciprocal tariffs on imports from the U.S. and other retaliatory measures.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "In response, several countries have imposed, or threatened to impose, reciprocal tariffs on imports from the U.S. and other retaliatory measures."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "several countries",
+        "context": "Beginning in the second quarter of 2025, new tariffs were announced on imports to the U.S. (“U.S. Tariffs”), including additional tariffs on imports from China, India, Japan, South Korea, Taiwan, Vietnam and the European Union (“EU”), among others.",
+        "context_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Beginning in the second quarter of 2025, new tariffs were announced on imports to the U.S. (“U.S. Tariffs”), including additional tariffs on imports from China, India, Japan, South Korea, Taiwan, Vietnam and the European Union (“EU”), among others."
+          }
+        ],
+        "annotation_note": "The phrase \"In response\" refers to the preceding sentence on the announced U.S. Tariffs; context supplied. Quote begins at the target gap start."
+      },
+      {
+        "quote": "Various modifications to the U.S. Tariffs have been announced and further changes could be made in the future, which may include additional sector-based tariffs or other measures.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "Various modifications to the U.S. Tariffs have been announced and further changes could be made in the future, which may include additional sector-based tariffs or other measures."
+          }
+        ],
+        "claim_type": "forward_looking",
+        "subject_text": "Various modifications to the U.S. Tariffs",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Mixed content: the first clause states that modifications have been announced (stated fact); the second clause is forward-looking and hedged (\"could be made\", \"may include\"). \"U.S. Tariffs\" is an issuer-defined term. Classified as forward_looking because of the possible future changes."
+      },
+      {
+        "quote": "For example, the U.S. Department of Commerce has initiated an investigation under Section 232 of the Trade Expansion Act of 1962, as amended, into, among other things, imports of semiconductors, semiconductor manufacturing equipment, and their derivative products, including downstream products that contain semiconductors.",
+        "evidence_fragments": [
+          {
+            "block_order": 10,
+            "quote_fragment": "For example, the U.S. Department of Commerce has initiated an investigation under Section 232 of the Trade Expansion Act of 1962, as amended, into, among other things, imports of semiconductors, semiconductor manufacturing equipment, and their derivative products, including downstream products that contain semiconductors."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "the U.S. Department of Commerce",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Sentence is an example illustrating possible further sector-based tariffs. It does not state any outcome of the investigation."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "U.S. Department of Commerce",
+        "candidate_type": "Other",
+        "block_order": 10
+      },
+      {
+        "surface_text": "U.S. Tariffs",
+        "candidate_type": "RiskFactor",
+        "block_order": 10
+      },
+      {
+        "surface_text": "Section 232 of the Trade Expansion Act of 1962",
+        "candidate_type": "Other",
+        "block_order": 10
+      }
+    ],
+    "ticker": "AAPL",
+    "review_file": "AAPL_f8d17c9d43cea064.json"
+  },
+  {
+    "gap_id": "review_gap_aaee59a159d061db14fbbd61",
+    "decision": "extract",
+    "reason": "Two complete substantive sentences about cloud-based services and competition fall within the gap.",
+    "claims": [
+      {
+        "quote": "A material part of our business involves cloud-based services available across the spectrum of computing devices.",
+        "evidence_fragments": [
+          {
+            "block_order": 13,
+            "quote_fragment": "A material part of our business involves cloud-based services available across the spectrum of computing devices."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "A material part of our business",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "We and our competitors continue to devote significant resources to developing and deploying cloud-based strategies and services for consumers and business customers, and pricing and delivery models are evolving.",
+        "evidence_fragments": [
+          {
+            "block_order": 13,
+            "quote_fragment": "We and our competitors continue to devote significant resources to developing and deploying cloud-based strategies and services for consumers and business customers, and pricing and delivery models are evolving."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "We and our competitors",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Compound sentence also states that pricing and delivery models are evolving."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_8d285493dae3815b.json"
+  },
+  {
+    "gap_id": "review_gap_75899e66b55024ba0853487d",
+    "decision": "extract",
+    "reason": "The gap is a complete sentence describing the AI market as competitive and evolving.",
+    "claims": [
+      {
+        "quote": "AI technology and services are a highly competitive and rapidly evolving market, and new competitors continue to enter the market.",
+        "evidence_fragments": [
+          {
+            "block_order": 14,
+            "quote_fragment": "AI technology and services are a highly competitive and rapidly evolving market, and new competitors continue to enter the market."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "AI technology and services",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "\"AI\" is defined in the preceding sentence as artificial intelligence."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_8d285493dae3815b.json"
+  },
+  {
+    "gap_id": "review_gap_89fece114364ac671aaac007",
+    "decision": "extract",
+    "reason": "The gap is a complete sentence stating what is required to compete effectively. It is a forward-looking statement of necessity.",
+    "claims": [
+      {
+        "quote": "To compete effectively we must also be responsive to technological change, new and potential regulatory developments, and public scrutiny.",
+        "evidence_fragments": [
+          {
+            "block_order": 14,
+            "quote_fragment": "To compete effectively we must also be responsive to technological change, new and potential regulatory developments, and public scrutiny."
+          }
+        ],
+        "claim_type": "forward_looking",
+        "subject_text": "we",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Expresses a competitive requirement rather than a historical fact."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_8d285493dae3815b.json"
+  },
+  {
+    "gap_id": "review_gap_7fdf540d2ce0d4e1e18dfd21",
+    "decision": "extract",
+    "reason": "Three complete substantive sentences about the license-based software model fall within the gap.",
+    "claims": [
+      {
+        "quote": "Even as we transition more of our business to infrastructure-, platform-, and software-as-a-service business models, the license-based proprietary software model generates a substantial portion of our software revenue.",
+        "evidence_fragments": [
+          {
+            "block_order": 15,
+            "quote_fragment": "Even as we transition more of our business to infrastructure-, platform-, and software-as-a-service business models, the license-based proprietary software model generates a substantial portion of our software revenue."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "the license-based proprietary software model",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "We bear the costs of converting original ideas into software products through investments in research and development, offsetting these costs with the revenue received from licensing our products.",
+        "evidence_fragments": [
+          {
+            "block_order": 15,
+            "quote_fragment": "We bear the costs of converting original ideas into software products through investments in research and development, offsetting these costs with the revenue received from licensing our products."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "We",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Many of our competitors also develop and sell software to businesses and consumers under this model.",
+        "evidence_fragments": [
+          {
+            "block_order": 15,
+            "quote_fragment": "Many of our competitors also develop and sell software to businesses and consumers under this model."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "Many of our competitors",
+        "context": "the license-based proprietary software model generates a substantial portion of our software revenue",
+        "context_fragments": [
+          {
+            "block_order": 15,
+            "quote_fragment": "the license-based proprietary software model generates a substantial portion of our software revenue"
+          }
+        ],
+        "annotation_note": "\"this model\" resolved from the first sentence of the same block."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_8d285493dae3815b.json"
+  },
+  {
+    "gap_id": "review_gap_a3aa4c99162dfbf49a40e500",
+    "decision": "extract",
+    "reason": "The gap covers a complete sentence about advertising revenue funding competitors' products. The subject 'these competitors' requires the prior sentence for context.",
+    "claims": [
+      {
+        "quote": "Advertising revenue funds development of products and services these competitors provide to users at little or no cost, competing directly with our revenue-generating products.",
+        "evidence_fragments": [
+          {
+            "block_order": 16,
+            "quote_fragment": "Advertising revenue funds development of products and services these competitors provide to users at little or no cost, competing directly with our revenue-generating products."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "Advertising revenue",
+        "context": "Other competitors develop and offer free applications, online services, and content, and make money by selling third-party advertising.",
+        "context_fragments": [
+          {
+            "block_order": 16,
+            "quote_fragment": "Other competitors develop and offer free applications, online services, and content, and make money by selling third-party advertising."
+          }
+        ],
+        "annotation_note": "Reference \"these competitors\" resolved from the preceding sentence."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_8d285493dae3815b.json"
+  },
+  {
+    "gap_id": "review_gap_b3d89bb6fca7104e83a619b1",
+    "decision": "extract",
+    "reason": "Both sentences in the gap are complete substantive assertions about platform ecosystems and market scale.",
+    "claims": [
+      {
+        "quote": "A well-established ecosystem creates beneficial network effects among users, application developers, and the platform provider that can accelerate growth.",
+        "evidence_fragments": [
+          {
+            "block_order": 6,
+            "quote_fragment": "A well-established ecosystem creates beneficial network effects among users, application developers, and the platform provider that can accelerate growth."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "A well-established ecosystem",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "General statement about platform ecosystems."
+      },
+      {
+        "quote": "Establishing significant scale in the marketplace is necessary to meet consumer demand and to achieve and maintain attractive margins.",
+        "evidence_fragments": [
+          {
+            "block_order": 6,
+            "quote_fragment": "Establishing significant scale in the marketplace is necessary to meet consumer demand and to achieve and maintain attractive margins."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "Establishing significant scale in the marketplace",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_94ca9b5d4a71c304.json"
+  },
+  {
+    "gap_id": "review_gap_7c22c56f55720f7f4b3ab649",
+    "decision": "extract",
+    "reason": "The gap contains three complete sentences describing the competing vertically-integrated model and its competitors.",
+    "claims": [
+      {
+        "quote": "A competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services, has succeeded with some consumer products such as PCs, tablets, smartphones, gaming consoles, wearables, and other endpoint devices.",
+        "evidence_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "A competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services, has succeeded with some consumer products such as PCs, tablets, smartphones, gaming consoles, wearables, and other endpoint devices."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "A competing vertically-integrated model",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Includes a descriptive definition of the model."
+      },
+      {
+        "quote": "Competitors pursuing this model also earn revenue from services integrated with the hardware and software platform, including applications and content sold through their integrated marketplaces.",
+        "evidence_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "Competitors pursuing this model also earn revenue from services integrated with the hardware and software platform, including applications and content sold through their integrated marketplaces."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "Competitors pursuing this model",
+        "context": "A competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services",
+        "context_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "A competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services"
+          }
+        ],
+        "annotation_note": null
+      },
+      {
+        "quote": "They may also be able to claim security and performance benefits from their vertically-integrated offer.",
+        "evidence_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "They may also be able to claim security and performance benefits from their vertically-integrated offer."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "They",
+        "context": "Competitors pursuing this model",
+        "context_fragments": [
+          {
+            "block_order": 7,
+            "quote_fragment": "Competitors pursuing this model"
+          }
+        ],
+        "annotation_note": "Hedged statement about competitor capability; does not assert it has occurred."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_94ca9b5d4a71c304.json"
+  },
+  {
+    "gap_id": "review_gap_76af2d9a173c997d297b50da",
+    "decision": "extract",
+    "reason": "The gap contains four complete sentences about competition from platforms on new devices.",
+    "claims": [
+      {
+        "quote": "We face significant competition from competing platforms developed for new devices and form factors such as smartphones and tablets.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "We face significant competition from competing platforms developed for new devices and form factors such as smartphones and tablets."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "We",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "These devices compete on multiple bases including price and the perceived utility of the device and its platform.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "These devices compete on multiple bases including price and the perceived utility of the device and its platform."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "These devices",
+        "context": "new devices and form factors such as smartphones and tablets",
+        "context_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "new devices and form factors such as smartphones and tablets"
+          }
+        ],
+        "annotation_note": null
+      },
+      {
+        "quote": "Users continue to turn to these devices to perform functions that in the past were performed by PCs.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "Users continue to turn to these devices to perform functions that in the past were performed by PCs."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "Users",
+        "context": "new devices and form factors such as smartphones and tablets",
+        "context_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "new devices and form factors such as smartphones and tablets"
+          }
+        ],
+        "annotation_note": null
+      },
+      {
+        "quote": "Even if many users view these devices as complementary to a PC, the prevalence of these devices may make it more difficult to attract application developers to our PC operating system platforms.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "Even if many users view these devices as complementary to a PC, the prevalence of these devices may make it more difficult to attract application developers to our PC operating system platforms."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "the prevalence of these devices",
+        "context": "new devices and form factors such as smartphones and tablets",
+        "context_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "new devices and form factors such as smartphones and tablets"
+          }
+        ],
+        "annotation_note": "Hedged risk; not asserted as having occurred."
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_94ca9b5d4a71c304.json"
+  },
+  {
+    "gap_id": "review_gap_0614f881ed2d126ae1c960e2",
+    "decision": "extract",
+    "reason": "The gap contains two complete sentences about competitive risks from competing platforms and OEM partners.",
+    "claims": [
+      {
+        "quote": "Popular products or services offered on competing platforms could increase their competitive strength.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "Popular products or services offered on competing platforms could increase their competitive strength."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Popular products or services offered on competing platforms",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "In addition, some of our devices compete with products made by our OEM partners, which may affect their commitment to our platform.",
+        "evidence_fragments": [
+          {
+            "block_order": 8,
+            "quote_fragment": "In addition, some of our devices compete with products made by our OEM partners, which may affect their commitment to our platform."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "some of our devices",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Mixed content: states that some of the issuer's devices compete with OEM partner products, and hedges the effect on OEM commitment."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "OEM partners",
+        "candidate_type": "Other",
+        "block_order": 8
+      }
+    ],
+    "ticker": "MSFT",
+    "review_file": "MSFT_94ca9b5d4a71c304.json"
+  },
+  {
+    "gap_id": "review_gap_16d0bee17ecdb6b743dd4807",
+    "decision": "extract",
+    "reason": "The gap covers all of block 9, six complete sentences about marketplace competition.",
+    "claims": [
+      {
+        "quote": "Competing platforms have content and application marketplaces with scale and significant installed bases.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "Competing platforms have content and application marketplaces with scale and significant installed bases."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "Competing platforms",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "The variety and utility of content and applications available on a platform are important to device purchasing decisions.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "The variety and utility of content and applications available on a platform are important to device purchasing decisions."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "The variety and utility of content and applications available on a platform",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Users may incur costs to move data and buy new content and applications when switching platforms.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "Users may incur costs to move data and buy new content and applications when switching platforms."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Users",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "To compete, we must successfully enlist developers to write applications for our platform and ensure that these applications have high quality, security, customer appeal, and value.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "To compete, we must successfully enlist developers to write applications for our platform and ensure that these applications have high quality, security, customer appeal, and value."
+          }
+        ],
+        "claim_type": "forward_looking",
+        "subject_text": "we",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Expresses a requirement for future competitive success."
+      },
+      {
+        "quote": "Efforts to compete with competitors’ content and application marketplaces may increase our cost of revenue and lower our operating margins.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "Efforts to compete with competitors’ content and application marketplaces may increase our cost of revenue and lower our operating margins."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Efforts to compete with competitors’ content and application marketplaces",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      },
+      {
+        "quote": "Competitors’ rules governing their content and applications marketplaces may restrict our ability to distribute products and services through them in accordance with our technical and business model objectives.",
+        "evidence_fragments": [
+          {
+            "block_order": 9,
+            "quote_fragment": "Competitors’ rules governing their content and applications marketplaces may restrict our ability to distribute products and services through them in accordance with our technical and business model objectives."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Competitors’ rules governing their content and applications marketplaces",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": null
+      }
+    ],
+    "mentions": [],
+    "ticker": "MSFT",
+    "review_file": "MSFT_94ca9b5d4a71c304.json"
+  },
+  {
+    "gap_id": "review_gap_0a4bd828ebeb0dfc1c63ce12",
+    "decision": "needs_review",
+    "reason": "Code source review: Evidence blocks must be consecutive and ordered. No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 49
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_01d9e2442b7fd71e.json"
+  },
+  {
+    "gap_id": "review_gap_911091df10a913967761b719",
+    "decision": "needs_review",
+    "reason": "Code source review: Evidence blocks must be consecutive and ordered. No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 49
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_01d9e2442b7fd71e.json"
+  },
+  {
+    "gap_id": "review_gap_d28972ebae5c0f31d6d781a3",
+    "decision": "needs_review",
+    "reason": "Code source review: Evidence blocks must be consecutive and ordered. No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 49
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_01d9e2442b7fd71e.json"
+  },
+  {
+    "gap_id": "review_gap_8fd8d6592f3bd963767b810a",
+    "decision": "needs_review",
+    "reason": "Code source review: Evidence blocks must be consecutive and ordered. No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 49
+      },
+      {
+        "surface_text": "CCPs",
+        "candidate_type": "Other",
+        "block_order": 55
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_01d9e2442b7fd71e.json"
+  },
+  {
+    "gap_id": "review_gap_b151d27f854249f72a6522ab",
+    "decision": "needs_review",
+    "reason": "Code source review: Evidence blocks must be consecutive and ordered.",
+    "claims": [
+      {
+        "quote": "Differences, inconsistencies and conflicts in applicable law related to financial services have required and could in the future require JPMorganChase to: •divest assets or restructure its operations",
+        "evidence_fragments": [
+          {
+            "block_order": 57,
+            "quote_fragment": "Differences, inconsistencies and conflicts in applicable law related to financial services have required and could in the future require JPMorganChase to:"
+          },
+          {
+            "block_order": 58,
+            "quote_fragment": "•divest assets or restructure its operations"
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Differences, inconsistencies and conflicts in applicable law related to financial services",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "The sentence introduced in block 57 has two bullet continuations (blocks 58 and 59), and each bullet could form its own claim. Only the first is extracted here as a representative combination, and the second bullet (maintain higher levels of capital and liquidity) is not included in this quote. It combines a stated past effect with a possible future effect."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 57
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_01d9e2442b7fd71e.json"
+  },
+  {
+    "gap_id": "review_gap_41e9775626a599dac446f517",
+    "decision": "exclude",
+    "reason": "This sentence is only an introductory lead-in to the list of defined terms. It does not itself define a term or make a substantive assertion; the definitions are in the following blocks.",
+    "claims": [],
+    "mentions": [],
+    "ticker": "JPM",
+    "review_file": "JPM_073d0909345b87d3.json"
+  },
+  {
+    "gap_id": "review_gap_529f0a2dc6715c172772ab3d",
+    "decision": "extract",
+    "reason": "Issuer-defined term definition of 'extraordinary events' that is a complete sentence and qualifies as a definition claim.",
+    "claims": [
+      {
+        "quote": "“extraordinary events” include any of the events or circumstances mentioned in the risk factor entitled “JPMorganChase’s operations, results and reputation could be harmed by occurrences of extraordinary events beyond its control.”",
+        "evidence_fragments": [
+          {
+            "block_order": 20,
+            "quote_fragment": "“extraordinary events” include any of the events or circumstances mentioned in the risk factor entitled “JPMorganChase’s operations, results and reputation could be harmed by occurrences of extraordinary events beyond its control.”"
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "“extraordinary events”",
+        "context": "The following terms which are used in the risk factors set forth below have these meanings:",
+        "context_fragments": [
+          {
+            "block_order": 18,
+            "quote_fragment": "The following terms which are used in the risk factors set forth below have these meanings:"
+          }
+        ],
+        "annotation_note": "Issuer-defined term used in the risk factors. The definition refers to a separately titled risk factor, whose content is not included in the supplied blocks."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 20
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_073d0909345b87d3.json"
+  },
+  {
+    "gap_id": "review_gap_0d58c2922ac59f8918821cd1",
+    "decision": "extract",
+    "reason": "Issuer-defined term definition of 'governmental authorities' that is a complete sentence.",
+    "claims": [
+      {
+        "quote": "“governmental authorities” means governmental and regulatory agencies, legislative and judicial bodies and other governmental entities and authorities in the countries, states, municipalities, territories, regions and other jurisdictions in which JPMorganChase does business.",
+        "evidence_fragments": [
+          {
+            "block_order": 21,
+            "quote_fragment": "“governmental authorities” means governmental and regulatory agencies, legislative and judicial bodies and other governmental entities and authorities in the countries, states, municipalities, territories, regions and other jurisdictions in which JPMorganChase does business."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "“governmental authorities”",
+        "context": "The following terms which are used in the risk factors set forth below have these meanings:",
+        "context_fragments": [
+          {
+            "block_order": 18,
+            "quote_fragment": "The following terms which are used in the risk factors set forth below have these meanings:"
+          }
+        ],
+        "annotation_note": "Issuer-defined term used in the risk factors."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 21
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_073d0909345b87d3.json"
+  },
+  {
+    "gap_id": "review_gap_d02758c6599231a8149faf71",
+    "decision": "extract",
+    "reason": "Issuer-defined term definition of 'penalties' that is a complete sentence.",
+    "claims": [
+      {
+        "quote": "“penalties” means fines, penalties or other sanctions imposed by governmental authorities.",
+        "evidence_fragments": [
+          {
+            "block_order": 22,
+            "quote_fragment": "“penalties” means fines, penalties or other sanctions imposed by governmental authorities."
+          }
+        ],
+        "claim_type": "stated_fact",
+        "subject_text": "“penalties”",
+        "context": "The following terms which are used in the risk factors set forth below have these meanings:",
+        "context_fragments": [
+          {
+            "block_order": 18,
+            "quote_fragment": "The following terms which are used in the risk factors set forth below have these meanings:"
+          }
+        ],
+        "annotation_note": "Issuer-defined term used in the risk factors. It relies on the separately defined term “governmental authorities”."
+      }
+    ],
+    "mentions": [],
+    "ticker": "JPM",
+    "review_file": "JPM_073d0909345b87d3.json"
+  },
+  {
+    "gap_id": "review_gap_9e8e44bca55623ea8001d887",
+    "decision": "needs_review",
+    "reason": "The sentence is a complete substantive statement mixing a past fact with a hedged future risk, but it ends with a colon introducing a bullet list of noun-phrase examples (blocks 27-28) that are not complete claims. Claim type and boundary are uncertain, so it is flagged rather than extracted.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 26
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_073d0909345b87d3.json"
+  },
+  {
+    "gap_id": "review_gap_0de3acf161fe756c6357c61c",
+    "decision": "needs_review",
+    "reason": "Code source review: JPM list requires complete-group review (blocks 43-46). No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 44
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_4643c8248ef91a58.json"
+  },
+  {
+    "gap_id": "review_gap_ce1ff5bb818762622f54fddc",
+    "decision": "needs_review",
+    "reason": "Code source review: JPM list requires complete-group review (blocks 43-46). No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [
+      {
+        "surface_text": "financial technology companies",
+        "candidate_type": "Other",
+        "block_order": 45
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_4643c8248ef91a58.json"
+  },
+  {
+    "gap_id": "review_gap_a00a706add1f7241b08aaea8",
+    "decision": "needs_review",
+    "reason": "Code source review: JPM list requires complete-group review (blocks 43-46). No source-valid Claim retained for extraction.",
+    "claims": [],
+    "mentions": [],
+    "ticker": "JPM",
+    "review_file": "JPM_4643c8248ef91a58.json"
+  },
+  {
+    "gap_id": "review_gap_1b632884d4edf010e12bc20e",
+    "decision": "extract",
+    "reason": "Block 49 is a complete sentence-level statement with both stated-fact and hedged elements; the sentence ends in a colon introducing bullets, which are noun-phrase items and not separately claimed.",
+    "claims": [
+      {
+        "quote": "Regulatory initiatives outside the U.S. have required and could in the future require JPMorganChase to significantly modify its operations or legal entity structure in the places in which those initiatives are implemented, such as requirements for:",
+        "evidence_fragments": [
+          {
+            "block_order": 49,
+            "quote_fragment": "Regulatory initiatives outside the U.S. have required and could in the future require JPMorganChase to significantly modify its operations or legal entity structure in the places in which those initiatives are implemented, such as requirements for:"
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Regulatory initiatives outside the U.S.",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Mixed content: states past requirements ('have required') and a possible future requirement ('could in the future require'). Sentence ends with a colon introducing a bullet list."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 49
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_4643c8248ef91a58.json"
+  },
+  {
+    "gap_id": "review_gap_55ec928e24e66257d09895f5",
+    "decision": "extract",
+    "reason": "The bullet completes the sentence begun in block 49; the combined sentence overlaps the target.",
+    "claims": [
+      {
+        "quote": "Regulatory initiatives outside the U.S. have required and could in the future require JPMorganChase to significantly modify its operations or legal entity structure in the places in which those initiatives are implemented, such as requirements for: •establishing locally-based intermediate holding companies or operating subsidiaries",
+        "evidence_fragments": [
+          {
+            "block_order": 49,
+            "quote_fragment": "Regulatory initiatives outside the U.S. have required and could in the future require JPMorganChase to significantly modify its operations or legal entity structure in the places in which those initiatives are implemented, such as requirements for:"
+          },
+          {
+            "block_order": 50,
+            "quote_fragment": "•establishing locally-based intermediate holding companies or operating subsidiaries"
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Regulatory initiatives outside the U.S.",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "Bullet is a noun-phrase item that only qualifies as part of the lead-in sentence in block 49; the claim is the combined sentence. Mixed past ('have required') and possible future ('could in the future require')."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 49
+      },
+      {
+        "surface_text": "locally-based intermediate holding companies",
+        "candidate_type": "Other",
+        "block_order": 50
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_4643c8248ef91a58.json"
+  },
+  {
+    "gap_id": "review_gap_b7d272f032edfe65103c7513",
+    "decision": "exclude",
+    "reason": "The target is a noun-phrase bullet that continues the lead-in sentence in block 26. It is not a complete sentence and is not a standalone claim. The lead-in sentence in block 26 does not overlap this gap.",
+    "claims": [],
+    "mentions": [],
+    "ticker": "JPM",
+    "review_file": "JPM_b95184e3abe33789.json"
+  },
+  {
+    "gap_id": "review_gap_e889fe417aea26795bcf614b",
+    "decision": "exclude",
+    "reason": "The target is a noun-phrase bullet that continues the lead-in sentence in block 26. It is not a complete sentence and is not a standalone claim. The lead-in sentence in block 26 does not overlap this gap.",
+    "claims": [],
+    "mentions": [],
+    "ticker": "JPM",
+    "review_file": "JPM_b95184e3abe33789.json"
+  },
+  {
+    "gap_id": "review_gap_c14c5360ec1b3878b9c1900e",
+    "decision": "extract",
+    "reason": "The target contains a complete hedged-risk sentence about failure to comply with law or supervisory expectations. The sentence is introduced by 'In addition' and continues into the bullets that follow.",
+    "claims": [
+      {
+        "quote": "In addition, any failure by JPMorganChase to comply with applicable law or meet supervisory expectations could result in:",
+        "evidence_fragments": [
+          {
+            "block_order": 35,
+            "quote_fragment": "In addition, any failure by JPMorganChase to comply with applicable law or meet supervisory expectations could result in:"
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "any failure by JPMorganChase to comply with applicable law or meet supervisory expectations",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "The sentence ends with a colon and is completed by bullets in blocks 36-40 (increased regulatory scrutiny, enforcement actions by governmental authorities, reputational harm). Some bullet blocks are missing from the supplied source. The bullets are noun phrases and are not extracted separately. The first sentence of block 35 ('These types of changes...') lies outside the target span."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 35
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_b95184e3abe33789.json"
+  },
+  {
+    "gap_id": "review_gap_603175554d4bd834e9adca36",
+    "decision": "extract",
+    "reason": "The target is a complete sentence that states a risk using hedged language ('could require').",
+    "claims": [
+      {
+        "quote": "Differences in the supervision and regulation of financial services firms could require JPMorganChase to modify its operations and incur higher operational and compliance costs.",
+        "evidence_fragments": [
+          {
+            "block_order": 42,
+            "quote_fragment": "Differences in the supervision and regulation of financial services firms could require JPMorganChase to modify its operations and incur higher operational and compliance costs."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Differences in the supervision and regulation of financial services firms",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "The sentence also works as a risk-factor heading."
+      }
+    ],
+    "mentions": [
+      {
+        "surface_text": "JPMorganChase",
+        "candidate_type": "Company",
+        "block_order": 42
+      }
+    ],
+    "ticker": "JPM",
+    "review_file": "JPM_b95184e3abe33789.json"
+  },
+  {
+    "gap_id": "review_gap_fc170dd46e0ae51fc0c0ae8d",
+    "decision": "extract",
+    "reason": "The target contains one complete hedged-risk sentence. The trailing 'For example:' is a fragment introducing bullets and is not a standalone claim.",
+    "claims": [
+      {
+        "quote": "Various factors could influence the scope of applicable law and supervision for a firm that provides financial services, such as the size of the firm, the businesses in which it engages and its jurisdiction of organization.",
+        "evidence_fragments": [
+          {
+            "block_order": 43,
+            "quote_fragment": "Various factors could influence the scope of applicable law and supervision for a firm that provides financial services, such as the size of the firm, the businesses in which it engages and its jurisdiction of organization."
+          }
+        ],
+        "claim_type": "hedged_risk",
+        "subject_text": "Various factors",
+        "context": null,
+        "context_fragments": [],
+        "annotation_note": "The sentence is general and hedged ('could influence'). The 'For example:' lead-in that follows is not extracted. Its bullets are in blocks 44-45."
+      }
+    ],
+    "mentions": [],
+    "ticker": "JPM",
+    "review_file": "JPM_b95184e3abe33789.json"
+  }
+]
