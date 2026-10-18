@@ -1,9 +1,9 @@
 # Merging the two ontologies — worksheet
 
-Status: First draft by CW, 2026-10-16; pending Alina's and team review.
-The decisions below are proposals, not joint sign-off.
+Status: Agreed CW/AL, 17 Oct, for Part 0 and decisions 2.1–2.8, with the follow-ups recorded below.
+Updated by CW on 2026-10-18 to incorporate [Alina's review](https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/pull/10#pullrequestreview-5560444469). Document / Table / Cell, list boundaries and production contract alignment remain open. This agreement does not approve individual Claim classifications or establish full extraction completeness.
 
-Summary: Propose eight node types — Company, Filing, Section, Segment, Fact, Subsidiary, Claim and RiskFactor. Exclude SourceChunk, FinancialMetric, MetricObservation and Executive/Officer as separate nodes in v1. Propose section-based Claim evidence and a separate CONSOLIDATED_INTO relationship. Document, Table and Cell remain unresolved. Loader alignment and validation are still pending.
+Summary: Agree on eight node types — Company, Filing, Section, Segment, Fact, Subsidiary, Claim and RiskFactor. Exclude SourceChunk, FinancialMetric, MetricObservation and Executive/Officer as separate nodes in v1. Use section-based Claim evidence and a separate CONSOLIDATED_INTO relationship. Document, Table and Cell remain unresolved. The schema probe and selected real-filing Claim paths have recorded technical checks; production loader/contract alignment and semantic validation remain open.
 
 We have two documents describing the same thing, and they disagree.
 
@@ -177,9 +177,9 @@ document, nothing loads at all.
 
 ---
 
-## Current proposal summary — pending review
+## Current agreement summary — Agreed CW/AL, 17 Oct
 
-| Item | Proposed decision | Reference |
+| Item | Decision / status | Reference |
 | --- | --- | --- |
 | Company, Filing, Section, Segment | Keep | Part 1 |
 | Fact | Keep one node type with a concept property | 2.1 |
@@ -191,7 +191,7 @@ document, nothing loads at all.
 | Subsidiary | Keep | 2.6 |
 | Amendments and restatements | Preserve observations; establish replacement at fact level | 2.7 |
 | CONSOLIDATED_INTO | Add as a separate relationship | 2.8 |
-| Document / Table / Cell | Unresolved; owner: CW to coordinate with Alina | Pending named questions and real-filing validation |
+| Document / Table / Cell | Unresolved; owner: AL for the decision, CW for subsequent loader alignment | Pending named questions and real-filing validation |
 
 Naming: PascalCase for nodes and UPPER_SNAKE for relationships.
 
@@ -203,8 +203,8 @@ Node names in PascalCase, link names in UPPER_SNAKE — see Part 0.
 
 ## Part 0 · Names — do this one first
 
-Status: Draft by CW, 2026-10-16. Pending Alina's review.
-The entries below are proposed naming choices, not joint sign-off.
+Status: Agreed CW/AL, 17 Oct.
+Agreement covers naming conventions and the relationships below; the final Filing–Document–Section structure remains open.
 
 Not a matter of taste. Neo4j has its own convention: **node names in PascalCase**,
 **link names in UPPER_SNAKE**.
@@ -216,18 +216,18 @@ the database.
 
 | | Now, in the one we follow | Now, in the proposal | Convention | Agreed |
 | --- | --- | --- | --- | --- |
-| Node names | `COMPANY` | `Company` | PascalCase | Proposed: PascalCase, e.g. `Company`, `Filing`. CW, 2026-10-16; pending review |
-| Link names | `FILES` | `FILED` | UPPER_SNAKE | Proposed: UPPER_SNAKE. CW, 2026-10-16; pending review |
+| Node names | `COMPANY` | `Company` | PascalCase | PascalCase, e.g. `Company`, `Filing`. Agreed CW/AL, 17 Oct |
+| Link names | `FILES` | `FILED` | UPPER_SNAKE | UPPER_SNAKE. Agreed CW/AL, 17 Oct |
 
 Then pick one name per link. These three are the same link twice:
 
 | The link | One document | The other | Agreed |
 | --- | --- | --- | --- |
-| Company to filing | `FILES` | `FILED` | Proposed: `FILES`. CW, 2026-10-16; pending review |
-| Filing to section | `CONTAINS` | `HAS_SECTION` | Proposed: `CONTAINS`. CW, 2026-10-16; pending review |
-| Company to segment | `REPORTS_SEGMENT` | `HAS_SEGMENT` | Proposed: `HAS_SEGMENT`. CW, 2026-10-16; pending review |
+| Company to filing | `FILES` | `FILED` | `FILES`. Agreed CW/AL, 17 Oct |
+| Filing to section | `CONTAINS` | `HAS_SECTION` | `CONTAINS`. Agreed CW/AL, 17 Oct |
+| Company to segment | `REPORTS_SEGMENT` | `HAS_SEGMENT` | `HAS_SEGMENT`. Agreed CW/AL, 17 Oct |
 
-These proposals standardize relationship names only. The final Filing–Document–Section structure will be addressed separately.
+These decisions standardize relationship names only. The final Filing–Document–Section structure will be addressed separately.
 
 If we cannot agree, use present tense, because the graph describes how things are
 rather than something that happened: `FILES`, `CONTAINS`, `HAS_SEGMENT`. A mixed
@@ -299,7 +299,7 @@ already has it.
 **How to settle it without arguing:** write the query for Use Case A both ways and
 see which one reads better. Fifteen minutes, and it never comes up again.
 
-Answer: **Proposed: Use one `Fact` node with a `concept` property; do not add a separate `FinancialMetric` node in v1.** CW, 2026-10-16; pending review.
+Answer: **Use one `Fact` node with a `concept` property; do not add a separate `FinancialMetric` node in v1.** Agreed CW/AL, 17 Oct.
 
 Query-writing comparison for Use Case A:
 
@@ -346,7 +346,7 @@ it naturally.
 which is happening between W6 and W9. It also overlaps `Section` if the section-first
 proposal goes through, because then sections come first and chunks hang off them.
 
-Answer: **Proposed: Do not include `SourceChunk` as a separate node in v1.** CW, 2026-10-16; pending review. Anchor Claim evidence on `Section` through `SUPPORTS`. Retain `source_chunk_id` as optional provenance metadata when available, never as part of a Claim or relationship key. Revisit if a concrete query requires chunk-level traversal.
+Answer: **Do not include `SourceChunk` as a separate node in v1.** Agreed CW/AL, 17 Oct. Anchor Claim evidence on `Section` through `SUPPORTS`. Retain `source_chunk_id` as optional provenance metadata when available, never as part of a Claim or relationship key. Revisit if a concrete query requires chunk-level traversal.
 
 Question it answers: “Where in the filing is the evidence for this Claim?” A section reference, verbatim quote and supporting context answer this without a separate chunk node. No additional question currently justifies that node.
 
@@ -359,8 +359,10 @@ evidence-grounded answers, that is a gap in the middle of the thing.
 Suggested: **take it.** Then work out the smallest set of properties it needs.
 Six real Item 1A sentences have been annotated by CW with AI assistance; see the examples below.
 
-Answer: **Proposed: Keep `Claim`.** CW, 2026-10-16; pending review.
-The six annotated examples in [claim_examples.md](../toy_graph/claim_examples.md) show why statement type, qualifiers and context must be preserved. For v1, retain one complete sentence per Claim, assign a primary type, and record mixed content in a note. Automatic splitting into multiple claims is deferred.
+Answer: **Keep `Claim`.** Agreed CW/AL, 17 Oct.
+The six annotated examples in [claim_examples.md](../toy_graph/claim_examples.md) show why statement type, qualifiers and context must be preserved. For v1, retain one complete sentence per Claim where sentence boundaries are clear, assign a primary type, and record mixed content in a note. Automatic splitting into multiple claims is deferred.
+
+Interim list convention from AL review: preserve the introductory clause and its complete associated list together as one candidate Claim for review, with ordered source fragments. The final list-boundary decision remains **unresolved**; this is an interim annotation convention. The five saved JPM evidence groups have not been converted into extra graph Claims. Any later implementation and load require their own validation; the recorded graph remains 87 Claims. Owner: CW to draft the rule; AL to review.
 
 Properties:
 
@@ -376,11 +378,11 @@ Properties:
 | `subject_scope` | Optional | Identifies what the statement concerns, such as global attacks rather than Apple-specific attacks |
 | `annotation_note` | Optional | Records mixed content, ambiguity and interpretation limits |
 
-Proposed relationship: `Section -[:SUPPORTS]-> Claim`, with provenance on the supporting relationship. This provides a section-based evidence link without requiring a decision on whether `SourceChunk` is a separate node.
+Agreed relationship: `Section -[:SUPPORTS]-> Claim`, with provenance on the supporting relationship. This provides a section-based evidence link without requiring a decision on whether `SourceChunk` is a separate node.
 
 Question it answers: “Which statements in Apple's risk disclosures describe existing conditions, which express future expectations, and which describe possible adverse outcomes, and what source wording supports each classification?”
 
-Validation status: Supported by the annotated examples; not yet implemented or tested in the schema probe.
+Validation status: Claim representation was implemented in the 26-node/30-relationship schema probe. The selected real-filing prototype separately records 87 candidate Claims and verified provenance paths across three filings. All Claim classifications remain `needs_review`; technical checks do not establish semantic accuracy or complete extraction.
 
 ### 2.4 `RiskFactor` — its own node, or a label on a section
 
@@ -388,7 +390,11 @@ The other document called this doubtful, because no question needed it. Use Case
 in the proposal is that question: how a company's supply chain risk disclosures
 changed between two years. That is the justification that was missing.
 
-Answer: **Proposed: Keep `RiskFactor` as a specific risk theme, distinct from the section-level `risk_factors` label.** CW, 2026-10-16; pending review. Connect `Claim -[:CONCERNS_RISK]-> RiskFactor`. For the prototype, use a small, documented set of manually reviewed themes rather than creating a new theme for every wording variation. Retain the original claims and their provenance.
+Answer: **Keep `RiskFactor` as a specific risk theme, distinct from the section-level `risk_factors` label.** Agreed CW/AL, 17 Oct. Connect `Claim -[:CONCERNS_RISK]-> RiskFactor`. For the prototype, use a small, documented set of manually reviewed themes rather than creating a new theme for every wording variation. Retain the original claims and their provenance.
+
+Decision history: This reverses the 2026-10-13 `RISKFACTOR` cut recorded in [schema-ids-operations.md](./schema-ids-operations.md). The `risk_factors` section type identifies the disclosure section; it does not provide the stable cross-year themes required by M06. The ontology keeps a separate theme node for that question; the older cut entry needs reconciliation when the source documents are consolidated.
+
+Theme-list follow-up: CW will draft stable theme IDs, names, definitions and source-backed examples from the AAPL, MSFT and JPM Claims; AL will review by **Fri 23 Oct**. The five themes in the constructed probe are Apple-derived examples, not a cross-company vocabulary. Regulation is represented in the current JPM excerpt; credit and liquidity require additional source-backed examples before they are treated as covered. This theme-list task does not imply that multi-year M06 has been validated.
 
 Identity: Assign each manually reviewed theme a stable `risk_id` from a documented theme list. Match wording variants to that ID rather than generating a new node from each extracted phrase. The initial theme list remains to be created.
 
@@ -400,7 +406,7 @@ There is no reliable way to tell two people with the same name apart, so it need
 fuzzy matching, and neither document says what question it answers. By our own rule
 it gets cut.
 
-Answer: **Proposed: Exclude `Executive` / `Officer` from v1.** CW, 2026-10-16; pending review. No agreed business question currently requires this node. Revisit when a concrete question, a suitable source and an identity-resolution approach are available.
+Answer: **Exclude `Executive` / `Officer` from v1.** Agreed CW/AL, 17 Oct. No agreed business question currently requires this node. Revisit when a concrete question, a suitable source and an identity-resolution approach are available.
 
 Question it answers: None currently agreed; therefore excluded from v1.
 
@@ -409,7 +415,11 @@ Question it answers: None currently agreed; therefore excluded from v1.
 Exhibit 21 is where most of our cross-company questions come from, and the proposal
 has no node for it.
 
-Answer: **Proposed: Keep `Subsidiary`.** CW, 2026-10-16; pending review. Use `Company -[:OWNS]-> Subsidiary`, supported by the filing's Exhibit 21 disclosures. Follow the existing `sub_id` scheme based on parent CIK and normalized subsidiary name, while retaining the original name and source provenance. This key is provisional identity, not proof that name variants have been resolved. Do not infer ownership percentages or segment membership unless explicitly supported.
+Answer: **Keep `Subsidiary`.** Agreed CW/AL, 17 Oct. Use `Company -[:OWNS]-> Subsidiary`, supported by the filing's Exhibit 21 disclosures. Follow the existing `sub_id` scheme based on parent CIK and normalized subsidiary name, while retaining the original name and source provenance. This key is provisional identity, not proof that name variants have been resolved. Do not infer ownership percentages or segment membership unless explicitly supported.
+
+Entity-resolution follow-up: Parent CIK plus normalized name is a provisional mention-derived identity; renamed subsidiaries and formatting variants can still split one entity. AL reports three duplicate-entity pairs in the Broadcom prototype and will use the 50 labelled subsidiary pairs to measure this failure mode. Those pairs are not yet validated by CW here. M03 also needs an evidence-backed connection from a listed Subsidiary to a Company that files under its own CIK; the relationship and resolution rule remain open and non-blocking.
+
+Document provenance follow-up: The constructed probe represents Exhibit 21 as a Section. The schema/operations document models it as a separate Document with its own offsets. Real Exhibit 21 loading must preserve document identity and its coordinate space and may require Section/provenance re-keying. AL owns the Document / Table / Cell decision; CW will align the loader after that decision. This does not change the recorded Item 1A Claim graph.
 
 Question it answers: “Which subsidiaries does a company list in Exhibit 21, and where are they incorporated?” Cross-year comparisons additionally require name-resolution and filing-specific evidence.
 
@@ -424,9 +434,11 @@ correction **replaces that same figure for that same period**. If we treat the w
 filing as out of date, we also mark last year's number stale even though nobody
 touched it, and then there is nothing to compare against.
 
-Answer: **Proposed: Keep filing-level `AMENDS`, preserve original and amended facts, and determine supersession at fact level.** CW, 2026-10-16; pending review.
+Answer: **Keep filing-level `AMENDS`, preserve original and amended facts, and determine supersession at fact level.** Agreed CW/AL, 17 Oct.
 
 `AMENDS` records that one filing amends another; it does not automatically invalidate every fact in the original. Treat a fact as superseded only when evidence establishes that the amendment replaces that specific observation. Match the reporting entity, concept, period and dimensions, with compatible units, or use an explicit replacement link supplied by Data.
+
+Sign/presentation rule: Establish fact identity from entity, concept, period, dimensions and compatible units before comparing values; the value or sign is not a matching key. Compare values only after any sign, scale or presentation conversion is justified by a documented source convention. Preserve the original signed value, unit and presentation context alongside the conversion rule and normalized comparison value. Do not apply a blanket absolute-value transformation. If conventions cannot be reconciled reliably, retain both observations and flag the comparison for review.
 
 Keep `basis` (`as_filed` / `as_restated`) separate from currentness. An `as_filed` fact can remain current. Do not label every fact in a 10-K/A as restated merely because of the filing form. If replacement cannot be established, retain both observations and flag the ambiguity.
 
@@ -434,7 +446,7 @@ Numeric values remain in the fact table; the graph retains fact references and f
 
 Question it answers: “What value was originally reported, what was subsequently corrected, and which observation should be used for the requested period and reporting scope?”
 
-Validation status: The constructed schema probe demonstrates the filing-level supersession error. Validation against a real original/amendment pair and the Data replacement contract is still pending.
+Validation status: The constructed schema probe demonstrates the filing-level supersession error. The [ADM original/amendment pair](./pilot-filings.md) has inspected metadata, segment correction disclosure and relevant inline XBRL tags, including differing sign presentations. It remains a segment-level restatement case, not validation of the consolidated total-revenue question M12; it has not been loaded through the extraction/fact pipeline. End-to-end replacement and sign-normalization checks with the Data contract remain pending. CW will include this scope limitation in the technical content for the co-lead/Eval thread; no external notification is claimed here.
 
 ### 2.8 `CONSOLIDATED_INTO` — new, from the toy graph
 
@@ -443,9 +455,11 @@ cannot answer a question about which part of the business an acquisition went in
 The toy graph loads a proposed link, marked as not agreed, purely so the rest of the
 question can run.
 
-Open: its own link, or a property on `OWNS`?
+Resolved CW/AL, 17 Oct: its own relationship, rather than a property on `OWNS`.
 
-Answer: **Proposed: Add `Subsidiary -[:CONSOLIDATED_INTO]-> Segment` as a separate relationship.** CW, 2026-10-16; pending review. Create it only when a filing explicitly supports the subsidiary-to-segment mapping. Retain the source accession, section reference and supporting quote. Record effective dates when disclosed; do not invent them or infer segment membership from parent ownership alone.
+Answer: **Add `Subsidiary -[:CONSOLIDATED_INTO]-> Segment` as a separate relationship.** Agreed CW/AL, 17 Oct. Create it only when a filing explicitly supports the subsidiary-to-segment mapping. Retain the source accession, section reference and supporting quote. Record effective dates when disclosed; do not invent them or infer segment membership from parent ownership alone.
+
+Evidence rule: Do not derive segment membership from an Exhibit 21 subsidiary listing alone. Use an explicit mapping in the relevant segment note, acquisition note, Item 1 disclosure or other source. `OWNS` and `CONSOLIDATED_INTO` can have different supporting documents/sections, so each relationship carries its own filing, section/document identity and supporting evidence. AL cites the Broadcom/VMware case as a candidate for validation; that example is not newly verified by this worksheet.
 
 Question it answers: “Which reporting segment includes the results of a named subsidiary or acquired business?” Going through the parent company returns all its segments and does not establish this mapping.
 
@@ -467,12 +481,28 @@ prototype implementation from decisions awaiting team review.
 | Finding | What the real source exposed | Handling and evidence | Status / owner |
 | --- | --- | --- | --- |
 | A Claim can span multiple HTML blocks | JPM's national-regulator sentence continues across blocks 47–48. One XPath/span cannot represent its complete evidence. | Preserve an ordered array of exact source fragments, each with block order, XPath and normalized-text start/end. Validate adjacent-block joins; retain Section-based `SUPPORTS`. See [verified paths](../extraction_prototype/multi_filing/gap_recovery/results/verified_paths.json). | Implemented and technically checked in the prototype. Production provenance-contract alignment remains open. Owner: CW. |
-| List structure breaks a simple sentence-per-Claim rule | JPM uses an introductory clause followed by bullet items. The model skipped intervening items in some joins, and source-valid drafts sometimes stopped at a colon or the first bullet. | Withhold eight source-invalid drafts and four additional boundary-held drafts. Preserve five complete source groups: 26–34, 35–40, 43–46, 49–56 and 57–63. See [deferred drafts](../extraction_prototype/multi_filing/gap_recovery/results/deferred_drafts.json) and [complete groups](../extraction_prototype/multi_filing/gap_recovery/results/boundary_review_groups.json). These groups are evidence for review, not additional Claim nodes. | Unresolved: choose whether a complete list forms one Claim or requires a separate, explicitly scoped representation. The last group extends beyond the initial excerpt. Owner: CW; seek Alina's review. |
+| List structure breaks a simple sentence-per-Claim rule | JPM uses an introductory clause followed by bullet items. The model skipped intervening items in some joins, and source-valid drafts sometimes stopped at a colon or the first bullet. | Withhold eight source-invalid drafts and four additional boundary-held drafts. Preserve five complete source groups: 26–34, 35–40, 43–46, 49–56 and 57–63. See [deferred drafts](../extraction_prototype/multi_filing/gap_recovery/results/deferred_drafts.json) and [complete groups](../extraction_prototype/multi_filing/gap_recovery/results/boundary_review_groups.json). These groups are evidence for review, not additional Claim nodes. | Unresolved boundary policy; interim AL recommendation is one candidate Claim per complete introductory-clause/list group. Preserve complete evidence and review status before any later graph load. The last group extends beyond the initial excerpt. Owner: CW to draft; AL to review. |
 | A literal quote can still lack necessary context | JPM's “This situation” and “These types of changes” sentences depend on earlier source text; the latter needs the introductory clause and its complete list. A model also returned paraphrased context despite supplying exact context fragments. | Preserve `context` together with `context_evidence_fragments`; render context from checked source fragments while retaining the raw model response and rendering audit. Initial context corrections are recorded in [quality revision changes](../extraction_prototype/multi_filing/quality_revision/results/changes.json). | Source-backed rendering implemented and technically checked. Context sufficiency still requires semantic review. Owner: CW. |
 | One primary type does not remove mixed modality or issuer-defined scope | Some sentences combine past events with possible future outcomes. JPM's definitions explain the issuer's usage; they are not independent verification of legal facts. | Retain the proposed primary label, subject scope and annotation; flag mixed-modality and definition candidates in the [review queue](../extraction_prototype/multi_filing/gap_recovery/results/review_queue.csv). Do not treat source alignment as classification approval. | Classification and scope review pending. No additional node type is justified by these examples alone. Owner: CW; seek Alina's review. |
 
 Saved technical evidence: [verification](../extraction_prototype/multi_filing/gap_recovery/results/verification.json).
-This finding report does not constitute joint ontology sign-off.
+These finding rows record technical observations and open follow-ups. The CW/AL agreement covers the ontology decisions stated above; individual Claim classifications, context sufficiency and list boundaries remain subject to review.
+
+---
+
+## Review follow-ups — recorded by CW, 2026-10-18
+
+| Follow-up | Owner / timing | Completion evidence |
+| --- | --- | --- |
+| Cross-company risk-theme vocabulary | CW drafts; AL reviews by Fri 23 Oct | Stable IDs/names, definitions and evidence-backed examples from AAPL, MSFT and JPM; uncovered themes explicitly identified |
+| Subsidiary entity-resolution assessment | AL | Fifty labelled pairs and an assessment of name-variant/rename failures; M03 link design remains open |
+| Document / Table / Cell and Exhibit 21 provenance | AL decides this week; CW aligns the loader afterward | Named questions and real-filing validation, followed by documented identity/coordinate rules |
+| Complete-list Claim boundary rule | CW drafts; AL reviews | Explicit interim/final policy, exact complete-group evidence and separate verification before adding any list Claims |
+| Restatement comparison and Eval scope | CW prepares technical content for the co-lead thread; coordinate with Structured/Data | Source-preserving sign/presentation rules and ADM's segment-only validation limit; actual handoff recorded when it occurs |
+
+The current PR retains its existing prototype evidence. Future prototype changes
+will use a separate PR so ontology review remains focused. Alina's review requested
+that separation for future work, not removal of the existing evidence.
 
 ---
 
