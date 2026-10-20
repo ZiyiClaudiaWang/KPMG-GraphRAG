@@ -147,6 +147,51 @@ None of this is ours to build and all of it is free.
 
 GLEIF first. It is the cheapest of the four and it fixes a known weakness in a measurement we are about to rely on. File formats and endpoints are unverified as of this revision — check before anyone builds against them.
 
+## Seats
+
+Assigned against the second-hat structure in [assignments.md](./assignments.md), which
+pairs every stream and says second hats should peak in different weeks from primaries.
+
+| ID | Experiment | Primary | Second |
+| --- | --- | --- | --- |
+| E0 | Ontology check | Alina | Kelly |
+| E1 | Retriever plumbing | Kelly | Claudia |
+| E2 | Text2Cypher baseline | Adeline | Alina |
+| E3b | Typed vs generic edges | Alina | Adeline |
+| E4a, E4b | XBRL loading, then facts vs LLM | Ashley | Jacob |
+| E6 | Risk factors across filings | Claudia | Alina |
+| E7 | Retriever comparison | Alison | Claudia |
+| E8 | Expansion depth | Claudia | Alison |
+| E9 | Entity resolution | Ashley | Alison |
+| E10 | Leiden communities | Kelly | Alison |
+| E12 | Cost and scaling | Jacob | — |
+| E13 | Restatement | Ashley | Claudia |
+| E14 | Subsidiary to segment | Claudia | Alison |
+| E15 | Abstention | Alison | Alina |
+| Harness | — | Jacob | Kelly |
+
+Four of these need saying out loud.
+
+**E1 and E10 sit with the plan-and-finish co-lead, which is off-hat.** That is deliberate.
+Both would otherwise land on Retrieval, and `assignments.md` already flags that seat as
+seconding eight contract threads while replacing the INT-0 mock. Kelly is working on the
+retrieval pipeline this week regardless, so E1 labels work already in flight rather than
+adding any. Claudia seconds, because her second hat is retrieval and is scheduled to peak
+W6–W7 — exactly when E1 lands.
+
+**E2 is W6 work, not W5.** The fit is good: E2 and E3b ask whether our naming lets a model
+write correct Cypher, which is the query-side of the contract seat's existing work. The
+sequencing is the problem. In W5 the contracts seat is the only person who can send the
+four contract messages, and the question-set one cannot go out late because the gold set
+freezes in W6.
+
+**Retrieval is capped at two primaries.** E8 moved to Extraction 1 and E10 to the co-lead
+to hold that line. Any further experiment landing on Retrieval needs something removed
+first, not added alongside.
+
+**The harness is Platform's.** It is loaders, builds and environments, and it runs in CI,
+which that seat already owns.
+
 ## One per sprint, and what it rides
 
 Six weeks to the 30 Nov freeze. The sequencing constraint is loaded filings, not seats — but experiments should replace or relabel existing cards rather than stack on top of them, because every seat already runs three to five items and one has flagged overload.
