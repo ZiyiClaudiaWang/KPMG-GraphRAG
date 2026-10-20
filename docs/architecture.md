@@ -19,7 +19,7 @@ The graph is a **projection of the corpus, not a parallel copy**. Every store po
 
 ### Working decision, 6 Oct: numbers live in a fact table and the graph points at them
 
-The alternative was routing structured financials into the graph as `company-concept-value-period` triples — already triple-shaped, one store, one query language. We are splitting them instead: the graph holds `(COMPANY)-[REPORTS]->(FACT)` identity edges, the fact table holds values, units, periods and basis.
+The alternative was routing structured financials into the graph as `company-concept-value-period` triples — already triple-shaped, one store, one query language. We are splitting them instead: the graph holds `(Company)-[REPORTS]->(Fact)` identity edges, the fact table holds values, units, periods and basis.
 
 Reasons: numeric aggregation and period-over-period arithmetic are awkward in a traversal language; exact-match numeric eval is far easier against a typed table; and `company-concept-value-period` has no room for `basis`, so a 10-K/A restatement collides with the original on an identical key.
 

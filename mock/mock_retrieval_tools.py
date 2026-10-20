@@ -65,9 +65,9 @@ _GRAPH_ROWS = [
             "Intelligent Cloud, and More Personal Computing."
         ),
         "quote": "Productivity and Business Processes, Intelligent Cloud, and More Personal Computing",
-        "path": ["Microsoft Corporation", "REPORTS_SEGMENT", "Intelligent Cloud"],
+        "path": ["Microsoft Corporation", "HAS_SEGMENT", "Intelligent Cloud"],
         "hops": 1,
-        "edge_types": ["REPORTS_SEGMENT"],
+        "edge_types": ["HAS_SEGMENT"],
     },
     {
         "section_id": "sec-msft-26q3-note16",
@@ -80,7 +80,7 @@ _GRAPH_ROWS = [
         "quote": "Intelligent Cloud Revenue $ 34,681",
         "path": ["Intelligent Cloud", "SCOPES", "Revenue FY2026 Q3"],
         "hops": 2,
-        "edge_types": ["REPORTS_SEGMENT", "SCOPES"],
+        "edge_types": ["HAS_SEGMENT", "SCOPES"],
     },
     {
         "section_id": "sec-msft-26q3-mda",
