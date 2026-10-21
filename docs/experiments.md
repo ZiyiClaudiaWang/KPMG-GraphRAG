@@ -78,12 +78,19 @@ Four of these start this week. The gate on Phase 0 is not labour and never was; 
 
 | ID | Experiment | What varies | Output | Rides |
 | --- | --- | --- | --- | --- |
-| **E0** | Ontology check | The 16 candidate questions in `eval-ask.md`, each mapped to a Cypher path | Questions v1 cannot answer → v2 changes. **Feeds the gold set before it freezes in W6** | Extraction 2's W6 card |
+| **E0** | Ontology check, run both ways | The 19 candidate questions in `eval-ask.md`, each mapped to a Cypher path — then every experiment below, mapped to the questions that score it | Questions v1 cannot answer → v2 changes. Experiments with no question → a question, or an admission. **Feeds the gold set before it freezes in W6** | Extraction 2's card, moved to W5 |
 | **E1** | Retriever plumbing | Five retrievers wired against the schema probe | Working harness for Phase 1 | New — needs a seat |
 | **E2** | Text2Cypher baseline | With and without schema hints and few-shot examples | Valid-Cypher rate, failure types | New — needs a seat |
 | **E4a** | XBRL loading | Inline XBRL instance → DuckDB, MSFT only | `lookup_fact` returns value, unit, period, dimensions, `fact_id` | Structured's W5 card |
 
 E0 is the urgent one. The gold set freezes in W6, so a question not written by Friday is a question the benchmark never asks — and W8 is where the graph has to show it earned its place.
+
+**Run E0 in both directions.** Mapping questions to Cypher paths finds questions v1 cannot answer. It cannot find an experiment with no question, and on 20 Oct there were three: nothing in M01–M16 reached a segment through a subsidiary, so **E14** had nothing to score it; only M06 touched the `Claim` path that **E6** depends on; and almost every candidate resolved in one or two hops, so **E8**'s depth sweep would have measured question design rather than graph design. M17–M19 close the first and third (PR #16). The reverse check is what catches the next one.
+
+Two things that follow from running it:
+
+- **Sample size.** After the tranche, the multi-hop slice is 15–20 questions, three of which are abstention controls scored pass/fail. E7 compares five retriever arms on the remaining 12–17, where one question is six to eight points. E7 can show categorical failure — vector returns nothing on a traversal — and cannot rank arms that are close. Say which claim we are making before the set freezes, because afterwards it cannot be widened.
+- **E10 has no question and probably should not get one.** Sector-wide community questions need 12–15 companies, which is behind the W9 gate. If the gate opens and the gold set froze in W6 without them, E10 is unscoreable. Cheaper to accept that now than to discover it in W10.
 
 E4a is the highest-value *new* work available, for three reasons that have nothing to do with experiments: it has no dependency on Data's credentials, which have been carried for two weeks; it closes the "record the fact-table decision, settled by evidence, still unwritten" card; and without an XBRL loader the restatement experiment in W8 cannot run at all.
 
