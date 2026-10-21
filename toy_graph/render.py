@@ -28,12 +28,12 @@ HW, HH = 0.60, 0.33      # box half-width and half-height, in data units
 GAP = 0.07               # space between the box edge and the arrow tip
 
 FILL = {
-    "COMPANY": "#dbe7f6", "FILING": "#e4dcf2", "SECTION": "#e8e8ea",
-    "SUBSIDIARY": "#d2eae6", "SEGMENT": "#f7e6cc", "FACT": "#d9ecd6",
+    "Company": "#dbe7f6", "Filing": "#e4dcf2", "Section": "#e8e8ea",
+    "Subsidiary": "#d2eae6", "Segment": "#f7e6cc", "Fact": "#d9ecd6",
 }
 STROKE = {
-    "COMPANY": "#4a7ab5", "FILING": "#7a66ad", "SECTION": "#9a9aa0",
-    "SUBSIDIARY": "#3f968a", "SEGMENT": "#c08a3e", "FACT": "#5b9455",
+    "Company": "#4a7ab5", "Filing": "#7a66ad", "Section": "#9a9aa0",
+    "Subsidiary": "#3f968a", "Segment": "#c08a3e", "Fact": "#5b9455",
 }
 
 POS = {
@@ -50,10 +50,10 @@ POS = {
     tg.FACT_23_FILED: (6.1, 2.5),
 }
 
-CURVE = {("REPORTS_SEGMENT", tg.SEG_WAREHOUSE): -0.14}
+CURVE = {("HAS_SEGMENT", tg.SEG_WAREHOUSE): -0.14}
 
 LABEL_T = {
-    ("REPORTS_SEGMENT", tg.SEG_WAREHOUSE): 0.78,
+    ("HAS_SEGMENT", tg.SEG_WAREHOUSE): 0.78,
     ("REPORTS", tg.FACT_23_FILED): 0.56,
     ("SCOPES", tg.FACT_24_REST): 0.74,
     ("SCOPES", tg.FACT_24_FILED): 0.66,
@@ -62,7 +62,7 @@ LABEL_T = {
 
 LABEL_OFF = {
     ("CONSOLIDATED_INTO", tg.SEG_FREIGHT): -0.30,
-    ("REPORTS_SEGMENT", tg.SEG_WAREHOUSE): -0.22,
+    ("HAS_SEGMENT", tg.SEG_WAREHOUSE): -0.22,
     ("REPORTS", tg.FACT_23_FILED): 0.22,
     ("PEER_OF", tg.COASTAL): 0.0,
     ("AMENDS", tg.TENK): 0.0,
@@ -72,16 +72,16 @@ LABEL_OFF_DEFAULT = 0.17
 
 FRAMINGS = {
     "1-whole-graph": {
-        "title": "Whole graph — 11 nodes, 15 relationships",
+        "title": "CW draft schema probe — constructed findings plus Apple claims",
         "nodes": None,
     },
     "2-answer-path": {
-        "title": "The answer path — two FY2024 figures, told apart only by AMENDS",
+        "title": "The answer path — two FY2024 figures, requiring explicit fact replacement evidence",
         "nodes": {tg.SUB_HARBOR, tg.SEG_FREIGHT, tg.FACT_24_FILED,
                   tg.FACT_24_REST, tg.TENK, tg.TENKA},
     },
     "3-hop1-ambiguous": {
-        "title": "Subsidiary to segment, with the schema as it stands — two segments back",
+        "title": "Subsidiary to segment, historical parent-only traversal — two segments back",
         "nodes": {tg.SUB_HARBOR, tg.NORTHWIND, tg.SEG_FREIGHT, tg.SEG_WAREHOUSE},
         "drop_rels": {"CONSOLIDATED_INTO"},
     },
@@ -94,11 +94,26 @@ FRAMINGS = {
 # Which numbers are out of date, judged the correct way: an amendment has to
 # replace that same concept for that same period.
 Q_SUPERSEDED = """
-MATCH (f:FACT)<-[:REPORTS]-(filing:FILING)<-[:AMENDS]-(amender:FILING)
-MATCH (amender)-[:REPORTS]->(replacement:FACT)
-WHERE replacement.concept = f.concept AND replacement.period_end = f.period_end
-RETURN collect(DISTINCT f.key) AS keys
+MATCH (f:Fact {probe_id:$probe}) WHERE f.key IN $superseded_keys
+RETURN collect(f.key) AS keys
 """
+
+# Preserve the original finding views and add space for the Claim extension.
+FILL.update(Claim="#fff0cc", RiskFactor="#f4dbdf")
+STROKE.update(Claim="#ba9142", RiskFactor="#b66b7a")
+POS.pop(tg.COASTAL, None)
+POS.update({tg.SEC_EX21: (-0.2, 1.8), tg.SEC_RESTATEMENT: (3.8, 7.3),
+            tg.APPLE: (9.0, 8.5), tg.APPLE_TENK: (9.0, 7.1),
+            tg.SEC_APPLE_1A: (9.0, 5.7)})
+for i, cid in enumerate(tg.CLAIM_KEYS):
+    POS[cid] = (8.1 + (i % 2) * 2.2, 4.2 - (i // 2) * 1.8)
+for i, rid in enumerate(tg.THEMES):
+    POS[tg.key("risk", rid)] = (12.7, 6.3 - i * 1.5)
+FRAMINGS["5-claim-extension"] = {
+    "title": "Six manually selected Apple statements — candidate theme assignments",
+    "nodes": {tg.APPLE, tg.APPLE_TENK, tg.SEC_APPLE_1A, *tg.CLAIM_KEYS,
+              *(tg.key("risk", rid) for rid in tg.THEMES)},
+}
 
 
 def fetch():
@@ -107,17 +122,17 @@ def fetch():
         nodes = {
             r["key"]: {"label": r["label"], "display": r["display"]}
             for r in session.run(
-                "MATCH (n) RETURN n.key AS key, labels(n)[0] AS label, n.display AS display"
+                "MATCH (n {probe_id:$probe}) RETURN n.key AS key, labels(n)[0] AS label, n.display AS display", probe=tg.PROBE_ID
             )
         }
         rels = [
             (r["src"], r["dst"], r["rel"], r["in_v1"])
             for r in session.run(
-                "MATCH (a)-[r]->(b) RETURN a.key AS src, b.key AS dst, type(r) AS rel, "
-                "coalesce(r.in_schema_v1, true) AS in_v1"
+                "MATCH (a)-[r {probe_id:$probe}]->(b) RETURN a.key AS src, b.key AS dst, type(r) AS rel, "
+                "r.proposal_status IS NULL AS in_v1", probe=tg.PROBE_ID
             )
         ]
-        superseded = set(session.run(Q_SUPERSEDED).single()["keys"])
+        superseded = set(session.run(Q_SUPERSEDED, probe=tg.PROBE_ID, superseded_keys=list(tg.FACT_REPLACEMENTS.values())).single()["keys"])
     return nodes, rels, superseded
 
 
@@ -151,13 +166,13 @@ def wrap(text, width=19):
 
 LEGEND_TEXT = {
     "stale": "Dashed node = figure replaced by a later filing.",
-    "proposed": "Dashed red edge = proposed, not in the schema yet.",
+    "proposed": "Dashed red edge = CW proposal, pending team review.",
 }
 
 
 def draw(ax, nodes, rels, superseded, keep, drop_rels):
     """Draw one framing and return the legend lines it actually needs."""
-    shown = {k: POS[k] for k in nodes if keep is None or k in keep}
+    shown = {k: POS[k] for k in nodes if k in POS and (keep is None or k in keep)}
     legend = []
 
     for node_key, (x, y) in shown.items():
@@ -204,7 +219,7 @@ def draw(ax, nodes, rels, superseded, keep, drop_rels):
         nx, ny = -dy / length, dx / length
         ax.text(a[0] + dx * t + nx * off,
                 a[1] + dy * t + ny * off + rad * 1.2,
-                f"{rel}\nnot in v1" if new else rel,
+                f"{rel}\nCW proposal" if new else rel,
                 ha="center", va="center", fontsize=5.4,
                 color=PROPOSED if new else MUTED, zorder=5,
                 bbox=dict(boxstyle="round,pad=0.14", facecolor="white",
@@ -215,7 +230,7 @@ def draw(ax, nodes, rels, superseded, keep, drop_rels):
 
 def render(name, spec, nodes, rels, superseded):
     keep = spec["nodes"]
-    fig, ax = plt.subplots(figsize=(10.0, 7.2), dpi=220)
+    fig, ax = plt.subplots(figsize=(15.0, 9.0) if keep is None else (10.0, 7.2), dpi=220)
     legend = draw(ax, nodes, rels, superseded, keep, spec.get("drop_rels", set()))
 
     pts = [POS[k] for k in (keep if keep else POS)]

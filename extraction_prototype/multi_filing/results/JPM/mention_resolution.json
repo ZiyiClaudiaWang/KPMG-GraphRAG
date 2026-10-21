@@ -1,0 +1,131 @@
+[
+  {
+    "surface_text": "JPMorganChase",
+    "candidate_type": "Company",
+    "block_order": 19,
+    "accession_number": "0001628280-26-008131",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[90]/div[1]/div[5]"
+    },
+    "source_spans": [
+      {
+        "start": 69,
+        "end": 82
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": {
+      "label": "Company",
+      "cik": "0000019617",
+      "legal_name": "JPMorgan Chase & Co."
+    },
+    "resolution_status": "resolved_by_filing_context",
+    "resolution_rule": "pilot_issuer_alias_registry_v1"
+  },
+  {
+    "surface_text": "JPMorganChase",
+    "candidate_type": "Company",
+    "block_order": 24,
+    "accession_number": "0001628280-26-008131",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[90]/div[1]/div[10]"
+    },
+    "source_spans": [
+      {
+        "start": 0,
+        "end": 13
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": {
+      "label": "Company",
+      "cik": "0000019617",
+      "legal_name": "JPMorgan Chase & Co."
+    },
+    "resolution_status": "resolved_by_filing_context",
+    "resolution_rule": "pilot_issuer_alias_registry_v1"
+  },
+  {
+    "surface_text": "JPMorganChase",
+    "candidate_type": "Company",
+    "block_order": 25,
+    "accession_number": "0001628280-26-008131",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[90]/div[1]/div[11]"
+    },
+    "source_spans": [
+      {
+        "start": 0,
+        "end": 13
+      },
+      {
+        "start": 152,
+        "end": 165
+      },
+      {
+        "start": 384,
+        "end": 397
+      },
+      {
+        "start": 691,
+        "end": 704
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": {
+      "label": "Company",
+      "cik": "0000019617",
+      "legal_name": "JPMorgan Chase & Co."
+    },
+    "resolution_status": "resolved_by_filing_context",
+    "resolution_rule": "pilot_issuer_alias_registry_v1"
+  },
+  {
+    "surface_text": "financial technology companies",
+    "candidate_type": "Other",
+    "block_order": 45,
+    "accession_number": "0001628280-26-008131",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[90]/div[3]/div[15]"
+    },
+    "source_spans": [
+      {
+        "start": 30,
+        "end": 60
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": null,
+    "resolution_status": "unresolved",
+    "resolution_rule": null
+  },
+  {
+    "surface_text": "CCPs",
+    "candidate_type": "Other",
+    "block_order": 55,
+    "accession_number": "0001628280-26-008131",
+    "section_key": "item_1a",
+    "section_identity_status": "prototype_local_pending_data_alignment",
+    "source_locator": {
+      "xpath": "/html/body/div[93]/div[1]/div[8]"
+    },
+    "source_spans": [
+      {
+        "start": 85,
+        "end": 89
+      }
+    ],
+    "span_coordinate_system": "normalized_block_text",
+    "resolved_entity": null,
+    "resolution_status": "unresolved",
+    "resolution_rule": null
+  }
+]

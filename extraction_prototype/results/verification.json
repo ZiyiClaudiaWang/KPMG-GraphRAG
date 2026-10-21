@@ -1,0 +1,133 @@
+{
+  "prototype_id": "cw-extraction-prototype-v1",
+  "path_count": 3,
+  "counts": {
+    "nodes": 6,
+    "relationships": 5
+  },
+  "repeated_loading": "passed",
+  "simulated_chunk_metadata_changes": "passed",
+  "simulation_cleanup": "passed",
+  "paths": [
+    {
+      "claim_id": "claim_94f51ba7116bab829fdec9a0",
+      "quote": "The Company has international operations with sales outside the U.S. representing a majority of the Company’s total net sales.",
+      "hops": [
+        {
+          "type": "FILES",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "section_id": "0000320193-25-000079/item_1a",
+          "edge_id": "edge_4b4e541e4c8e022feb56948d",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "filing_metadata",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.html"
+        },
+        {
+          "type": "CONTAINS",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "section_id": "0000320193-25-000079/item_1a",
+          "source_locator_json": "{\"xpath\": \"/html/body/div[143]\"}",
+          "edge_id": "edge_32d9b073673dd2366cded650",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "section_heading",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        },
+        {
+          "type": "SUPPORTS",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "source_spans_json": "[{\"start\": 0, \"end\": 126}]",
+          "section_id": "0000320193-25-000079/item_1a",
+          "source_locator_json": "{\"xpath\": \"/html/body/div[149]\"}",
+          "span_coordinate_system": "normalized_block_text",
+          "edge_id": "edge_ac10c0041786f4282c6135d7",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "source_sentence",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim_db07a5c3b920fe4e21842040",
+      "quote": "As a result, the Company’s operations and performance depend significantly on global and regional economic conditions.",
+      "hops": [
+        {
+          "type": "FILES",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "section_id": "0000320193-25-000079/item_1a",
+          "edge_id": "edge_4b4e541e4c8e022feb56948d",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "filing_metadata",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.html"
+        },
+        {
+          "type": "CONTAINS",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "section_id": "0000320193-25-000079/item_1a",
+          "source_locator_json": "{\"xpath\": \"/html/body/div[143]\"}",
+          "edge_id": "edge_32d9b073673dd2366cded650",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "section_heading",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        },
+        {
+          "type": "SUPPORTS",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "source_spans_json": "[{\"start\": 321, \"end\": 439}]",
+          "section_id": "0000320193-25-000079/item_1a",
+          "source_locator_json": "{\"xpath\": \"/html/body/div[149]\"}",
+          "span_coordinate_system": "normalized_block_text",
+          "edge_id": "edge_75c9a85e9caec11533c75efc",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "source_sentence",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim_e671ce8ea524dfd38d610405",
+      "quote": "In addition, the Company’s global supply chain is large and complex and a majority of the Company’s supplier facilities, including manufacturing and assembly sites, are located outside the U.S.",
+      "hops": [
+        {
+          "type": "FILES",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "section_id": "0000320193-25-000079/item_1a",
+          "edge_id": "edge_4b4e541e4c8e022feb56948d",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "filing_metadata",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.html"
+        },
+        {
+          "type": "CONTAINS",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "section_id": "0000320193-25-000079/item_1a",
+          "source_locator_json": "{\"xpath\": \"/html/body/div[143]\"}",
+          "edge_id": "edge_32d9b073673dd2366cded650",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "section_heading",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        },
+        {
+          "type": "SUPPORTS",
+          "accession_number": "0000320193-25-000079",
+          "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+          "source_spans_json": "[{\"start\": 127, \"end\": 320}]",
+          "section_id": "0000320193-25-000079/item_1a",
+          "source_locator_json": "{\"xpath\": \"/html/body/div[149]\"}",
+          "span_coordinate_system": "normalized_block_text",
+          "edge_id": "edge_b0da656c64bac988f7d1987a",
+          "prototype_id": "cw-extraction-prototype-v1",
+          "evidence_kind": "source_sentence",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        }
+      ]
+    }
+  ]
+}
