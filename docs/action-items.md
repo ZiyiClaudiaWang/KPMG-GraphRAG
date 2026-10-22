@@ -60,6 +60,11 @@ Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-
 - [ ] Get it in writing that scores are not comparable across tools, before an abstention threshold is fitted on one arm and applied to all three
 - [x] `trace_id` on both tools, echoed at `metadata.trace_id`
 
+**Two things the ask commits us to**, decided 22 Oct when it was sent:
+
+- **Fri 23 Oct is external.** We promised Eval the graph path and the filings each of the nineteen questions joins, whatever they decide on the tranche. Eleven already name their filings in [eval-ask.md](./eval-ask.md), so eight remain. It is E0 on Extraction 2's W5 card and we chose to hold the card rather than slip it. If it slips, say so before the day rather than on it.
+- **The `hops` labelling is ours if Eval says no.** We offered to take it. That offer was costed against 42 questions and Gold Set v1 makes it 100, so it is a card on the quality and evaluation hat, not a favour squeezed in around other work. We kept the offer because the field is the x-axis for both the retriever comparison and the `max_hops` default, and an ask that acknowledges no cost is how an ask gets quietly dropped.
+
 ## 5 · Agents
 
 - [ ] Send [agent-notes.md](./agent-notes.md) and point at the mock
