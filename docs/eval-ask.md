@@ -94,7 +94,21 @@ subsidiary named in X's Exhibit 21.
 | M11 | Which of X's segments contributed most to revenue growth? | **Met** — GSv0-MSFT-024 |
 | M15, M16 | Period, and company, outside the corpus | **Met** — EV1-065 and EV1-064 |
 
-M07 and M08 are the two to drop first if the corpus cannot grow. M05 is one accession.
+### What the blocked ones actually need
+
+Five different things, and only two of them are requests of you. Each has a default, so
+nothing here stalls waiting on an answer.
+
+| # | What is missing | Whose move | If nothing changes |
+|---|---|---|---|
+| M05 | One accession — Microsoft's FY2024 10-K | **Yours or Data's.** It also gives M04 and M06 a third consecutive year rather than two | Drop M05, keep M04 and M06 on two years |
+| M07, M08 | A registrant that renamed or was acquired inside the window. No corpus has one, and we cannot find it from the filings we hold | **Yours or Data's** — nominate one company and we write the paths | Drop both. They are the first two to cut |
+| M17 | A subsidiary folded into a named reportable segment. Microsoft and Activision Blizzard is the candidate and nobody has checked it | **Ours.** We confirm whether Activision appears in Microsoft's Exhibit 21 and whether the segment note attributes it. Answer by Fri 23 Oct | Drop M17, and the deepest question in the set goes with it |
+| M03 | Nothing in the corpus, but the answer resolves a subsidiary name to a registrant outside it | **Yours to rule.** Is a registrant lookup beyond the corpus boundary in scope for a gold question? | Drop M03 |
+| M10 | Two segment-reporting companies worth comparing against each other | — | **Drop it**, and we propose you do. Comparing segment margins across banking and software is a strange thing to grade |
+
+So: two requests, one ruling, one check we owe you, one we propose to cut. A no to any of
+them costs a question, not the tranche.
 
 **The ADM pair comes with its answers checked.** Nutrition intersegment revenues for FY2023
 move from USD 114 million as reported to USD 48 million restated, both tagged
@@ -148,6 +162,23 @@ for cosmetic reasons.
 Still open from [eval-reply.md](./eval-reply.md) §2 and sharper now: citation scoring has to
 join on the provenance key, not `chunk_id`. Ours is always null, so a traversal answer built
 entirely from the graph scores as uncited rather than scoring badly.
+
+## What we need, and when
+
+Gold Set v1 freezes in W6. A question not agreed this week is one the benchmark never asks,
+so the dates matter more than the detail.
+
+- **Fri 23 Oct, ours.** The graph path and the filings each of the nineteen joins. Eleven
+  name their filings in the table above; the remaining eight follow on Friday whatever you
+  decide about the tranche, along with the M17 check. You are not waiting on us to start.
+- **Before the freeze, yours.** Three answers: does the tranche go in, do the corpora merge,
+  and who writes the questions. On the third, our proposal is that **you** write them — we
+  supply the shapes, the graph paths and the filings, you own the wording and the gold
+  evidence. If the graph scores well on questions we wrote, nobody outside the team will
+  believe the result.
+- **Not blocking the freeze.** The `hops` field changes how results are reported, not what
+  the questions are, so it can land after v1 is frozen if labelling 100 questions needs its
+  own slot. Say if it should be ours.
 
 ## What we are not asking for
 

@@ -17,7 +17,7 @@ the reply mentions a traversal tranche or the abstention controls.
 Both tools take it as of 2026-10-14, optional, validated as a non-empty string or null. We
 have no log to write it to yet, so we echo it at `metadata.trace_id` on every result, always
 present and null when unset. Eval can join on it today. It moves to the `search()` envelope
-when that exists — see §5.
+when we ship ours — see §5.
 
 ## 2 · Cited `chunk_ids` will not find our evidence
 
@@ -59,14 +59,19 @@ abstention threshold is fitted on RAG's distribution and applied across the rout
 abstain on the wrong arm. A cross-tool abstention signal is real work — scope it, don't
 infer it from whichever scores happen to be logged.
 
-## 5 · `request_id` on empty results — blocked on a decision we owe
+## 5 · `request_id` on empty results — RAG has built the envelope, we have not
 
-We return a bare `[]` when nothing matches, so there is nowhere to put a `request_id`. This
-is the `search()` envelope parked in [interface-rag-gap.md](./interface-rag-gap.md) §1,
-where `latency_ms` and `tokens` were also going to live. Eval's request makes three reasons
-to build it, so it should stop being deferred — and it needs agreeing with RAG so both sides
-return the same shape. Until then `trace_id` covers the non-empty case and nothing covers
-the empty one.
+We return a bare `[]` when nothing matches, so there is nowhere to put a `request_id`.
+
+We parked this in [interface-rag-gap.md](./interface-rag-gap.md) §1 as something to agree
+with RAG. It no longer needs agreeing. RAG's `search()` exists — `rag/retrieve.py:143` —
+and returns `{request_id, index_version, latency_ms, warnings, results}`, which already
+holds two of the three fields we were deferring. The decision left is ours alone: return
+that shape, or diverge from it deliberately.
+
+We propose matching it, field names included, for the same reason conforming to the
+vocabulary was right in the first place. Until it ships, `trace_id` at `metadata.trace_id`
+covers the non-empty case and nothing covers the empty one.
 
 ## 6 · Cost — ours is extraction, not retrieval
 
@@ -79,5 +84,7 @@ run rather than reconstructing it in W11.
 1. Join on the provenance key, not `chunk_id` — §2
 2. Confirm whether rerun scoring keys on `index_version` or on all three version fields — §3
 3. Agree in writing that scores are not comparable across tools — §4
-4. Still open from [eval-ask.md](./eval-ask.md): the traversal tranche, the M14 abstention
+4. Whether an empty result logged against `trace_id` is enough for round 1, or the envelope
+   has to ship before it — §5
+5. Still open from [eval-ask.md](./eval-ask.md): the traversal tranche, the M14 abstention
    control, and which pilot corpus is real
