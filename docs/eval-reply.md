@@ -1,6 +1,6 @@
 # Reply to Eval on the retrieval contract
 
-Drafted 2026-10-14, shortened 2026-10-22. Answers Eval's six requests on RAG's Retrieval
+Written on 2026-10-22. Answers Eval's six requests on RAG's Retrieval
 API v0.
 
 The requests are addressed to RAG — `retrieve()`, the log files, `config.yaml` and the
