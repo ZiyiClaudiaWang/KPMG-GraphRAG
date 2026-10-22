@@ -1,17 +1,18 @@
 # What GraphRAG needs from Eval
 
-Draft 2026-10-13, rewritten 2026-10-22 after reading Gold Set v1. For Yulei Ding and the
+Written 2026-10-22 after reading Gold Set v1. For Yulei Ding, Thomas Song and the
 Eval/RAG side.
 
 ## The ask
 
-We are **not** writing a second gold set. A parallel benchmark in our own format would
-split the harness, make scores incomparable, and leave us grading our own arm.
-
-We want **15–20 questions added inside yours, in your format**, covering the one shape no
+We'd like to request adding **15–20 questions added inside yours, in your format**, covering the one shape no
 existing set reaches: a question whose answer requires following a relationship to
 something the question could not name. No "which subsidiaries", no "after the acquisition",
 no entity that has to be resolved before it can be retrieved.
+
+We **will not** write a second gold set. Because a parallel benchmark in our own format would risk
+splitting the harness, make scores incomparable, and leave us grading our own arm.
+
 
 **We propose the shapes and the graph path each should exercise. Eval writes, validates and
 owns the wording and the gold evidence.** We should not author the benchmark our own arm is
@@ -20,8 +21,7 @@ believe it.
 
 ## What Gold Set v1 settles
 
-v1 is a real improvement on both earlier sets, and it answers two of our three abstention
-asks without being asked.
+v1 is a real improvement on both earlier sets! Good work! It answers two of our three abstention asks.
 
 - **Abstention is better than we asked for.** Ten controls, not the three we wanted —
   EV1-064 and EV1-065 cover M16 and M15 as written.
@@ -33,13 +33,13 @@ asks without being asked.
 
 ## The gap
 
-None of the 100 requires traversal. The cross-company questions are fan-out — independent
+Seems like none of the eval v1's set of 100 requires traversal. The cross-company questions are fan-out — independent
 lookups with a ticker filter, compared afterwards — which a tuned vector index does well
 without a graph. So if round 1 runs against v1 as it stands, the graph arm scores on work
 vector already does, and we finish with no evidence the graph earned its place. That is a
 coverage gap, not a criticism.
 
-Two things it costs us specifically:
+Two risks for GraphRAG:
 
 **Nothing in v1 needs more than two hops.** The deepest question joins two filings on a
 period boundary, which leaves `max_hops` — a tool-contract parameter somebody has to pick a
