@@ -22,7 +22,7 @@ Everything below is secondary to one deliverable — **a toy graph over two or t
 
 It is the W4 deliverable, not a contingency. Two things make it urgent beyond the date:
 
-**It is the only test the ontology has.** We added a section hierarchy, `DOCUMENT`, `TABLE` and `CELL` this week on the strength of reading Data's schema. None of that has touched a real filing. If `SECTION CONTAINS SECTION` does not hold for a 10-K Item 8, or `CELL` turns out to be the wrong grain for an Exhibit 21, we want to know in W4 while the schema is still soft — not in W6 when extraction is built on it.
+**It is the only test the ontology has.** We added a section hierarchy, `Document`, `Table` and `Cell` this week on the strength of reading Data's schema. None of that has touched a real filing. If `Section CONTAINS Section` does not hold for a 10-K Item 8, or `Cell` turns out to be the wrong grain for an Exhibit 21, we want to know in W4 while the schema is still soft — not in W6 when extraction is built on it.
 
 **It de-risks W5.** The team model warns W5 is the collision point: extraction v1, the fact table, the query layer, two question sets and the spot-check all land together with three people wearing both hats. That model assumes extraction *started* in W4. If it starts in W5 instead, the collision gets a week worse.
 
@@ -64,7 +64,7 @@ writes to the other team.
 | 8 | Ask for `section_id` and `quote` | RAG | Retrieval |
 | 9 | `section_coverage` for the 10-Qs, and `None` vs `"Unlabeled"` | RAG | Retrieval |
 | 10 | Schedule the three-way section conversation | RAG, Data, Eval | Extraction 2 |
-| 11 | Send [eval-ask.md](./eval-ask.md) — traversal tranche, abstention controls, which pilot corpus is real | Eval | Extraction 2 |
+| 11 | Send [eval-ask-v2.md](./eval-ask-v2.md) — traversal tranche, M14, and merging the three corpora | Eval | Extraction 2 |
 | 12 | Send [agent-notes.md](./agent-notes.md), and tell them the mock exists | Agents | Retrieval |
 | 13 | Get a review slot for the structured tool contract | Agents | Structured |
 
@@ -135,14 +135,14 @@ seat has to be relieved, it is that one.
 
 ### Primary hat — ontology now, fuzzy entity resolution after
 
-- [ ] **Validate the four new nodes against the toy graph's filings**, with Extraction 1. Does `SECTION CONTAINS SECTION` hold for a 10-K Item 8? Is `CELL` the right grain for an Exhibit 21? See [schema-ids-operations.md](./schema-ids-operations.md)
-- [ ] **Close the contested list.** `EVENT`, `OFFICER`, `FINANCIALMETRIC`, `PEER` — each needs a named question it unlocks, or it is cut. `RISKFACTOR` was already cut on 13 Oct, because Data's `section_types` has a `risk_factors` code
+- [ ] **Validate the four new nodes against the toy graph's filings**, with Extraction 1. Does `Section CONTAINS Section` hold for a 10-K Item 8? Is `Cell` the right grain for an Exhibit 21? See [schema-ids-operations.md](./schema-ids-operations.md)
+- [ ] **Close the contested list.** `Event`, `Officer`, `FinancialMetric`, `Peer` — each needs a named question it unlocks, or it is cut. `RiskFactor` was already cut on 13 Oct, because Data's `section_types` has a `risk_factors` code
 - [ ] Confirm `PEER_OF` is sourced from SIC, or drop it
 - [ ] Then: subsidiary and segment-name matching
 
 ### Second hat — quality and evaluation
 
-- [ ] Specify what graph path each of the 16 candidate questions in [eval-ask.md](./eval-ask.md) should exercise. The co-lead sends the ask; this seat defines what "the graph can answer this" means in practice
+- [ ] Specify what graph path each of the 16 candidate questions in [eval-ask-v2.md](./eval-ask-v2.md) should exercise. Ten now name the filings they join, so this is concrete for those; the four blocked ones wait on the corpus. The co-lead sends the ask; this seat defines what "the graph can answer this" means in practice
 - [ ] From W8, judge extraction errors and help build the error taxonomy
 
 ---

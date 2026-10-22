@@ -65,7 +65,7 @@ Data's `section_types` is a topic taxonomy for Items, not a document hierarchy. 
 
 There is no note-level code, and adding one has two parts. The vocabulary is an INSERT. The parser detecting note boundaries and emitting a row per note is the real work, even with inline XBRL marking them.
 
-**Side effect worth taking:** `risk_factors` existing as a topic tag settles one of our contested ontology nodes. `RISKFACTOR` was a candidate node whose argument against was "Item 1A is already a SECTION, this may be a topic tag." Data built the tag. Cut the node.
+**Side effect worth taking:** `risk_factors` existing as a topic tag settles one of our contested ontology nodes. `RiskFactor` was a candidate node whose argument against was "Item 1A is already a Section, this may be a topic tag." Data built the tag. Cut the node.
 
 ## The lever for Data
 
