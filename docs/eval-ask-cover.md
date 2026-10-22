@@ -12,11 +12,8 @@ Eval rather than RAG: section 4 touches RAG's scorer, but the decisions in it ar
 **Revised 22 Oct because Eval published Gold Set v1 — 100 questions — before this went
 out.** The note as first drafted argued against two sets that v1 replaces, and offered to
 label 42 questions that are now 100. Sending that version would have read as though we had
-not opened their file. [eval-ask-v2.md](./eval-ask-v2.md) is the review, and it is now the
-third attachment.
-
-**Before sending:** merge the pull request that adds M17–M19, or the attached
-`eval-ask.md` still shows sixteen candidate questions and the note says nineteen.
+not opened their file. `eval-ask.md` was rewritten the same day to review v1 and to name
+the filings each question runs against, so it is still two attachments, not three.
 
 ---
 
@@ -25,17 +22,17 @@ third attachment.
 ```
 Subject: Traversal tranche for gold set v1 — we need a decision this week
 
-Yulei — we read Gold Set v1 today. Three documents attached: the tranche ask
-and the contract reply, both drafted 13 and 14 October and neither sent, and
-a review of v1 written against what you shipped. Short version of each below,
-and one part that is now urgent.
+Yulei — we read Gold Set v1 today. Two documents attached: the tranche ask,
+rewritten today against what you shipped, and the contract reply from 14
+October that never went out. Short version of each below, and one part that
+is now urgent.
 
 Before anything else: v1 is a clear step up on both earlier sets. The ten
 unanswerable and false-premise questions go further than we were going to
 ask for, and EV1-037 through 039 already join two filings to derive Q4, so
 the multi-document mechanism is built and scored.
 
-1 · The traversal tranche (eval-ask.md, reviewed in eval-ask-v2.md)
+1 · The traversal tranche (eval-ask.md)
 
 None of the 100 requires following a relationship to something the question
 could not name. Your four cross-company questions and the 11 new ones are
@@ -124,7 +121,7 @@ benchmark never asks.
 
 - Fri 23 Oct: we send the graph path and the filings each of the 19 joins,
   whatever you decide, so you are reading something concrete rather than a
-  shape. Eleven of them already name their accessions in the attached review.
+  shape. Eleven of them already name their accessions in the attached ask.
 - By Mon 26 Oct: yes or no on the tranche going in, and who writes the
   questions. Separately, yes or no on merging the corpora, which the tranche
   depends on.
@@ -145,7 +142,7 @@ evaluation hat, not a favour squeezed in around other work.
 **Friday is a promise to another team, and it is tomorrow.** The graph paths for all nineteen
 questions are E0 on Extraction 2's W5 card, due Fri 23 Oct. Decided on 22 Oct to hold the
 card rather than slip it, so the note promises Fri 23. Eleven of the nineteen already name
-their filings in [eval-ask-v2.md](./eval-ask-v2.md), which leaves eight to write in a day.
+their filings in [eval-ask.md](./eval-ask.md), which leaves eight to write in a day.
 
 The two dates are also now the right way round. The first draft asked for a decision on Thu
 22 and promised the paths on Fri 23, and once the note missed the 21st the decision date had

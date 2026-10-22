@@ -49,7 +49,7 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 
 Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-reply.md](./eval-reply.md).
 
-- [ ] Send [eval-ask-v2.md](./eval-ask-v2.md) to Yulei Ding. First confirm whether the original [eval-ask.md](./eval-ask.md) ever reached Eval — Gold Set v1 credits only RAG's v0 and Eval's own additions
+- [ ] Send [eval-ask.md](./eval-ask.md) to Yulei Ding. First confirm whether the earlier draft ever reached Eval — Gold Set v1 credits only RAG's v0 and Eval's own additions
 - [ ] **The traversal tranche.** Gold Set v1 has no question requiring traversal, in 100. Without one, W8 cannot show the graph earned its place
 - [ ] **M14.** Gold Set v1 has ten abstention questions and all ten test a missing fact. None tests a fabricated relationship, which is the failure mode specific to our arm
 - [ ] Which pilot corpus is real — now three, not two: the six banks and industrials, our MSFT/JPM/AAPL/ADM pilot, or Eval's MSFT-plus-peers. They overlap by ticker, not by filing
