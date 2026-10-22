@@ -68,7 +68,8 @@ Exhibit 21 can be written at all, because v1 reaches one 10-K.
 
 ## The nineteen
 
-Shapes and intent, not final wording. Eleven are writable against the merged corpus today.
+Shapes and intent, not final wording. Thirteen are writable against the merged corpus today,
+two of them subject to a single ruling from you.
 `X` and `Y` are two companies with overlapping Exhibit 21 lists, `Z` a segment, `S` a
 subsidiary named in X's Exhibit 21.
 
@@ -86,15 +87,50 @@ subsidiary named in X's Exhibit 21.
 | M18 | Which risk factor do X and Y both disclose, and what sentence does each use? | **Writable** — MSFT FY2026 and AAPL FY2025 Item 1A. Five hops each side, meeting at a risk factor neither question names |
 | M19 | Which of X's segments were affected by the figures its 10-K/A restated? | **Writable** — ADM FY2023 pair. Note 17 scopes the correction to the Nutrition segment, so the answer is already verified |
 | M15b | Which subsidiaries did X list in a year whose 10-K is outside the corpus? | **Bonus** — Microsoft FY2022. The traversal counterpart to EV1-065, which only tests a missing period |
-| M05 | In which fiscal year did X first report segment Z? | **Blocked** — needs one more accession, MSFT FY2024 10-K. Also strengthens M04 and M06 |
-| M07 | What was X called before it renamed, and what did it report under the earlier name? | **Blocked** — no renamed registrant in any corpus. Eval or Data to nominate |
-| M08 | After X acquired Y, in which filing did Y stop appearing as a separate registrant? | **Blocked** — same |
-| M17 | Which segment absorbed S after X acquired it, and how did that segment's revenue move? | **Blocked** — needs a subsidiary folded into a named segment. Microsoft and Activision Blizzard is the obvious candidate, **but nobody has checked** that Activision is in Microsoft's Exhibit 21 or that the segment note attributes it. Four hops, the deepest question here — worth half an hour before giving up |
+| M17 | Which segment absorbed S after X acquired it, and how did that segment's revenue move? | **Writable** — checked 22 Oct, see below. MSFT FY2025 Exhibit 21 names Activision Blizzard, Note 7 dates the acquisition, and the Gaming discussion attributes the revenue move. Four hops, the deepest question here |
+| M08 | After X acquired Y, in which filing did Y stop appearing as a separate registrant? | **Writable, if M03's ruling allows it** — Activision Blizzard filed under CIK 0000718877 until its 10-Q of 2023-07-31, then a Form 25-NSE on 2023-10-13. The filings are outside every corpus, so this stands or falls with M03 |
+| M05 | In which fiscal year did X first report segment Z? | **Blocked** — needs one more accession, MSFT FY2024 10-K. Also strengthens M04, M06 and M17 |
+| M07 | What was X called before it renamed, and what did it report under the earlier name? | **Blocked, and the weakest of the nineteen.** Activision Blizzard does carry a former name, `ACTIVISION INC /NY`, but the rename is from 2008 — fifteen years outside any corpus, so the second half of the question reaches filings nobody will load. Nominate a registrant that renamed inside the window, or drop it |
 | M10 | Compare segment operating margin for X and Y in the same fiscal year. | **Partial** — EV1-055 and EV1-060 do this at company level. The segment-level version needs two segment-reporting companies, and comparing margins across banking and software is a strange thing to grade. Low priority |
 | M11 | Which of X's segments contributed most to revenue growth? | **Met** — GSv0-MSFT-024 |
 | M15, M16 | Period, and company, outside the corpus | **Met** — EV1-065 and EV1-064 |
 
-M07 and M08 are the two to drop first if the corpus cannot grow. M05 is one accession.
+### What the still-blocked ones need
+
+After the Activision check below, four are left and **only one is a request for a filing**.
+Each has a default, so nothing here stalls waiting on an answer.
+
+| # | What is missing | Whose move | If nothing changes |
+|---|---|---|---|
+| M03, M08 | Nothing in the corpus. Both resolve a name to a registrant whose own filings sit outside it | **Yours to rule**, once, for both: is a registrant lookup beyond the corpus boundary in scope for a gold question? | Drop both. M08 is the costlier loss — it is the only question that tests a relationship ending |
+| M05 | One accession — Microsoft's FY2024 10-K | **Yours or Data's.** It also gives M04 and M06 a third consecutive year, and lets M17 compare the acquisition year against the one after | Drop M05, keep M04 and M06 on two years, and M17 answers from FY2025's comparative columns alone |
+| M07 | A registrant that renamed **inside the window** | **Yours or Data's** to nominate | Drop it. This is the first to cut |
+| M10 | Two segment-reporting companies worth comparing against each other | — | **Drop it**, and we propose you do. Comparing segment margins across banking and software is a strange thing to grade |
+
+So: one ruling that covers two questions, one accession, one nomination, one we propose to
+cut. A no to any of them costs a question, not the tranche.
+
+### The Activision check, done 22 Oct
+
+M17 was the one question we owed you a check on. It holds, and it is cheap, because
+Microsoft is already the first company in our pilot.
+
+- **Exhibit 21 names it.** `Activision Blizzard, Inc.` and `Activision Publishing, Inc.`,
+  both United States, in MSFT FY2025 (`0000950170-25-100235`). The whole exhibit is eight
+  subsidiaries, four Irish and four American — small enough that M01 grades cleanly too.
+- **Note 7 dates it.** Business Combinations: acquisition completed 13 October 2023 for
+  $75.4 billion.
+- **The segment discussion attributes it.** "Gaming revenue increased $2.0 billion or 9%
+  driven by growth in Xbox content and services… Xbox content and services revenue
+  increased 16% driven by the impact of the Activision Blizzard acquisition." Gaming sits
+  in More Personal Computing.
+- **It is tagged, not only prose.** `msft:ActivisionBlizzardIncMember` is an XBRL dimension
+  member with a 2023-10-13 context, so the structured arm can reach it too.
+
+One caveat for whoever writes the gold answer: the filing attributes the Gaming increase to
+Activision qualitatively and never reports an Activision revenue line. So the answer M17
+supports is "More Personal Computing, and Gaming revenue rose $2.0 billion or 9%" — not a
+figure attributable to the subsidiary alone.
 
 **The ADM pair comes with its answers checked.** Nutrition intersegment revenues for FY2023
 move from USD 114 million as reported to USD 48 million restated, both tagged
@@ -148,6 +184,23 @@ for cosmetic reasons.
 Still open from [eval-reply.md](./eval-reply.md) §2 and sharper now: citation scoring has to
 join on the provenance key, not `chunk_id`. Ours is always null, so a traversal answer built
 entirely from the graph scores as uncited rather than scoring badly.
+
+## What we need, and when
+
+Gold Set v1 freezes in W6. A question not agreed this week is one the benchmark never asks,
+so the dates matter more than the detail.
+
+- **Fri 23 Oct, ours.** The graph path and the filings each of the nineteen joins. Thirteen
+  name their filings in the table above; the remaining six follow on Friday whatever you
+  decide about the tranche. The M17 check we owed you is done — it is in this document.
+- **Before the freeze, yours.** Three answers: does the tranche go in, do the corpora merge,
+  and who writes the questions. On the third, our proposal is that **you** write them — we
+  supply the shapes, the graph paths and the filings, you own the wording and the gold
+  evidence. If the graph scores well on questions we wrote, nobody outside the team will
+  believe the result.
+- **Not blocking the freeze.** The `hops` field changes how results are reported, not what
+  the questions are, so it can land after v1 is frozen if labelling 100 questions needs its
+  own slot. Say if it should be ours.
 
 ## What we are not asking for
 
