@@ -34,7 +34,7 @@ This is a coverage gap, not a criticism. Both sets are good at what they cover.
 
 ## What we are asking for
 
-**15–20 questions requiring more than one filing.** Four shapes, each unanswerable without traversal or cross-document joins:
+**15–20 questions requiring more than one filing.** Five shapes, each unanswerable without traversal or cross-document joins:
 
 | Shape | Example | Why vector can't do it |
 |---|---|---|
@@ -42,6 +42,7 @@ This is a coverage gap, not a criticism. Both sets are good at what they cover.
 | Same company across years | "How did X's reported segments change between FY2021 and FY2023?" | Requires aligning three filings and noticing a rename |
 | Entity resolution | "What did X report before and after it was acquired?" | The company has two names and one identity |
 | Numeric + relational | "How did R&D spend change after the 2023 acquisition?" | Graph resolves the event, structured supplies the numbers |
+| Deep traversal, three hops or more | "Which segment absorbed subsidiary S, and how did that segment's revenue move?" | Added 20 Oct — see below. No single hop gets from the subsidiary to the number |
 
 **Requirements that follow from those shapes:**
 
@@ -49,8 +50,9 @@ This is a coverage gap, not a criticism. Both sets are good at what they cover.
 - **At least three companies**, with at least one pair sharing overlapping Ex-21 subsidiary lists.
 - **At least one company across three or more years**, and ideally one that renamed or was acquired.
 - **One 10-K/A beside the original it amends**, so the `as_filed` vs `as_restated` distinction is testable.
+- **At least one subsidiary consolidated into a named reportable segment**, so the longest path in the schema has something to run on.
 
-That is the same stress sample already requested from Data in the data contract, so this does not add a new corpus ask — it reuses one that is already outstanding.
+The first four are the same stress sample already requested from Data in the data contract, so they do not add a new corpus ask — they reuse one that is already outstanding. The fifth is new, and it is a selection criterion rather than more filings: any company that acquired a business and folded it into a named segment during the window satisfies it.
 
 ## How we propose to split the work
 
@@ -78,7 +80,7 @@ Their existing shape, unchanged — from `eval/gold_v0.jsonl`:
 
 Multi-hop questions need one change: `gold.evidence` becomes a list of several items spanning **different accessions**, and the question is scored on the share of evidence items found. Their `evidence_recall@10` already works that way for deep questions, so the metric exists — it just has not been pointed at cross-document evidence yet.
 
-We would also like a `hops` or `tier: "multihop"` label so graph-requiring questions can be reported as their own slice. Without it the multi-hop result disappears into an average.
+**We need a `hops` field, or a `tier: "multihop"` label, on every question — not only the new ones.** This reads like a nicety and is not. Our retriever comparison reports accuracy *by question type*, and our expansion-depth experiment sweeps one, two and three hops to settle `max_hops` in the tool contract. Both take the label as their x-axis. Without it there is one average, the multi-hop result disappears into it, and the depth decision is made by guess. Labelling only the tranche is not enough either — the lookup baseline has to be sliceable from the same field.
 
 ## Three smaller things
 
@@ -131,6 +133,29 @@ Shapes and intent, not final wording — Eval owns the wording and the gold evid
 |---|---|---|
 | M12 | What did X report as FY2023 revenue as filed, and what did the 10-K/A restate it to? | Both versions must survive ingestion |
 | M13 | Which figures changed between X's 10-K and its 10-K/A? | Requires `basis` and `amends_accession` |
+
+### Deep traversal — added 20 Oct, after the ontology merge
+
+M01–M16 were written on 13 Oct. The ontology was reconciled on the 17th, and two
+things it settled have no question above: the `Subsidiary -[:CONSOLIDATED_INTO]->
+Segment` edge, and the `Section -[:SUPPORTS]-> Claim -[:CONCERNS_RISK]-> RiskFactor`
+path, which M06 is currently the only question to touch.
+
+These three also carry the depth. Most of M01–M16 resolves in one or two hops, so a
+set without them cannot tell us whether expanding to three hops helps or just adds
+context — and `max_hops` is a parameter in the tool contract that somebody has to
+pick a default for. `S` is a subsidiary named in X's Exhibit 21.
+
+| # | Question | Why vector cannot do it |
+|---|---|---|
+| M17 | Which reportable segment absorbed S after X acquired it, and how did that segment's revenue move in the next fiscal year? | Four hops: company to subsidiary to segment to fact. The subsidiary's name never appears in the segment revenue table — the link is in Exhibit 21 and the segment note, the number is in XBRL. No chunk contains both ends |
+| M18 | Which risk factor do X and Y both disclose, and what sentence does each use to describe it? | Five hops each side, meeting at a risk factor neither question names. Retrieved separately, two Item 1As return the most similar *passages*; the shared risk is the thing they have in common, not the wording |
+| M19 | Which of X's reportable segments were affected by the figures its 10-K/A restated? | Three hops across the amendment. Requires knowing which facts differ between two filings, then which segment scopes each. Segment attribution is a dimension on the fact, not a sentence in the text |
+
+M17 and M19 are also the two questions our restatement and subsidiary work is built
+to answer, so leaving them out means our strongest results sit outside the benchmark
+and get reported by us about ourselves. That is the thing this whole document is
+trying to avoid.
 
 ### Abstention controls — the ones that catch invention
 
