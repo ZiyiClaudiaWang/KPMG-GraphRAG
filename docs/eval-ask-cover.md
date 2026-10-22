@@ -122,12 +122,12 @@ What we are asking for, and when
 Gold set v1 freezes in W6. A question not agreed this week is one the
 benchmark never asks.
 
-- By Fri 24 Oct: yes or no on the tranche going in, and who writes the
+- Fri 23 Oct: we send the graph path and the filings each of the 19 joins,
+  whatever you decide, so you are reading something concrete rather than a
+  shape. Eleven of them already name their accessions in the attached review.
+- By Mon 26 Oct: yes or no on the tranche going in, and who writes the
   questions. Separately, yes or no on merging the corpora, which the tranche
   depends on.
-- Mon 27 Oct: we send the graph path and the filings each of the 19 joins,
-  so you are writing against something concrete rather than a shape. Eleven of
-  them already name their accessions in the attached review.
 - During W6, before the freeze: the questions themselves.
 
 — Adeline
@@ -135,23 +135,24 @@ benchmark never asks.
 
 ## Two things the note commits us to
 
-**The `hops` labelling may come back to us, and it is bigger than it was.** Section 2 offers
-to take it. That offer was costed against 42 existing questions and v1 makes it 100.
-Labelling 100 questions would land on the quality and evaluation hat and it is a card, not
-a favour. The alternative was to ask for the field without acknowledging the cost, which is
-how an ask gets quietly dropped — but decide whether we can still afford the offer before
-sending, because section 2 now says we will take it.
+**The `hops` labelling is ours if Eval says no, and it is bigger than it was.** Section 2
+offers to take it. That offer was costed against 42 existing questions and v1 makes it 100.
+Decided on 22 Oct to keep the offer, because it is the x-axis for both the retriever
+comparison and the `max_hops` default, and an ask that acknowledges no cost is how an ask
+gets quietly dropped. If it comes back, labelling 100 questions is a card on the quality and
+evaluation hat, not a favour squeezed in around other work.
 
-**The dates moved, and one of them needs checking against the sprint.** The first draft
-asked for a decision by Thu 22 Oct and promised the graph paths on Fri 23. The note did not
-go out on the 21st, so the decision date had already passed before sending; it is now Fri 24
-and the paths are Mon 27.
+**Friday is a promise to another team, and it is tomorrow.** The graph paths for all nineteen
+questions are E0 on Extraction 2's W5 card, due Fri 23 Oct. Decided on 22 Oct to hold the
+card rather than slip it, so the note promises Fri 23. Eleven of the nineteen already name
+their filings in [eval-ask-v2.md](./eval-ask-v2.md), which leaves eight to write in a day.
 
-That second move is the one to look at. The graph paths for all nineteen questions are E0 on
-Extraction 2's W5 card, due Fri 23 Oct. Mon 27 is past the card. Either the card slips by one
-working day, or the note promises Fri 23 and Extraction 2 delivers on a tighter turn — for
-eleven of the nineteen the filings are already named in the review, so Friday is not impossible.
-Pick one before sending rather than letting the two dates disagree in writing.
+The two dates are also now the right way round. The first draft asked for a decision on Thu
+22 and promised the paths on Fri 23, and once the note missed the 21st the decision date had
+passed before sending. We send the paths first, unconditionally, and ask for the decision by
+Mon 26 — so Eval is deciding with the concrete material in front of them rather than
+agreeing to a shape. It also means a late answer costs us nothing, because the paths go
+either way.
 
-Once this note goes, whichever date it carries is external. If it is going to slip, say so
-before the day rather than on it.
+Once this note goes, Friday is external. If it is going to slip, say so before the day
+rather than on it.
