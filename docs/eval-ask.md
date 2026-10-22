@@ -2,6 +2,12 @@
 
 Draft, 2026-10-13. For Yulei Ding and the Eval/RAG side.
 
+> **Partly superseded on 2026-10-22 by [eval-ask-v2.md](./eval-ask-v2.md).** Eval has since
+> published Gold Set v1, which meets M11, M15 and M16 and settles the quantitative-split
+> question. The corpus this document argues from is also no longer the live one. The
+> argument for a traversal tranche still stands and the M01–M19 labels are unchanged; read
+> v2 for the current corpus and the re-pointed questions.
+
 ## Short version
 
 We are **not** writing a second gold set. RAG already has a working one — `gold_set_v0.md` plus `eval/gold_v0.jsonl` plus an evidence-matching scorer in `rag/evaluate.py`. A parallel benchmark in our own format would split the harness, make scores incomparable, and leave us grading our own arm.
