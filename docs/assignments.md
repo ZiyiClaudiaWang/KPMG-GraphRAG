@@ -64,7 +64,7 @@ writes to the other team.
 | 8 | Ask for `section_id` and `quote` | RAG | Retrieval |
 | 9 | `section_coverage` for the 10-Qs, and `None` vs `"Unlabeled"` | RAG | Retrieval |
 | 10 | Schedule the three-way section conversation | RAG, Data, Eval | Extraction 2 |
-| 11 | Send [eval-ask-v2.md](./eval-ask-v2.md) — traversal tranche, M14, and merging the three corpora | Eval | Extraction 2 |
+| 11 | Send [eval-ask.md](./eval-ask.md) — traversal tranche, M14, and merging the three corpora | Eval | Extraction 2 |
 | 12 | Send [agent-notes.md](./agent-notes.md), and tell them the mock exists | Agents | Retrieval |
 | 13 | Get a review slot for the structured tool contract | Agents | Structured |
 
@@ -142,7 +142,7 @@ seat has to be relieved, it is that one.
 
 ### Second hat — quality and evaluation
 
-- [ ] Specify what graph path each of the 16 candidate questions in [eval-ask-v2.md](./eval-ask-v2.md) should exercise. Ten now name the filings they join, so this is concrete for those; the four blocked ones wait on the corpus. The co-lead sends the ask; this seat defines what "the graph can answer this" means in practice
+- [ ] Specify what graph path each of the 19 candidate questions in [eval-ask.md](./eval-ask.md) should exercise. Eleven now name the filings they join, so this is concrete for those; the four blocked ones wait on the corpus. The co-lead sends the ask; this seat defines what "the graph can answer this" means in practice
 - [ ] From W8, judge extraction errors and help build the error taxonomy
 
 ---
