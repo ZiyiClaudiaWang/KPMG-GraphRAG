@@ -49,10 +49,12 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 
 Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-reply.md](./eval-reply.md).
 
-- [ ] Send [eval-ask.md](./eval-ask.md) to Yulei Ding
-- [ ] **The traversal tranche.** Neither gold set has a question requiring traversal. Without it, W8 cannot show the graph earned its place
-- [ ] The abstention controls, M14–M16 — the only questions that catch a graph inventing edges
-- [ ] Which pilot corpus is real: MSFT, the six banks and industrials, or `pilot-corpus-setup`?
+- [ ] Send [eval-ask-v2.md](./eval-ask-v2.md) to Yulei Ding. First confirm whether the original [eval-ask.md](./eval-ask.md) ever reached Eval — Gold Set v1 credits only RAG's v0 and Eval's own additions
+- [ ] **The traversal tranche.** Gold Set v1 has no question requiring traversal, in 100. Without one, W8 cannot show the graph earned its place
+- [ ] **M14.** Gold Set v1 has ten abstention questions and all ten test a missing fact. None tests a fabricated relationship, which is the failure mode specific to our arm
+- [ ] Which pilot corpus is real — now three, not two: the six banks and industrials, our MSFT/JPM/AAPL/ADM pilot, or Eval's MSFT-plus-peers. They overlap by ticker, not by filing
+- [ ] Ask Data for Microsoft's FY2024 10-K. One accession, and it unblocks M05 while strengthening M04 and M06
+- [ ] Nominate a renamed or acquired registrant for M07 and M08, or drop both
 - [ ] **Citation scoring must join on the provenance key, not `chunk_id`.** Ours is always null, so graph and structured evidence would score as uncited rather than scoring badly
 - [ ] Confirm whether rerun scoring keys on `index_version` alone — ours moves `extraction_version`
 - [ ] Get it in writing that scores are not comparable across tools, before an abstention threshold is fitted on one arm and applied to all three
