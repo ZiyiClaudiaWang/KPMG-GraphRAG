@@ -83,11 +83,11 @@ Found 2026-10-13:
 
 > **Settled 2026-10-17** in [ontology-reconciliation.md](./ontology-reconciliation.md),
 > decisions 2.1 to 2.8, initialled CW/AL. Node names are PascalCase, relationship types
-> are UPPER_SNAKE, and company-to-segment is `HAS_SEGMENT`. The tables below have had
-> the names propagated but have **not** yet absorbed the substance of 2.1 to 2.6 —
-> `Claim` is missing from Settled, and `FinancialMetric` and `Executive` / `Officer`
-> are still listed as contested when both are now excluded from v1. Read the
-> worksheet as authoritative where the two disagree.
+> are UPPER_SNAKE, and company-to-segment is `HAS_SEGMENT`. The tables below absorbed
+> the substance of 2.1 to 2.8 on 22 Oct: `Claim` and `RiskFactor` are in Settled,
+> and `FinancialMetric` and `Executive` / `Officer` are recorded as excluded from v1
+> rather than contested. The worksheet still carries the reasoning and the validation
+> status for each decision; read it as authoritative where the two disagree.
 
 ### Settled
 
@@ -104,24 +104,36 @@ it is now a column.
 | **Fact** | `fact_id` | M12 — "What did X report as FY2023 revenue as filed, and what did the 10-K/A restate it to?" Both versions must survive ingestion, which is what `basis` is for |
 | **Segment** | `segment_id` | M11 — "Which of X's segments contributed most to revenue growth between FY2022 and FY2023?" Dimensional facts, total versus part |
 | **Subsidiary** | `sub_id` | M01 — "Which subsidiaries does X list in Exhibit 21, and how many are incorporated outside the United States?" Settled in the reconciliation worksheet, 2.6 |
+| **Claim** | `claim_id` | "Which statements in X's risk disclosures state a present fact, which express a future expectation, and which hedge a possible outcome, and what wording supports each one?" Decision 2.3. The loader assigns `claim_id` from source and statement identity — never the model, never a chunk ID. Required properties are `quote`, `claim_type`, `accession_number`, `section_id` and `extraction_status`; evidence hangs off `Section -[:SUPPORTS]-> Claim` |
+| **RiskFactor** | `risk_id` | M06 — "Which risk factors appear in X's FY2023 10-K that were absent in FY2021?" Decision 2.4, which reverses the 13 Oct cut below. The `risk_factors` section code says where risk disclosure sits; it does not give a theme that holds its identity across companies and years, which is what the comparison needs. Themes come from a documented list, not from each extracted phrase |
 | **Document** | `accession_number` + `role` | **Unnamed.** Added 13 Oct from reading Data's `source_documents`. The argument is that Exhibit 21 has its own offset space, which is a reason it is *correct*, not a question it answers |
 | **Table** | `accession_number` + `table_key` | **Unnamed.** Added 13 Oct. Ex-21 and the segment note are tables rather than prose, but no question yet needs the table as an addressable thing |
 | **Cell** | `table_key` + `cell_key` | **Unnamed.** Added 13 Oct. Carries a required XPath in Data's schema. The candidate is citing a rendered figure and its XBRL fact together — nobody has written it as a question |
 
 The three unnamed rows are exactly the three nodes added by reading Data's migration
-files rather than by asking something. Name a question for each before W5 or cut them.
+files rather than by asking something. They were due a question before W5 and did not
+get one; it is Alina's W6 card to name one each or cut them.
 `Cell` is the one most likely to survive, and it is also the one to put to KPMG: is
 cell-level citation what an audit trail wants, or further than anyone needs?
 
 ### Contested — each needs a question to earn its place
 
+Two rows left. The other three were closed on 17 Oct and are recorded underneath.
+
 | Candidate | For | Against |
 |---|---|---|
-| **Event** | Needed for anything phrased "after the 2023 acquisition" | Hard to extract reliably. May be better as typed edges with a date |
-| **Executive / Officer** | Named officers connect companies | No deterministic key. Is there a single business question that needs it? |
-| ~~**RiskFactor**~~ | Item 1A is where comparative risk questions live | **Cut 2026-10-13.** Data's `section_types` already has a `risk_factors` code. The topic tag exists; the node is redundant |
-| **FinancialMetric** | Named metrics like revenue | Overlaps Fact almost entirely |
-| **Peer** | Cross-company comparison needs a peer set | Not a node — a relation |
+| **Event** | Needed for anything phrased "after the 2023 acquisition" | Hard to extract reliably. May be better as typed edges with a date. M17 is the question that would pay for it — the Activision check on 22 Oct shows the acquisition date sits in a note and the revenue move in the segment discussion, so the alternative is a dated edge between two filings |
+| **Peer** | Cross-company comparison needs a peer set | Not a node — a relation. `PEER_OF` is in the edge diagram, sourced from SIC |
+
+Alina closes both, or cuts them, by naming the question each answers.
+
+### Closed, 2026-10-17
+
+| Candidate | Outcome | Why |
+|---|---|---|
+| **RiskFactor** | **Kept.** Decision 2.4, now in Settled above | Reverses the 13 Oct cut, which argued Data's `risk_factors` section code made the node redundant. It does not: the code says where risk disclosure sits, and M06 needs a theme that keeps its identity across companies and years. The cut entry stood here until 22 Oct and was the one place this document contradicted the worksheet |
+| **Executive / Officer** | **Excluded from v1.** Decision 2.5 | No agreed question needs it, and two people with the same name cannot be told apart without fuzzy matching. Revisit when a question, a source and a resolution approach all exist |
+| **FinancialMetric** | **Excluded from v1.** Decision 2.1 | Settled by writing the Use Case A query both ways. The metric node adds a node type and a traversal without reducing the numeric work — values, units, periods and dimensions stay in the fact table either way. Revisit if concept hierarchies are ever needed |
 
 ### Edges
 
@@ -133,6 +145,8 @@ erDiagram
   Document ||--o{ Section : CONTAINS
   Section  ||--o{ Section : CONTAINS
   Section  ||--o{ Table : CONTAINS
+  Section  ||--o{ Claim : SUPPORTS
+  Claim    }o--o| RiskFactor : CONCERNS_RISK
   Table    ||--o{ Cell : HAS_CELL
   Cell     }o--o{ Fact : EVIDENCES
   Filing   ||--o{ Fact : REPORTS
@@ -148,6 +162,15 @@ property on `OWNS`, and it is created only where a filing explicitly supports th
 mapping — carrying the accession number, the section reference and the quote. Without
 it the only route from a subsidiary to its segment is up to the parent and back down,
 which hands back every segment the company has.
+
+`SUPPORTS` carries the provenance for a Claim — the accession number, the section
+reference and the quote — which is how a Claim stays anchored without `SourceChunk`
+being a node (decision 2.2). A Claim can span several HTML blocks, so its evidence is
+an ordered array of fragments rather than one XPath and span. `CONCERNS_RISK` points
+at a theme from the documented theme list. **Neither edge is loaded yet.** The
+three-filing prototype holds Company, Filing, Section and Claim only; the theme list
+is CW's draft with AL reviewing by Fri 23 Oct, so no `CONCERNS_RISK` edge has been
+inferred from a real filing.
 
 `PEER_OF` is sourced from the SIC code in EDGAR metadata, which is free and reliable. Self-declared peer groups live in DEF 14A proxies, which are not in scope. Sourced from SIC and stated as such, or it does not go in.
 
