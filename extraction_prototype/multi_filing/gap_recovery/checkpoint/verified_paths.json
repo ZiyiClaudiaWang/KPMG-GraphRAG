@@ -1,0 +1,1598 @@
+[
+  {
+    "claim_id": "claim_03a07cc8794c5d1f8072b8b6",
+    "issuer_cik": "0000019617",
+    "quote": "The supervisory and regulatory framework also imposes requirements for JPMorganChase to implement and maintain compliance programs, and the complexity of these programs can increase its risks of non-compliance.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 25, \"quote_fragment\": \"The supervisory and regulatory framework also imposes requirements for JPMorganChase to implement and maintain compliance programs, and the complexity of these programs can increase its risks of non-compliance.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[11]\"}, \"start\": 313, \"end\": 523, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_45efd65753b0b60ea0070850",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_116d0e9f2091fda5d59e7ee6",
+    "issuer_cik": "0000019617",
+    "quote": "Furthermore, certain authorities outside the U.S. have adopted applicable law that could conflict with or prohibit JPMorganChase from complying with applicable law in other jurisdictions, which could create conflict of law issues and could increase risks associated with non-compliance.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 48, \"quote_fragment\": \"Furthermore, certain authorities outside the U.S. have adopted applicable law that could conflict with or prohibit JPMorganChase from complying with applicable law in other jurisdictions, which could create conflict of law issues and could increase risks associated with non-compliance.\", \"source_locator\": {\"xpath\": \"/html/body/div[93]/div[1]/div[1]\"}, \"start\": 173, \"end\": 459, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_95b0b625ce28950ef0e6f569",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_212afcaa00e893ae212054bf",
+    "issuer_cik": "0000789019",
+    "quote": "We face significant competition from firms that provide competing platforms.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 6, \"quote_fragment\": \"We face significant competition from firms that provide competing platforms.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[8]\"}, \"start\": 434, \"end\": 510, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_45c213e7da1574628d4084e5",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_2aceefc10109c34af4f53720",
+    "issuer_cik": "0000789019",
+    "quote": "Competing with operating systems licensed at low or no cost may decrease our PC operating system margins.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 8, \"quote_fragment\": \"Competing with operating systems licensed at low or no cost may decrease our PC operating system margins.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/div[2]/div\"}, \"start\": 624, \"end\": 729, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_9ee65979ebb7af615dd434e7",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_2dd8285300bcc5a80c941b0e",
+    "issuer_cik": "0000789019",
+    "quote": "If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 4, \"quote_fragment\": \"If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[6]\"}, \"start\": 494, \"end\": 734, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_73558aee792bdf99ed29ed53",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_3eb1fce25fa3da642126504e",
+    "issuer_cik": "0000019617",
+    "quote": "In addition, the business or operations of financial services firms such as JPMorganChase may be negatively affected by executive orders or other executive branch actions that seek to regulate those businesses or operations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 41, \"quote_fragment\": \"In addition, the business or operations of financial services firms such as JPMorganChase may be negatively affected by executive orders or other executive branch actions that seek to regulate those businesses or operations.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[11]\"}, \"start\": 405, \"end\": 629, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_e0bc5ab5e5671af1e5a2ed46",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_4112cba62fcb28092af0f827",
+    "issuer_cik": "0000019617",
+    "quote": "Furthermore, regulators or governmental authorities could adopt new interpretations of applicable law or supervisory expectations, and in certain circumstances, JPMorganChase could be required to demonstrate that prior conduct complies with these new interpretations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 41, \"quote_fragment\": \"Furthermore, regulators or governmental authorities could adopt new interpretations of applicable law or supervisory expectations, and in certain circumstances, JPMorganChase could be required to demonstrate that prior conduct complies with these new interpretations.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[11]\"}, \"start\": 0, \"end\": 267, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_ec564efdda376bf98de5848f",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_462e0990012106b6b20e0f25",
+    "issuer_cik": "0000320193",
+    "quote": "Beginning in the second quarter of 2025, new tariffs were announced on imports to the U.S. (“U.S. Tariffs”), including additional tariffs on imports from China, India, Japan, South Korea, Taiwan, Vietnam and the European Union (“EU”), among others.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 10, \"quote_fragment\": \"Beginning in the second quarter of 2025, new tariffs were announced on imports to the U.S. (“U.S. Tariffs”), including additional tariffs on imports from China, India, Japan, South Korea, Taiwan, Vietnam and the European Union (“EU”), among others.\", \"source_locator\": {\"xpath\": \"/html/body/div[157]\"}, \"start\": 2293, \"end\": 2541, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_27b649d414ca846f346a4f50",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_4819fbfcedcfa2c305141f50",
+    "issuer_cik": "0000320193",
+    "quote": "The ultimate impact remains uncertain and will depend on several factors, including whether additional or incremental U.S. Tariffs or other measures are announced or imposed, to what extent other countries implement tariffs or other retaliatory measures in response, and the overall magnitude and duration of these measures.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 10, \"quote_fragment\": \"The ultimate impact remains uncertain and will depend on several factors, including whether additional or incremental U.S. Tariffs or other measures are announced or imposed, to what extent other countries implement tariffs or other retaliatory measures in response, and the overall magnitude and duration of these measures.\", \"source_locator\": {\"xpath\": \"/html/body/div[157]\"}, \"start\": 3192, \"end\": 3516, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_69c4db636f5044a19c5a9612",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_53a4698d41697c30586d908e",
+    "issuer_cik": "0000789019",
+    "quote": "An important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 6, \"quote_fragment\": \"An important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[8]\"}, \"start\": 0, \"end\": 143, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_894915f0534a3a955a6c6294",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_5c873dc93bb8b2b45d3db8ff",
+    "issuer_cik": "0000789019",
+    "quote": "We derive substantial revenue from licenses of Windows operating systems on PCs.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 8, \"quote_fragment\": \"We derive substantial revenue from licenses of Windows operating systems on PCs.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/div[2]/div\"}, \"start\": 0, \"end\": 80, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_864f9055595fa29fc0cf496f",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_5c890f3a35ff43144189b6cf",
+    "issuer_cik": "0000789019",
+    "quote": "For all of these reasons, we may not be able to compete successfully against our current and future competitors, which could adversely affect our business, operations, financial condition, and results of operations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 10, \"quote_fragment\": \"For all of these reasons, we may not be able to compete successfully against our current and future competitors, which could adversely affect our business, operations, financial condition, and results of operations.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[9]\"}, \"start\": 0, \"end\": 215, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_4532a41de925fbb8862a4e0a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_65f1a7b73f51479afc1b0a70",
+    "issuer_cik": "0000789019",
+    "quote": "We will bear significant development and operational costs to build and support the AI models, services, platforms, and infrastructure necessary to meet the needs of our customers.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 14, \"quote_fragment\": \"We will bear significant development and operational costs to build and support the AI models, services, platforms, and infrastructure necessary to meet the needs of our customers.\", \"source_locator\": {\"xpath\": \"/html/body/div[51]/div[2]/div\"}, \"start\": 292, \"end\": 472, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_6b56ff0e00b30d908ed574f8",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_6f3f264343a5118305d28e59",
+    "issuer_cik": "0000320193",
+    "quote": "Adverse macroeconomic conditions, including slow growth or recession, high unemployment, inflation, tighter credit, higher interest rates, and currency fluctuations, can adversely impact consumer confidence and spending and materially adversely affect demand for the Company’s products and services.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 5, \"quote_fragment\": \"Adverse macroeconomic conditions, including slow growth or recession, high unemployment, inflation, tighter credit, higher interest rates, and currency fluctuations, can adversely impact consumer confidence and spending and materially adversely affect demand for the Company’s products and services.\", \"source_locator\": {\"xpath\": \"/html/body/div[150]\"}, \"start\": 0, \"end\": 299, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_1d04f6b1056e9d0e602b9455",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_7583d92a17b266f5c9389563",
+    "issuer_cik": "0000320193",
+    "quote": "If disputes and conflicts further escalate, actions by governments in response could be significantly more severe and restrictive.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 10, \"quote_fragment\": \"If disputes and conflicts further escalate, actions by governments in response could be significantly more severe and restrictive.\", \"source_locator\": {\"xpath\": \"/html/body/div[157]\"}, \"start\": 3517, \"end\": 3647, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_f34eb52f78b656563ee66978",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_79f16fd4559807adf6fba58a",
+    "issuer_cik": "0000789019",
+    "quote": "Shifting a portion of our business to a vertically-integrated model may increase our cost of revenue and reduce our operating margins.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 7, \"quote_fragment\": \"Shifting a portion of our business to a vertically-integrated model may increase our cost of revenue and reduce our operating margins.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/div[1]/div\"}, \"start\": 662, \"end\": 796, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_7de8e2845d49e03be2cbdf8d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_81ee0eba011f748806720532",
+    "issuer_cik": "0000019617",
+    "quote": "A highly-regulated financial services firm such as JPMorganChase can be vulnerable to competition from firms that are less regulated or unregulated.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 47, \"quote_fragment\": \"A highly-regulated financial services firm such as JPMorganChase can be vulnerable to competition from firms that are less regulated or unregulated.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[17]\"}, \"start\": 0, \"end\": 148, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_341cbef44616c9c3815c3bcf",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_88e985cbe1596e7ae075c231",
+    "issuer_cik": "0000789019",
+    "quote": "We also offer some vertically-integrated hardware and software products and services.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 7, \"quote_fragment\": \"We also offer some vertically-integrated hardware and software products and services.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/div[1]/div\"}, \"start\": 576, \"end\": 661, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_c63d24422d6e15aee59eeba4",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_89770b8dc27e13341fa62805",
+    "issuer_cik": "0000320193",
+    "quote": "Uncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 6, \"quote_fragment\": \"Uncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers.\", \"source_locator\": {\"xpath\": \"/html/body/div[151]\"}, \"start\": 0, \"end\": 266, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_06f374e2c8c81a635c9445a8",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_8c03b915516393ec7a4b96a1",
+    "issuer_cik": "0000019617",
+    "quote": "In addition, differences in regulatory implementation between the U.S. and other countries could adversely affect JPMorganChase’s businesses.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 47, \"quote_fragment\": \"In addition, differences in regulatory implementation between the U.S. and other countries could adversely affect JPMorganChase’s businesses.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[17]\"}, \"start\": 149, \"end\": 290, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_3b687aec86ae70aacd7a97eb",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_94f51ba7116bab829fdec9a0",
+    "issuer_cik": "0000320193",
+    "quote": "The Company has international operations with sales outside the U.S. representing a majority of the Company’s total net sales.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 4, \"quote_fragment\": \"The Company has international operations with sales outside the U.S. representing a majority of the Company’s total net sales.\", \"source_locator\": {\"xpath\": \"/html/body/div[149]\"}, \"start\": 0, \"end\": 126, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_ac10c0041786f4282c6135d7",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_9c2e794269fd655b7acddf51",
+    "issuer_cik": "0000789019",
+    "quote": "Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 4, \"quote_fragment\": \"Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[6]\"}, \"start\": 264, \"end\": 493, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_d25648170b1090764d5a1ade",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_9da85932e800bf7a5349474d",
+    "issuer_cik": "0000019617",
+    "quote": "JPMorganChase’s businesses are highly regulated and are significantly affected by applicable law and supervisory expectations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 24, \"quote_fragment\": \"JPMorganChase’s businesses are highly regulated and are significantly affected by applicable law and supervisory expectations.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[10]\"}, \"start\": 0, \"end\": 126, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_6956b2485c13847f092aca0d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_9f8c871d5abc32ded61ed438",
+    "issuer_cik": "0000320193",
+    "quote": "A significant majority of the Company’s manufacturing is performed in whole or in part by outsourcing partners located primarily in China mainland, India, Japan, South Korea, Taiwan and Vietnam, in addition to sourcing from partners and facilities located in the U.S.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 10, \"quote_fragment\": \"A significant majority of the Company’s manufacturing is performed in whole or in part by outsourcing partners located primarily in China mainland, India, Japan, South Korea, Taiwan and Vietnam, in addition to sourcing from partners and facilities located in the U.S.\", \"source_locator\": {\"xpath\": \"/html/body/div[157]\"}, \"start\": 215, \"end\": 482, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_dccd119ae4a1f3e49473b8d0",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_a46e18f84398ceb44e5d2187",
+    "issuer_cik": "0000789019",
+    "quote": "Other competitors develop and offer free applications, online services, and content, and make money by selling third-party advertising.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 16, \"quote_fragment\": \"Other competitors develop and offer free applications, online services, and content, and make money by selling third-party advertising.\", \"source_locator\": {\"xpath\": \"/html/body/div[51]/div[4]/div\"}, \"start\": 0, \"end\": 135, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_0ecaf1ba3ded7d1d8035d13a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_b93a55834146a187e2be035d",
+    "issuer_cik": "0000019617",
+    "quote": "JPMorganChase must comply with applicable law in all of the jurisdictions around the world where it does business.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 25, \"quote_fragment\": \"JPMorganChase must comply with applicable law in all of the jurisdictions around the world where it does business.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[11]\"}, \"start\": 0, \"end\": 114, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_ab99efe14f27c885518e84e5",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_b94ae30c1d2da47110179758",
+    "issuer_cik": "0000789019",
+    "quote": "We are investing in artificial intelligence (“AI”) across the entire company and infusing generative AI capabilities into our consumer and commercial offerings.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 14, \"quote_fragment\": \"We are investing in artificial intelligence (“AI”) across the entire company and infusing generative AI capabilities into our consumer and commercial offerings.\", \"source_locator\": {\"xpath\": \"/html/body/div[51]/div[2]/div\"}, \"start\": 0, \"end\": 160, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_6d7262b95364746a8f076741",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_bdb53d09ae596c613cdef8cb",
+    "issuer_cik": "0000019617",
+    "quote": "In addition, entering into or acquiring a new business or expanding current business could increase the scope of applicable law or supervision and regulation to which JPMorganChase is subject.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 25, \"quote_fragment\": \"In addition, entering into or acquiring a new business or expanding current business could increase the scope of applicable law or supervision and regulation to which JPMorganChase is subject.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[11]\"}, \"start\": 524, \"end\": 716, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_769c1e1de33129a6fc45f326",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_d3e405a8dab5293925a4961b",
+    "issuer_cik": "0000789019",
+    "quote": "Companies compete with us based on a growing variety of business models.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 12, \"quote_fragment\": \"Companies compete with us based on a growing variety of business models.\", \"source_locator\": {\"xpath\": \"/html/body/div[51]/p[2]\"}, \"start\": 0, \"end\": 72, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_e510d6d55abd11cf52e4d5bd",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_d51bccb806c362305fa3e4ad",
+    "issuer_cik": "0000019617",
+    "quote": "For example, a national financial services regulator may impose requirements that are stricter than a global standard, which could create competitive disadvantages for those firms, such as JPMorganChase, that are subject to the enhanced regulations.",
+    "cross_block": true,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 47, \"quote_fragment\": \"For example, a national financial services regulator may impose requirements\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[17]\"}, \"start\": 291, \"end\": 367, \"span_coordinate_system\": \"normalized_block_text\"}, {\"block_order\": 48, \"quote_fragment\": \"that are stricter than a global standard, which could create competitive disadvantages for those firms, such as JPMorganChase, that are subject to the enhanced regulations.\", \"source_locator\": {\"xpath\": \"/html/body/div[93]/div[1]/div[1]\"}, \"start\": 0, \"end\": 172, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_1f5256e9454b2cbaabecdbab",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_d66f4b115b0d583a5ac5b9b0",
+    "issuer_cik": "0000019617",
+    "quote": "“applicable law” means the laws, rules and regulations that apply to JPMorganChase’s businesses in the jurisdictions in which it operates.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 19, \"quote_fragment\": \"“applicable law” means the laws, rules and regulations that apply to JPMorganChase’s businesses in the jurisdictions in which it operates.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[5]\"}, \"start\": 0, \"end\": 138, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_5d0ab3e17ca59aee945f4300",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_d8d8d592118884cb6fe0747b",
+    "issuer_cik": "0000019617",
+    "quote": "This situation could increase the risks associated with non-compliance and result in the imposition of penalties or enforcement actions.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 41, \"quote_fragment\": \"This situation could increase the risks associated with non-compliance and result in the imposition of penalties or enforcement actions.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[11]\"}, \"start\": 268, \"end\": 404, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_ddb679508f345702cb115b38",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_dfa29cb3c5a3b246d89bb9d4",
+    "issuer_cik": "0000019617",
+    "quote": "These types of changes could increase JPMorganChase’s costs or reduce its revenues.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 35, \"quote_fragment\": \"These types of changes could increase JPMorganChase’s costs or reduce its revenues.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[3]/div[5]\"}, \"start\": 0, \"end\": 83, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[{\"block_order\": 26, \"quote_fragment\": \"JPMorganChase has in the past and could in the future be required to modify its business and operations in response to changes in applicable law, regulatory decisions or supervisory expectations, such as:\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[12]\"}, \"start\": 0, \"end\": 204, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_9de8b93f3ce94a4d496f5e53",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_e40fe818eef417878c7a0797",
+    "issuer_cik": "0000320193",
+    "quote": "Restrictions on international trade, such as tariffs and other controls on imports or exports of goods, technology or data, can materially adversely affect the Company’s business and supply chain.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 10, \"quote_fragment\": \"Restrictions on international trade, such as tariffs and other controls on imports or exports of goods, technology or data, can materially adversely affect the Company’s business and supply chain.\", \"source_locator\": {\"xpath\": \"/html/body/div[157]\"}, \"start\": 483, \"end\": 679, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_b815fbe9e2a5048ef4e3d33d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_e671ce8ea524dfd38d610405",
+    "issuer_cik": "0000320193",
+    "quote": "In addition, the Company’s global supply chain is large and complex and a majority of the Company’s supplier facilities, including manufacturing and assembly sites, are located outside the U.S.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "edge_id": "edge_4b4e541e4c8e022feb56948d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[143]/span\"}",
+        "edge_id": "edge_32d9b073673dd2366cded650",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000320193-25-000079",
+        "source_document_sha256": "63d29bf57dcc4a938a3517f215a7ff18c6dcc1a43cfa3e874524d3e09f21235a",
+        "section_id": "0000320193-25-000079/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 4, \"quote_fragment\": \"In addition, the Company’s global supply chain is large and complex and a majority of the Company’s supplier facilities, including manufacturing and assembly sites, are located outside the U.S.\", \"source_locator\": {\"xpath\": \"/html/body/div[149]\"}, \"start\": 127, \"end\": 320, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_b0da656c64bac988f7d1987a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_e809652786b928b058893ce7",
+    "issuer_cik": "0000019617",
+    "quote": "Like other financial services firms, JPMorganChase is subject to extensive supervision and regulation that significantly affects the way that it conducts its business and structures its operations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "edge_id": "edge_b97c588773910e00504b9f3a",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[87]/div[1]/div[1]/span\"}",
+        "edge_id": "edge_91c04f0bee554604377cf174",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0001628280-26-008131",
+        "source_document_sha256": "afdc6332328d4858406cd891a4e4186bab5c48fed2992f5bb59ee7b9fac6cacc",
+        "section_id": "0001628280-26-008131/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 25, \"quote_fragment\": \"Like other financial services firms, JPMorganChase is subject to extensive supervision and regulation that significantly affects the way that it conducts its business and structures its operations.\", \"source_locator\": {\"xpath\": \"/html/body/div[90]/div[1]/div[11]\"}, \"start\": 115, \"end\": 312, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_28692530b7ec8e06ddb78b6d",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_f712c75cba79f50b1adfae94",
+    "issuer_cik": "0000789019",
+    "quote": "We face intense competition across all markets for our products and services, which could adversely affect our results of operations.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 2, \"quote_fragment\": \"We face intense competition across all markets for our products and services, which could adversely affect our results of operations.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[4]\"}, \"start\": 0, \"end\": 133, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_ea0bb37e34e611bb8afa1efe",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  },
+  {
+    "claim_id": "claim_ffc57437635d7d4be1f94b13",
+    "issuer_cik": "0000789019",
+    "quote": "Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms whose narrower product lines may let them be more effective in deploying technical, marketing, and financial resources.",
+    "cross_block": false,
+    "hops": [
+      {
+        "type": "FILES",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "edge_id": "edge_f210534c1f58e73da0e87a97",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "filing_metadata",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "CONTAINS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "source_locator_json": "{\"xpath\": \"/html/body/div[48]/p[1]\"}",
+        "edge_id": "edge_08ca1b6e2a100d2ee4d878a1",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "section_heading",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      },
+      {
+        "type": "SUPPORTS",
+        "accession_number": "0000950170-25-100235",
+        "source_document_sha256": "de6b5a46e28130bd4711f896d0f91881bdd5195aa8048d54c6b5a052143665f8",
+        "section_id": "0000950170-25-100235/item_1a",
+        "evidence_fragments_json": "[{\"block_order\": 4, \"quote_fragment\": \"Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms whose narrower product lines may let them be more effective in deploying technical, marketing, and financial resources.\", \"source_locator\": {\"xpath\": \"/html/body/div[48]/p[6]\"}, \"start\": 0, \"end\": 263, \"span_coordinate_system\": \"normalized_block_text\"}]",
+        "context_evidence_fragments_json": "[]",
+        "span_coordinate_system": "normalized_block_text",
+        "edge_id": "edge_1737fbc39a2474550a4f55d2",
+        "prototype_id": "cw-extraction-three-filings-v1",
+        "evidence_kind": "source_sentence",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm"
+      }
+    ]
+  }
+]

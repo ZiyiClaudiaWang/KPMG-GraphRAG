@@ -11,7 +11,8 @@
 | [architecture.md](./architecture.md) | How the pieces fit, the tool signature and the evidence envelope | Agents, RAG |
 | [schema-ids-operations.md](./schema-ids-operations.md) | **Canonical.** Ontology, deterministic keys, provenance shapes, operations, question routing | Data, RAG, Agents |
 | [interface-rag-gap.md](./interface-rag-gap.md) | Our envelope vs RAG's shipped v0 contract, and what to do about it | — |
-| [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval, with candidate questions | Eval, RAG |
+| [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval: nineteen questions, where each one runs, and the format asks | Eval, RAG |
+
 | [eval-reply.md](./eval-reply.md) | Our answer to Eval's six requests on the retrieval contract | Eval, RAG |
 | [section-vocabulary.md](./section-vocabulary.md) | Why one Item-level label isn't enough, and the three-field fix | Data, RAG, Eval |
 | [agent-notes.md](./agent-notes.md) | What changes for Agents now that we conform to RAG's contract | Agents, UI |

@@ -49,14 +49,21 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 
 Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-reply.md](./eval-reply.md).
 
-- [ ] Send [eval-ask.md](./eval-ask.md) to Yulei Ding
-- [ ] **The traversal tranche.** Neither gold set has a question requiring traversal. Without it, W8 cannot show the graph earned its place
-- [ ] The abstention controls, M14–M16 — the only questions that catch a graph inventing edges
-- [ ] Which pilot corpus is real: MSFT, the six banks and industrials, or `pilot-corpus-setup`?
+- [ ] Send [eval-ask.md](./eval-ask.md) to Yulei Ding. First confirm whether the earlier draft ever reached Eval — Gold Set v1 credits only RAG's v0 and Eval's own additions
+- [ ] **The traversal tranche.** Gold Set v1 has no question requiring traversal, in 100. Without one, W8 cannot show the graph earned its place
+- [ ] **M14.** Gold Set v1 has ten abstention questions and all ten test a missing fact. None tests a fabricated relationship, which is the failure mode specific to our arm
+- [ ] Which pilot corpus is real — now three, not two: the six banks and industrials, our MSFT/JPM/AAPL/ADM pilot, or Eval's MSFT-plus-peers. They overlap by ticker, not by filing
+- [ ] Ask Data for Microsoft's FY2024 10-K. One accession, and it unblocks M05 while strengthening M04 and M06
+- [ ] Nominate a renamed or acquired registrant for M07 and M08, or drop both
 - [ ] **Citation scoring must join on the provenance key, not `chunk_id`.** Ours is always null, so graph and structured evidence would score as uncited rather than scoring badly
 - [ ] Confirm whether rerun scoring keys on `index_version` alone — ours moves `extraction_version`
 - [ ] Get it in writing that scores are not comparable across tools, before an abstention threshold is fitted on one arm and applied to all three
 - [x] `trace_id` on both tools, echoed at `metadata.trace_id`
+
+**Two things the ask commits us to**, decided 22 Oct when it was sent:
+
+- **Fri 23 Oct is external.** We promised Eval the graph path and the filings each of the nineteen questions joins, whatever they decide on the tranche. Eleven already name their filings in [eval-ask.md](./eval-ask.md), so eight remain. It is E0 on Extraction 2's W5 card and we chose to hold the card rather than slip it. If it slips, say so before the day rather than on it.
+- **The `hops` labelling is ours if Eval says no.** We offered to take it. That offer was costed against 42 questions and Gold Set v1 makes it 100, so it is a card on the quality and evaluation hat, not a favour squeezed in around other work. We kept the offer because the field is the x-axis for both the retriever comparison and the `max_hops` default, and an ask that acknowledges no cost is how an ask gets quietly dropped.
 
 ## 5 · Agents
 
