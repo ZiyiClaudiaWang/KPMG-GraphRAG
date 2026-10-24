@@ -142,7 +142,7 @@ seat has to be relieved, it is that one.
 
 ### Second hat — quality and evaluation
 
-- [ ] Specify what graph path each of the 19 candidate questions in [eval-ask.md](./eval-ask.md) should exercise. Eleven now name the filings they join, so this is concrete for those; the four blocked ones wait on the corpus. The co-lead sends the ask; this seat defines what "the graph can answer this" means in practice
+- [ ] Specify what graph path each of the 19 candidate questions in [eval-ask.md](./eval-ask.md) should exercise, and which experiment each one scores. Eleven now name the filings they join, so this is concrete for those; the four blocked ones wait on the corpus. The co-lead sends the ask; this seat defines what "the graph can answer this" means in practice, and whether anything we plan to measure has no question behind it
 - [ ] From W8, judge extraction errors and help build the error taxonomy
 
 ---
