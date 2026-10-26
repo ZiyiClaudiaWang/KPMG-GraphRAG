@@ -29,7 +29,7 @@ Imperfect is fine. Absent is not — W8 Eval round 1 scores what exists. The toy
 
 Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell provenance with XPath, inline-XBRL cell-to-fact links, dimensions, namespaces, raw-plus-parsed values and `reports.full_text` are all already built.
 
-- [ ] **Read-only database credentials.** Everything we know is archaeology from migration files
+- [x] **Read-only database credentials** — landed 25 Oct. The `graphrag` login reads their RDS directly; 448 filings from 280 companies on that date, backfill still running. How-to and a read-only CLI are in PR #24, open. Archaeology from migration files is no longer the only thing we know about their schema
 - [x] Withdraw the asks they have already satisfied — [data-contract.md](./data-contract.md) now opens with twelve of them
 - [ ] **Expose the natural key alongside the UUID**, so we anchor on `(report_id, section_key)` rather than a `gen_random_uuid()` that may not survive a rebuild. Ask whether `section_key` is content-derived or positional
 - [ ] **`basis` on facts**, or confirmation we derive it from `amendment_of_id`. Confirmed absent; our most load-bearing gap
@@ -49,7 +49,7 @@ Read [data-team-state.md](./data-team-state.md) first. Sections, table-cell prov
 
 Eval approved RAG's v0 on 14 Oct with six requests. Four touch us — see [eval-reply.md](./eval-reply.md).
 
-- [ ] Send [eval-ask.md](./eval-ask.md) to Yulei Ding. First confirm whether the earlier draft ever reached Eval — Gold Set v1 credits only RAG's v0 and Eval's own additions
+- [x] Send [eval-ask.md](./eval-ask.md) to Yulei Ding — **sent 22 Oct**. What it committed us to is recorded below
 - [ ] **The traversal tranche.** Gold Set v1 has no question requiring traversal, in 100. Without one, W8 cannot show the graph earned its place
 - [ ] **M14.** Gold Set v1 has ten abstention questions and all ten test a missing fact. None tests a fabricated relationship, which is the failure mode specific to our arm
 - [ ] Which pilot corpus is real — now three, not two: the six banks and industrials, our MSFT/JPM/AAPL/ADM pilot, or Eval's MSFT-plus-peers. They overlap by ticker, not by filing
