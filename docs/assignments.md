@@ -63,10 +63,11 @@ writes to the other team.
 | 7 | Was `retrieval_api.md` v0 signed off on 8 Oct? | RAG | Retrieval |
 | 8 | Ask for `section_id` and `quote` | RAG | Retrieval |
 | 9 | `section_coverage` for the 10-Qs, and `None` vs `"Unlabeled"` | RAG | Retrieval |
-| 10 | Schedule the three-way section conversation | RAG, Data, Eval | Extraction 2 |
+| 10 | Schedule the section conversation — **four-way, not three.** [section-vocabulary.md](./section-vocabulary.md) lists four teams needing four granularities and UI is one of them, so holding it without them means running it twice | RAG, Data, Eval, UI | Extraction 2 |
 | 11 | Send [eval-ask.md](./eval-ask.md) — traversal tranche, M14, and merging the three corpora | Eval | Extraction 2 |
 | 12 | Send [agent-notes.md](./agent-notes.md), and tell them the mock exists | Agents | Retrieval |
 | 13 | Get a review slot for the structured tool contract | Agents | Structured |
+| 14 | Send [ui-notes.md](./ui-notes.md) — what a citation has to carry for a graph or XBRL answer to be auditable. **First find out who UI are and whether the renderer is built**; no repo of theirs is named anywhere in our docs, so we would be sending a change request to code we have never seen | UI | Extraction 2 |
 
 Items 1–6 are one message, 7–9 are one, 11 and 12–13 one each. Four messages, about a morning.
 

@@ -26,6 +26,8 @@ Full shape in [architecture.md §7](./architecture.md#7--tool-signature-and-evid
 
 **Hybrid questions need a routing convention, not just a router.** "How did R&D spend change after the 2023 acquisition?" needs the graph to resolve the event, the structured arm to supply numbers, and RAG to supply prose. Three calls, one answer, three citation styles. Worth agreeing how the composed answer attributes each part before the W7 demo rather than after.
 
-## One thing we would ask UI to reconsider
+## One thing to settle between you and UI
 
-RAG's §13 decided citations render from `company_name, form, reporting_period_end, section, source_url`. That works for chunk evidence. It has no room for `section_id` or for a fact, so a graph-derived or XBRL-derived claim cites at document level only — the analyst cannot see *which* part of the filing supports it. Adding `section_id` and `metadata.fact_id` to what UI reads costs little and is the difference between an auditable answer and a plausible one.
+Citations currently render from the five fields in RAG's §13, which have no room for a section or a fact — so a graph-derived or XBRL-derived claim cites at document level only. The ask, and why it matters, is now in [ui-notes.md](./ui-notes.md), addressed to UI rather than buried here.
+
+**What we need from you is one answer: who renders the citation?** You own the chat API that feeds UI, so a provenance key has to survive two hops. If it is dropped between the tools and the screen, adding fields at either end does not help.
