@@ -1,8 +1,8 @@
 """Mock graph_search and structured_search for INT-0.
 
-Standalone and standard-library only, so other teams can drop this file
-in without installing anything. Same signature, filters, evidence shape,
-ordering and errors as the real tools will have.
+Standard-library only apart from the local ``graphrag.contract`` module.
+The contract is the single source of truth for signatures, filters, evidence
+validation, ordering and errors, so mock and real tools cannot silently drift.
 
 The ranking is keyword overlap. Its quality is meaningless; only the
 shape is guaranteed. Swap the import when the real tools land:
@@ -21,24 +21,15 @@ from __future__ import annotations
 
 import re
 
-MAX_TOP_K = 50
+from graphrag import contract
 
-SHARED_FILTERS = {
-    "ticker", "cik", "form", "accession_number", "filing_date",
-    "reporting_period_end", "fiscal_year", "fiscal_period", "section", "is_table",
-}
-GRAPH_FILTERS = SHARED_FILTERS | {"max_hops"}
-STRUCTURED_FILTERS = SHARED_FILTERS | {"concept", "segment", "basis"}
-RENAMED_FILTERS = {
-    "form_type": "form",
-    "accession": "accession_number",
-    "period_end": "reporting_period_end",
-    "question": "query",
-}
-
-
-class RetrievalUnavailableError(RuntimeError):
-    """The store could not be reached. Distinct from 'nothing matched'."""
+# Backwards-compatible names for teams that imported these from the INT-0 mock.
+MAX_TOP_K = contract.MAX_TOP_K
+SHARED_FILTERS = contract.SHARED_FILTERS
+GRAPH_FILTERS = contract.GRAPH_FILTERS
+STRUCTURED_FILTERS = contract.STRUCTURED_FILTERS
+RENAMED_FILTERS = contract.RENAMED_FILTERS
+RetrievalUnavailableError = contract.RetrievalUnavailableError
 
 
 _FILING = {
@@ -126,26 +117,11 @@ _FACT_ROWS = [
 
 
 def _validate(query, filters, top_k, allowed, trace_id):
-    if not isinstance(query, str) or not query.strip():
-        raise ValueError("query must be a non-empty string")
-    if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
-        raise ValueError("top_k must be a positive integer")
-    if top_k > MAX_TOP_K:
-        raise ValueError(f"top_k must be <= {MAX_TOP_K}")
-    if trace_id is not None and (not isinstance(trace_id, str) or not trace_id.strip()):
-        raise ValueError("trace_id must be a non-empty string or None")
-    if filters is None:
-        return {}
-    if not isinstance(filters, dict):
-        raise ValueError("filters must be a dict or None")
-    for key in filters:
-        if key in allowed:
-            continue
-        hint = RENAMED_FILTERS.get(key)
-        if hint:
-            raise ValueError(f"unsupported filter: {key} (use '{hint}')")
-        raise ValueError(f"unsupported filter: {key}")
-    return {k: v for k, v in filters.items() if v is not None}
+    """Delegate all public-input validation to the shared contract."""
+    contract.validate_query(query)
+    contract.validate_top_k(top_k)
+    contract.validate_trace_id(trace_id)
+    return contract.validate_filters(filters, allowed)
 
 
 def _tokens(text):
@@ -212,10 +188,11 @@ def _envelope(*, section_id, chunk_id, text, quote, score, section, metadata):
 
 
 def _finish(rows, top_k):
-    rows.sort(key=lambda r: (-r["score"], r["section_id"] or r["metadata"]["fact_id"]))
+    rows.sort(key=contract.sort_key)
     rows = rows[:top_k]
     for i, row in enumerate(rows, start=1):
         row["rank"] = i
+    contract.validate_results(rows, top_k)
     return rows
 
 
