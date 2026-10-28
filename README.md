@@ -52,6 +52,56 @@ flowchart LR
 Retrieval returns evidence; the Agent composes. Our tools never return an `answers`
 field. Scores are raw and comparable only within one call — **never between tools**.
 
+## The pipeline, and what is still empty
+
+Yellow is not written yet. Both missing boxes are small, and only one is ours.
+
+```mermaid
+flowchart TB
+  subgraph ingest["Ingest — once per filing"]
+    H["10-K inline XBRL<br>HTML from EDGAR"] --> FL["fact_loader_v1.py<br>parse · scale · sign · dedupe"]
+    FL --> DB[("DuckDB<br>financial_facts_v1")]
+    FL -.-> RV[("facts_review_v1<br>contradictions, not guessed")]
+    SRC["Filing sections<br>Data team RDS"] --> EX["LLM extraction<br>+ entity resolution"]
+    EX --> NEO[("Neo4j<br>nodes + edges + provenance")]
+  end
+
+  subgraph tools["Retrieval — graphrag/retrieve.py"]
+    GS["graph_search()"] --> RUN["_run()<br>validate · call · trace · sort · rank · validate"]
+    SS["structured_search()"] --> RUN
+    RUN --> GB{"registered<br>backend?"}
+    GB -->|"no"| ERR["RetrievalUnavailableError"]
+    GB -->|"graph"| CY["Cypher retriever<br>E1 — not written"]
+    GB -->|"structured"| DQ["duckdb_backend<br>Ashley, PR #27"]
+  end
+
+  CY --> NEO
+  DQ --> DB
+
+  subgraph agent["Agent — kpmg-agentic-backbone"]
+    AT["graph_tool.py / structured_tool.py<br>not written — mirrors rag_tool.py"]
+    AT --> COMP["compose one answer<br>from three evidence lists"]
+  end
+
+  GS -.->|"list of evidence dicts"| AT
+  SS -.->|"list of evidence dicts"| AT
+  RAG["RAG retrieve()"] -.-> AT
+  COMP --> UI["UI renders<br>answer + citations"]
+
+  style CY fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style AT fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style ERR fill:#F8CECC,stroke:#B85450,color:#000000
+```
+
+**The two public tools retrieve nothing themselves.** They validate the caller's input,
+dispatch to whatever backend is registered, then stamp the trace, sort, rank and check the
+envelope. Swapping the backend keeps every one of those guarantees, which is what makes
+comparing five retriever arms a loop rather than five rewrites.
+
+**Nothing registered means retrieval is unavailable, and that is not no evidence.** A
+backend that raises is re-raised as unavailable, never flattened into an empty list, so a
+broken database cannot read as a missing fact.
+
 ## The ontology
 
 Eight node types, agreed 17 Oct (decisions 2.1–2.8). A node needs a question it unlocks

@@ -53,12 +53,68 @@ flowchart TB
   D --> H["Fact table v1"]
   G --> I["Graph retrieval<br>multi-hop paths + cited evidence"]
   H --> J["Structured query layer"]
-  I --> K["Tool response<br>answers + evidence + source IDs"]
+  I --> K["Tool response<br>evidence + source IDs"]
   J --> K
   K --> L["Agents - routing and composition"]
 ```
 
 The fuzzy branch has no safety net. CIK and ticker give a free deterministic key for registrants; subsidiaries from Exhibit 21, segment names across years and officer names have none.
+
+### 3a · The same pipeline, as code
+
+The diagram above is the build order. This one is what the files actually do, and which
+boxes are still empty. Updated 2026-10-27.
+
+```mermaid
+flowchart TB
+  subgraph ingest["Ingest — once per filing"]
+    H["10-K inline XBRL<br>HTML from EDGAR"] --> FL["fact_loader_v1.py<br>parse · scale · sign · dedupe"]
+    FL --> DB[("DuckDB<br>financial_facts_v1")]
+    FL -.-> RV[("facts_review_v1<br>contradictions, not guessed")]
+    SRC["Filing sections<br>Data team RDS"] --> EX["LLM extraction<br>+ entity resolution"]
+    EX --> NEO[("Neo4j<br>nodes + edges + provenance")]
+  end
+
+  subgraph tools["Retrieval — graphrag/retrieve.py"]
+    GS["graph_search()"] --> RUN["_run()<br>validate · call · trace · sort · rank · validate"]
+    SS["structured_search()"] --> RUN
+    RUN --> GB{"registered<br>backend?"}
+    GB -->|"no"| ERR["RetrievalUnavailableError"]
+    GB -->|"graph"| CY["Cypher retriever<br>E1 — not written"]
+    GB -->|"structured"| DQ["duckdb_backend<br>Ashley, PR #27"]
+  end
+
+  CY --> NEO
+  DQ --> DB
+
+  subgraph agent["Agent — kpmg-agentic-backbone"]
+    AT["graph_tool.py / structured_tool.py<br>not written — mirrors rag_tool.py"]
+    AT --> COMP["compose one answer<br>from three evidence lists"]
+  end
+
+  GS -.->|"list of evidence dicts"| AT
+  SS -.->|"list of evidence dicts"| AT
+  RAG["RAG retrieve()"] -.-> AT
+  COMP --> UI["UI renders<br>answer + citations"]
+
+  style CY fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style AT fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style ERR fill:#F8CECC,stroke:#B85450,color:#000000
+```
+
+Three things the picture is meant to settle.
+
+**`graph_search` and `structured_search` retrieve nothing themselves.** They validate, dispatch
+to whatever backend is registered, then stamp the trace, sort, rank and check the envelope.
+Swap the backend and every one of those guarantees still holds, which is what makes the five
+E7 retriever arms a loop rather than five rewrites.
+
+**Nothing registered means retrieval is unavailable, and that is not the same as no evidence.**
+A backend that raises is re-raised as unavailable, never converted to an empty list, so a
+broken database cannot read as a missing fact.
+
+**Composition belongs to the Agent.** A question needing a relationship and a number calls
+two tools and gets two evidence lists back. Nothing on our side joins them.
 
 ## 4 · Ontology
 
