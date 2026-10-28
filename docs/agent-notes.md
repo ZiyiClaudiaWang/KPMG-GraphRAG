@@ -20,6 +20,25 @@ Full shape in [architecture.md §7](./architecture.md#7--tool-signature-and-evid
 
 **5 · Provenance differs by tool, and citations must branch.** Exactly one of `chunk_id`, `section_id`, `metadata.fact_id` is populated. RAG fills the first, we fill the second, the structured arm fills the third. Code that assumes `chunk_id` will null-pointer on two of three tools.
 
+## Building against the mock, and switching off it later
+
+Build against `mock/mock_retrieval_tools.py` the way you built `rag_tool.py` against RAG's mock — it is standard library only, needs no credentials, and both tools are at their final signatures with 63 conformance tests behind them.
+
+**Switching to the real tools is one import.** Same four arguments, same envelope back, so nothing downstream changes:
+
+```python
+from mock.mock_retrieval_tools import graph_search      # today
+from graphrag.retrieve import graph_search              # later
+```
+
+Connecting to Neo4j will be an environment variable on our side, not a function call on yours. That is ours to build and it is a card this week; we are not asking you to configure our database.
+
+**Three things behave differently even though the shape is identical**, and all three can read as a bug the first time:
+
+- **An empty list becomes a normal answer.** The mock always matches something because it holds four fixed rows. The real tool returns `[]` whenever nothing matches, and that is correct rather than broken.
+- **The real tool can raise.** `RetrievalUnavailableError` means the store is down. The mock never raises, so this path is untested in anything built only against it.
+- **Scores move.** The mock scores by keyword overlap and everything lands near 1.0; the real arms score by path or vector distance. Any threshold fitted on mock numbers will not survive the switch — which is the same reason scores never compare across tools.
+
 ## Two things we need decided
 
 **The structured tool has no agreed contract.** RAG's §8 puts XBRL and text-to-SQL out of scope for v0 — "expected in a separate tool or a v1 hybrid contract, and will not be added to `retrieve()` silently". So `structured_search` currently sits outside everything anyone has signed. It needs a review slot with you.
