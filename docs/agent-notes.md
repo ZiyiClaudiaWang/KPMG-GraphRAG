@@ -35,7 +35,7 @@ Connecting to Neo4j will be an environment variable on our side, not a function 
 
 **Three things behave differently even though the shape is identical**, and all three can read as a bug the first time:
 
-- **An empty list becomes a normal answer.** The mock always matches something because it holds four fixed rows. The real tool returns `[]` whenever nothing matches, and that is correct rather than broken.
+- **An empty list becomes a normal answer.** The mock holds five fixed rows — three graph, two structured, all Microsoft Q3 FY2026 — so almost any plausible query matches something. The real tool returns `[]` whenever nothing matches, and that is correct rather than broken.
 - **The real tool can raise.** `RetrievalUnavailableError` means the store is down. The mock never raises, so this path is untested in anything built only against it.
 - **Scores move.** The mock scores by keyword overlap and everything lands near 1.0; the real arms score by path or vector distance. Any threshold fitted on mock numbers will not survive the switch — which is the same reason scores never compare across tools.
 
