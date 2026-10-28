@@ -54,7 +54,10 @@ field. Scores are raw and comparable only within one call — **never between to
 
 ## The pipeline, and what is still empty
 
-Yellow is not written yet. Both missing boxes are small, and only one is ours.
+**Yellow means nobody has written it.** Three boxes: the Cypher retriever, which is ours,
+and two adapters on the Agent side. **Red is not a gap** — it is what the tools do when no
+backend is registered, and it works today. Everything unmarked exists on `main`, except
+`duckdb_backend`, which is written and waiting in PR #27.
 
 ```mermaid
 flowchart TB
@@ -79,17 +82,22 @@ flowchart TB
   DQ --> DB
 
   subgraph agent["Agent — kpmg-agentic-backbone"]
-    AT["graph_tool.py / structured_tool.py<br>not written — mirrors rag_tool.py"]
-    AT --> COMP["compose one answer<br>from three evidence lists"]
+    GT["graph_tool.py<br>not written"]
+    ST["structured_tool.py<br>not written"]
+    RT["rag_tool.py<br>built, the template to copy"]
+    GT --> COMP["compose one answer<br>from the evidence lists"]
+    ST --> COMP
+    RT --> COMP
   end
 
-  GS -.->|"list of evidence dicts"| AT
-  SS -.->|"list of evidence dicts"| AT
-  RAG["RAG retrieve()"] -.-> AT
+  GS -.->|"list of evidence dicts"| GT
+  SS -.->|"list of evidence dicts"| ST
+  RAG["RAG retrieve()"] -.-> RT
   COMP --> UI["UI renders<br>answer + citations"]
 
   style CY fill:#FFF2CC,stroke:#D6B656,color:#000000
-  style AT fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style GT fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style ST fill:#FFF2CC,stroke:#D6B656,color:#000000
   style ERR fill:#F8CECC,stroke:#B85450,color:#000000
 ```
 
@@ -142,9 +150,10 @@ the amendment replaces that same concept for that same period.
 | --- | --- |
 | [`docs/`](docs/) | **The contracts.** Canonical. [`schema-ids-operations.md`](docs/schema-ids-operations.md) is what to build against |
 | [`docs/sprints/`](docs/sprints/) | One file per week — owners, done conditions, decisions the week is waiting on |
-| `graphrag/` | The package. Evidence shape and validation, mirroring the RAG team's `rag/contract.py` |
+| `graphrag/` | The package. `contract.py` is the evidence shape and validation, mirroring the RAG team's `rag/contract.py`; `retrieve.py` is the two public tools; `entity_resolution.py` is the conservative name matcher |
 | `mock/` | INT-0 mocks for both tools. Standalone, standard library only |
-| `tests/` | 91 tests — 63 contract, 28 toy-graph fixture. They run against the mock now and the real tools later |
+| `tools/` | Two CLIs — read Data's database, and score entity resolution against the 50-pair key |
+| `tests/` | 112 tests — 63 contract, 28 toy-graph fixture, 13 entity resolution, 8 retrieval adapter. Quote the scope with the number; the contract suite alone is 63 and the two get mistaken for each other |
 | `toy_graph/` | A small Neo4j graph used to test the schema against a question needing several hops. It found two gaps; both are closed |
 | `extraction_prototype/` | Saved runs of LLM extraction over real filings, with validators that re-check them offline |
 
