@@ -9,6 +9,7 @@
 | [data-team-state.md](./data-team-state.md) | What Data has already built, and which asks to withdraw | Data |
 | [data-contract.md](./data-contract.md) | What we need from the Data team — three layers, record schemas, semantics | Data |
 | [architecture.md](./architecture.md) | How the pieces fit, the tool signature and the evidence envelope | Agents, RAG |
+| [retrieval-internals.md](./retrieval-internals.md) | Inside the two retrieval boxes — what `retrieve.py` and the structured loader and query layer each do, with diagrams. Read before reviewing retrieval code | — |
 | [schema-ids-operations.md](./schema-ids-operations.md) | **Canonical.** Ontology, deterministic keys, provenance shapes, operations, question routing | Data, RAG, Agents |
 | [interface-rag-gap.md](./interface-rag-gap.md) | Our envelope vs RAG's shipped v0 contract, and what to do about it | — |
 | [eval-ask.md](./eval-ask.md) | The multi-hop gold-set tranche we need from Eval: nineteen questions, where each one runs, and the format asks | Eval, RAG |
