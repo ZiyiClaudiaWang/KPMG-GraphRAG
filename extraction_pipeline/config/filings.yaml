@@ -1,0 +1,8 @@
+# The five pilot filings. The fetch step exports each one to
+# <data_dir>/sections/<TICKER>_<accession>.jsonl (one line per section).
+filings:
+  - {ticker: AAPL, cik: "0000320193", form: 10-K, period_end: "2025-09-27", accession: "0000320193-25-000079"}
+  - {ticker: AAPL, cik: "0000320193", form: 10-Q, period_end: "2026-03-28", accession: "0000320193-26-000013"}
+  - {ticker: AAPL, cik: "0000320193", form: 10-Q, period_end: "2026-06-27", accession: "0000320193-26-000020"}
+  - {ticker: MSFT, cik: "0000789019", form: 10-Q, period_end: "2026-03-31", accession: "0001193125-26-191507"}
+  - {ticker: MSFT, cik: "0000789019", form: 10-K, period_end: "2026-06-30", accession: "0001193125-26-323660"}

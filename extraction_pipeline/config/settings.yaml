@@ -1,0 +1,45 @@
+# Paths are relative to the pipeline folder.
+data_dir: ../data            # holds sections/ (input) and all pipeline outputs
+
+clean:
+  repeated_paragraph_min_count: 5   # a short paragraph seen this often in one filing is a page header
+  repeated_paragraph_max_chars: 90
+  repeated_paragraph_min_sections: 3   # ...spread over at least this many sections
+
+segment:
+  min_words: 4                       # shorter sentences are prefiltered as too_short
+  max_heading_chars: 500             # longer paragraphs are never risk headings
+
+label:
+  model: gpt-4.1-mini                # any OpenAI model that supports structured outputs
+  base_url: https://us.api.openai.com/v1   # US data-residency endpoint used in Claudia's run;
+                                           # use https://api.openai.com/v1 if your key is refused
+  prompt_version: label_v2           # prompt file prompts/<prompt_version>.txt
+  prompt_id: kelly_label_v1_entity_mentions_batch_review_v3   # name recorded in Claim provenance;
+                                                             # kept from Claudia's run (same prompt text)
+  temperature: 0                     # sent only to gpt-4.1 and gpt-4o models
+  batch_max_sentences: 15            # sentences labelled per request
+  context_sentences: 4               # read-only units shown before each batch
+  max_request_bytes: 35000           # a larger batch is halved until it fits
+  max_completion_tokens: 4000        # output limit per request
+  max_retries: 0                     # per batch, when the reply fails validation
+  stop_on_failure: true              # stop the run at a failed batch for a person to look
+  budget_usd: 3.0                    # stop before a request could take total spend past this
+  # USD per 1M tokens for the model above (published gpt-4.1-mini rates).
+  # Check https://openai.com/api/pricing when changing the model; left empty, only tokens are reported.
+  price_input_per_1m: 0.40
+  price_cached_input_per_1m: 0.10
+  price_output_per_1m: 1.60
+
+review:
+  # Step 6 holds a Claim that starts with one of these names when a ":" intro is among the
+  # 4 units before it. Specific to Microsoft's FY2026 10-K Business section (README, [Validate]).
+  known_list_fragment_prefixes:
+    - "Windows and Devices,"
+    - "XBOX (formerly Gaming),"
+
+risk_factors:
+  fuzzy_match_threshold: 0.85        # headings at or above this similarity become match candidates
+
+load:
+  scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly

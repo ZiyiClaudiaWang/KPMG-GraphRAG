@@ -1,0 +1,42 @@
+# Which sections the pipeline extracts Claims from (step 3, filter).
+#
+# keep:   always extracted.
+# drop:   never extracted, with the reason written to section_manifest.csv.
+# review: dropped by default and flagged in the manifest so a person can decide.
+# A section_type listed nowhere is also marked review.
+
+keep:
+  risk_factors: Main source of Claims; supports eval questions M06 and M18.
+  mda: Narrative explanations of results; supports M17.
+  business: Company, product and segment descriptions.
+
+drop:
+  financial_statements: Numbers belong to Fact; segments and notes belong to Segment.
+  market_risk: Sensitivity tables; no eval question uses it yet.
+  front_matter: Cover page and table of contents.
+  part_heading: Part title only.
+  exhibits: Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+  summary: Form 10-K summary; no content.
+  controls: Standard controls-and-procedures language.
+  mine_safety: Not applicable to these companies.
+  accounting_changes: Usually "None".
+  defaults: Usually "None".
+  legal_proceedings: Out of scope for this pilot.
+  market_equity: Mostly share-repurchase tables.
+  equity_sales: Mostly share-repurchase tables.
+  directors_governance: Incorporated by reference to the proxy statement.
+  executive_compensation: Incorporated by reference to the proxy statement.
+  ownership: Incorporated by reference to the proxy statement.
+  related_party_transactions: Incorporated by reference to the proxy statement.
+  audit_fees: Incorporated by reference to the proxy statement.
+  properties: Short list of facilities.
+  other_information: Mostly insider trading-plan notices.
+  unknown: Items 1B, 6 and 9C, which are "None" or "[Reserved]" here.
+
+review:
+  cybersecurity: Narrative on risk management and governance; may hold Claims.
+
+# Manual decisions after reviewing the manifest. Key: "<accession>|<section_key>".
+# Value: keep or drop. Overrides beat the rules above.
+overrides: {}
+#  "0000320193-25-000079|part-i-item-1c": keep
