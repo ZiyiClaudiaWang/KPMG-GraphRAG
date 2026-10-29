@@ -91,8 +91,8 @@ def structured_search(query, filters=None, top_k=10, trace_id=None):
         evidence.append({
             "rank": rank,
             "company_name": "Microsoft Corporation",
-            "filing_date": None,
-            "reporting_period_end": "2025-06-30",
+            "filing_date": r["filing_date"],
+            "reporting_period_end": r["period_end"],
             "source_url": None,
             "section": None,
             "form": "10-K",

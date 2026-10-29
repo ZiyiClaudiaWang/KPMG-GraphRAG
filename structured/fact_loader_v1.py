@@ -228,7 +228,36 @@ def extract_units(soup):
     return units
 
 
-def extract_facts(soup, contexts, units, cik, ticker, accession_number):
+def filing_date_from_edgar(cik, accession_number):
+    """Ask EDGAR when this accession was filed.
+
+    The filing date is EDGAR metadata, not something tagged inside the document,
+    so it has to be looked up rather than parsed. Reading it here keeps it a fact
+    from the source instead of a value someone typed on the command line.
+    """
+    import json
+    import os
+    import urllib.request
+
+    user_agent = os.environ.get("SEC_USER_AGENT")
+    if not user_agent:
+        raise RuntimeError(
+            "Set SEC_USER_AGENT to 'Name email' to look up the filing date, "
+            "or pass --filing-date."
+        )
+    url = f"https://data.sec.gov/submissions/CIK{str(cik).zfill(10)}.json"
+    request = urllib.request.Request(url, headers={"User-Agent": user_agent})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        recent = json.load(response)["filings"]["recent"]
+    for number, filed in zip(recent["accessionNumber"], recent["filingDate"]):
+        if number == accession_number:
+            return filed
+    raise ValueError(
+        f"EDGAR has no filing dated against {accession_number} for CIK {cik}"
+    )
+
+
+def extract_facts(soup, contexts, units, cik, ticker, accession_number, filing_date):
     import pandas as pd
 
     rows = []
@@ -244,6 +273,7 @@ def extract_facts(soup, contexts, units, cik, ticker, accession_number):
             "cik": cik,
             "ticker": ticker,
             "accession_number": accession_number,
+            "filing_date": filing_date,
             "concept_name": fact.get("name"),
             "context_ref": context_ref,
             "period_start": context.get("period_start"),
@@ -312,7 +342,7 @@ def deduplicate_facts(df):
     return canonical_df, review_df
 
 
-def process_filing(html_path, cik, ticker, accession_number):
+def process_filing(html_path, cik, ticker, accession_number, filing_date):
     soup = load_filing_html(html_path)
 
     contexts = extract_contexts(soup)
@@ -320,7 +350,7 @@ def process_filing(html_path, cik, ticker, accession_number):
 
     raw_df = extract_facts(
         soup, contexts, units,
-        cik, ticker, accession_number
+        cik, ticker, accession_number, filing_date
     )
 
     raw_df["fact_id"] = raw_df.apply(
@@ -371,11 +401,19 @@ if __name__ == "__main__":
     parser.add_argument("--ticker", required=True)
     parser.add_argument("--accession", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument(
+        "--filing-date",
+        help="YYYY-MM-DD. Looked up from EDGAR when not given.",
+    )
 
     args = parser.parse_args()
 
+    filing_date = args.filing_date or filing_date_from_edgar(
+        args.cik, args.accession
+    )
+
     raw, canonical, review = process_filing(
-        args.html, args.cik, args.ticker, args.accession
+        args.html, args.cik, args.ticker, args.accession, filing_date
     )
 
     save_to_duckdb(raw, canonical, review, args.output)
