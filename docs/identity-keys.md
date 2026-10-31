@@ -90,6 +90,91 @@ schema record is explicit that we adopt their natural keys rather than hashing o
 All three are conservative and there are **no bad merges in the current corpus**. This is a
 design decision to take deliberately, not a live defect.
 
+## The three, side by side — one filing
+
+All from Microsoft's FY2025 10-K, accession `0000950170-25-100235`.
+
+**Section** — the Data team's, adopted whole:
+
+```
+section_id   0000950170-25-100235/item_1a
+```
+
+**Claim** — ours, computed at step 8 after labelling:
+
+```
+claim_id     claim_f712c75cba79f50b1adfae94
+section_id   0000950170-25-100235/item_1a        <- carried on the record
+claim_type   hedged_risk
+quote        "We face intense competition across all markets for our products..."
+```
+
+**Fact** — ours, computed at load:
+
+```
+fact_id      ef63f752786e8481b12c27dfde2fcab277811dff181af51d766ccfccf8238c7b
+accession    0000950170-25-100235
+context_ref  C_e75f57b2-2610-48a5-87ed-6f45e6d2b334   <- an XBRL context, not a section
+concept      us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax
+```
+
+### Their shapes
+
+| | form | built from |
+| --- | --- | --- |
+| `section_id` | `<accession>/<section_key>` — readable, not hashed | Data |
+| `claim_id` | UUID5 against a fixed namespace | `accession` + `section_key` + the exact sentence |
+| `fact_id` | SHA-256, 64 hex characters | cik, accession, concept, period start/end/type, dimensions, unit |
+
+`section_id` is the only one you can read. Both of ours are one-way: the inputs cannot be
+recovered from the hash, so a record has to carry its own pointers.
+
+### Only one of them can be traced back to a section
+
+**A claim can.** Its `section_id` is a field on the record, and `section_key` is also one of
+the three inputs to the hash. So a claim always knows which section it came from, and
+`quote` plus the source fragments locate it within that section. This is why retrieval cites
+a claim's `section_id` and never its `claim_id` — the claim ID answers "is this the same
+statement", not "where did it come from".
+
+**A fact cannot.** `financial_facts_v1` has no `section_id`, no `section_key`, no offsets and
+no `source_locator`. A fact is traceable to its **filing** and no further. `context_ref`
+points at an XBRL context inside the document — the period and dimensions a number applies
+to — which is not a section of the report.
+
+In practice that means the two arms cite at different resolutions:
+
+- graph arm → this filing, **this section**, this sentence
+- structured arm → this filing, this concept, this period
+
+Both satisfy the contract, because `section_id` and `metadata.fact_id` are each valid
+provenance keys. But an answer that mixes the two cannot say where in the document the number
+sits, and a question like "show me the paragraph this figure came from" cannot be answered
+from the fact table today.
+
+**To settle:** decide whether a fact needs a section pointer. Inline XBRL carries enough to
+derive one — the tagged element has a position in the document — so this is a loading
+decision rather than a missing-source problem.
+
+## The mock returns values other teams cannot read safely
+
+`mock/mock_retrieval_tools.py` is what Agents and Eval build against until the real tools are
+registered, and three defects in it were found by Eval running it through their harness, not
+by us. All three are confirmed:
+
+- **`value_num` is in millions while nothing says so.** The mock returns `value_num: 34681`
+  with **no `unit` key at all**; only the free-text `text` field mentions "million". A
+  consumer reads thirty-four thousand dollars for a thirty-four billion dollar figure. The
+  real loader gets this right — it stores `raw_value "106,265"`, `scale 6`, `unit "USD"` and
+  `numeric_value 106265000000` — so the mock is less correct than the thing it stands in for.
+- **Segments are human labels, not XBRL members.** `"segment": "Intelligent Cloud"` where the
+  filing tags `msft:IntelligentCloudMember`.
+- **Two rows share one `section_id`** (`sec-msft-26q3-note16`), so a consumer deduplicating on
+  the provenance key loses one of them.
+
+A mock that is wrong in ways the real system is right teaches other teams the wrong shape.
+Worth fixing before the thin demo, since it is what the Agents router is coded against.
+
 ## Three places the code and the decision record disagree
 
 These are the reconciliation items. None is a bug today; all three bite when a second filing
@@ -175,3 +260,4 @@ removed again; `.gitignore` now covers it.
   be in the key and it needs a stable anchor such as section plus character offsets.
 - Should a store record the code versions that built it, and should a mismatch warn or fail?
 - Do we keep three entity-resolution mechanisms, or route all three through the measured one?
+- Should a fact carry a section pointer, so both arms can cite at the same resolution?
