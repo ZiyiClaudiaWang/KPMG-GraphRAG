@@ -1,0 +1,3 @@
+# Everything CI installs. One file so local setup and CI cannot drift.
+pytest>=8.0
+-r toy_graph/requirements.txt
