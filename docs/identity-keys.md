@@ -175,6 +175,136 @@ by us. All three are confirmed:
 A mock that is wrong in ways the real system is right teaches other teams the wrong shape.
 Worth fixing before the thin demo, since it is what the Agents router is coded against.
 
+## How each one is derived
+
+Three different shapes, drawn the same way so they can be compared. Boxes on the left are
+inputs; the amber box is what is deliberately **left out**.
+
+### `section_id` — adopted, not derived
+
+```mermaid
+flowchart LR
+  F["the filing"] --> D["Data team pipeline"]
+  D --> S["section_id<br>0000950170-25-100235/item_1a"]
+  D --> K["section_key<br>item_1a"]
+  D --> O["offset_start · offset_end<br>source_sha256 · source_locator"]
+
+  style S fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+```
+
+We take it whole. No hash, readable by eye, and `schema-ids-operations.md` is explicit that
+we adopt Data's natural keys rather than inventing our own.
+
+### `fact_id` — SHA-256 over identity, never the value
+
+```mermaid
+flowchart LR
+  subgraph IN["what goes in"]
+    direction TB
+    A["cik"]
+    B["accession_number"]
+    C["concept_name"]
+    E["period_start · period_end · period_type"]
+    G["dimensions"]
+    H["unit"]
+  end
+  IN --> J["json.dumps sorted<br>then sha256"]
+  J --> R["fact_id<br>ef63f752786e8481…"]
+
+  V["numeric_value<br>DELIBERATELY EXCLUDED"] -.->|"never"| J
+
+  style R fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+  style V fill:#FDF6E3,stroke:#FAB219,color:#0B0B0B
+```
+
+Excluding the value is the load-bearing decision. A restated figure keeps its ID, so a 10-K
+and its 10-K/A can be compared for the same concept and period — which is what `basis` is
+for. A dead `generate_fact_id()` in the same file does include the value; it is unused and
+should be deleted before anyone calls it.
+
+Note what is **not** an input: nothing locates the fact in the document. See the traceability
+section above.
+
+### `claim_id` — UUID5 over the sentence itself
+
+```mermaid
+flowchart LR
+  subgraph IN2["what goes in"]
+    direction TB
+    A2["accession_number"]
+    B2["section_key"]
+    C2["the exact sentence text"]
+  end
+  IN2 --> J2["uuid5 against a<br>fixed namespace"]
+  J2 --> R2["claim_id<br>claim_f712c75cba79f50b…"]
+
+  R2 --> OC["candidate_occurrence_id<br>sha256 of claim_id +<br>section content hash + spans"]
+
+  style R2 fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+  style OC fill:#F4F3EF,stroke:#C3C2B7,color:#0B0B0B
+```
+
+The text is in the key, so the same sentence twice in one section is one Claim with two
+occurrences — that is where "2,420 distinct Claims from 2,433 occurrences" comes from. It
+also means any change to cleaning or sentence-splitting changes every ID.
+
+### Where each sits in its pipeline
+
+```mermaid
+flowchart TB
+  SRC["SEC filing"] --> DATA["Data team: sections"]
+  DATA -->|"section_id, section_key,<br>content, offsets"| TWO
+
+  subgraph TWO[" "]
+    direction LR
+    subgraph ST["structured — fact_id at load"]
+      direction TB
+      S1["parse inline XBRL"] --> S2["extract contexts,<br>units, facts"]
+      S2 --> S3["parse value<br>scale and sign"]
+      S3 --> S4["make_fact_id"]
+      S4 --> S5["deduplicate"]
+    end
+    subgraph EX["extraction — claim_id at step 8"]
+      direction TB
+      E1["clean"] --> E2["segment<br>sentences"]
+      E2 --> E3["label<br>the only LLM call"]
+      E3 --> E4["validate"]
+      E4 --> E5["build_claims<br>claim_id assigned here"]
+    end
+  end
+
+  E5 --> NEO[("Neo4j")]
+  S5 --> DUCK[("DuckDB")]
+
+  style E5 fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+  style S4 fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+```
+
+The important asymmetry is visible here: `claim_id` is assigned **after** the model has
+judged the sentence, so only surviving sentences get one. `fact_id` is assigned **before**
+deduplication, so every raw fact has one and duplicates are reconciled afterwards.
+
+### What can be traced back to what
+
+```mermaid
+flowchart LR
+  FI["filing<br>accession_number"]
+  SE["section<br>section_id"]
+  CL["claim<br>claim_id"]
+  FA["fact<br>fact_id"]
+
+  CL -->|"section_id on the record"| SE
+  SE -->|"accession_number"| FI
+  FA -->|"accession_number"| FI
+  FA -.->|"no section pointer<br>issue #40"| SE
+
+  style CL fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+  style FA fill:#FDF6E3,stroke:#FAB219,color:#0B0B0B
+```
+
+A claim reaches a section and therefore a filing. A fact reaches only its filing. The dotted
+edge is the gap.
+
 ## Three places the code and the decision record disagree
 
 These are the reconciliation items. None is a bug today; all three bite when a second filing
