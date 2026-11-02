@@ -70,8 +70,14 @@ identifies *the place*. Step 8 merges occurrences sharing a `claim_id` into one 
 is where "2,420 distinct Claims from 2,433 occurrences" comes from.
 
 Claims are produced only for sentences the labeller marks `stated_fact`, `forward_looking` or
-`hedged_risk`. Sentences marked `not_a_claim` or `needs_review`, or held in validation, get
-no `claim_id` at all and are not written anywhere — they are counted in a skip tally only.
+`hedged_risk`. Sentences marked `not_a_claim` or `needs_review`, or held in validation, get no
+`claim_id`.
+
+They are **not lost**. Every sentence is in `sentences.jsonl` and every label is in
+`labels.jsonl`, including the dropped ones, and a prefiltered unit records which rule fired
+(`{"label": "not_a_claim", "source": "rule:table_residue"}`). Units held for a person are in
+`review_queue.jsonl` with a `candidate_retained` flag. So "what was dropped and why" is a join
+of two files, not a gap — `claims.jsonl` is the filtered view, not the only record.
 
 ### `section_id` — the Data team's
 
