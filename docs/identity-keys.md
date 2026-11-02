@@ -254,6 +254,64 @@ The text is in the key, so the same sentence twice in one section is one Claim w
 occurrences — that is where "2,420 distinct Claims from 2,433 occurrences" comes from. It
 also means any change to cleaning or sentence-splitting changes every ID.
 
+### How a sentence becomes a claim, or does not
+
+`claim_id` is assigned at step 8, so what the labeller decides at step 5 is what decides
+whether a sentence gets an identity at all.
+
+```mermaid
+flowchart TB
+  S["one segmented sentence"] --> PF{"prefilter<br>rules only, no model"}
+
+  PF -->|"2+ pipes, or >30% digits"| D1["not_a_claim<br>source: rule:table_residue"]
+  PF -->|"cross-reference, e.g. See Note 5"| D2["not_a_claim<br>source: rule:cross_reference"]
+  PF -->|"fewer than 4 words"| D3["not_a_claim<br>source: rule:too_short"]
+  PF -->|"survives"| LLM["label — the only LLM call<br>15 sentences per request,<br>plus 4 read-only for context"]
+
+  LLM --> L{"one label, enforced<br>by structured output"}
+  L -->|"stated_fact"| K["kept"]
+  L -->|"forward_looking"| K
+  L -->|"hedged_risk"| K
+  L -->|"not_a_claim"| D4["dropped"]
+  L -->|"needs_review"| D5["held"]
+
+  K --> V{"validate<br>step 6"}
+  V -->|"held by a reviewer"| D6["review_queue.jsonl<br>candidate_retained = false"]
+  V -->|"passes"| BC["build_claims — step 8<br>claim_id assigned here"]
+
+  D1 --> LF[("labels.jsonl<br>every label, kept or not")]
+  D2 --> LF
+  D3 --> LF
+  D4 --> LF
+  D5 --> LF
+  BC --> CJ[("claims.jsonl<br>survivors only")]
+
+  style BC fill:#EAF2FD,stroke:#2A78D6,color:#0B0B0B
+  style LF fill:#F4F3EF,stroke:#C3C2B7,color:#0B0B0B
+  style D5 fill:#FDF6E3,stroke:#FAB219,color:#0B0B0B
+  style D6 fill:#FDF6E3,stroke:#FAB219,color:#0B0B0B
+```
+
+Nothing is discarded. `claims.jsonl` is the filtered view; `sentences.jsonl` and
+`labels.jsonl` hold every unit and every verdict, so "what was dropped and why" is a join.
+
+**What the model returns per sentence**, enforced by a structured-output schema so the label
+can only be one of five:
+
+| field | what it carries |
+| --- | --- |
+| `label` | `stated_fact` · `forward_looking` · `hedged_risk` · `not_a_claim` · `needs_review` |
+| `context_ids` | earlier sentences a reader needs to understand this one |
+| `subject_scope` | what the statement is about when it is not the company |
+| `annotation_note` | mixed content or ambiguity worth recording |
+| `is_risk_heading` | Item 1A only: is this the sentence that names a risk |
+| `entity_mentions` | segments and subsidiaries named, as exact substrings of the sentence |
+
+The three claim types are an ontology decision (2.3). The other two are pipeline-only:
+`not_a_claim` means "this is not a statement", `needs_review` means "it might be and I could
+not tell". The second is an admission of uncertainty rather than a verdict, which is why it
+is held for a person rather than dropped.
+
 ### Where each sits in its pipeline
 
 ```mermaid
