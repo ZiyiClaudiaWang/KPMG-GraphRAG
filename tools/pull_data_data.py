@@ -74,6 +74,11 @@ def explore(conn):
         WHERE c.cik = '0000789019'
         ORDER BY f.filing_date DESC
     """).to_string(index=False))
+
+    print(query(conn, """SELECT column_name, data_type, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'sec' AND table_name = 'financial_facts'
+    ORDER BY ordinal_position""").to_string(index=False))
  
  
 # ---------------------------------------------------------------- pull
