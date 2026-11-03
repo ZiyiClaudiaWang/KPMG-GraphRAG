@@ -392,7 +392,8 @@ class Labeller:
             raise StopRun(f"budget of ${budget} reached (spent about ${self.spent:.4f}); cached work is kept")
         if self.client is None:
             load_env()
-            self.client = openai.OpenAI(base_url=self.cfg["base_url"])
+            self.client = openai.OpenAI(base_url=self.cfg["base_url"],
+                                        default_headers={"Accept-Encoding": "identity"})
         save_json(folder / "request.json", plan["identity"])
         save_json(folder / "attempt.json", {"request_hash": request_hash, "status": "started",
                                             "started_at_utc": datetime.now(timezone.utc).isoformat(),
