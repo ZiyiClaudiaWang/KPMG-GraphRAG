@@ -1,8 +1,15 @@
 """Step 5 - Label: the only step that calls the LLM (OpenAI).
 
 Follows Claudia's checked_pilot.py: the same request layout, identity fields and cache folders
-as her run. Request hashes differ from hers since #45, because each batch and unit now
-carries unit_ids.
+as her run.
+
+Request hash: the cache key, made from what decides the model's reply only: the request sent
+(model, prompt, sentences, schema, limits) and the runner version (request_key()). The full
+identity (the request plus the units, source versions, segment names and entity catalog it
+was built from) is still saved in request.json as the record, but is not hashed. So a change
+that does not reach the model (a new field on the units, a filled entity catalog, a re-export
+with the same text) reuses the saved replies. Before 4 November 2026 the whole identity was
+hashed, as in Claudia's run.
 
 Input : data/output/sentences.jsonl, data/sections/*.jsonl, config/claim_types.yaml,
         prompts/<prompt_version>.txt, data/entity_catalog.json (optional)
@@ -10,7 +17,7 @@ Output: data/output/labels.jsonl         one label per unit (LLM, code review or
         data/output/usage.jsonl          one usage record per API request
         data/interim/label_batches.jsonl the planned batches
         data/checked_pilot/<hash>/       one folder per batch request:
-            request.json          what was sent, with the source versions it depends on
+            request.json          the full identity: what was sent, and what it was built from
             attempt.json          written before sending; marks a request that may be charged
             raw_response.json     the reply, saved before any parsing
             usage.json            tokens and estimated cost
@@ -214,11 +221,24 @@ def build_request(batch: dict, units: dict[str, dict], cfg: dict, system: str) -
 
 # ---------- batches ----------
 
+def request_key(request: dict, runner: str = RUNNER_VERSION, retry_of: str | None = None) -> dict:
+    """What a request_hash covers: the request exactly as sent, and the code that reads the reply.
+
+    Nothing else goes in: a field that never reaches the model cannot change its reply, so it
+    must not make the run pay for the same request again.
+    """
+    key = {"runner_version": runner, "request": request}
+    if retry_of:
+        key["retry_of"] = retry_of
+    return key
+
+
 def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
     """One plan per request: consecutive labelable units of a section, batch_max_sentences at a time.
 
     A plan holds the batch, the request, and the identity (request plus the source versions
-    it depends on). request_hash = hash of the identity; it names the cache folder.
+    it depends on, saved in request.json). request_hash = hash of request_key(): only what
+    reaches the model; it names the cache folder.
     A batch whose request exceeds max_request_bytes is halved until it fits.
     """
     sources, _ = source_index()
@@ -270,7 +290,7 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
                 "entity_catalog": catalog,
             }
             plans.append({"batch": batch, "request": request, "identity": identity,
-                          "request_hash": digest(canonical(identity))})
+                          "request_hash": digest(canonical(request_key(request)))})
             start += size
     return plans
 
@@ -476,7 +496,8 @@ class Labeller:
                                      + "; ".join(problems) + ". Return the complete corrected result for every sentence."}]
             identity = {**attempt_plan["identity"], "request": request, "retry_of": attempt_plan["request_hash"]}
             attempt_plan = {**plan, "request": request, "identity": identity,
-                            "request_hash": digest(canonical(identity))}
+                            "request_hash": digest(canonical(request_key(request,
+                                                                         retry_of=attempt_plan["request_hash"])))}
         return {"record": record, "problems": problems, "results": [], "held": [], "sent": sent}
 
 
@@ -530,7 +551,8 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
                 "entity_catalog": entity_catalog(),
                 "provisional_segment_definitions": source_review.source_vocabulary(sources)}
     return {"batch": {"batch_id": "target_repair", "unit_ids": gap_ids}, "request": request,
-            "identity": identity, "request_hash": digest(canonical(identity)), "contexts": contexts,
+            "identity": identity, "request_hash": digest(canonical(request_key(request, REPAIR_VERSION))),
+            "contexts": contexts,
             "numbers": numbers, "schema": schema}
 
 

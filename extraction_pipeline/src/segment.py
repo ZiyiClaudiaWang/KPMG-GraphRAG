@@ -47,7 +47,10 @@ from __future__ import annotations
 
 import re
 
-SEGMENTATION_VERSION = "kelly_sentence_v3"   # v3: bullets, list rule, abbreviation splits, headings with a period
+# v3: bullets, list rule, abbreviation splits, headings with a period.
+# v4 (4 Nov 2026): unit_id (#45); page breaks before an amount or parenthesis; "U.S. Cultural";
+#     headings ending in ":"; table cells and footnote markers; Microsoft item links (step 2).
+SEGMENTATION_VERSION = "kelly_sentence_v4"
 
 from .clean import DANGLING_WORDS, raw_spans
 from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_jsonl

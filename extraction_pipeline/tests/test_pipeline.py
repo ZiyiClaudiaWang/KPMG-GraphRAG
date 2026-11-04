@@ -364,6 +364,25 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(len(rows), self.calls)
         self.assertTrue(all(r["estimated_cost_usd"] is not None for r in rows))
 
+    def test_request_hash_covers_only_what_reaches_the_model(self):
+        cfg = dict(label.settings()["label"])
+        before = [p["request_hash"] for p in label.plan_batches(self.units, cfg)]
+        catalog = TMP / "entity_catalog.json"
+        catalog.write_text(json.dumps([{
+            "entity_id": "seg-1", "entity_type": "segment", "issuer_cik": "0000000001", "name": "Widgets",
+            "aliases": [], "accessions": ["0000000000-25-000001"], "review_status": "reviewed"}]),
+            encoding="utf-8")
+        try:
+            extra = [dict(u, note="a field the model never sees") for u in self.units]
+            plans = label.plan_batches(extra, cfg)
+        finally:
+            catalog.unlink()
+        self.assertEqual(before, [p["request_hash"] for p in plans])         # catalog and unit fields: same
+        self.assertTrue(plans[0]["identity"]["entity_catalog"])              # but recorded in request.json
+        cfg["max_completion_tokens"] += 1
+        after = [p["request_hash"] for p in label.plan_batches(self.units, cfg)]
+        self.assertTrue(all(a != b for a, b in zip(before, after)))           # the request changed: new hash
+
     def test_rerun_uses_cache(self):
         self.assertEqual(self.rerun_calls, 0)
         folders = list((TMP / "checked_pilot").iterdir()) + list((TMP / "targeted_repair").iterdir())

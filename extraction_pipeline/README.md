@@ -247,8 +247,9 @@ miss their intro in step 5 ([2.2 and 2.3](#2-found-not-fixed-yet)).
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
       graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v3`) is part of every request hash, so changing it
-      relabels every unit.
+    - `segmentation_version` (`kelly_sentence_v4`) records which splitting rules made the units.
+      It is a label only: it is not in the request hash, so changing it alone costs nothing; a
+      rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
   - The model sees each unit under a short number (`s0042`: its place in the section, counted
@@ -468,7 +469,7 @@ pytest tests -q                  # as CI does (pytest.ini puts src/ on the path)
 python -m unittest discover tests
 ```
 
-74 tests. They need no API key or database.
+75 tests. They need no API key or database.
 
 - `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
   fake model in place of OpenAI and its own risk theme map (`tests/fixtures/risk_theme_map.csv`).
@@ -489,12 +490,16 @@ python -m unittest discover tests
   `request.json`, `attempt.json`, `raw_response.json`, `usage.json`, and
   `validation_errors.json` for a rejected reply. The repair request is saved the same way in
   `data/targeted_repair/`.
-  - The hash covers the request and the source versions it depends on.
-  - Rerunning with the same model, prompt and sentences costs nothing; changing any of them
-    sends new requests.
-- The step 4 changes since the five-filing run (`kelly_sentence_v3`) change every request
-  hash, so all filings, including the five already labelled, are labelled again. For scale,
-  Microsoft's FY2026 10-K cost $0.14 (#47).
+  - The hash covers only what reaches the model: the request as sent (model, prompt,
+    sentences and their context, schema, limits) and the runner version.
+  - `request.json` still records everything the request was built from (the units, source
+    versions, segment names, entity catalog), but none of it is hashed. So a change the model
+    never sees (a new field on the units, a filled entity catalog, a Data re-export with the
+    same text) reuses the saved replies and costs nothing.
+  - Changing the model, the prompt, a sentence, its context or its `section_path` sends new
+    requests.
+  - Until 4 November 2026 the whole record was hashed, as in Claudia's run, so replies saved
+    before then are not reused. For scale, Microsoft's FY2026 10-K cost $0.14 (#47).
 - The dry run reports a worst-case cost: each request's full size as input, plus the full
   `max_completion_tokens` as output. On Microsoft's FY2026 10-K the real cost was about a fifth
   of it ($0.14 against $0.79; replies averaged 765 output tokens against the 4,000 allowed, #47).
@@ -734,7 +739,7 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
 | `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
 | `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v3`) |
+| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v4`) |
 
 ### `risk_categories.csv` (step 7a)
 
@@ -838,8 +843,9 @@ theme links:
 
 Claudia ran steps 5 to 8 on the five filings with her own version of this pipeline (handoff
 package `GraphRAG_Five_Filing_Handoff`). Her changes were merged into this code as below.
-The merged step 5 built the same 173 requests as her run, byte for byte (the text sent to the
-model still is; since #45 the request hashes differ, because batches carry unit ids). These notes describe
+The merged step 5 built the same 173 requests as her run, byte for byte. Since then the
+step 2 and 4 fixes changed some of the text sent, and the request hash covers only the
+request (Cost tracking), so the hashes no longer match hers. These notes describe
 that merge; steps 2 to 8 have changed since ([How it works](#how-it-works)), among them the
 ids (#45: `sentence_id` and `source_unit_key` removed, `claim_id` and every reference by
 `unit_id`; one line of `claim_review_flags()` in her `source_review.py` now reads context by
@@ -863,7 +869,10 @@ ids (#45: `sentence_id` and `source_unit_key` removed, `claim_id` and every refe
   - **Requests**
     - Batches of 15 sentences, halved when a request is over 35,000 bytes.
     - US endpoint as the default `base_url`, configurable.
-    - Same request identity and `request_hash`, same cache folder layout (`data/checked_pilot/`).
+    - Same request identity and cache folder layout (`data/checked_pilot/`). The identity is
+      still saved in full in `request.json`; since 4 November 2026 `request_hash` covers only
+      the request and the runner version, not the whole identity
+      ([Cost tracking](#cost-tracking)).
     - `store: false`, `max_completion_tokens`, temperature only for gpt-4.1 and gpt-4o models.
   - **Cost and safety**
     - No automatic retry by default; the run stops at a rejected reply (`max_retries: 0`,
