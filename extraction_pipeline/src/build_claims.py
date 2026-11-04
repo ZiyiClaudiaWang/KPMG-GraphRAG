@@ -13,7 +13,7 @@ multi_fragment is true for such a unit: its quote is not one continuous string o
 so a UI or check must use source_fragments (each piece's start, end and text), not search
 for the quote.
 
-Identity (#45, README "Unit identity"):
+Identity (#45, README "Unit ID & Claim ID"):
   claim_id                 the unit's unit_id: uuid5 of "<accession>|<section_key>|<raw_spans>".
                            A Claim is a statement at one place: the same sentence twice in one
                            section is two Claims. A cleaning change that keeps the spans keeps

@@ -42,7 +42,7 @@ def unit_id(accession: str, section_key: str, spans: list[list[int]]) -> str:
 
     Cleaning changes that keep a unit's spans (whitespace read as spaces, any change to the
     text alone) keep its id. A change that moves where a unit starts or ends, or which
-    fragments it is made of, gives a new id (README, Unit identity). The same sentence at two
+    fragments it is made of, gives a new id (README, Unit ID & Claim ID). The same sentence at two
     places in a section is two units with two ids. A Claim's claim_id is its unit's id.
     """
     key = json.dumps([[int(a), int(b)] for a, b in spans], separators=(",", ":"))
