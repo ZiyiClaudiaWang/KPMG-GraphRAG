@@ -105,7 +105,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 7b | [Build Claims](#step-7b-build-claims) | `build_claims.py` | `output/claims.jsonl` | no |
 | 8 | [Load](#step-8-load) | `load.py` | Neo4j | no |
 
-On the 20 filings, steps 1 to 4 give 15,055 units, of which 11,884 go to the LLM.
+On the 20 filings, steps 1 to 4 give 15,053 units, of which 11,854 go to the LLM.
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's
@@ -113,7 +113,8 @@ On the 20 filings, steps 1 to 4 give 15,055 units, of which 11,884 go to the LLM
   - Removed:
     - page numbers and page labels ("Part II", "Item 7")
     - short paragraphs repeated across sections of a filing (page headers)
-    - "Table of Contents" lines, including navigation lines such as "Table of Contents | MD&A Index |"
+    - "Table of Contents" lines, including navigation lines such as "Table of Contents | MD&A Index |",
+      and Microsoft's page-footer links to the next items ("Item 1B, 1C", "Item 9B, 9C, 10, 11")
     - running headers ending "(Continued)" or "(Concluded)" (McKesson's "FINANCIAL REVIEW (Continued)"), which repeat in one section only
     - the "(UNAUDITED)" label under McKesson's 10-Q headers
   - Lone bullets ("•" on its own line) are attached to the text after them.
@@ -146,11 +147,16 @@ On the 20 filings, steps 1 to 4 give 15,055 units, of which 11,884 go to the LLM
   - **Headings.**
     - A short line without sentence punctuation is a heading and becomes the `subheading` of the
       units below it, unless it ends in ":" or on a word such as "of" or "the" (a piece of a
-      table header).
+      table header), or is a footnote marker on its own line ("(a)", "(1)").
+    - A short title-case line ending in ":" is also a heading ("Executive Summary:",
+      "OPERATIONS:", "Sales and Marketing (in millions, except percentages):"), unless a bulleted
+      list follows it: then it is a list intro. At most 10 words outside parentheses, and every
+      word of 4 or more letters capitalised, so "Our cost of revenues consists of:" stays a
+      sentence. The ":" is left out of `subheading` and `section_path`.
     - A short title-case sentence ending in a period at the start of a paragraph
       ("Flexible Work.", "Zynga.") is also a heading.
     - Only one level is kept: a heading replaces the one before it
-      ([Remaining issues 2.7](#2-found-not-fixed-yet)).
+      ([Remaining issues 2.4](#2-found-not-fixed-yet)).
   - **Item 1A - Risk Factors.**
     - Category headings ("Business Risks", "RISKS RELATING TO …", "Risks related to our
       business and industry") set the unit's `category`.
@@ -160,8 +166,9 @@ On the 20 filings, steps 1 to 4 give 15,055 units, of which 11,884 go to the LLM
       `risk_summary = true`. The summary ends where a category it listed appears again.
   - **Prefilter.** Units marked `not_a_claim` here are not sent to the LLM:
     - `section_title`, `heading`
-    - `table_residue`: two or more "|", over 30% digits, or a table note listed in
-      `TABLE_NOTES` (e.g. "NM - Not Meaningful")
+    - `table_residue`: two or more "|", over 30% digits, a footnote marker on its own line, or a
+      table note or table cell listed in `TABLE_NOTES` (e.g. "NM - Not Meaningful",
+      "Chief Executive Officer |")
     - `cross_reference`: "See …", "Refer to …"
     - `too_short`: under 4 words; never for a split list item, whose meaning comes from its intro
   - **Ids and versions.**
@@ -254,7 +261,7 @@ On the 20 filings, steps 1 to 4 give 15,055 units, of which 11,884 go to the LLM
     - Each unit also records the lead sentence above it (`risk_lead_unit_id`);
       this is not loaded yet.
   - On the 20 filings:
-    - 79 category headings (45 distinct texts), all in the map: 72 with themes, 7 not a theme
+    - 78 category headings (46 distinct texts), all in the map: 72 with themes, 6 not a theme
     - 5,071 of the 5,302 Item 1A units sent to the LLM have a theme
   - All fields: [Appendix A: `risk_categories.csv`](#risk_categoriescsv-step-7a).
 - <a id="step-7b-build-claims"></a>**[7b] Build Claims** writes one record per occurrence (a Claim sentence at one place in a
@@ -384,7 +391,7 @@ pytest tests -q                  # as CI does (pytest.ini puts src/ on the path)
 python -m unittest discover tests
 ```
 
-70 tests. They need no API key or database.
+74 tests. They need no API key or database.
 
 - `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
   fake model in place of OpenAI and its own risk theme map (`tests/fixtures/risk_theme_map.csv`).
@@ -466,39 +473,23 @@ python -m unittest discover tests
    and the first part ends on an ordinary word.** One case: MSFT "...Securities and Exchange" /
    "Commission on...". The cases starting with an amount or a parenthesis (MDT, NKE) are joined
    since 4 November 2026.
-2. **Headings ending in ":" are not headings.** About 28:
-   - 16 are `too_short` (MCK "Executive Summary:", NKE "OPERATIONS:")
-   - about 12 go to the LLM (MCK "Overview of Our Business:", NTAP "Net Revenues (in millions,
-     except percentages):")
-
-   The units below them keep the previous heading in `section_path`. They must be told apart
-   from list intros ("Solutions include:"), for example by whether a list follows. TTWO
-   "Player acquisition costs." (×2) and "International operations risks" are real headings
-   marked `too_short`.
-3. **Table pieces with one "|" are not `table_residue`.** 7 units, e.g. MSFT's executive table
-   ("Amy E. Hood |", "Satya Nadella |") and MCK "Programs (3) (4) |".
-4. **Table headers and footnote markers read as headings.**
-   - MCK "Shares": in the `section_path` of 14 footnote sentences sent to the LLM
-   - MSFT "(a)" to "(d)"
-   - page-footer navigation MSFT "Item 3, 4" and "Item 1B, 1C" (at the end of a section, no
-     effect)
-5. **Lists without bullets or without a ":" intro get no `list_intro_id`.**
+2. **Lists without bullets or without a ":" intro get no `list_intro_id`.**
    - MU's risk factor summary: about 54 units; 4 short items are `too_short`
    - MCK lists whose intro is separated from the items by "Fiscal 2026" / "Fiscal 2025"
      sub-headings: 7 items, all full sentences
-6. **Split list items may not see their intro in step 5.**
+3. **Split list items may not see their intro in step 5.**
    - A batch shows the 4 units before it. When a long list is cut by a batch boundary, the later
      items do not see the intro (e.g. MU's 17 international-operations risks).
    - Suggested: when the intro is outside the batch and its context, the context becomes the
      intro plus the 3 nearest units, in source order.
-7. **Headings have one level only.** A heading replaces the one above it (AAPL "Products" >
+4. **Headings have one level only.** A heading replaces the one above it (AAPL "Products" >
    "iPhone" keeps only "iPhone").
    - Of 913 sub-headings outside Item 1A, 58 directly follow another heading (so the first is
      the parent) and 825 follow body text (level unknown).
    - Plain text has no font size or weight, so no rule is planned.
    - The fix is heading style or level from the Data team, or reading the HTML at
      `source_locator.xpath`.
-8. **Risk lead sentences depend on the model for Microsoft.** The rules propose only 8 for
+5. **Risk lead sentences depend on the model for Microsoft.** The rules propose only 8 for
     MSFT, which starts a paragraph with the lead sentence; the model's `is_risk_heading` (from
     `llm` and `llm_repair` labels) decides the rest.
     - Risk themes no longer need it: they come from the category headings. It is kept for now
@@ -545,7 +536,8 @@ python -m unittest discover tests
    - The names duplicate the entity catalog's job (`data/entity_catalog.json`, still empty).
      To do: switch the check to the catalog once it is filled.
 3. **Lists written by hand from these filings.**
-   - `TABLE_NOTES` in `segment.py`: five table notes and header pieces (MCK, NTAP, MDT).
+   - `TABLE_NOTES` in `segment.py`: table notes, header pieces and table cells cut out of a
+     table (MCK, NTAP, MDT, CASY, MSFT).
    - `OPENERS` in `segment.py`: sentence openers added for sentences seen in these filings.
    - `config/risk_theme_map.csv`: the category texts of these ten companies. A new company's
      categories show up as `unmapped` in step 7a until they are added ([Appendix B](#appendix-b-risk-themes)).

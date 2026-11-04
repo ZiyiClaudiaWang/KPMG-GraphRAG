@@ -1,6 +1,6 @@
 import unittest
 from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like,
-                         is_category, mark_risk_summary)
+                         is_category, is_colon_heading, mark_risk_summary, segment_section)
 from src.entity_annotation import annotate_mentions
 from src.clean import drop_rule, should_join
 from src.risk_factors import assign, category_key, is_lead_sentence
@@ -171,6 +171,20 @@ class PageBreaks(unittest.TestCase):
             self.assertFalse(is_heading_like(text), text)
         self.assertTrue(is_heading_like("North American Pharmaceutical"))
 
+    def test_microsoft_item_links_are_removed(self):
+        # README Remaining issues 2.4 (old): page-footer navigation, not a heading or category
+        for text in ("Item 1B, 1C", "Item 9B, 9C, 10, 11", "Item 3, 4"):
+            self.assertEqual(drop_rule(text, set()), "toc_link", text)
+        self.assertEqual(drop_rule("Item 7", set()), "page_label")
+        self.assertIsNone(drop_rule("Item 1A, Risk Factors, describes these risks.", set()))
+
+    def test_table_cells_and_footnote_markers_are_table_residue(self):
+        # README Remaining issues 2.3 and 2.4 (old)
+        for text in ("Chief Executive Officer |", "Amy E. Hood |", "Programs (3) (4) |", "Shares", "(a)", "(1)"):
+            self.assertFalse(is_heading_like(text), text)
+            self.assertEqual(prefilter(text, 4), "table_residue", text)
+        self.assertIsNone(prefilter("Mr. Cordano holds a BS from the University of Colorado, Boulder. |", 4))
+
     def test_sentence_cut_after_a_dangling_word_is_joined(self):
         # Take-Two: "...were blocked by the" / page 26 / "Sixth Circuit Court of Appeals."
         self.assertTrue(self.join("efforts to reinstate net neutrality regulations in the U.S. were blocked by the",
@@ -315,3 +329,34 @@ class UnitIdentity(unittest.TestCase):
         for other in (unit_id("A", "item-1a", [[0, 11]]), unit_id("A", "item-1a", [[0, 5], [6, 10]]),
                       unit_id("A", "item-7", [[0, 10]]), unit_id("B", "item-1a", [[0, 10]])):
             self.assertNotEqual(base, other)
+
+
+class ColonHeadings(unittest.TestCase):
+    """README Remaining issues 2.2 (old): short title-case lines ending in ":" are headings."""
+
+    def test_which_lines_are_headings(self):
+        for text in ("Executive Summary:", "OPERATIONS:", "Oncology & Multispecialty:",
+                     "Sales and Marketing (in millions, except percentages):",
+                     "Other Segment Expense, Segment Operating Profit, and Corporate Expenses, Net:"):
+            self.assertTrue(is_colon_heading(text), text)
+        for text in ("Our cost of revenues consists of:", "The breakdown of Revenues is as follows:",
+                     "Our strategy is anchored in four key focus areas:", "Executive Summary"):
+            self.assertFalse(is_colon_heading(text), text)
+
+    def test_heading_names_the_units_below_unless_a_list_follows(self):
+        def section(*paragraphs):
+            text, out, pos = "", [], 0
+            for p in paragraphs:
+                out.append({"text": p, "start": pos, "pieces": [[pos, pos + len(p), pos]]})
+                text += p + "\n\n"
+                pos += len(p) + 2
+            return {"accession_number": "A", "section_key": "part-ii-item-7", "ticker": "T", "form": "10-K",
+                    "section_id": "s", "section_type": "mda", "processing_set_id": "p", "source_locator": None,
+                    "part": "II", "item": "7", "original_title": "MD&A", "text": text[:-2], "paragraphs": out}
+        cfg = {"min_words": 4, "short_name_max_chars": 60, "list_merge_max_chars": 600}
+        units = segment_section(section("Executive Summary:", "Revenue grew in every segment this year."), cfg)
+        self.assertEqual((units[0]["role"], units[0]["prefilter"]), ("heading", "heading"))
+        self.assertEqual(units[1]["subheading"], "Executive Summary")
+        units = segment_section(section("Key Products:", "• Widgets for industrial customers in Europe",
+                                        "• Gadgets for retail customers in Asia"), cfg)
+        self.assertNotEqual(units[0]["role"], "heading")                    # a list intro, not a heading

@@ -36,6 +36,8 @@ PAGE_LABEL = re.compile(r"^(part\s+[ivx]+|item\s+\d{1,2}[a-c]?)\.?$", re.IGNOREC
 TOC_LINK = re.compile(r"^table of contents$", re.IGNORECASE)
 # McKesson's page top: "Table of Contents | MD&A Index |" (a link row, not a table)
 NAV_LINKS = re.compile(r"^table of contents\s*\|[^.]{0,60}$", re.IGNORECASE)
+# Microsoft's page footer links to the next items: "Item 1B, 1C", "Item 9B, 9C, 10, 11".
+ITEM_LINKS = re.compile(r"^item\s+\d{1,2}[a-c]?(?:,\s*\d{1,2}[a-c]?)+$", re.IGNORECASE)
 # McKesson's running header in MD&A: "FINANCIAL REVIEW (Continued)", and "(Concluded)" on its last page; it repeats in one
 # section only, so repeated_headers() (which needs several sections) misses it.
 CONTINUED_HEADER = re.compile(r"\((?:continued|concluded)\)$", re.IGNORECASE)
@@ -111,7 +113,7 @@ def drop_rule(text: str, headers: set[str]) -> str | None:
         return "page_number"
     if PAGE_LABEL.match(text):
         return "page_label"
-    if TOC_LINK.match(text) or NAV_LINKS.match(text):
+    if TOC_LINK.match(text) or NAV_LINKS.match(text) or ITEM_LINKS.match(text):
         return "toc_link"
     if len(text) <= CONTINUED_HEADER_MAX_CHARS and CONTINUED_HEADER.search(text):
         return "continued_header"

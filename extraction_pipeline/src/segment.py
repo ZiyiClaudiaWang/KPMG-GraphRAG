@@ -165,8 +165,17 @@ TABLE_NOTES = [
     "NM - Not Meaningful",                       # NTAP
     "(3)Not meaningful (NM)",                    # MDT
     "Shares that May",                           # MCK share-repurchase table header
+    "Shares",                                    # MCK 10-Q share-repurchase table header
+    # Table cells cut out of a table (one "|" left), README Remaining issues 2.3
+    "(Dollars and gallons in thousands, except per share amounts) |",   # CASY
+    "Programs (3) (4) |",                                               # MCK
+    "Satya Nadella |", "Chief Executive Officer |",                     # MSFT executive table
+    "Amy E. Hood |", "Executive Vice President and Chief Financial Officer |",
+    "Alice L. Jolla |", "Corporate Vice President and Chief Accounting Officer |",
 ]
 TABLE_NOTE_KEYS = frozenset(note_key(t) for t in TABLE_NOTES)
+# A footnote marker on its own line under a table: "(a)", "(1)". Not a heading.
+FOOTNOTE_MARKER = re.compile(r"^\([a-z0-9]{1,2}\)$", re.IGNORECASE)
 
 
 def is_heading_like(text: str) -> bool:
@@ -178,7 +187,24 @@ def is_heading_like(text: str) -> bool:
     return (len(text) <= 150 and "|" not in text and not is_bullet(text)
             and not TERMINAL.search(text) and not text.endswith(":")
             and bool(words) and words[-1].lower() not in DANGLING_WORDS
-            and note_key(text) not in TABLE_NOTE_KEYS)
+            and note_key(text) not in TABLE_NOTE_KEYS and not FOOTNOTE_MARKER.match(text))
+
+
+def is_colon_heading(text: str) -> bool:
+    """A short title-case line ending in ":" ("Executive Summary:", "OPERATIONS:",
+    "Sales and Marketing (in millions, except percentages):").
+
+    At most 10 words outside parentheses, the first capitalised, and every word of 4 or more
+    letters capitalised, so "Our cost of revenues consists of:" and "The breakdown of Revenues
+    is as follows:" stay sentences. The caller also checks that no bulleted list follows:
+    then the line is a list intro.
+    """
+    if not text.endswith(":") or "|" in text:
+        return False
+    core = re.sub(r"\([^()]*\)", " ", text[:-1])
+    words = re.findall(r"[A-Za-z][A-Za-z’'&-]*", core)
+    return (1 <= len(core.split()) <= 10 and bool(words) and words[0][0].isupper()
+            and all(w[0].isupper() for w in words if len(w) >= 4))
 
 
 def is_period_heading(text: str) -> bool:
@@ -253,7 +279,7 @@ def section_label(sec: dict) -> str:
 
 def prefilter(text: str, min_words: int) -> str | None:
     """Rule-based not_a_claim, applied before the LLM."""
-    if text.count("|") >= 2 or note_key(text) in TABLE_NOTE_KEYS:
+    if text.count("|") >= 2 or note_key(text) in TABLE_NOTE_KEYS or FOOTNOTE_MARKER.match(text):
         return "table_residue"
     if CROSS_REFERENCE.search(text) and not re.search(
             r"\b(?:there have been (?:no )?material changes|have not materially changed)\b", text, re.I):
@@ -306,12 +332,14 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             i += 1
             continue
 
-        if is_heading_like(text):
-            if is_risk and is_category(text):
-                category, subheading = text, None
+        list_follows = i + 1 < len(paragraphs) and is_bullet(paragraphs[i + 1]["text"])
+        if is_heading_like(text) or (is_colon_heading(text) and not list_follows):
+            name = text.rstrip(":").rstrip()      # "Executive Summary:" is shown as "Executive Summary"
+            if is_risk and is_category(name):
+                category, subheading = name, None
                 add("category_heading", i, p0, p0 + len(text), "heading")
             else:
-                subheading = text
+                subheading = name
                 add("heading", i, p0, p0 + len(text), "heading")
             i += 1
             continue
