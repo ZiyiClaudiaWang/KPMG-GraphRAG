@@ -4,7 +4,22 @@ Input : data/interim/clean/*.jsonl, data/output/section_manifest.csv
 Output: data/output/sentences.jsonl   one row per unit the LLM may label
 
 A unit is one sentence, or one list group (an introductory clause ending in ":"
-plus its whole bulleted list), following Alina's interim list convention.
+plus its whole bulleted list).
+
+Lists (an intro ending in ":" followed by bullet paragraphs) are merged into one
+list group only when the items cannot stand alone and the group stays short:
+  - short names: every item is a fragment and items average under
+    short_name_max_chars (product or factor names), or
+  - at least one item is a fragment and the whole group (last intro sentence
+    plus all items) is at most list_merge_max_chars.
+Every other list is split: each bullet is labelled on its own, and its units carry
+list_intro_id, the sentence_id of the intro's last sentence. Bullets with no ":"
+intro before them (after a heading or an unrelated paragraph) are ordinary paragraphs.
+Split list items are never dropped as too_short: their meaning comes from the intro.
+
+A paragraph that opens with a short title-case sentence ending in a period
+("Flexible Work.", "Zynga.", a run-in heading in bold before the text) starts a
+sub-heading, like a heading without a period.
 
 Every unit keeps:
   char_start, char_end  position in the cleaned section text
@@ -25,9 +40,9 @@ import re
 import hashlib
 import json
 
-SEGMENTATION_VERSION = "kelly_sentence_v2_restrictions_boundary"
+SEGMENTATION_VERSION = "kelly_sentence_v3"   # v3: bullets, list rule, abbreviation splits, headings with a period
 
-from .clean import raw_spans
+from .clean import DANGLING_WORDS, raw_spans
 from .common import Paths, filings, log, read_jsonl, settings, write_jsonl
 from .filter_sections import kept_section_keys
 
@@ -47,9 +62,13 @@ OPENERS = {
     "We", "Our", "It", "Its", "If", "Any", "Many", "Some", "A", "An", "Accordingly", "Further",
     "Furthermore", "Moreover", "For", "There", "While", "When", "Although", "Because", "Each",
     "Restrictions",
+    # Seen after "U.S." / "Inc." / "plc" at a real sentence end in the ten-company filings.
+    "During", "Refer", "On", "To", "Like", "Prior", "He", "She", "They", "Mr", "Ms",
 }
+ITEM_NUMBER = re.compile(r"\d{1,2}[a-c]?")   # "1a" in "see Item 1A. Risk Factors", "9" in "Note 9. Debt"
+REFERENCE_WORDS = {"item", "note"}            # "Item 1A. Risk Factors", "Note 9. Debt": the title follows the number
 BOUNDARY = re.compile(r"[.?!][\"”’)\]]*(?=\s+[\"“‘(\[]?[A-Z0-9•])")
-BULLET = re.compile(r"^([•●◦▪‣–-]|o)\s+")
+BULLET = re.compile(r"^(?:[•●◦▪‣]\s*|[–-]\s+|o\s+)")
 
 
 def split_sentences(text: str) -> list[tuple[int, int]]:
@@ -60,11 +79,18 @@ def split_sentences(text: str) -> list[tuple[int, int]]:
         before = text[start:m.start() + 1]
         token = before.split()[-1].rstrip(".?!").lower() if before.split() else ""
         token = token.lstrip("(\"“")
+        if token.rsplit("-", 1)[-1] in ABBREVIATIONS:    # "non-U.S." is read as "U.S.", not "10-K." as "K."
+            token = token.rsplit("-", 1)[-1]
         nxt = text[end:].split(maxsplit=1)[0] if text[end:].strip() else ""
+        opener = nxt.strip("\"“(").rstrip(".,;:")               # "Additionally," -> "Additionally"
         dotted = bool(re.fullmatch(r"(?:[a-z]\.)+[a-z]", token))   # "d.c", "u.s", "e.g"
+        words = before.split()
+        if (len(words) >= 2 and words[-2].lower().lstrip("(\"“") in REFERENCE_WORDS and ITEM_NUMBER.fullmatch(token)
+                and opener not in OPENERS):
+            continue                                # "see Item 1A. Risk Factors", "Note 9. Debt": one sentence
         if token in ABBREVIATIONS or dotted:
             ambiguous = token in AMBIGUOUS or (dotted and token not in ABBREVIATIONS)
-            if not ambiguous or nxt.strip("\"“(") not in OPENERS:
+            if not ambiguous or opener not in OPENERS:
                 continue
         if re.fullmatch(r"[a-z]", token):          # an initial such as "J."
             continue
@@ -95,25 +121,67 @@ def is_bullet(text: str) -> bool:
     return bool(BULLET.match(text))
 
 
-def is_fragment_list(bullets: list[dict]) -> bool:
-    """True when most bullet items cannot stand alone ("Driving customer adoption...", "tariffs;").
+def is_fragment(text: str) -> bool:
+    """A bullet item that cannot stand alone ("Driving customer adoption...", "tariffs;", "iPad Air")."""
+    item = BULLET.sub("", text)
+    first = item.split()[0] if item.split() else ""
+    return (item[:1].islower() or first.endswith("ing") or item.rstrip().endswith((";", ",", "; and", "; or"))
+            or not TERMINAL.search(item))
 
-    Such lists only make sense together with their intro, so they form one unit.
-    Bullets that are complete sentences ("Microsoft Cloud revenue increased 29%.")
-    are labelled one by one.
+
+def merge_list(intro_sentence: str, bullets: list[dict], cfg: dict) -> bool:
+    """True when an intro and its bullets should be one list_group unit (see the module docstring).
+
+    Bullets that are all complete sentences ("Microsoft Cloud revenue increased 29%.") are never
+    merged; nor is a list too long to read as one statement (Micron's 17 international risks).
     """
-    def fragment(text: str) -> bool:
-        item = BULLET.sub("", text)
-        first = item.split()[0] if item.split() else ""
-        return (item[:1].islower() or first.endswith("ing") or item.rstrip().endswith((";", ",", "; and", "; or"))
-                or not TERMINAL.search(item))
-    return sum(fragment(b["text"]) for b in bullets) * 2 >= len(bullets)
+    texts = [b["text"] for b in bullets]
+    fragments = sum(is_fragment(t) for t in texts)
+    if fragments == len(texts) and sum(map(len, texts)) / len(texts) < cfg.get("short_name_max_chars", 60):
+        return True
+    group_chars = len(" ".join([intro_sentence] + texts))
+    return fragments > 0 and group_chars <= cfg.get("list_merge_max_chars", 600)
+
+
+def note_key(text: str) -> str:
+    """'NM - Not Meaningful.' and 'nm - not meaningful' match the same table note."""
+    return " ".join(text.lower().rstrip(".").split())
+
+
+# Table legends and footnotes, listed by hand: a paragraph that is exactly one of these
+# (ignoring case, extra spaces and a final period) is table_residue, never a heading.
+# Add a line when a new one turns up.
+TABLE_NOTES = [
+    "bp - basis point",                          # MCK
+    "Percentages may not add due to rounding",   # NTAP
+    "NM - Not Meaningful",                       # NTAP
+    "(3)Not meaningful (NM)",                    # MDT
+]
+TABLE_NOTE_KEYS = frozenset(note_key(t) for t in TABLE_NOTES)
 
 
 def is_heading_like(text: str) -> bool:
-    """A short line without sentence punctuation: a category or sub-heading."""
+    """A short line without sentence punctuation: a category or sub-heading.
+
+    A line ending on "of" or "the" is a piece of a table header ("Number of"), not a heading.
+    """
+    words = text.split()
     return (len(text) <= 150 and "|" not in text and not is_bullet(text)
-            and not TERMINAL.search(text) and not text.endswith(":"))
+            and not TERMINAL.search(text) and not text.endswith(":")
+            and bool(words) and words[-1].lower() not in DANGLING_WORDS
+            and note_key(text) not in TABLE_NOTE_KEYS)
+
+
+def is_period_heading(text: str) -> bool:
+    """A short title-case sentence ending in a period: "Flexible Work.", "Zynga.", "2K."
+
+    At most 5 words, and every word of 4 or more letters capitalised, so
+    "Develop Robust Player Relationships." counts but "Revenue increased." does not.
+    """
+    if not text.endswith(".") or not 1 <= len(text.rstrip(".").split()) <= 5:
+        return False
+    words = re.findall(r"[A-Za-z][A-Za-z’'-]*", text)
+    return bool(words) and words[0][0].isupper() and all(w[0].isupper() for w in words if len(w) >= 4)
 
 
 def is_category(text: str) -> bool:
@@ -169,7 +237,7 @@ def section_label(sec: dict) -> str:
 
 def prefilter(text: str, min_words: int) -> str | None:
     """Rule-based not_a_claim, applied before the LLM."""
-    if text.count("|") >= 2:
+    if text.count("|") >= 2 or note_key(text) in TABLE_NOTE_KEYS:
         return "table_residue"
     if CROSS_REFERENCE.search(text) and not re.search(
             r"\b(?:there have been (?:no )?material changes|have not materially changed)\b", text, re.I):
@@ -235,19 +303,20 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             i += 1
             continue
 
-        # List group: an intro ending in ":" plus bullets that are fragments, kept as one unit.
+        # A list: an intro ending in ":" plus the bullet paragraphs right after it.
         if text.endswith(":") and i + 1 < len(paragraphs) and is_bullet(paragraphs[i + 1]["text"]):
             j = i + 1
             while j < len(paragraphs) and is_bullet(paragraphs[j]["text"]):
                 j += 1
             bullets = paragraphs[i + 1:j]
-            if is_fragment_list(bullets):
-                # Earlier sentences of the intro paragraph stay ordinary units;
-                # only its last sentence opens the list.
-                intro = split_sentences(text)
-                for s, e in intro[:-1]:
-                    add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
-                start = p0 + intro[-1][0]
+            # Earlier sentences of the intro paragraph stay ordinary units;
+            # only its last sentence opens the list.
+            intro = split_sentences(text)
+            for s, e in intro[:-1]:
+                add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
+            start = p0 + intro[-1][0]
+            if merge_list(sec["text"][start:p0 + len(text)], bullets, cfg):
+                # Merge: the intro sentence and every bullet become one list_group unit.
                 end = bullets[-1]["start"] + len(bullets[-1]["text"])
                 spans = raw_spans(para, start, p0 + len(text))
                 for m in bullets:
@@ -256,9 +325,36 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
                 unit = add("list_group", i, start, end, None, spans=spans,
                            text=" ".join(pieces))          # fragments joined by one space
                 unit["list_paragraphs"] = list(range(i, j))
-                i = j
+            else:
+                # Split: the intro sentence is an ordinary unit, and each bullet is labelled
+                # on its own, pointing back to that intro sentence.
+                s, e = intro[-1]
+                intro_unit = add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
+                for k in range(i + 1, j):
+                    item, q0 = paragraphs[k]["text"], paragraphs[k]["start"]
+                    body_start = q0 + BULLET.match(item).end()
+                    body = sec["text"][body_start:q0 + len(item)]
+                    for s, e in split_sentences(body):
+                        rule = prefilter(body[s:e], cfg["min_words"])
+                        if rule == "too_short":           # meaning comes from the intro, so keep it
+                            rule = None
+                        unit = add("body", k, body_start + s, body_start + e, rule)
+                        unit["list_intro_id"] = intro_unit["sentence_id"]
+            i = j
+            continue
+
+        # A paragraph opening with a heading that ends in a period: the heading becomes the
+        # sub-heading, and any text after it in the paragraph is split as usual.
+        if not is_bullet(text):
+            sentences = split_sentences(text)
+            s, e = sentences[0]
+            if is_period_heading(text[s:e]):
+                subheading = text[s:e]
+                add("heading", i, p0 + s, p0 + e, "heading")
+                for s, e in sentences[1:]:
+                    add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
+                i += 1
                 continue
-            # Bullets that are full sentences: the intro and each bullet are ordinary paragraphs.
 
         if is_risk:
             strength = risk_heading_strength(paragraphs, i, cfg["max_heading_chars"])

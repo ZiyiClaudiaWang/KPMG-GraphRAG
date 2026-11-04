@@ -34,6 +34,18 @@ KEEP_FIELDS = [
 PAGE_NUMBER = re.compile(r"^\d{1,3}$")
 PAGE_LABEL = re.compile(r"^(part\s+[ivx]+|item\s+\d{1,2}[a-c]?)\.?$", re.IGNORECASE)
 TOC_LINK = re.compile(r"^table of contents$", re.IGNORECASE)
+# McKesson's page top: "Table of Contents | MD&A Index |" (a link row, not a table)
+NAV_LINKS = re.compile(r"^table of contents\s*\|[^.]{0,60}$", re.IGNORECASE)
+# McKesson's running header in MD&A: "FINANCIAL REVIEW (Continued)"; it repeats in one
+# section only, so repeated_headers() (which needs several sections) misses it.
+CONTINUED_HEADER = re.compile(r"\(continued\)$", re.IGNORECASE)
+CONTINUED_HEADER_MAX_CHARS = 90
+# McKesson's 10-Q repeats "(UNAUDITED)" under that header on every page.
+UNAUDITED_LABEL = re.compile(r"^\(unaudited\)$", re.IGNORECASE)
+# A paragraph never ends on these words; when it does, a page break cut the sentence,
+# even if the next page starts with a capital ("...blocked by the" / "Sixth Circuit ...").
+DANGLING_WORDS = {"a", "an", "the", "of", "to", "by", "in", "for", "with", "on", "at", "from",
+                  "and", "or", "as", "that", "our", "its", "their"}
 BULLET_ONLY = re.compile(r"^([•●◦▪‣–-]|o)$")  # "o" is a second-level bullet
 TERMINAL = re.compile(r"[.?!:;\"”’)]$")
 MIN_WORDS_TO_JOIN = 8
@@ -98,8 +110,12 @@ def drop_rule(text: str, headers: set[str]) -> str | None:
         return "page_number"
     if PAGE_LABEL.match(text):
         return "page_label"
-    if TOC_LINK.match(text):
+    if TOC_LINK.match(text) or NAV_LINKS.match(text):
         return "toc_link"
+    if len(text) <= CONTINUED_HEADER_MAX_CHARS and CONTINUED_HEADER.search(text):
+        return "continued_header"
+    if UNAUDITED_LABEL.match(text):
+        return "unaudited_label"
     if header_key(text) in headers:
         return "page_header"
     return None
@@ -158,8 +174,11 @@ def clean_section(sec: dict, headers: set[str]) -> dict:
 
 
 def should_join(raw: str, prev_pieces: list[list[int]], next_text: str) -> bool:
-    """Join when the previous paragraph stops mid-sentence and the next starts in lower case.
+    """Join when the previous paragraph stops mid-sentence and the next continues it.
 
+    The next paragraph continues it when it starts in lower case, or when the
+    previous one ends on a word no sentence ends on ("the", "of", "and").
+    "...; and" ends a list item, so it is not joined.
     The previous paragraph must be a run of text, not a short heading: Apple's
     product headings ("iPhone") are followed by paragraphs that also start in
     lower case.
@@ -168,9 +187,13 @@ def should_join(raw: str, prev_pieces: list[list[int]], next_text: str) -> bool:
     prev_text = raw[s:e]
     if is_table_row(prev_text) or is_table_row(next_text):
         return False
-    if len(prev_text.split()) < MIN_WORDS_TO_JOIN:
+    if len(prev_text.split()) < MIN_WORDS_TO_JOIN or TERMINAL.search(prev_text):
         return False
-    return not TERMINAL.search(prev_text) and next_text[:1].islower()
+    if next_text[:1].islower():
+        return True
+    words = prev_text.split()
+    return (words[-1].lower() in DANGLING_WORDS and not words[-2].endswith(";")
+            and next_text[:1].isalpha() and not BULLET_ONLY.match(next_text[:1]))
 
 
 def raw_spans(paragraph: dict, start: int, end: int) -> list[list[int]]:
