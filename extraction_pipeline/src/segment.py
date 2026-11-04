@@ -71,6 +71,7 @@ OPENERS = {
     "Restrictions",
     # Seen after "U.S." / "Inc." / "plc" at a real sentence end in the ten-company filings.
     "During", "Refer", "On", "To", "Like", "Prior", "He", "She", "They", "Mr", "Ms",
+    "Cultural",   # TTWO: "...as well as they do in the U.S. Cultural differences may also require..."
 }
 ITEM_NUMBER = re.compile(r"\d{1,2}[a-c]?")   # "1a" in "see Item 1A. Risk Factors", "9" in "Note 9. Debt"
 REFERENCE_WORDS = {"item", "note"}            # "Item 1A. Risk Factors", "Note 9. Debt": the title follows the number

@@ -49,6 +49,8 @@ DANGLING_WORDS = {"a", "an", "the", "of", "to", "by", "in", "for", "with", "on",
 BULLET_ONLY = re.compile(r"^([•●◦▪‣–-]|o)$")  # "o" is a second-level bullet
 TERMINAL = re.compile(r"[.?!:;\"”’)]$")
 MIN_WORDS_TO_JOIN = 8
+# A page that starts with an amount, or with a parenthesis followed by more of the sentence.
+CONTINUES_AFTER_BREAK = re.compile(r"[$€£]\s?\d|\([^()]{1,80}\)[,;]?\s+[a-z]")
 
 
 def split_paragraphs(raw: str) -> list[tuple[int, int]]:
@@ -178,6 +180,9 @@ def should_join(raw: str, prev_pieces: list[list[int]], next_text: str) -> bool:
     The next paragraph continues it when it starts in lower case, or when the
     previous one ends on a word no sentence ends on ("the", "of", "and").
     "...; and" ends a list item, so it is not joined.
+    It also continues it when it starts with an amount ("$19.7 billion", "€500 million") or
+    with a parenthesis that the sentence goes on after ('("Information Technology Systems"),
+    may'); a table caption such as "(In millions)" ends its paragraph, so it is not joined.
     The previous paragraph must be a run of text, not a short heading: Apple's
     product headings ("iPhone") are followed by paragraphs that also start in
     lower case.
@@ -188,7 +193,7 @@ def should_join(raw: str, prev_pieces: list[list[int]], next_text: str) -> bool:
         return False
     if len(prev_text.split()) < MIN_WORDS_TO_JOIN or TERMINAL.search(prev_text):
         return False
-    if next_text[:1].islower():
+    if next_text[:1].islower() or CONTINUES_AFTER_BREAK.match(next_text):
         return True
     words = prev_text.split()
     return (words[-1].lower() in DANGLING_WORDS and not words[-2].endswith(";")

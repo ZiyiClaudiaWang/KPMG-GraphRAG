@@ -13,6 +13,11 @@ class SourceBoundary(unittest.TestCase):
         self.assertEqual([text[a:b] for a,b in split_sentences(text)],
                          ["We source components in the U.S.", "Restrictions on trade can affect supply."])
 
+    def test_us_cultural_starts_a_new_sentence(self):
+        # README Remaining issues 2.9 (Take-Two)
+        text = "Our hit products may not sell as well as they do in the U.S. Cultural differences may also require changes."
+        self.assertEqual(len(split_sentences(text)), 2)
+
     def test_named_us_department_remains_one_sentence(self):
         text = "The U.S. Department of Commerce initiated an investigation."
         self.assertEqual([text[a:b] for a,b in split_sentences(text)], [text])
@@ -173,6 +178,18 @@ class PageBreaks(unittest.TestCase):
         # McKesson: "...Prescription Technology Solutions, and" / "Medical-Surgical Solutions."
         self.assertTrue(self.join("we have four reportable segments: North American Pharmaceutical, Prescription "
                                   "Technology Solutions, and", "Medical-Surgical Solutions."))
+
+    def test_page_starting_with_an_amount_or_a_parenthesis_is_joined(self):
+        # README Remaining issues 2.1: Medtronic and Nike sentences cut by a page break
+        self.assertTrue(self.join("Notes due 2028. The Company used the net proceeds to repay",
+                                  "€500 million of Medtronic Luxco’s 2.625% Senior Notes."))
+        self.assertTrue(self.join("its fair value exceeded its carrying value, by approximately 12%. As of July 31, 2026,",
+                                  "$19.7 billion of goodwill was allocated to the Medical Surgical reporting unit."))
+        self.assertTrue(self.join("our information technology systems, including the Internet and third-party services",
+                                  '("Information Technology Systems"), may not be sufficient.'))
+        # a table caption after a heading-like line stays its own paragraph
+        self.assertFalse(self.join("Three Months Ended July 31, 2026 Compared to Three Months Ended July 31, 2025",
+                                   "(Dollars and Amounts in Thousands)"))
 
     def test_list_item_ending_in_semicolon_and_is_not_joined(self):
         self.assertFalse(self.join("lower warehousing and logistics costs, primarily due to channel mix; and",
