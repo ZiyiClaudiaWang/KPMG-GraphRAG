@@ -28,6 +28,11 @@ Every unit keeps:
   rule_heading          in Item 1A: "high"/"medium" if the rules think this is a
                         risk-factor heading, else null
 
+In Item 1A, the risk factor summary some filings open with (MU "Risk Factor Summary",
+TTWO "Summary of Risk Factors") repeats the risks described below it in short form. The
+summary ends where a category heading it listed appears for the second time. Units in it
+are labelled as usual and carry risk_summary = true, so later steps can tell them apart.
+
 Risk headings are only proposed here. Apple puts each heading in its own
 paragraph, which the rules catch; Microsoft starts a paragraph with the
 heading sentence, which plain text cannot show. The LLM therefore also flags
@@ -185,11 +190,18 @@ def is_period_heading(text: str) -> bool:
     return bool(words) and words[0][0].isupper() and all(w[0].isupper() for w in words if len(w) >= 4)
 
 
+RISK_CATEGORY_START = re.compile(r"^risks?\s+(?:related|relating)\s+to\b", re.IGNORECASE)
+RISK_SUMMARY = re.compile(r"^(?:risk factors? summary|summary of risk factors?)$", re.IGNORECASE)
+
+
 def is_category(text: str) -> bool:
-    """Category headings are in capitals or title case ("Macroeconomic and Industry Risks")."""
+    """Category headings are in capitals or title case ("Macroeconomic and Industry Risks"),
+    or start "Risks related to" in any case (TTWO "Risks relating to our business and industry")."""
     words = re.findall(r"[A-Za-z][A-Za-z’'-]*", text)
     if not words:
         return False
+    if RISK_CATEGORY_START.match(text):
+        return True
     if text.upper() == text:
         return True
     capitalised = sum(w[0].isupper() for w in words)
@@ -274,6 +286,7 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             "char_start": start, "char_end": end,
             "raw_spans": spans if spans is not None else raw_spans(paragraphs[p_index], start, end),
             "paragraph_index": p_index, "prefilter": rule, "rule_heading": rule_heading,
+            "risk_summary": False,
             "processing_set_id": sec["processing_set_id"], "source_locator": sec["source_locator"],
         }
         unit["segmentation_version"] = SEGMENTATION_VERSION
@@ -372,7 +385,33 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             add("body", i, body_start + s, body_start + e, prefilter(body[s:e], cfg["min_words"]))
         i += 1
 
+    mark_risk_summary(units)
     return units
+
+
+def mark_risk_summary(units: list[dict]) -> None:
+    """Flag the risk factor summary (risk_summary = true): it repeats the risks described after it.
+
+    The summary runs from its heading to the first category heading that appears for the
+    second time (where the full text starts again). Without such a repeat nothing is marked.
+    """
+    start = next((k for k, u in enumerate(units)
+                  if u["role"] == "category_heading" and RISK_SUMMARY.match(u["text"])), None)
+    if start is None:
+        return
+    seen, end = set(), None
+    for k in range(start + 1, len(units)):
+        if units[k]["role"] != "category_heading":
+            continue
+        key = units[k]["text"].lower()
+        if key in seen:
+            end = k
+            break
+        seen.add(key)
+    if end is None:
+        return
+    for u in units[start:end]:
+        u["risk_summary"] = True
 
 
 def run() -> None:

@@ -1,5 +1,6 @@
 import unittest
-from src.segment import split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like
+from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like,
+                         is_category, mark_risk_summary)
 from src.entity_annotation import annotate_mentions
 from src.clean import drop_rule, should_join
 
@@ -208,3 +209,32 @@ class ListRule(unittest.TestCase):
 
 if __name__ == "__main__": unittest.main()
 
+
+class RiskCategories(unittest.TestCase):
+    """segment.py: Item 1A category headings and the risk factor summary."""
+
+    def test_lowercase_risks_related_to_is_a_category(self):
+        # TTWO writes its categories in sentence case
+        self.assertTrue(is_category("Risks relating to our business and industry"))
+        self.assertTrue(is_category("Business Risks"))
+        self.assertFalse(is_category("Competition in the technology sector"))     # MSFT sub-heading
+
+    def test_summary_is_flagged_until_a_category_repeats(self):
+        def unit(role, text, rule=None):
+            return {"role": role, "text": text, "prefilter": rule, "risk_summary": False}
+        units = [unit("category_heading", "Risk Factor Summary", "heading"),
+                 unit("category_heading", "Risks Related to Our Business", "heading"),
+                 unit("body", "volatility in average selling prices;"),
+                 unit("category_heading", "Risks Related to Our Business", "heading"),
+                 unit("body", "Volatility in average selling prices may harm our results.")]
+        mark_risk_summary(units)
+        self.assertEqual([u["risk_summary"] for u in units], [True, True, True, False, False])
+        self.assertIsNone(units[2]["prefilter"])                  # still sent to the LLM
+
+    def test_summary_without_a_repeat_is_left_alone(self):
+        units = [{"role": "category_heading", "text": "Summary of Risk Factors", "prefilter": "heading",
+                  "risk_summary": False},
+                 {"role": "body", "text": "Our industry is highly competitive.", "prefilter": None,
+                  "risk_summary": False}]
+        mark_risk_summary(units)
+        self.assertFalse(units[1]["risk_summary"])
