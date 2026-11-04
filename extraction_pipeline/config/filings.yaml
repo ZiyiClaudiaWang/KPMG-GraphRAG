@@ -1,8 +1,26 @@
-# The five pilot filings. The fetch step exports each one to
+# Filings for the ten companies: every 10-K and 10-Q loaded in the Data team
+# database on 2026-11-03 whose validation_status is "passed". Left out: the
+# NTAP 10-Q 0001193125-26-380207 (review_required). The fetch step exports each one to
 # <data_dir>/sections/<TICKER>_<accession>.jsonl (one line per section).
+# Within a company, filings are in period order.
 filings:
   - {ticker: AAPL, cik: "0000320193", form: 10-K, period_end: "2025-09-27", accession: "0000320193-25-000079"}
   - {ticker: AAPL, cik: "0000320193", form: 10-Q, period_end: "2026-03-28", accession: "0000320193-26-000013"}
   - {ticker: AAPL, cik: "0000320193", form: 10-Q, period_end: "2026-06-27", accession: "0000320193-26-000020"}
+  - {ticker: CASY, cik: "0000726958", form: 10-K, period_end: "2026-04-30", accession: "0000726958-26-000046"}
+  - {ticker: CASY, cik: "0000726958", form: 10-Q, period_end: "2026-07-31", accession: "0000726958-26-000085"}
+  - {ticker: MCK,  cik: "0000927653", form: 10-K, period_end: "2026-03-31", accession: "0000927653-26-000069"}
+  - {ticker: MCK,  cik: "0000927653", form: 10-Q, period_end: "2026-06-30", accession: "0000927653-26-000234"}
+  - {ticker: MDT,  cik: "0001613103", form: 10-K, period_end: "2026-04-24", accession: "0001628280-26-044354"}
+  - {ticker: MDT,  cik: "0001613103", form: 10-Q, period_end: "2026-07-31", accession: "0001628280-26-060473"}
   - {ticker: MSFT, cik: "0000789019", form: 10-Q, period_end: "2026-03-31", accession: "0001193125-26-191507"}
   - {ticker: MSFT, cik: "0000789019", form: 10-K, period_end: "2026-06-30", accession: "0001193125-26-323660"}
+  - {ticker: MU,   cik: "0000723125", form: 10-Q, period_end: "2026-05-28", accession: "0000723125-26-000015"}
+  - {ticker: MU,   cik: "0000723125", form: 10-K, period_end: "2026-09-03", accession: "0000723125-26-000023"}
+  - {ticker: NKE,  cik: "0000320187", form: 10-K, period_end: "2026-05-31", accession: "0000320187-26-000088"}
+  - {ticker: NKE,  cik: "0000320187", form: 10-Q, period_end: "2026-08-31", accession: "0000320187-26-000193"}
+  - {ticker: NTAP, cik: "0001002047", form: 10-K, period_end: "2026-04-24", accession: "0001193125-26-259683"}
+  - {ticker: PH,   cik: "0000076334", form: 10-Q, period_end: "2026-03-31", accession: "0000076334-26-000073"}
+  - {ticker: PH,   cik: "0000076334", form: 10-K, period_end: "2026-06-30", accession: "0000076334-26-000105"}
+  - {ticker: TTWO, cik: "0000946581", form: 10-K, period_end: "2026-03-31", accession: "0001628280-26-037434"}
+  - {ticker: TTWO, cik: "0000946581", form: 10-Q, period_end: "2026-06-30", accession: "0001628280-26-054870"}
