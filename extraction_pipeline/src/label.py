@@ -1,7 +1,8 @@
 """Step 5 - Label: the only step that calls the LLM (OpenAI).
 
-Follows Claudia's checked_pilot.py, so the same input gives the same requests,
-request hashes and cache folders as her run.
+Follows Claudia's checked_pilot.py: the same request layout, identity fields and cache folders
+as her run. Request hashes differ from hers since #45, because each batch and unit now
+carries unit_ids.
 
 Input : data/output/sentences.jsonl, data/sections/*.jsonl, config/claim_types.yaml,
         prompts/<prompt_version>.txt, data/entity_catalog.json (optional)
@@ -26,6 +27,11 @@ Money rules (from her code):
 A reply is rejected, and publishes no labels, when it is incomplete (finish_reason is not
 "stop"), a refusal, not exactly {"results": [...]}, or off the JSON schema. By default the
 run then stops (stop_on_failure); max_retries > 0 sends a follow-up request listing the problems.
+
+Ids: every stored record names a unit by its unit_id. The model sees short numbers instead
+("s0042": the unit's place in its section, counted from 1 over all units), made when a request
+is built and turned back into unit_ids as soon as a reply is read. They are never stored as
+ids; labels.jsonl has unit_id and context_unit_ids.
 
 Problems with single units are handled as in Claudia's run (her recovery v2 and repair scripts):
 - Unit quarantine: the rest of the reply is kept. A unit with invalid context ids, or whose
@@ -55,7 +61,7 @@ from pathlib import Path
 
 from . import entity_annotation, source_review
 from .common import (PROMPTS_DIR, source_text, Paths, append_jsonl, data_dir, filings, load_config, load_env, log,
-                     read_jsonl, settings, write_jsonl)
+                     read_jsonl, settings, unit_id, write_jsonl)
 from .validate import LABELS, check_reply
 
 STEP = "label"
@@ -99,23 +105,25 @@ def source_index() -> tuple[dict, dict]:
 
 def verify_units(units: list[dict], sources: dict) -> None:
     """Every unit must be rebuildable from the Data team content at its raw_spans, before anything is sent."""
-    if len({u["sentence_id"] for u in units}) != len(units):
-        raise ValueError("Duplicate sentence ids in sentences.jsonl.")
+    if len({u["unit_id"] for u in units}) != len(units):
+        raise ValueError("Duplicate unit ids in sentences.jsonl: two units share the same source spans.")
     for u in units:
         raw = sources[(u["accession_number"], u["section_key"])]
         for key in ("section_id", "processing_set_id", "source_locator", "form", "ticker"):
             if u[key] != raw[key]:
-                raise ValueError(f"{u['sentence_id']}: {key} differs from the section export.")
+                raise ValueError(f"{u['unit_id']}: {key} differs from the section export.")
         cursor = -1
         if not u["raw_spans"]:
-            raise ValueError(f"{u['sentence_id']}: no raw_spans.")
+            raise ValueError(f"{u['unit_id']}: no raw_spans.")
         for start, end in u["raw_spans"]:
             if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(raw["content"]) \
                     or start < cursor:
-                raise ValueError(f"{u['sentence_id']}: invalid or overlapping raw_spans.")
+                raise ValueError(f"{u['unit_id']}: invalid or overlapping raw_spans.")
             cursor = end
         if source_text(raw["content"], u["raw_spans"]) != u["text"]:
-            raise ValueError(f"{u['sentence_id']}: text cannot be rebuilt from the source.")
+            raise ValueError(f"{u['unit_id']}: text cannot be rebuilt from the source.")
+        if unit_id(u["accession_number"], u["section_key"], u["raw_spans"]) != u["unit_id"]:
+            raise ValueError(f"{u['unit_id']}: unit_id does not match its raw_spans; rerun step 4.")
 
 
 def entity_catalog() -> list[dict]:
@@ -127,9 +135,19 @@ def entity_catalog() -> list[dict]:
 
 # ---------- prompt, schema, request ----------
 
-def local_id(sentence_id: str) -> str:
-    """'0000320193-25-000079|part-i-item-1a|s0042' -> 's0042' (shorter ids, fewer tokens)."""
-    return sentence_id.rsplit("|", 1)[1]
+def local_ids(units: list[dict]) -> dict[str, str]:
+    """unit_id -> the short number the model sees: 's0042' for the 42nd unit of its section.
+
+    Counted over every unit of the section (headings and prefiltered units too), in the order
+    of sentences.jsonl, so it is the same number the units had as sentence ids before #45 and
+    the requests read the same. Used inside requests and replies only.
+    """
+    numbers, count = {}, defaultdict(int)
+    for u in units:
+        key = (u["accession_number"], u["section_key"])
+        count[key] += 1
+        numbers[u["unit_id"]] = f"s{count[key]:04d}"
+    return numbers
 
 
 def system_prompt(prompt_version: str) -> str:
@@ -145,10 +163,11 @@ def system_prompt(prompt_version: str) -> str:
 def user_payload(batch: dict, units: dict[str, dict]) -> dict:
     return {
         "filing": batch["filing"],
-        "section": units[batch["sentence_ids"][0]]["section_path"].split(" > ")[0],
-        "context": [{"id": local_id(s), "text": units[s]["text"]} for s in batch["context_ids"]],
-        "sentences": [{"id": local_id(s), "section_path": units[s]["section_path"], "text": units[s]["text"]}
-                      for s in batch["sentence_ids"]],
+        "section": units[batch["unit_ids"][0]]["section_path"].split(" > ")[0],
+        "context": [{"id": n, "text": units[u]["text"]}
+                    for u, n in zip(batch["context_unit_ids"], batch["context_local_ids"])],
+        "sentences": [{"id": n, "section_path": units[u]["section_path"], "text": units[u]["text"]}
+                      for u, n in zip(batch["unit_ids"], batch["local_ids"])],
     }
 
 
@@ -205,7 +224,8 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
     sources, _ = source_index()
     verify_units(units, sources)
     system = system_prompt(cfg["prompt_version"])
-    lookup = {u["sentence_id"]: u for u in units}
+    lookup = {u["unit_id"]: u for u in units}
+    numbers = local_ids(units)
     vocabulary = source_review.source_vocabulary(sources)
     catalog = entity_catalog()
 
@@ -222,17 +242,17 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
             size = min(cfg["batch_max_sentences"], len(eligible) - start)
             while True:
                 selected = eligible[start:start + size]
-                first = next(i for i, u in enumerate(section_units) if u["sentence_id"] == selected[0]["sentence_id"])
+                first = next(i for i, u in enumerate(section_units) if u["unit_id"] == selected[0]["unit_id"])
                 context = [u for u in section_units[:first] if u["role"] != "section_title"][-cfg["context_sentences"]:]
                 batch = {
                     "batch_id": f"{accession}|{section_key}|checked_start_{start}_n{len(selected)}",
                     "accession_number": accession, "section_key": section_key,
                     "section_type": selected[0]["section_type"],
                     "filing": f"{source['ticker']} {source['form']}",
-                    "sentence_ids": [u["sentence_id"] for u in selected],
-                    "context_ids": [u["sentence_id"] for u in context],
-                    "local_ids": [local_id(u["sentence_id"]) for u in selected],
-                    "context_local_ids": [local_id(u["sentence_id"]) for u in context],
+                    "unit_ids": [u["unit_id"] for u in selected],
+                    "context_unit_ids": [u["unit_id"] for u in context],
+                    "local_ids": [numbers[u["unit_id"]] for u in selected],
+                    "context_local_ids": [numbers[u["unit_id"]] for u in context],
                 }
                 request = build_request(batch, lookup, cfg, system)
                 if len(canonical(request).encode("utf-8")) <= cfg["max_request_bytes"] or size == 1:
@@ -357,7 +377,7 @@ def quarantine(batch: dict, results: list[dict]) -> tuple[list[dict], list[dict]
         row["annotation_note"] = ("CODE REVIEW ONLY: " + ", ".join(flags) + ". No candidate Claim published; "
                                   "original raw rows retained in unit_quarantine.json. "
                                   "This is not a model classification.")
-        held.append({"sentence_id": f"{batch['accession_number']}|{batch['section_key']}|{sid}",
+        held.append({"unit_id": batch["unit_ids"][expected.index(sid)], "local_id": sid,
                      "review_flags": flags, "original_model_assessments": deepcopy(originals),
                      "processing_projection": deepcopy(row), "disposition": "held_for_review_no_candidate"})
         rows.append(row)
@@ -469,28 +489,29 @@ REPAIR_PROMPT = "repair_v1"          # prompts/repair_v1.txt: the batch prompt w
 def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], plans: list[dict], cfg: dict) -> dict:
     """One request for every unit whose id was missing or repeated (Claudia's targeted repair)."""
     sources, _ = source_index()
-    lookup = {u["sentence_id"]: u for u in units}
+    lookup = {u["unit_id"]: u for u in units}
+    numbers = local_ids(units)
     item = deepcopy(response_schema()["schema"]["properties"]["results"]["items"])
     item["required"].remove("id")
     del item["properties"]["id"]
     targets, selected, contexts, schemas, payload = [], [], {}, {}, {}
-    for i, sid in enumerate(gap_ids, 1):
-        key, u = f"repair_{i}", lookup[sid]
+    for i, uid in enumerate(gap_ids, 1):
+        key, u = f"repair_{i}", lookup[uid]
         source = sources[(u["accession_number"], u["section_key"])]
         section = [r for r in units if r["accession_number"] == u["accession_number"]
                    and r["section_key"] == u["section_key"]]
-        pos = next(j for j, r in enumerate(section) if r["sentence_id"] == sid)
+        pos = next(j for j, r in enumerate(section) if r["unit_id"] == uid)
         prior = [r for r in section[:pos] if r["role"] != "section_title"][-cfg["context_sentences"]:]
         target_schema = deepcopy(item)
-        target_schema["properties"]["context_ids"]["items"]["enum"] = [local_id(r["sentence_id"]) for r in prior]
-        targets.append({"sentence_id": sid, "source_unit_key": u["source_unit_key"], "text": u["text"],
+        target_schema["properties"]["context_ids"]["items"]["enum"] = [numbers[r["unit_id"]] for r in prior]
+        targets.append({"unit_id": uid, "text": u["text"],
                         "section_content_sha256": digest(source["content"]), "raw_spans": u["raw_spans"],
-                        "gap": gaps[sid]})
+                        "gap": gaps[uid]})
         selected.append(u)
         contexts[key] = prior
         schemas[key] = target_schema
         payload[key] = {"target_sentence": u["text"], "section": u["section_path"],
-                        "context": [{"id": local_id(r["sentence_id"]), "text": r["text"]} for r in prior]}
+                        "context": [{"id": numbers[r["unit_id"]], "text": r["text"]} for r in prior]}
     schema = {"name": "target_gap_repair", "strict": True, "schema": {
         "type": "object", "additionalProperties": False, "required": ["repairs"], "properties": {
             "repairs": {"type": "object", "additionalProperties": False, "required": list(schemas),
@@ -508,9 +529,9 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
                                      if k != "content"} for u in selected],
                 "entity_catalog": entity_catalog(),
                 "provisional_segment_definitions": source_review.source_vocabulary(sources)}
-    return {"batch": {"batch_id": "target_repair", "sentence_ids": gap_ids}, "request": request,
+    return {"batch": {"batch_id": "target_repair", "unit_ids": gap_ids}, "request": request,
             "identity": identity, "request_hash": digest(canonical(identity)), "contexts": contexts,
-            "schema": schema}
+            "numbers": numbers, "schema": schema}
 
 
 def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
@@ -520,17 +541,17 @@ def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
     if problems:
         return problems, []
     labels = []
-    for i, sid in enumerate(plan["batch"]["sentence_ids"], 1):
+    for i, uid in enumerate(plan["batch"]["unit_ids"], 1):
         key = f"repair_{i}"
         row = deepcopy(parsed["repairs"][key])
-        order = {local_id(r["sentence_id"]): j for j, r in enumerate(plan["contexts"][key])}
+        context = {plan["numbers"][r["unit_id"]]: r["unit_id"] for r in plan["contexts"][key]}
+        order = {n: j for j, n in enumerate(context)}
         refs = row["context_ids"]
         if len(refs) != len(set(refs)) or any(r not in order for r in refs) \
                 or [order[r] for r in refs] != sorted(order[r] for r in refs):
             return [f"{key}: invalid context ids; no repair labels published"], []
-        prefix = sid.rsplit("|", 1)[0]
-        labels.append({"sentence_id": sid, "label": row["label"], "source": "llm_repair",
-                       "context_ids": [f"{prefix}|{c}" for c in refs],
+        labels.append({"unit_id": uid, "label": row["label"], "source": "llm_repair",
+                       "context_unit_ids": [context[c] for c in refs],
                        "subject_scope": row["subject_scope"], "annotation_note": row["annotation_note"],
                        "is_risk_heading": row["is_risk_heading"], "entity_mentions": row["entity_mentions"],
                        "batch_id": "target_repair", "request_hash": plan["request_hash"],
@@ -548,20 +569,20 @@ def spent_so_far() -> float:
 # ---------- labels file ----------
 
 def rule_label(unit: dict) -> dict:
-    return {"sentence_id": unit["sentence_id"], "label": "not_a_claim", "source": f"rule:{unit['prefilter']}",
-            "context_ids": [], "subject_scope": None, "annotation_note": None, "is_risk_heading": False,
+    return {"unit_id": unit["unit_id"], "label": "not_a_claim", "source": f"rule:{unit['prefilter']}",
+            "context_unit_ids": [], "subject_scope": None, "annotation_note": None, "is_risk_heading": False,
             "entity_mentions": []}
 
 
 def llm_labels(plan: dict, record: dict, results: list[dict], held: list[dict], cfg: dict) -> list[dict]:
-    """Labels from an accepted reply, mapped back to full sentence ids."""
+    """Labels from an accepted reply, with the model's short numbers turned back into unit ids."""
     batch = plan["batch"]
-    prefix = batch["sentence_ids"][0].rsplit("|", 1)[0]
-    held_ids = {h["sentence_id"] for h in held}
+    to_unit = dict(zip(batch["context_local_ids"] + batch["local_ids"], batch["context_unit_ids"] + batch["unit_ids"]))
+    held_ids = {h["unit_id"] for h in held}
     return [{
-        "sentence_id": f"{prefix}|{r['id']}", "label": r["label"],
-        "source": "code_quarantine" if f"{prefix}|{r['id']}" in held_ids else "llm",
-        "context_ids": [f"{prefix}|{c}" for c in r["context_ids"]],
+        "unit_id": to_unit[r["id"]], "label": r["label"],
+        "source": "code_quarantine" if to_unit[r["id"]] in held_ids else "llm",
+        "context_unit_ids": [to_unit[c] for c in r["context_ids"]],
         "subject_scope": r["subject_scope"], "annotation_note": r["annotation_note"],
         "is_risk_heading": r["is_risk_heading"], "entity_mentions": r["entity_mentions"],
         "batch_id": batch["batch_id"], "request_hash": plan["request_hash"],
@@ -590,7 +611,7 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
 
     if dry_run:
         reserve = sum(reserve_cost(p["request"], cfg) for p in plans)
-        log(STEP, f"{len(plans)} batches, {sum(len(p['batch']['sentence_ids']) for p in plans)} sentences; "
+        log(STEP, f"{len(plans)} batches, {sum(len(p['batch']['unit_ids']) for p in plans)} sentences; "
                   f"worst-case cost ${reserve:.2f} (dry run, no API calls)")
 
     if cfg.get("price_input_per_1m") is None or cfg.get("price_output_per_1m") is None:
@@ -600,7 +621,7 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
     labels = [rule_label(u) for u in units if u["prefilter"]]
     sent = rejected = complete = 0
     stopped = None
-    gaps: dict[str, str] = {}              # sentence id -> "missing" or "ambiguous"
+    gaps: dict[str, str] = {}              # unit id -> "missing" or "ambiguous"
     for plan in plans:
         selected = filing is None or plan["batch"]["accession_number"] == filing
         may_send = not dry_run and not stopped and selected and (limit is None or sent < limit)
@@ -623,12 +644,13 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         complete += 1
         labels += llm_labels(plan, reply["record"], reply["results"], reply["held"], cfg)
         for h in reply["held"]:
-            log(STEP, f"{h['sentence_id']} set aside as needs_review: {', '.join(h['review_flags'])}")
+            log(STEP, f"{plan['batch']['batch_id']} {h['local_id']} set aside as needs_review: "
+                      f"{', '.join(h['review_flags'])}")
             if h["review_flags"][0] in ("missing_model_target_id", "duplicate_model_target_id"):
-                gaps[h["sentence_id"]] = "missing" if h["review_flags"][0] == "missing_model_target_id" else "ambiguous"
+                gaps[h["unit_id"]] = "missing" if h["review_flags"][0] == "missing_model_target_id" else "ambiguous"
 
     if gaps and complete == len(plans):
-        order = {u["sentence_id"]: i for i, u in enumerate(units)}
+        order = {u["unit_id"]: i for i, u in enumerate(units)}
         repair = plan_repair(sorted(gaps, key=order.get), gaps, units, plans, cfg)
         try:
             record = labeller.cached(repair, kind="targeted_repair")
@@ -643,16 +665,16 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
                     rejected += 1
                     log(STEP, f"repair rejected: {'; '.join(problems)[:200]}")
                 else:
-                    done = {l["sentence_id"] for l in repaired}
-                    labels = [l for l in labels if l["sentence_id"] not in done] + repaired
+                    done = {l["unit_id"] for l in repaired}
+                    labels = [l for l in labels if l["unit_id"] not in done] + repaired
                     log(STEP, f"repaired {len(repaired)} units in one request")
         except StopRun as err:
             log(STEP, f"stopped: {err}")
     elif gaps:
         log(STEP, f"{len(gaps)} units wait for the repair request, sent once every batch has a reply")
 
-    order = {u["sentence_id"]: i for i, u in enumerate(units)}
-    labels.sort(key=lambda l: order.get(l["sentence_id"], 1 << 30))
+    order = {u["unit_id"]: i for i, u in enumerate(units)}
+    labels.sort(key=lambda l: order.get(l["unit_id"], 1 << 30))
     write_jsonl(Paths.labels(), labels)
     log(STEP, f"{sent} new requests, {rejected} rejected replies; {len(labels)}/{len(units)} units labelled "
               f"-> {Paths.labels()}")

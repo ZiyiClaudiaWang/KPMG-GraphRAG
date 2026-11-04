@@ -11,6 +11,7 @@ following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2
 > - the expansion to 10 companies / 20 filings
 > - fixes to steps 2 and 4 found on them
 > - the link from Claims to risk themes (#53)
+> - ids by source position instead of text (#45), and Claims for list groups and page-break sentences
 
 ## Scope
 
@@ -49,6 +50,7 @@ Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCER
 
 - [Scope](#scope)
 - [How it works](#how-it-works)
+- [Unit identity](#unit-identity)
 - [Setup](#setup)
 - [Run](#run)
 - [Tests](#tests)
@@ -76,7 +78,7 @@ flowchart TD
     DB[("Data team database")] -->|"1 Fetch"| SEC["Raw section text"]
     SEC -->|"2 Clean"| CLN["Cleaned sections"]
     CLN -->|"3 Filter"| MAN["Kept sections"]
-    MAN -->|"4 Segment<br/>(split into sentences and list groups)"| UNITS["Numbered units"]
+    MAN -->|"4 Segment<br/>(split into sentences and list groups)"| UNITS["Units<br/>(unit_id from source position)"]
     UNITS -->|"5 Label: OpenAI<br/>15 per batch + 4 context units"| CACHE["Saved requests<br/>and raw replies"]
     CACHE -->|"checks, unit quarantine,<br/>targeted repair"| LAB["Labels"]
     UNITS -->|"prefilter: not_a_claim"| LAB
@@ -86,7 +88,7 @@ flowchart TD
     LAB -->|"7b Build Claims"| CLM["Claims<br/>one line per occurrence"]
     RF --> CLM
     REV -->|"held units left out"| CLM
-    CLM -->|"8 Load: merge by claim_id"| NEO[("Neo4j")]
+    CLM -->|"8 Load: one Claim node per claim_id"| NEO[("Neo4j")]
 ```
 
 Code does everything that must be exact and repeatable. The LLM only judges meaning.
@@ -122,9 +124,8 @@ On the 20 filings, steps 1 to 4 give 15,057 units, of which 11,886 go to the LLM
   - A list item ending "; and" is not joined, and neither is a short heading.
 - <a id="step-3-filter"></a>**[3] Filter** keeps Item 1A, MD&A and Business (`config/sections.yaml`). Everything else is
   dropped with a reason, or marked `review` for a person to decide.
-- <a id="step-4-segment"></a>**[4] Segment** splits kept sections into numbered units:
-  - **Sentences.** Each sentence is one unit with an id such as `s0042`, numbered in order
-    within its section.
+- <a id="step-4-segment"></a>**[4] Segment** splits kept sections into units, written in source order:
+  - **Sentences.** Each sentence is one unit.
     - After an abbreviation that can also end a sentence ("U.S.", "Inc.", "plc"), a new sentence
       starts only if the next word is a typical sentence opener (`OPENERS`, e.g. "The", "We",
       "During", "Refer"). So "U.S. GAAP" and "NIKE, Inc. Revenues" stay one sentence.
@@ -161,18 +162,24 @@ On the 20 filings, steps 1 to 4 give 15,057 units, of which 11,886 go to the LLM
     - `cross_reference`: "See …", "Refer to …"
     - `too_short`: under 4 words; never for a split list item, whose meaning comes from its intro
   - **Ids and versions.**
-    - Each unit gets a `source_unit_key`, a hash of its filing, section, source spans and text.
-      Ids shift when a boundary changes earlier in the section; the key does not, so it shows
-      whether a unit is really the same.
+    - Each unit gets a `unit_id` from its filing, section and source spans, never its text
+      ([Unit identity](#unit-identity)). It is a unit's only id: every later step, file and the
+      graph point at a unit by `unit_id`.
     - `segmentation_version` (`kelly_sentence_v3`) is part of every request hash, so changing it
       relabels every unit.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
-- <a id="step-5-label"></a>**[5] Label** sends numbered sentences to OpenAI:
+- <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
+  - The model sees each unit under a short number (`s0042`: its place in the section, counted
+    over all units), made when the request is built. Replies are turned back into `unit_id`s at
+    once; the numbers are never stored as ids (`labels.jsonl` has `unit_id` and
+    `context_unit_ids`). They are the numbers the units had before #45, so the request text is
+    unchanged.
   - Batches of up to 15 consecutive sentences per section, with the 4 units before them as
     read-only context. The prompt is one file, `prompts/label_v2.txt`; the label definitions
     are filled in from `config/claim_types.yaml`.
   - Before sending, every sentence is rebuilt from the Data team text at its `raw_spans`; a
-    mismatch stops the step. Steps 5, 6 and 7b compare a unit with its source the same way
+    mismatch stops the step, and so does a `unit_id` that does not match the unit's spans.
+    Steps 5 and 7b compare a unit with its source the same way
     (`source_text()` in `common.py`: newlines, tabs and non-breaking spaces read as spaces).
   - The model returns, per number: a label (`stated_fact`, `forward_looking`, `hedged_risk`, or
     the pipeline-only `not_a_claim` and `needs_review`), `context_ids`, `subject_scope`,
@@ -202,7 +209,7 @@ On the 20 filings, steps 1 to 4 give 15,057 units, of which 11,886 go to the LLM
 - <a id="step-6-validate"></a>**[6] Validate** checks that every unit has exactly one valid label (`errors.jsonl`), then writes
   `review_queue.jsonl` for a person to look at. A held unit keeps its label
   but does not become a Claim. Rules (Claudia's, in `source_review.py` and `validate.py`;
-  `source_review.py` has her logic unchanged, see [Appendix C](#appendix-c-merge-notes-with-claudias-code)):
+  `source_review.py` has her rules unchanged, see [Appendix C](#appendix-c-merge-notes-with-claudias-code)):
   - Held, flag in `claim_review_flags`:
     - `list_intro_dependency_boundary_review`: a Claim whose context includes an intro ending
       in ":", i.e. a list item that may not stand alone.
@@ -212,9 +219,13 @@ On the 20 filings, steps 1 to 4 give 15,057 units, of which 11,886 go to the LLM
       with no may/could).
     - `known_product_list_fragment_boundary_review`: starts with a product-line name listed in
       `config/settings.yaml` (`review.known_list_fragment_prefixes`) shortly after a ":" intro.
-  - Held, with `source_fragments`: the label is `needs_review`, or the text is not one
-    continuous piece of the source (a list group, or a sentence joined across a page break;
-    `is_one_source_piece()` in `common.py`).
+  - Held, with `source_fragments`: the label is `needs_review`.
+  - Not held for being in several pieces: a list group, or a sentence joined across a page
+    break, becomes a Claim like any other unit. Step 5 has already checked that its text is
+    rebuilt exactly from the source; whether it was joined correctly is a question for steps 2
+    and 4, not for the label. Its Claim carries `multi_fragment: true` (step 7b).
+  - Every entry names its unit by `unit_id` (and the intro units it cites by `intro_unit_ids`),
+    so a review decision still finds its unit after other sentences are re-split.
   - Retained (`candidate_retained: true`, flag in `flags`): doubtful entity mentions. The Claim
     is still built.
     - quote not in the sentence
@@ -227,7 +238,7 @@ On the 20 filings, steps 1 to 4 give 15,057 units, of which 11,886 go to the LLM
 - <a id="step-7a-risk-factors"></a>**[7a] Risk factors** places every Item 1A unit under a risk category and its risk themes
   ([Appendix B](#appendix-b-risk-themes)). No model call: it needs step 4, and uses step 5 labels when they exist.
   - **Risk category:** the category heading above the unit in the filing, by position.
-    - Its id (`risk_category_id`) is the heading's `sentence_id`, so each filing has its own.
+    - Its id (`risk_category_id`) is the heading's `unit_id`, so each filing has its own.
     - Units before the first category heading, and filings without categories (Apple's 10-Qs),
       have none.
   - **Risk themes:** `config/risk_theme_map.csv` maps each category text (case does not matter)
@@ -237,31 +248,64 @@ On the 20 filings, steps 1 to 4 give 15,057 units, of which 11,886 go to the LLM
   - **Risk lead sentence:** the sentence that opens and sums up one risk.
     - It is the model's `is_risk_heading`, or without a model label the step 4 proposal
       (`rule_heading`).
-    - Each unit also records the lead sentence above it (`risk_lead_sentence_id`); this is not
-      loaded yet.
+    - Each unit also records the lead sentence above it (`risk_lead_sentence_id`, a `unit_id`);
+      this is not loaded yet.
   - On the 20 filings:
     - 79 category headings (45 distinct texts), all in the map: 72 with themes, 7 not a theme
     - 5,071 of the 5,302 Item 1A units sent to the LLM have a theme
   - All fields: [Appendix A: `risk_categories.csv`](#risk_categoriescsv-step-7a).
 - <a id="step-7b-build-claims"></a>**[7b] Build Claims** writes one record per occurrence (a Claim sentence at one place in a
-  section): the ontology fields, provenance (sentence ids, source spans,
+  section): the ontology fields, provenance (source spans, context unit ids,
   XPath, section hash, request hash, model, prompt id), the source fragments and paragraph, and
   entity mentions checked against the sentence and the entity catalog (`entity_annotation.py`).
   `not_a_claim` and `needs_review` units, and units held in step 6, do not become Claims.
   All fields: [Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8).
   - `quote`: the source text of every fragment, joined by one space. A multi-span unit is never
-    cut to its first fragment, even when step 6 did not hold it.
-  - `claim_id`: uuid5 of `<accession>|<section_key>|<exact sentence text>`.
-    The same sentence twice in one section shares one `claim_id`; `candidate_occurrence_id`
-    tells the occurrences apart.
-  - Risk fields from step 7a, joined by sentence id: `risk_ids`, `risk_category_id`,
+    cut to its first fragment.
+  - `multi_fragment`: true for a list group or a sentence joined across a page break (133 of the
+    units sent to the LLM on the 20 filings). Its `quote` is not one continuous string of the
+    source; `source_fragments` gives each piece, each one verbatim
+    ([Remaining issues 1.1](#1-needs-a-decision-within-the-team-and-across-teams)).
+  - `claim_id`: the unit's `unit_id` ([Unit identity](#unit-identity)); `claim_identity_version`
+    is `source_span_position_v1`. A Claim is a statement at one place: the same sentence twice
+    in one section is two Claims.
+  - Ids that point at other units (`context_evidence`, `risk_category_id`,
+    `provenance.context_unit_ids`, `provenance.risk_lead_sentence_id`) are `unit_id`s.
+  - Each run compares its `claim_id`s with the `claims.jsonl` it replaces and writes
+    `output/claim_id_report.json`: ids added, ids gone, and ids kept whose quote changed, with
+    examples. The counts are also logged.
+  - Risk fields from step 7a: `risk_ids`, `risk_category_id`,
     `risk_lead_sentence` and `risk_summary` ([Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8)).
-- <a id="step-8-load"></a>**[8] Load** merges occurrences with the same `claim_id` into one Claim node and keeps every
-  occurrence's sentence id and source spans on `SUPPORTS`.
+- <a id="step-8-load"></a>**[8] Load** writes one Claim node per `claim_id`, with its ids and source spans on `SUPPORTS`,
+  and `multi_fragment` on the node.
+  - Files built with the old text-keyed `claim_id` (Claudia's `candidate_occurrences.jsonl`)
+    can have several lines with one `claim_id`; those still become one node, with every
+    occurrence's ids and spans on `SUPPORTS`.
   - A Claim gets one `CONCERNS_RISK` edge per risk theme of any of its occurrences.
     RiskFactor nodes are the themes of `config/risk_themes.csv` that some Claim uses, keyed by
     `risk_id`.
   - Entity mentions and review fields stay in `claims.jsonl`; they are not loaded into the graph.
+
+## Unit identity
+
+A unit's id (`unit_id`, and `claim_id` for a Claim) is uuid5 of
+`<accession_number>|<section_key>|<raw_spans>`, with `raw_spans` written as compact JSON in
+order (`common.unit_id()`; #45). The text is not part of it.
+
+| Change | `unit_id` / `claim_id` |
+|--------|------------------------|
+| Text-only cleaning changes that keep every unit's spans: whitespace, newlines and non-breaking spaces read as spaces (`ONE_FOR_ONE`), any other one-for-one character change | same |
+| An earlier unit in the section is split differently | same for every unit whose own spans are unchanged |
+| Step 2 removes or keeps different text inside a sentence (e.g. a page header is no longer removed, so the sentence is no longer joined) | new |
+| Step 2 joins split paragraphs differently (`should_join`) | new |
+| Step 2 trims more or fewer characters at a unit's start or end (a bullet sign, whitespace) | new |
+| Step 4 splits sentences differently, or merges or splits a list differently (`merge_list`) | new, for the units affected |
+| The Data team re-extracts the section and its `content` changes (`processing_set_id`) | new |
+| The same sentence at another place in the section, or in another filing | a different id |
+
+`output/claim_id_report.json` shows how many `claim_id`s each build changed (step 7b).
+Anything joined on `claim_id` across builds (Eval's citations, a review decision) stops
+matching for the ids that changed.
 
 ## Setup
 
@@ -337,13 +381,13 @@ pytest tests -q                  # as CI does (pytest.ini puts src/ on the path)
 python -m unittest discover tests
 ```
 
-62 tests. They need no API key or database.
+68 tests. They need no API key or database.
 
 - `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
   fake model in place of OpenAI and its own risk theme map (`tests/fixtures/risk_theme_map.csv`).
 - `test_sentence_entities.py` started as Claudia's (sentence boundaries and entity matching)
-  and now also covers bullets, lists, abbreviations, headings, page breaks, risk categories and
-  the risk factor summary.
+  and now also covers bullets, lists, abbreviations, headings, page breaks, risk categories,
+  the risk factor summary and unit ids.
 
 ## Cost tracking
 
@@ -378,25 +422,24 @@ python -m unittest discover tests
 | `output/labels.jsonl` | • units the model labelled `not_a_claim` (`source` is `llm`): they appear neither in the review queue nor in `claims.jsonl`<br>• in Item 1A, `is_risk_heading`, which decides the risk lead sentences |
 | `output/errors.jsonl` | should be empty after step 6 |
 | `output/review_queue.jsonl` | • held units (no `candidate_retained`), their `reason` and `claim_review_flags`<br>• retained Claims with entity `flags` |
-| `output/claims.jsonl` | • sample Claims per section for the type-fit test<br>• `risk_ids` of Item 1A Claims |
+| `output/claims.jsonl` | • sample Claims per section for the type-fit test<br>• `risk_ids` of Item 1A Claims<br>• `multi_fragment` Claims: whether the list or page-break join is right |
+| `output/claim_id_report.json` | ids added, gone and with a changed quote since the last build; expected near 0 when only labels changed |
 
 ## Remaining issues to be fixed
 
 ### 1. Needs a decision within the team and across teams
 
-1. **Non-continuous text holds list groups and page-break sentences.**
+1. **Multi-fragment Claims and the UI's quote matching.**
    - A list group joins its intro and items; a sentence split by a page break is rejoined after
-     the page header is removed. Their `raw_spans` still locate every part exactly.
-   - So a sentence cut by a page break is rejoined in step 2 but never becomes a Claim: step 6
-     holds it because it is not one continuous piece of the source. The same goes for a split
-     list item cut by a page break, and for every list group. A list whose items fall on two
-     pages is not affected when each item is whole. On the 20 filings, 133 units sent to the
-     LLM have more than one span.
-   - The rule exists because the UI finds a quote by searching for it as one string
-     (`docs/data-contract.md`).
-   - The quote-matching comes from the cross-team data contract, so changing it needs the other
-     teams as well as ours.
-   - To decide: drop the rule if the UI can highlight by `raw_spans`.
+     the page header is removed. Their `raw_spans` still locate every part exactly. On the 20
+     filings, 133 units sent to the LLM have more than one span.
+   - Step 6 used to hold all of them, because the UI finds a quote by searching for it as one
+     string (`docs/data-contract.md`: "the verbatim quote is what UI matches on"). Decided on 4
+     November 2026 (Kelly): they become Claims, marked `multi_fragment: true`.
+   - Their `quote` (fragments joined by one space) is therefore not found by a plain search.
+     Each entry of `source_fragments` is verbatim, so matching fragment by fragment works.
+   - To tell the UI and Eval teams, and note in the data contract: for a `multi_fragment` Claim,
+     match `source_fragments`, not `quote`.
 2. **The list rule changes Alina's interim convention.**
    - Her convention: an intro and its list are one candidate Claim.
    - Now only short fragment lists are merged ([step 4](#step-4-segment)). On the 20 filings:
@@ -472,8 +515,8 @@ python -m unittest discover tests
 1. **Release held units.**
    - A unit held in `review_queue.jsonl` stays out of `claims.jsonl`. After review, the only way
      through is editing files by hand, and the next step 6 run holds it again.
-   - To do: a release list that step 6 reads (sentence ids, or `source_unit_key` so it survives
-     id shifts), and who signs off on a release.
+   - To do: a release list that step 6 reads, by `unit_id` so it survives renumbering, and who
+     signs off on a release.
 2. **Link Claims to subsidiaries and segments.**
    - Entity mentions are checked and kept in `claims.jsonl`, but no graph links are made:
      `related_segment_ids` and `related_subsidiary_ids` are empty, and so is the entity catalog.
@@ -550,14 +593,15 @@ open, ontology-level question, to be decided later with the retrieval team.
 ### 4. [Claims] Repeated sentences across filings
 
 1. The same sentence in another filing is a separate Claim (`claim_id` includes the accession
-   number); within one section it is one Claim.
+   number); so is the same sentence twice in one section (`claim_id` includes its position).
 2. Repeats are common in the five-filing run (not yet counted on the 20 filings):
    - 1,223 of about 2,400 Claims share their text with a Claim in another filing of the same
      company
    - mostly between a 10-K and a 10-Q (448 Microsoft sentences), mainly in Risk Factors and MD&A
    - no sentence repeated across companies
-3. To decide: keep one Claim per filing, or link or merge repeats across filings (also #45: is a
-   Claim "this sentence" or "this sentence at this place").
+3. To decide: keep one Claim per filing, or link or merge repeats across filings. Within one
+   section this is decided (#45): a Claim is a statement at one place, so a repeated sentence is
+   two Claims (61 texts, 76 extra units on the 20 filings).
 
 ### 5. [Claims] Sentences that restate figures
 
@@ -575,7 +619,7 @@ One line per unit. "Data team" fields are copied from the section export; the re
 
 | Field | Source | Meaning |
 |-------|--------|---------|
-| `sentence_id` | segment | `<accession>\|<section_key>\|s0042`; numbered in order within the section |
+| `unit_id` | segment | uuid5 of accession, section key and `raw_spans` ([Unit identity](#unit-identity)); what every later file uses to point at the unit |
 | `accession_number`, `ticker`, `form` | Data team | Filing the unit comes from |
 | `section_id`, `section_key`, `section_type` | Data team | Section the unit comes from; `section_type` is the shared Item code (`risk_factors`, `mda`, ...) |
 | `section_label` | segment | `Part I Item 1A`; always with the Part prefix |
@@ -588,24 +632,23 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `raw_spans` | segment | Position(s) in the Data team `content`; one `[start, end]` per fragment |
 | `paragraph_index` | segment | Paragraph number in the cleaned section |
 | `list_paragraphs` | segment | List groups only: the paragraphs the group covers |
-| `list_intro_id` | segment | Split list items only: `sentence_id` of the intro's last sentence |
+| `list_intro_id` | segment | Split list items only: `unit_id` of the intro's last sentence |
 | `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `cross_reference`, `too_short`; null if sent to the LLM |
 | `rule_heading` | segment | Item 1A only: `high` or `medium` if the rules propose the unit as a risk lead sentence; else null |
 | `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
 | `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
 | `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `source_unit_key` | segment | Hash of filing, section, `raw_spans` and `text`; stable when ids shift |
 | `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v3`) |
 
 ### `risk_categories.csv` (step 7a)
 
 One row per risk category heading in each filing. `risk_assignments.jsonl` (in `data/interim/`)
-has one line per Item 1A unit with its `risk_category_id`, `risk_ids`, `risk_lead_sentence` and
-`risk_lead_sentence_id`.
+has one line per Item 1A unit (`unit_id`) with its `risk_category_id`, `risk_ids`,
+`risk_lead_sentence` and `risk_lead_sentence_id` (a `unit_id`).
 
 | Field | Meaning |
 |-------|---------|
-| `risk_category_id` | `sentence_id` of the category heading |
+| `risk_category_id` | `unit_id` of the category heading |
 | `accession_number`, `ticker`, `form`, `section_key` | Where the heading is |
 | `category_text` | The heading as written |
 | `risk_summary` | True if the heading is in the risk factor summary |
@@ -615,27 +658,28 @@ has one line per Item 1A unit with its `risk_category_id`, `risk_ids`, `risk_lea
 
 ### `claims.jsonl` (step 7b, input to step 8)
 
-One line per occurrence: a Claim sentence at one place in a section. Step 8 merges lines with the
-same `claim_id` into one Claim node. "Loaded" shows where a field ends up in Neo4j.
+One line per Claim: a statement at one place in a section, so step 8 makes one Claim node per
+line. "Loaded" shows where a field ends up in Neo4j.
 
 | Field | Meaning | Loaded |
 |-------|---------|--------|
-| `claim_id` | uuid5 of `<accession>\|<section_key>\|<exact sentence text>` | `Claim.claim_id` |
-| `quote` | The sentence, exactly as in the Data team `content` | `Claim.quote` |
+| `claim_id` | The unit's `unit_id`: uuid5 of `<accession>\|<section_key>\|<raw_spans>` | `Claim.claim_id` |
+| `quote` | The sentence, exactly as in the Data team `content`; for a multi-fragment unit, its fragments joined by one space | `Claim.quote` |
+| `multi_fragment` | True if the unit has several source fragments (list group, page break): match `source_fragments`, not `quote` | `Claim.multi_fragment` |
 | `claim_type` | `stated_fact`, `forward_looking` or `hedged_risk` | `Claim.claim_type` |
 | `accession_number`, `section_id` | Filing and section the Claim comes from | `Claim`; `Section-[:SUPPORTS]->Claim` |
 | `extraction_status` | Always `needs_review` (no Claim is approved yet) | `Claim.extraction_status` |
 | `context` | Text of the context units the model cited, joined | `Claim.context` |
 | `subject_scope`, `annotation_note` | From the model | `Claim` |
 | `risk_ids` | Risk themes of the category the Claim sits under; empty outside Item 1A categories | one `Claim-[:CONCERNS_RISK]->RiskFactor` per theme |
-| `risk_category_id` | `sentence_id` of that category heading, or null | no |
+| `risk_category_id` | `unit_id` of that category heading, or null | no |
 | `risk_lead_sentence` | True if the Claim is the sentence that opens and sums up a risk | `Claim.risk_lead_sentence` |
 | `risk_summary` | True if the Claim is in the risk factor summary at the top of Item 1A | `Claim.risk_summary` |
-| `provenance` | Sentence ids, section key and path, XPath, Data team versions (`processing_set_id`, `report_id`, source hashes), section content hash, `raw_spans`, context sentence ids, `risk_lead_sentence_id`, `request_hash`, `runner_version`, `model`, `prompt_version` | Part, on `SUPPORTS`: sentence ids, section key and path, context sentence ids, `risk_lead_sentence_id`, `raw_spans` (as JSON), XPath, source file, `processing_set_id`, `model`, `prompt_version`; step 8 adds the unit's `role` |
+| `provenance` | Section key and path, XPath, Data team versions (`processing_set_id`, `report_id`, source hashes), section content hash, `raw_spans`, `context_unit_ids`, `risk_lead_sentence_id` (a unit id), `request_hash`, `runner_version`, `model`, `prompt_version` | Part, on `SUPPORTS`: section key and path, `context_unit_ids`, `risk_lead_sentence_id`, `raw_spans` (as JSON), XPath, source file, `processing_set_id`, `model`, `prompt_version`; step 8 adds the unit's `role` |
 | `candidate_occurrence_id` | sha256 of claim id, section content hash and `raw_spans`; one per occurrence | no |
-| `claim_identity_version` | How `claim_id` is made (`exact_source_sentence_v1`) | no |
+| `claim_identity_version` | How `claim_id` is made: `source_span_position_v1` (before #45: `exact_source_sentence_v1`, by text). Tells anyone holding claim_ids whether two builds' ids are comparable | no |
 | `section_logical_key`, `section_type` | `<accession>/<section_key>`; the section's Item code | no |
-| `context_evidence` | The cited context units: ids, `raw_spans` and text | no |
+| `context_evidence` | The cited context units: `unit_id`, `raw_spans` and text | no |
 | `source_fragments`, `parent_paragraph_context` | Start, end and text of the sentence and of its paragraph in the Data team `content` | no |
 | `entity_mentions`, `entity_review_flags`, `entity_annotation_version`, `graph_relations_created` | The model's entity mentions checked against the sentence and catalog (`entity_annotation.py`) | no |
 | `proposed_entity_mentions`, `entity_review`, `postcheck_policy_version` | Segment names found by rule, and the review of the model's mentions (`source_review.py`) | no |
@@ -698,8 +742,12 @@ theme links:
 
 Claudia ran steps 5 to 8 on the five filings with her own version of this pipeline (handoff
 package `GraphRAG_Five_Filing_Handoff`). Her changes were merged into this code as below.
-The merged step 5 built the same 173 requests as her run, byte for byte. These notes describe
-that merge; steps 2, 4 and 7a have changed since ([How it works](#how-it-works)).
+The merged step 5 built the same 173 requests as her run, byte for byte (the text sent to the
+model still is; since #45 the request hashes differ, because batches carry unit ids). These notes describe
+that merge; steps 2 to 8 have changed since ([How it works](#how-it-works)), among them the
+ids (#45: `sentence_id` and `source_unit_key` removed, `claim_id` and every reference by
+`unit_id`; one line of `claim_review_flags()` in her `source_review.py` now reads context by
+`unit_id`, its rules unchanged) and the hold for non-continuous text (removed).
 
 ### Taken into this code
 
@@ -747,9 +795,11 @@ that merge; steps 2, 4 and 7a have changed since ([How it works](#how-it-works))
   - Her `source_review.py` functions, logic unchanged. On 4 November 2026 the file was
     reformatted with black (line length 100) in a commit of its own; its syntax tree is
     identical to her handoff version, so only spacing and line breaks differ. To compare with
-    her handoff line by line, use the version before that commit. Hold rules: `needs_review`, list intro,
-    non-continuous text, mixed tense, past action with possible future, existing law as risk,
-    and her hard-coded Microsoft product names (moved to `config/settings.yaml`).
+    her handoff line by line, use the version before that commit. Since #45,
+    `claim_review_flags()` looks up context units by `unit_id` instead of joining her short ids
+    to a section prefix; which units it flags is unchanged. Hold rules: `needs_review`, list
+    intro, non-continuous text (removed since, see 1.1), mixed tense, past action with possible
+    future, existing law as risk, and her hard-coded Microsoft product names (moved to `config/settings.yaml`).
   - Review queue entries in her format, with her flag names and reasons.
   - Entity checks taken: quote not in the sentence, "the Company" or "we" as an entity, generic
     references get no id, uncertain type, named subsidiary needing the catalog, and her segment
@@ -758,7 +808,7 @@ that merge; steps 2, 4 and 7a have changed since ([How it works](#how-it-works))
     impairment-process sentence in Microsoft's 10-Q MD&A); hand decisions are not coded.
   - Kept, with open points recorded under [Remaining issues to be fixed](#remaining-issues-to-be-fixed):
     - the list-intro rule also holds complete sentences (1.2)
-    - the non-continuous rule depends on how the UI highlights quotes (1.1)
+    - the non-continuous rule depended on how the UI highlights quotes (1.1; removed since)
     - held units cannot be released yet (3.1)
   - The same 119 units carry entity flags as in her run.
   - Taken but specific to these filings (Remaining issues to be fixed): the product names and the

@@ -26,6 +26,7 @@ shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
 from src import build_claims, clean, filter_sections, label, load, risk_factors, segment, validate  # noqa: E402
 from src.clean import ONE_FOR_ONE  # noqa: E402
+from src import common  # noqa: E402
 from src.common import Paths, read_jsonl  # noqa: E402
 from src.segment import split_sentences  # noqa: E402
 from src.validate import check_reply  # noqa: E402
@@ -125,15 +126,15 @@ class ReviewRules(unittest.TestCase):
     source = {"content": "", "cik": "0000320193", "accession_number": "A", "section_type": "mda",
               "source_locator": None, "processing_set_id": "p"}
 
-    def unit(self, text, sid="A|k|s0002", spans=None):
-        return {"sentence_id": sid, "text": text, "raw_spans": spans or [[0, len(text)]],
+    def unit(self, text, uid="u2", spans=None):
+        return {"unit_id": uid, "text": text, "raw_spans": spans or [[0, len(text)]],
                 "section_type": "mda", "accession_number": "A"}
 
     def entry(self, unit, label, units=None, neighbours=None, prefixes=()):
         result = {"label": label, "context_ids": [], "subject_scope": None, "annotation_note": None,
                   "is_risk_heading": False, "entity_mentions": []}
         if units:
-            result["context_ids"] = [k.rsplit("|", 1)[1] for k in units]
+            result["context_ids"] = list(units)                       # unit ids
         source = dict(self.source, content=unit["text"])
         return validate.review_entry(unit, result, units or {}, neighbours or [unit], source, [], [], prefixes)
 
@@ -148,17 +149,20 @@ class ReviewRules(unittest.TestCase):
         self.assertIsNone(self.entry(unit, "not_a_claim"))
 
     def test_list_intro_held(self):
-        units = {"A|k|s0001": {"text": "Revenue is affected by:"}}
+        units = {"u1": {"text": "Revenue is affected by:", "unit_id": "u1"}}
         got = self.entry(self.unit("Growth of the AI PC category."), "stated_fact", units)
         self.assertEqual(got["claim_review_flags"], ["list_intro_dependency_boundary_review"])
-        self.assertEqual(got["intro_sentence_ids"], ["A|k|s0001"])
+        self.assertEqual((got["unit_id"], got["intro_unit_ids"]), ("u2", ["u1"]))
+        self.assertNotIn("sentence_id", got)
 
-    def test_page_break_held_as_non_verbatim(self):
+    def test_page_break_not_held(self):
+        # several fragments are not a reason to hold a labelled unit; needs_review still is
         unit = self.unit("Growth of the AI PC category.", spans=[[0, 10], [11, 29]])
-        self.assertEqual(self.entry(unit, "stated_fact")["reason"], validate.HELD_UNCERTAIN_REASON)
+        self.assertIsNone(self.entry(unit, "stated_fact"))
+        self.assertEqual(self.entry(unit, "needs_review")["reason"], validate.HELD_UNCERTAIN_REASON)
 
     def test_known_list_fragment(self):
-        intro = self.unit("This segment primarily comprises:", "A|k|s0001")
+        intro = self.unit("This segment primarily comprises:", "u1")
         unit = self.unit("XBOX (formerly Gaming), including XBOX hardware.")
         got = self.entry(unit, "stated_fact", neighbours=[intro, unit], prefixes=("XBOX (formerly Gaming),",))
         self.assertEqual(got["claim_review_flags"], ["known_product_list_fragment_boundary_review"])
@@ -190,12 +194,12 @@ class EndToEnd(unittest.TestCase):
         def reply(payload, request):
             """Labels everything stated_fact. The first reply leaves its last sentence out and
             cites a later sentence as context for its first one."""
-            units = {u["sentence_id"].rsplit("|", 1)[1]: u for u in EndToEnd.units}
+            by_text = {u["text"]: u for u in EndToEnd.units}
             row = {"label": "stated_fact", "context_ids": [], "subject_scope": None, "annotation_note": None,
                    "is_risk_heading": False, "entity_mentions": []}
             if "repair_1" in payload:                                  # the targeted repair request
                 return {"repairs": {key: row for key in payload}}
-            results = [dict(row, id=s["id"], is_risk_heading=bool(units[s["id"]]["rule_heading"]))
+            results = [dict(row, id=s["id"], is_risk_heading=bool(by_text[s["text"]]["rule_heading"]))
                        for s in payload["sentences"]]
             if len(FakeOpenAI.calls) == 1:
                 EndToEnd.dropped = results[-1]["id"]
@@ -208,10 +212,9 @@ class EndToEnd(unittest.TestCase):
         try:
             label.run()
             cls.requests = list(FakeOpenAI.calls)
-            first = json.loads(cls.requests[0]["messages"][1]["content"])["sentences"][0]["id"]
-            cls.requests_first_section = next(u["sentence_id"].rsplit("|", 1)[0] for u in cls.units
-                                              if u["sentence_id"].endswith("|" + first)
-                                              and u["prefilter"] is None)
+            first = json.loads(cls.requests[0]["messages"][1]["content"])["sentences"][0]["text"]
+            unit = next(u for u in cls.units if u["text"] == first)
+            cls.requests_first_section = (unit["accession_number"], unit["section_key"])
             cls.calls = len(cls.requests)
             restore()
             restore = use_fake_openai(lambda *a: cls.fail("cache was not used"))
@@ -255,8 +258,10 @@ class EndToEnd(unittest.TestCase):
 
     def test_unit_quarantine_and_repair(self):
         self.assertEqual(self.errors, 0)
-        labels = {l["sentence_id"].rsplit("|", 1)[1]: l for l in read_jsonl(Paths.labels())
-                  if l["sentence_id"].startswith(self.requests_first_section)}
+        numbers = label.local_ids(self.units)          # the short numbers the model saw
+        section = {u["unit_id"] for u in self.units
+                   if (u["accession_number"], u["section_key"]) == self.requests_first_section}
+        labels = {numbers[l["unit_id"]]: l for l in read_jsonl(Paths.labels()) if l["unit_id"] in section}
         bad = labels[self.bad_context]                  # invalid context: needs_review, no Claim
         self.assertEqual((bad["label"], bad["source"]), ("needs_review", "code_quarantine"))
         fixed = labels[self.dropped]                    # missing id: answered by the repair request
@@ -279,6 +284,49 @@ class EndToEnd(unittest.TestCase):
         first = [c["claim_id"] for c in self.claims]
         build_claims.run()
         self.assertEqual(first, [c["claim_id"] for c in read_jsonl(Paths.claims())])
+        report = json.loads(Paths.claim_id_report().read_text(encoding="utf-8"))
+        self.assertEqual((report["added"], report["gone"], report["kept"], report["quote_changed"]),
+                         (0, 0, len(first), 0))
+
+    def test_claim_id_is_the_unit_position(self):
+        units = {u["unit_id"]: u for u in self.units}
+        for c in self.claims:
+            unit = units[c["claim_id"]]
+            self.assertEqual(c["claim_id"], common.unit_id(unit["accession_number"], unit["section_key"],
+                                                           c["provenance"]["raw_spans"]))
+            self.assertEqual(c["claim_identity_version"], "source_span_position_v1")
+        self.assertEqual(len(units), len(self.units))
+
+    def test_no_sentence_ids_anywhere(self):
+        # #45: one id per unit; the model's short numbers never leave the request and reply
+        for path in (Paths.sentences(), Paths.labels(), Paths.errors(), Paths.review_queue(),
+                     Paths.risk_assignments(), Paths.claims(), Paths.cypher()):
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn('"sentence_id', text, path.name)          # sentence_id(s) as a key
+            self.assertNotIn('|s0', text, path.name)                   # an old-style id as a value
+
+    def test_cleaning_change_that_keeps_spans_keeps_ids(self):
+        # #45: a one-for-one text change (here straight to curly apostrophes) moves no span
+        sec = next(s for s in read_jsonl(Paths.cleaned({"ticker": "TEST", "accession": "0000000000-25-000001"}))
+                   if "'" in s["text"])
+        curly = dict(sec, text=sec["text"].replace("'", "\u2019"),
+                     paragraphs=[dict(p, text=p["text"].replace("'", "\u2019")) for p in sec["paragraphs"]])
+        cfg = segment.settings()["segment"]
+        before, after = segment.segment_section(sec, cfg), segment.segment_section(curly, cfg)
+        self.assertNotEqual([u["text"] for u in before], [u["text"] for u in after])
+        self.assertEqual([u["unit_id"] for u in before], [u["unit_id"] for u in after])
+
+    def test_same_sentence_twice_is_two_units(self):
+        # #45, decided: a Claim is a statement at one place, so a repeated sentence gets two ids
+        sec = next(read_jsonl(Paths.cleaned({"ticker": "TEST", "accession": "0000000000-25-000001"})))
+        text = "Demand for our products may fall sharply."
+        n = len(text)
+        twice = dict(sec, text=f"{text}\n\n{text}",
+                     paragraphs=[{"text": text, "start": 0, "pieces": [[0, n, 0]]},
+                                 {"text": text, "start": n + 2, "pieces": [[n + 2, 2 * n + 2, n + 2]]}])
+        units = [u for u in segment.segment_section(twice, segment.settings()["segment"]) if u["text"] == text]
+        self.assertEqual(len(units), 2)
+        self.assertNotEqual(units[0]["unit_id"], units[1]["unit_id"])
 
     def test_load_preview_written(self):
         self.assertIn("MERGE (s)-[x:SUPPORTS", Paths.cypher().read_text(encoding="utf-8"))
@@ -294,29 +342,22 @@ class EndToEnd(unittest.TestCase):
         categories = list(csv.DictReader(open(Paths.risk_categories(), encoding="utf-8")))
         self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "mapped")])
 
-    def test_no_half_quotes_without_the_review_queue(self):
+    def test_no_half_quotes(self):
         # #35 review, point 1: a multi-span unit must not be quoted by its first fragment only
-        queue = Paths.review_queue()
-        saved = queue.read_text(encoding="utf-8")
-        queue.unlink()
-        try:
-            build_claims.run()
-            claims = list(read_jsonl(Paths.claims()))
-        finally:
-            queue.write_text(saved, encoding="utf-8")
-            build_claims.run()
-        units = {u["sentence_id"]: u for u in self.units}
-        multi = [c for c in claims if len(c["source_fragments"]) > 1]
-        self.assertTrue(multi)                                   # the list group is built now
-        for c in claims:
-            unit = units[c["provenance"]["sentence_ids"][0]]
+        units = {u["unit_id"]: u for u in self.units}
+        for c in self.claims:
+            unit = units[c["claim_id"]]
             self.assertEqual(c["quote"].translate(ONE_FOR_ONE), unit["text"])
+            self.assertEqual(c["multi_fragment"], len(c["source_fragments"]) > 1)
 
-    def test_list_group_held_not_a_claim(self):
-        held = validate.held_ids()
+    def test_list_group_becomes_a_claim(self):
         group = next(u for u in self.units if u["role"] == "list_group")
-        self.assertIn(group["sentence_id"], held)
-        self.assertNotIn(group["text"], {c["quote"] for c in self.claims})
+        self.assertNotIn(group["unit_id"], validate.held_ids())
+        claim = next(c for c in self.claims if c["claim_id"] == group["unit_id"])
+        self.assertTrue(claim["multi_fragment"])
+        self.assertEqual(len(claim["source_fragments"]), len(group["raw_spans"]))
+        row = next(r for r in load.build_rows()["claims"] if r["claim_id"] == group["unit_id"])
+        self.assertTrue(row["multi_fragment"])
 
     def test_usage_and_cost_logged(self):
         rows = list(read_jsonl(Paths.usage()))

@@ -8,7 +8,8 @@ Output: data/output/risk_categories.csv     one row per risk category heading in
 
 Three levels (README, risk factors):
   risk_category       a category heading the filing itself uses ("Business Risks"). Its id is
-                      the sentence_id of that heading, so it is unique to one filing.
+                      the unit_id of that heading (a position in the source, #45), so it is
+                      unique to one filing and does not move when other sentences are re-split.
   risk_theme          an entry of the library, shared by all companies and filings (risk_id).
                       A category maps to zero, one or several themes through risk_theme_map.csv.
   risk_lead_sentence  the sentence that opens and sums up one risk (flagged by the LLM as
@@ -16,8 +17,8 @@ Three levels (README, risk factors):
 
 Every sentence belongs to the category heading above it, by position, and takes that
 category's themes. Sentences before the first category heading have none. Each sentence
-also records the risk lead sentence above it within the same category; this link is kept
-for later and does not reach the graph yet.
+also records the risk lead sentence above it within the same category (its unit_id); this
+link is kept for later and does not reach the graph yet. Every id here is a unit_id.
 
 A category text missing from risk_theme_map.csv is listed as "unmapped" and gets no theme;
 add it to the map to connect it.
@@ -68,7 +69,7 @@ def theme_map(library: dict[str, dict]) -> dict[str, list[str]]:
 
 
 def is_lead_sentence(unit: dict, labels: dict[str, dict]) -> bool:
-    label = labels.get(unit["sentence_id"])
+    label = labels.get(unit["unit_id"])
     if label and label["source"] in ("llm", "llm_repair"):
         return bool(label["is_risk_heading"])
     return bool(unit.get("rule_heading"))
@@ -88,7 +89,7 @@ def assign(units: list[dict], labels: dict[str, dict],
             key = category_key(u["text"])
             ids = mapping.get(key)
             category = {
-                "risk_category_id": u["sentence_id"], "accession_number": u["accession_number"],
+                "risk_category_id": u["unit_id"], "accession_number": u["accession_number"],
                 "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
                 "category_text": u["text"], "risk_summary": u.get("risk_summary", False), "n_units": 0,
                 "risk_ids": ids or [],
@@ -99,22 +100,22 @@ def assign(units: list[dict], labels: dict[str, dict],
             continue
         lead_here = is_lead_sentence(u, labels)
         if lead_here:
-            lead = u["sentence_id"]
+            lead = u["unit_id"]
         if category:
             category["n_units"] += 1
         assignments.append({
-            "sentence_id": u["sentence_id"],
+            "unit_id": u["unit_id"],
             "risk_category_id": category["risk_category_id"] if category else None,
             "risk_ids": list(category["risk_ids"]) if category else [],
             "risk_lead_sentence": lead_here,
-            "risk_lead_sentence_id": lead,
+            "risk_lead_unit_id": lead,
         })
     return categories, assignments
 
 
 def run() -> None:
     units = list(read_jsonl(Paths.sentences()))
-    labels = {l["sentence_id"]: l for l in read_jsonl(Paths.labels())} if Paths.labels().exists() else {}
+    labels = {l["unit_id"]: l for l in read_jsonl(Paths.labels())} if Paths.labels().exists() else {}
     library = theme_library()
     categories, assignments = assign(units, labels, theme_map(library))
 

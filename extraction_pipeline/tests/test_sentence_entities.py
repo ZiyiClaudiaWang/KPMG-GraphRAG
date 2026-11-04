@@ -4,7 +4,7 @@ from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_p
 from src.entity_annotation import annotate_mentions
 from src.clean import drop_rule, should_join
 from src.risk_factors import assign, category_key, is_lead_sentence
-from src.common import source_text, is_one_source_piece
+from src.common import source_text, unit_id
 
 
 class SourceBoundary(unittest.TestCase):
@@ -243,7 +243,7 @@ class RiskCategories(unittest.TestCase):
 
     def test_sentences_take_the_themes_of_their_category(self):
         def unit(n, role, text, rule_heading=None):
-            return {"sentence_id": f"A|item-1a|s{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
+            return {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
                     "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
                     "rule_heading": rule_heading, "risk_summary": False}
         units = [unit(1, "body", "The following risks could affect us."),
@@ -256,11 +256,13 @@ class RiskCategories(unittest.TestCase):
                    category_key("Index to Risk Factors"): []}
         categories, assignments = assign(units, {}, mapping)
         self.assertEqual([c["map_status"] for c in categories], ["mapped", "not_a_theme"])
-        by_id = {a["sentence_id"]: a for a in assignments}
-        self.assertEqual(by_id["A|item-1a|s1"]["risk_ids"], [])                    # before any category
-        self.assertEqual(by_id["A|item-1a|s4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
-        self.assertEqual(by_id["A|item-1a|s4"]["risk_lead_sentence_id"], "A|item-1a|s3")
-        self.assertTrue(by_id["A|item-1a|s3"]["risk_lead_sentence"])
+        by_id = {a["unit_id"]: a for a in assignments}
+        self.assertEqual(by_id["u1"]["risk_ids"], [])                    # before any category
+        self.assertEqual(by_id["u4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
+        self.assertEqual(by_id["u4"]["risk_lead_unit_id"], "u3")           # unit ids (#45)
+        self.assertEqual(by_id["u4"]["risk_category_id"], "u2")
+        self.assertEqual(categories[0]["risk_category_id"], "u2")
+        self.assertTrue(by_id["u3"]["risk_lead_sentence"])
 
 
 class SourceMatching(unittest.TestCase):
@@ -271,17 +273,28 @@ class SourceMatching(unittest.TestCase):
         end = content.index(" Next")
         self.assertEqual(source_text(content, [[0, end]]), "Supply problems could raise costs.")
 
-    def test_one_source_piece(self):
+    def test_page_break_fragments_rebuild_the_sentence(self):
         content = "Supply\nproblems could raise costs. Delays may\n\n12\n\nfollow."
-        one = {"raw_spans": [[0, 34]], "text": "Supply problems could raise costs."}
         second = content.index("follow.")
-        joined = {"raw_spans": [[35, 45], [second, second + 7]], "text": "Delays may follow."}
-        self.assertTrue(is_one_source_piece(one, content))
-        self.assertEqual(source_text(content, joined["raw_spans"]), joined["text"])
-        self.assertFalse(is_one_source_piece(joined, content))     # joined across a page break
+        joined = [[35, 45], [second, second + 7]]                  # the page number is left out
+        self.assertEqual(source_text(content, joined), "Delays may follow.")
 
     def test_repaired_label_counts_as_model_judgement(self):
-        unit = {"sentence_id": "x", "rule_heading": None}
+        unit = {"unit_id": "x", "rule_heading": None}
         for source in ("llm", "llm_repair"):
             self.assertTrue(is_lead_sentence(unit, {"x": {"source": source, "is_risk_heading": True}}))
-        self.assertTrue(is_lead_sentence({"sentence_id": "y", "rule_heading": "high"}, {}))
+        self.assertTrue(is_lead_sentence({"unit_id": "y", "rule_heading": "high"}, {}))
+
+
+class UnitIdentity(unittest.TestCase):
+    """#45: a unit's id comes from its filing, section and source spans, not its text."""
+
+    def test_same_spans_same_id(self):
+        self.assertEqual(unit_id("A", "item-1a", [[0, 10], [14, 20]]),
+                         unit_id("A", "item-1a", [(0, 10), (14, 20)]))
+
+    def test_any_position_change_gives_a_new_id(self):
+        base = unit_id("A", "item-1a", [[0, 10]])
+        for other in (unit_id("A", "item-1a", [[0, 11]]), unit_id("A", "item-1a", [[0, 5], [6, 10]]),
+                      unit_id("A", "item-7", [[0, 10]]), unit_id("B", "item-1a", [[0, 10]])):
+            self.assertNotEqual(base, other)

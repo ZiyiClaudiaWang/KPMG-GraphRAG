@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import uuid
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterable, Iterator
@@ -25,14 +26,27 @@ ONE_FOR_ONE = str.maketrans({"\n": " ", "\r": " ", "\t": " ", "\u00a0": " ", "\u
 
 def source_text(content: str, spans: list[list[int]]) -> str:
     """A unit's text rebuilt from the Data team content: its pieces, whitespace read as spaces,
-    joined by one space. Steps 5, 6 and 7b all compare a unit with its source through this."""
+    joined by one space. Steps 5 and 7b compare a unit with its source through this."""
     return " ".join(content[a:b].translate(ONE_FOR_ONE) for a, b in spans)
 
 
-def is_one_source_piece(unit: dict, content: str) -> bool:
-    """True when the unit is one continuous piece of the source, so the UI can find its quote
-    as one string. List groups and sentences joined across a page break are not."""
-    return len(unit["raw_spans"]) == 1 and source_text(content, unit["raw_spans"]) == unit["text"]
+# ---------- unit identity (#45) ----------
+
+# Fixed namespace so the same position always yields the same id (the old claim_id namespace).
+UNIT_NAMESPACE = uuid.UUID("5f0c7e2a-6b1d-4c8e-9a3f-2d7b1e4c9a60")
+UNIT_IDENTITY_VERSION = "source_span_position_v1"
+
+
+def unit_id(accession: str, section_key: str, spans: list[list[int]]) -> str:
+    """A unit's id: uuid5 of its filing, section and source spans, never its text.
+
+    Cleaning changes that keep a unit's spans (whitespace read as spaces, any change to the
+    text alone) keep its id. A change that moves where a unit starts or ends, or which
+    fragments it is made of, gives a new id (README, Unit identity). The same sentence at two
+    places in a section is two units with two ids. A Claim's claim_id is its unit's id.
+    """
+    key = json.dumps([[int(a), int(b)] for a, b in spans], separators=(",", ":"))
+    return str(uuid.uuid5(UNIT_NAMESPACE, f"{accession}|{section_key}|{key}"))
 
 
 # ---------- config ----------
@@ -91,6 +105,7 @@ class Paths:
     risk_categories = staticmethod(lambda: data_dir() / "output" / "risk_categories.csv")  # step 7a
     risk_assignments = staticmethod(lambda: data_dir() / "interim" / "risk_assignments.jsonl")  # step 7a
     claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 7b
+    claim_id_report = staticmethod(lambda: data_dir() / "output" / "claim_id_report.json")  # step 7b
     cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 8
 
 

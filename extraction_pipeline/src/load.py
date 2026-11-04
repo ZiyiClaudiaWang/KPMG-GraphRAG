@@ -4,8 +4,10 @@ Input : data/output/claims.jsonl (one line per occurrence, step 7b), data/output
         config/risk_themes.csv, data/interim/clean/*.jsonl
 Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher with --dry-run
 
-Occurrences with the same claim_id become one Claim node; the SUPPORTS relationship keeps
-every occurrence's sentence id and source spans. A Claim gets one CONCERNS_RISK edge per risk
+Each Claim node is one statement at one place (claim_id = the unit's position id, #45), so
+the same sentence twice in a section is two Claim nodes. Rows that share a claim_id (only
+in files built with the old text-keyed claim_id) still become one node; the SUPPORTS
+relationship then keeps every occurrence's source spans. A Claim gets one CONCERNS_RISK edge per risk
 theme of any of its occurrences; RiskFactor nodes are the themes of config/risk_themes.csv
 that some Claim uses, keyed by risk_id. Claudia's candidate_occurrences.jsonl has
 the same format, so her results load by copying that file to data/output/claims.jsonl.
@@ -74,7 +76,8 @@ MERGE (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
 SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.accession_number,
     c.section_id = r.section_id, c.extraction_status = r.extraction_status, c.context = r.context,
     c.subject_scope = r.subject_scope, c.annotation_note = r.annotation_note,
-    c.risk_lead_sentence = r.risk_lead_sentence, c.risk_summary = r.risk_summary
+    c.risk_lead_sentence = r.risk_lead_sentence, c.risk_summary = r.risk_summary,
+    c.multi_fragment = r.multi_fragment
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
 MERGE (s)-[x:SUPPORTS {pipeline_scope: $scope}]->(c)
@@ -93,15 +96,18 @@ WIPE_QUERY = "MATCH (n {pipeline_scope: $scope}) DETACH DELETE n"
 
 
 def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[dict]:
-    """One row per claim_id; repeated occurrences add their sentence ids and spans."""
+    """One row per claim_id; a repeated claim_id (old text-keyed files) adds its spans.
+
+    roles maps unit_id (= claim_id) to the unit's role in step 4; old files fall back to "body".
+    """
     claims: dict[str, dict] = {}
     for occ in occurrences:
         p = occ["provenance"]
         if occ["claim_id"] in claims:
             claim = claims[occ["claim_id"]]
             prov = claim["provenance"]
-            prov["sentence_ids"] += p["sentence_ids"]
             prov["raw_spans"].append(p["raw_spans"])
+            claim["multi_fragment"] = claim["multi_fragment"] or bool(occ.get("multi_fragment"))
             claim["risk_ids"] += [x for x in occ.get("risk_ids") or [] if x not in claim["risk_ids"]]
             claim["risk_lead_sentence"] = claim["risk_lead_sentence"] or bool(occ.get("risk_lead_sentence"))
             claim["risk_summary"] = claim["risk_summary"] and bool(occ.get("risk_summary"))
@@ -112,13 +118,13 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
             "risk_ids": list(occ.get("risk_ids") or []),
             "risk_lead_sentence": bool(occ.get("risk_lead_sentence")),
             "risk_summary": bool(occ.get("risk_summary")),
+            "multi_fragment": bool(occ.get("multi_fragment")),
             "provenance": {
-                "sentence_ids": list(p["sentence_ids"]),
                 "section_key": p["section_key"],
                 "section_path": p["section_path"],
-                "risk_lead_sentence_id": p.get("risk_lead_sentence_id"),
-                "role": roles.get(p["sentence_ids"][0], "body"),
-                "context_sentence_ids": p.get("context_sentence_ids") or [],
+                "risk_lead_unit_id": p.get("risk_lead_unit_id"),
+                "role": roles.get(occ["claim_id"], "body"),
+                "context_unit_ids": p.get("context_unit_ids") or [],
                 "raw_spans": [p["raw_spans"]],
                 "source_locator": p.get("source_locator"),
                 "processing_set_id": p.get("processing_set_id"),
@@ -132,12 +138,11 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
 def flat_provenance(p: dict) -> dict:
     """Neo4j properties must be primitives or lists of them; nested values become JSON strings."""
     return {
-        "sentence_ids": p["sentence_ids"],
         "section_key": p["section_key"],
         "section_path": p["section_path"],
-        "risk_lead_sentence_id": p["risk_lead_sentence_id"],
+        "risk_lead_unit_id": p["risk_lead_unit_id"],
         "role": p["role"],
-        "context_sentence_ids": p["context_sentence_ids"],
+        "context_unit_ids": p["context_unit_ids"],
         "raw_spans_json": json.dumps(p["raw_spans"]),
         "xpath": (p["source_locator"] or {}).get("xpath"),
         "source_file": (p["source_locator"] or {}).get("source_file"),
@@ -148,7 +153,7 @@ def flat_provenance(p: dict) -> dict:
 
 
 def build_rows() -> dict[str, list[dict]]:
-    roles = {u["sentence_id"]: u["role"] for u in read_jsonl(Paths.sentences())} \
+    roles = {u["unit_id"]: u["role"] for u in read_jsonl(Paths.sentences())} \
         if Paths.sentences().exists() else {}
     claims = merge_occurrences(list(read_jsonl(Paths.claims())), roles)
     used_sections = {c["section_id"] for c in claims}

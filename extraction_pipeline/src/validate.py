@@ -15,10 +15,17 @@ flag names. Three kinds of queue entry:
   held, rule flags     source_review.claim_review_flags() (list intro, mixed tense,
                        "causes / has required ... may", "is subject to laws" as risk), plus
                        known product-line fragments (review.known_list_fragment_prefixes)
-  held, uncertainty    label needs_review, or text that is not one exact piece of the source
-                       (a list group, or a sentence joined across a page break)
+  held, uncertainty    label needs_review: the model could not resolve the boundary, subject or type
   retained             the Claim is built, but its entity mentions need review
 Held units do not become Claims in step 7b; they keep their label.
+
+A unit made of several source fragments (a list group, or a sentence joined across a page
+break) is not held for that reason: its text is rebuilt exactly from the source in step 5,
+and whether it was joined correctly is a question for steps 2 and 4, not for the label. Its
+Claim carries multi_fragment = true and every fragment's position (step 7b).
+
+Every record here (errors, queue entries, the intro units they cite) names its unit by unit_id
+(#45), so a review decision still points at the same unit after other sentences are re-split.
 """
 
 from __future__ import annotations
@@ -27,7 +34,7 @@ import json
 from collections import Counter
 
 from . import entity_annotation, source_review
-from .common import Paths, data_dir, is_one_source_piece, log, read_jsonl, settings, write_jsonl
+from .common import Paths, data_dir, log, read_jsonl, settings, write_jsonl
 
 STEP = "validate"
 
@@ -75,15 +82,14 @@ def check_reply(batch: dict, results: list[dict]) -> list[str]:
 # ---------- review ----------
 
 HELD_RULE_REASON = "Conservative postcheck; original model label retained"
-HELD_UNCERTAIN_REASON = "Model uncertainty, grouped list or non-verbatim display text; preserve for review."
+HELD_UNCERTAIN_REASON = "Model uncertainty; preserve for review."
 RETAINED_REASON = "Claim source is valid; entity mention evidence requires review."
 
 
 def assessment(label: dict) -> dict:
-    """The model's row for a unit, with local ids, as it came back in the reply."""
-    prefix = label["sentence_id"].rsplit("|", 1)[0] + "|"
-    return {"id": label["sentence_id"].rsplit("|", 1)[1], "label": label["label"],
-            "context_ids": [c[len(prefix):] if c.startswith(prefix) else c for c in label["context_ids"]],
+    """The model's row for a unit in Claudia's shape; ids are unit ids."""
+    return {"id": label["unit_id"], "label": label["label"],
+            "context_ids": list(label["context_unit_ids"]),
             "subject_scope": label["subject_scope"], "annotation_note": label["annotation_note"],
             "is_risk_heading": label["is_risk_heading"], "entity_mentions": label["entity_mentions"]}
 
@@ -92,27 +98,26 @@ def review_entry(unit: dict, result: dict, units: dict[str, dict], neighbours: l
                  vocabulary: list[dict], catalog: list[dict], prefixes: tuple) -> dict | None:
     """Claudia's per-unit decision: held (two kinds), retained with entity flags, or None (clean)."""
     flags, intros = source_review.claim_review_flags(unit, result, units)
-    pos = next(i for i, u in enumerate(neighbours) if u["sentence_id"] == unit["sentence_id"])
+    pos = next(i for i, u in enumerate(neighbours) if u["unit_id"] == unit["unit_id"])
     if prefixes and any(u["text"].rstrip().endswith(":") for u in neighbours[max(0, pos - 4):pos]) \
             and unit["text"].startswith(prefixes):
         flags.append("known_product_list_fragment_boundary_review")
+    ids = {"unit_id": unit["unit_id"]}
     if flags and result["label"] != "not_a_claim":
-        return {"sentence_id": unit["sentence_id"], "assessment": result, "reason": HELD_RULE_REASON,
-                "claim_review_flags": sorted(set(flags)), "intro_sentence_ids": intros}
+        return {**ids, "assessment": result, "reason": HELD_RULE_REASON,
+                "claim_review_flags": sorted(set(flags)), "intro_unit_ids": intros}
     if result["label"] == "not_a_claim":
         return None
     fragments = [{"start": a, "end": b, "quote": source["content"][a:b]} for a, b in unit["raw_spans"]]
-    if result["label"] == "needs_review" or not is_one_source_piece(unit, source["content"]):
-        return {"sentence_id": unit["sentence_id"], "assessment": result, "source_fragments": fragments,
-                "reason": HELD_UNCERTAIN_REASON}
+    if result["label"] == "needs_review":
+        return {**ids, "assessment": result, "source_fragments": fragments, "reason": HELD_UNCERTAIN_REASON}
     annotated = entity_annotation.annotate_mentions(unit["text"], result["entity_mentions"],
                                                     issuer_cik=source["cik"],
                                                     accession=source["accession_number"], catalog=catalog)
     reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
     flags = sorted(set(annotated["entity_review_flags"] + reviewed["review_flags"]))
     if flags:
-        return {"sentence_id": unit["sentence_id"], "candidate_retained": True, "reason": RETAINED_REASON,
-                "flags": flags}
+        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "flags": flags}
     return None
 
 
@@ -131,7 +136,7 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
 
     queue = []
     for label in labels:
-        unit = units.get(label["sentence_id"])
+        unit = units.get(label["unit_id"])
         if unit is None or label.get("source", "").startswith("rule:"):
             continue
         key = (unit["accession_number"], unit["section_key"])
@@ -143,35 +148,35 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
 
 
 def held_ids() -> set[str]:
-    """Sentence ids held from Claims by the last review (used by step 7b)."""
+    """Unit ids held from Claims by the last review (used by step 7b)."""
     if not Paths.review_queue().exists():
         return set()
-    return {r["sentence_id"] for r in read_jsonl(Paths.review_queue()) if not r.get("candidate_retained")}
+    return {r["unit_id"] for r in read_jsonl(Paths.review_queue()) if not r.get("candidate_retained")}
 
 
 def run() -> int:
-    units = {u["sentence_id"]: u for u in read_jsonl(Paths.sentences())}
+    units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
     labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
     errors = []
 
-    seen = Counter(l["sentence_id"] for l in labels)
-    for sid in units:
-        if seen[sid] == 0:
-            errors.append({"sentence_id": sid, "error": "no label"})
-        elif seen[sid] > 1:
-            errors.append({"sentence_id": sid, "error": f"{seen[sid]} labels"})
+    seen = Counter(l["unit_id"] for l in labels)
+    for uid in units:
+        if seen[uid] == 0:
+            errors.append({"unit_id": uid, "error": "no label"})
+        elif seen[uid] > 1:
+            errors.append({"unit_id": uid, "error": f"{seen[uid]} labels"})
     for l in labels:
-        sid = l["sentence_id"]
-        if sid not in units:
-            errors.append({"sentence_id": sid, "error": "label for unknown sentence"})
+        uid = l["unit_id"]
+        if uid not in units:
+            errors.append({"unit_id": uid, "error": "label for unknown unit"})
         if l["label"] not in LABELS:
-            errors.append({"sentence_id": sid, "error": f"invalid label {l['label']!r}"})
-        for cid in l.get("context_ids") or []:
+            errors.append({"unit_id": uid, "error": f"invalid label {l['label']!r}"})
+        for cid in l.get("context_unit_ids") or []:
             if cid not in units:
-                errors.append({"sentence_id": sid, "error": f"unknown context id {cid}"})
+                errors.append({"unit_id": uid, "error": f"unknown context unit {cid}"})
 
     write_jsonl(Paths.errors(), errors)
-    labelled = sum(seen[sid] == 1 for sid in units)
+    labelled = sum(seen[uid] == 1 for uid in units)
     log(STEP, f"{labelled}/{len(units)} units have one label; {len(errors)} errors -> {Paths.errors()}")
     by_label = Counter(l["label"] for l in labels)
     log(STEP, "labels: " + ", ".join(f"{k}={v}" for k, v in sorted(by_label.items())))
@@ -181,7 +186,7 @@ def run() -> int:
     held = [q for q in queue if not q.get("candidate_retained")]
     log(STEP, f"{len(held)} units held, {len(queue) - len(held)} Claims with entity flags "
               f"-> {Paths.review_queue()}")
-    reasons = Counter(f for q in held for f in q.get("claim_review_flags") or ["uncertain_or_non_verbatim"])
+    reasons = Counter(f for q in held for f in q.get("claim_review_flags") or ["needs_review"])
     if reasons:
         log(STEP, "held by: " + ", ".join(f"{k}={v}" for k, v in reasons.most_common()))
     return len(errors)

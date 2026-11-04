@@ -213,11 +213,9 @@ def claim_review_flags(unit, label, lookup):
     text = unit["text"]
     flags = []
     intros = []
-    prefix = unit["sentence_id"].rsplit("|", 1)[0]
-    for context in label["context_ids"]:
-        sid = prefix + "|" + context
-        if lookup[sid]["text"].rstrip().endswith(":"):
-            intros.append(sid)
+    for context in label["context_ids"]:  # unit ids since #45 (were local ids joined to a prefix)
+        if lookup[context]["text"].rstrip().endswith(":"):
+            intros.append(context)
     if intros and label["label"] in {"stated_fact", "hedged_risk", "forward_looking"}:
         flags.append("list_intro_dependency_boundary_review")
     if (

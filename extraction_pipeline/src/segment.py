@@ -1,4 +1,4 @@
-"""Step 4 - Segment: split kept sections into numbered sentences.
+"""Step 4 - Segment: split kept sections into sentence units, in source order.
 
 Input : data/interim/clean/*.jsonl, data/output/section_manifest.csv
 Output: data/output/sentences.jsonl   one row per unit the LLM may label
@@ -13,7 +13,7 @@ list group only when the items cannot stand alone and the group stays short:
   - at least one item is a fragment and the whole group (last intro sentence
     plus all items) is at most list_merge_max_chars.
 Every other list is split: each bullet is labelled on its own, and its units carry
-list_intro_id, the sentence_id of the intro's last sentence. Bullets with no ":"
+list_intro_id, the unit_id of the intro's last sentence. Bullets with no ":"
 intro before them (after a heading or an unrelated paragraph) are ordinary paragraphs.
 Split list items are never dropped as too_short: their meaning comes from the intro.
 
@@ -22,6 +22,10 @@ A paragraph that opens with a short title-case sentence ending in a period
 sub-heading, like a heading without a period.
 
 Every unit keeps:
+  unit_id               uuid5 of accession, section_key and raw_spans (common.unit_id, #45): the
+                        only id of a unit; every later step and file points at a unit by it.
+                        It stays the same when a cleaning change keeps the unit's spans.
+                        Units are written in source order, so the file order is the order.
   char_start, char_end  position in the cleaned section text
   raw_spans             positions in the Data-team `content` (one span per fragment)
   prefilter             the rule that marked it not_a_claim before the LLM, or null
@@ -42,13 +46,11 @@ headings in step 5, and step 7 settles them (see risk_factors.py).
 from __future__ import annotations
 
 import re
-import hashlib
-import json
 
 SEGMENTATION_VERSION = "kelly_sentence_v3"   # v3: bullets, list rule, abbreviation splits, headings with a period
 
 from .clean import DANGLING_WORDS, raw_spans
-from .common import Paths, filings, log, read_jsonl, settings, write_jsonl
+from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_jsonl
 from .filter_sections import kept_section_keys
 
 STEP = "segment"
@@ -275,7 +277,6 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
     def add(role: str, p_index: int, start: int, end: int, rule: str | None,
             spans: list | None = None, text: str | None = None, rule_heading: str | None = None) -> dict:
         unit = {
-            "sentence_id": f"{sec['accession_number']}|{sec['section_key']}|s{len(units) + 1:04d}",
             "accession_number": sec["accession_number"], "ticker": sec["ticker"], "form": sec["form"],
             "section_id": sec["section_id"], "section_key": sec["section_key"],
             "section_type": sec["section_type"],
@@ -290,10 +291,7 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             "processing_set_id": sec["processing_set_id"], "source_locator": sec["source_locator"],
         }
         unit["segmentation_version"] = SEGMENTATION_VERSION
-        unit["source_unit_key"] = hashlib.sha256(json.dumps(
-            [sec["accession_number"], sec["section_key"], unit["raw_spans"], unit["text"]],
-            ensure_ascii=False, separators=(",", ":")
-        ).encode("utf-8")).hexdigest()
+        unit["unit_id"] = unit_id(sec["accession_number"], sec["section_key"], unit["raw_spans"])
         units.append(unit)
         return unit
 
@@ -353,7 +351,7 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
                         if rule == "too_short":           # meaning comes from the intro, so keep it
                             rule = None
                         unit = add("body", k, body_start + s, body_start + e, rule)
-                        unit["list_intro_id"] = intro_unit["sentence_id"]
+                        unit["list_intro_id"] = intro_unit["unit_id"]
             i = j
             continue
 
