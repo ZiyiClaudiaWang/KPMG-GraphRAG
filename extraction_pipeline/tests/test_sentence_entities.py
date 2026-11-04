@@ -3,6 +3,7 @@ from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_p
                          is_category, mark_risk_summary)
 from src.entity_annotation import annotate_mentions
 from src.clean import drop_rule, should_join
+from src.risk_factors import assign, category_key
 
 
 class SourceBoundary(unittest.TestCase):
@@ -238,3 +239,24 @@ class RiskCategories(unittest.TestCase):
                   "risk_summary": False}]
         mark_risk_summary(units)
         self.assertFalse(units[1]["risk_summary"])
+
+    def test_sentences_take_the_themes_of_their_category(self):
+        def unit(n, role, text, rule_heading=None):
+            return {"sentence_id": f"A|item-1a|s{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
+                    "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
+                    "rule_heading": rule_heading, "risk_summary": False}
+        units = [unit(1, "body", "The following risks could affect us."),
+                 unit(2, "category_heading", "Risks Related to Intellectual Property and Litigation"),
+                 unit(3, "body", "We may be sued for infringement.", "high"),
+                 unit(4, "body", "Such claims are costly."),
+                 unit(5, "category_heading", "INDEX TO RISK FACTORS")]
+        mapping = {category_key("Risks related to intellectual property and litigation"):
+                   ["intellectual_property", "legal_regulatory"],
+                   category_key("Index to Risk Factors"): []}
+        categories, assignments = assign(units, {}, mapping)
+        self.assertEqual([c["map_status"] for c in categories], ["mapped", "not_a_theme"])
+        by_id = {a["sentence_id"]: a for a in assignments}
+        self.assertEqual(by_id["A|item-1a|s1"]["risk_ids"], [])                    # before any category
+        self.assertEqual(by_id["A|item-1a|s4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
+        self.assertEqual(by_id["A|item-1a|s4"]["risk_lead_sentence_id"], "A|item-1a|s3")
+        self.assertTrue(by_id["A|item-1a|s3"]["risk_lead_sentence"])

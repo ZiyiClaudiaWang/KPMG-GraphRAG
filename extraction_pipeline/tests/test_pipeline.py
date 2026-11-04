@@ -5,6 +5,7 @@ Run from the pipeline folder:  python -m unittest discover tests
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 import shutil
@@ -19,6 +20,7 @@ FIXTURES = HERE / "fixtures"
 TMP = Path(tempfile.mkdtemp(prefix="pipeline-test-"))
 os.environ["PIPELINE_DATA_DIR"] = str(TMP)
 os.environ["PIPELINE_FILINGS"] = str(FIXTURES / "filings.yaml")
+os.environ["PIPELINE_RISK_THEME_MAP"] = str(FIXTURES / "risk_theme_map.csv")
 os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
 shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
@@ -268,7 +270,8 @@ class EndToEnd(unittest.TestCase):
             self.assertTrue(required <= set(c))
             self.assertEqual(c["extraction_status"], "needs_review")
         body = next(c for c in self.claims if c["quote"].startswith("Competitors may cut prices."))
-        self.assertIsNone(body["risk_factor_id"])               # risk factors not linked in code yet
+        self.assertEqual(body["risk_ids"], ["macro_industry", "business_operations"])   # from "Industry Risks"
+        self.assertFalse(body["risk_summary"])
         self.assertEqual(body["quote"], body["source_fragments"][0]["quote"])
         self.assertEqual(body["provenance"]["section_path"], "Part I Item 1A > Industry Risks")
 
@@ -279,6 +282,17 @@ class EndToEnd(unittest.TestCase):
 
     def test_load_preview_written(self):
         self.assertIn("MERGE (s)-[x:SUPPORTS", Paths.cypher().read_text(encoding="utf-8"))
+
+    def test_claims_concern_risk_themes(self):
+        rows = load.build_rows()
+        self.assertEqual({r["risk_id"] for r in rows["risk_factors"]}, {"macro_industry", "business_operations"})
+        under = [c for c in rows["claims"] if c["risk_ids"]]
+        self.assertTrue(under)
+        outside = [c for c in rows["claims"] if c["provenance"]["section_key"] != "part-i-item-1a"]
+        self.assertTrue(outside and all(c["risk_ids"] == [] for c in outside))     # MD&A: no theme
+        self.assertIn("MERGE (c)-[y:CONCERNS_RISK", Paths.cypher().read_text(encoding="utf-8"))
+        categories = list(csv.DictReader(open(Paths.risk_categories(), encoding="utf-8")))
+        self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "mapped")])
 
     def test_list_group_held_not_a_claim(self):
         held = validate.held_ids()

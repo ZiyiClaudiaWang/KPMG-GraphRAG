@@ -69,8 +69,7 @@ class Paths:
     label_cache = staticmethod(lambda: data_dir() / "cache" / "label")                     # step 5
     errors = staticmethod(lambda: data_dir() / "output" / "errors.jsonl")                  # step 6
     review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 6
-    risk_headings = staticmethod(lambda: data_dir() / "output" / "risk_headings.csv")      # step 7
-    risk_factors = staticmethod(lambda: data_dir() / "output" / "risk_factors.csv")        # step 7
+    risk_categories = staticmethod(lambda: data_dir() / "output" / "risk_categories.csv")  # step 7
     risk_assignments = staticmethod(lambda: data_dir() / "interim" / "risk_assignments.jsonl")  # step 7
     claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 7
     cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 8

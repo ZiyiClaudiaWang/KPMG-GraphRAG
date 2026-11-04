@@ -17,8 +17,14 @@ Step 8 merges occurrences with the same claim_id into one Claim node.
 
 The ontology fields (decision 2.3) are claim_id, quote, claim_type, accession_number,
 section_id, extraction_status, context, subject_scope and annotation_note. Everything else
-is provenance or review information. risk_factor_id stays null: individual risk factors are
-not handled in code yet (README, Open decisions).
+is provenance or review information.
+
+Risk fields come from step 7a (data/interim/risk_assignments.jsonl), by sentence id:
+  risk_ids               risk themes of the risk category the sentence sits under (may be empty)
+  risk_category_id       that category heading's sentence_id, or null outside a category
+  risk_lead_sentence     true if the sentence opens and sums up one risk
+  risk_summary           true if it is in the risk factor summary at the top of Item 1A
+The risk lead sentence above each sentence is kept in provenance (risk_lead_sentence_id).
 """
 
 from __future__ import annotations
@@ -30,6 +36,8 @@ from collections import Counter
 
 from . import entity_annotation, source_review
 from .common import Paths, log, read_jsonl, write_jsonl
+
+NO_RISK = {"risk_category_id": None, "risk_ids": [], "risk_lead_sentence": False, "risk_lead_sentence_id": None}
 from .validate import CLAIM_TYPES, assessment, held_ids
 
 STEP = "build_claims"
@@ -52,7 +60,7 @@ def claim_id(accession: str, section_key: str, text: str) -> str:
 
 
 def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cleaned: dict,
-              vocabulary: list[dict], catalog: list[dict]) -> dict:
+              vocabulary: list[dict], catalog: list[dict], risk: dict = NO_RISK) -> dict:
     """Claudia's candidate record for one occurrence."""
     result = assessment(label)
     spans = unit["raw_spans"]
@@ -72,8 +80,9 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
         "extraction_status": "needs_review", "context": " ".join(c["text"] for c in context) or None,
         "context_evidence": context,
         "subject_scope": result["subject_scope"], "annotation_note": result["annotation_note"],
-        "section_type": unit["section_type"], "risk_factor_id": None,
-        "risk_heading_candidate": result["is_risk_heading"],
+        "section_type": unit["section_type"],
+        "risk_ids": risk["risk_ids"], "risk_category_id": risk["risk_category_id"],
+        "risk_lead_sentence": risk["risk_lead_sentence"], "risk_summary": unit.get("risk_summary", False),
         "source_fragments": fragments, "parent_paragraph_context": parent,
         "provenance": {"sentence_ids": [unit["sentence_id"]], "section_key": unit["section_key"],
                        "section_path": unit["section_path"], "source_locator": source["source_locator"],
@@ -86,6 +95,7 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                        "section_content_sha256": digest(source["content"]),
                        "coordinate_system": "exact_data_section_content_unicode_codepoints",
                        "raw_spans": spans, "context_sentence_ids": result["context_ids"],
+                       "risk_lead_sentence_id": risk["risk_lead_sentence_id"],
                        "request_hash": label["request_hash"],
                        "runner_version": label.get("runner_version") or label_runner_version(),
                        "model": label["model"], "prompt_version": label["prompt_version"]},
@@ -118,6 +128,8 @@ def run() -> None:
     catalog = entity_catalog()
     units = {u["sentence_id"]: u for u in read_jsonl(Paths.sentences())}
     held = held_ids()
+    risks = {a["sentence_id"]: a for a in read_jsonl(Paths.risk_assignments())} \
+        if Paths.risk_assignments().exists() else {}
 
     records, skipped = [], Counter()
     for label in read_jsonl(Paths.labels()):
@@ -129,13 +141,15 @@ def run() -> None:
             skipped["held for review"] += 1
             continue
         key = (unit["accession_number"], unit["section_key"])
-        records.append(candidate(unit, label, units, sources[key], cleaned[key], vocabulary, catalog))
+        records.append(candidate(unit, label, units, sources[key], cleaned[key], vocabulary, catalog,
+                                 risks.get(unit["sentence_id"], NO_RISK)))
 
     write_jsonl(Paths.claims(), records)
     by_type = Counter(r["claim_type"] for r in records)
     log(STEP, f"{len(records)} occurrences of {len({r['claim_id'] for r in records})} Claims "
               f"({', '.join(f'{k}={v}' for k, v in sorted(by_type.items()))}); skipped {dict(skipped)} "
               f"-> {Paths.claims()}")
+    log(STEP, f"{sum(bool(r['risk_ids']) for r in records)} occurrences have a risk theme")
 
 
 if __name__ == "__main__":

@@ -38,8 +38,5 @@ review:
     - "Windows and Devices,"
     - "XBOX (formerly Gaming),"
 
-risk_factors:
-  fuzzy_match_threshold: 0.85        # headings at or above this similarity become match candidates
-
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly

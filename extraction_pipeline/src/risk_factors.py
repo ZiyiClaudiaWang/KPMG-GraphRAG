@@ -1,164 +1,133 @@
-"""Step 7a - Risk factors: settle risk headings, assign sentences to them, match them across filings.
+"""Step 7a - Risk factors: place every Item 1A sentence under its risk category and risk themes.
 
-Input : data/output/sentences.jsonl, data/output/labels.jsonl
-Output: data/output/risk_headings.csv          every heading, with rule and LLM opinions
-        data/output/risk_factors.csv           one RiskFactor per group of matching headings
-        data/interim/risk_assignments.jsonl    sentence -> heading -> RiskFactor
+Input : data/output/sentences.jsonl, data/output/labels.jsonl (optional),
+        config/risk_themes.csv       the risk theme library: risk_id, name, definition
+        config/risk_theme_map.csv    risk category text -> risk_ids (reviewed by hand)
+Output: data/output/risk_categories.csv     one row per risk category heading in each filing
+        data/interim/risk_assignments.jsonl one row per Item 1A sentence
 
-A heading is final when the LLM flags it (is_risk_heading); without an LLM
-label the rule proposal from step 4 is used. Rows where the two disagree are
-marked needs_review.
+Three levels (README, risk factors):
+  risk_category       a category heading the filing itself uses ("Business Risks"). Its id is
+                      the sentence_id of that heading, so it is unique to one filing.
+  risk_theme          an entry of the library, shared by all companies and filings (risk_id).
+                      A category maps to zero, one or several themes through risk_theme_map.csv.
+  risk_lead_sentence  the sentence that opens and sums up one risk (flagged by the LLM as
+                      is_risk_heading; without an LLM label, the step 4 rule proposal).
 
-Each heading belongs to one RiskFactor. Headings of the same company match
-across filings by text: identical after normalisation (exact), or similar at
-or above the configured threshold (fuzzy, needs_review). Different companies
-are never matched here: that needs a theme layer above the headings (an open
-question in the outline; eval question M18 depends on it).
+Every sentence belongs to the category heading above it, by position, and takes that
+category's themes. Sentences before the first category heading have none. Each sentence
+also records the risk lead sentence above it within the same category; this link is kept
+for later and does not reach the graph yet.
+
+A category text missing from risk_theme_map.csv is listed as "unmapped" and gets no theme;
+add it to the map to connect it.
 """
 
 from __future__ import annotations
 
-import hashlib
+import os
 import re
-from difflib import SequenceMatcher
+from pathlib import Path
 
-from .common import Paths, filings, log, read_jsonl, settings, write_csv, write_jsonl
+from .common import CONFIG_DIR, Paths, log, read_csv, read_jsonl, write_csv, write_jsonl
 
 STEP = "risk_factors"
 
-HEADING_FIELDS = ["heading_id", "accession_number", "ticker", "form", "section_key", "category",
-                  "heading_text", "rule_detected", "llm_detected", "needs_review", "n_units",
-                  "risk_factor_id", "match_method", "match_score"]
-FACTOR_FIELDS = ["risk_factor_id", "ticker", "name", "n_headings", "accessions", "match_method", "needs_review"]
+CATEGORY_FIELDS = ["risk_category_id", "accession_number", "ticker", "form", "section_key",
+                   "category_text", "risk_summary", "n_units", "risk_ids", "map_status"]
 
 
-def normalise(text: str) -> str:
-    text = text.lower().replace("’", "'")
-    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9' ]", " ", text)).strip()
+def themes_path() -> Path:
+    return Path(os.environ.get("PIPELINE_RISK_THEMES") or CONFIG_DIR / "risk_themes.csv")
 
 
-def similarity(a: str, b: str) -> float:
-    return SequenceMatcher(None, normalise(a), normalise(b)).ratio()
+def theme_map_path() -> Path:
+    """config/risk_theme_map.csv, or the file named by PIPELINE_RISK_THEME_MAP (used by tests)."""
+    return Path(os.environ.get("PIPELINE_RISK_THEME_MAP") or CONFIG_DIR / "risk_theme_map.csv")
 
 
-def find_headings(units: list[dict], labels: dict[str, dict]) -> tuple[list[dict], list[dict]]:
-    """Return heading rows and per-sentence assignments for all Item 1A sections."""
-    headings, assignments = [], []
-    current = None
-    category = None
-    section = None
+def category_key(text: str) -> str:
+    """Case, curly quotes and spacing do not matter when matching a category to the map."""
+    return " ".join(text.lower().replace("’", "'").rstrip(".:").split())
+
+
+def theme_library() -> dict[str, dict]:
+    return {row["risk_id"]: row for row in read_csv(themes_path())}
+
+
+def theme_map(library: dict[str, dict]) -> dict[str, list[str]]:
+    """category key -> risk_ids; an empty list marks a heading that is not a theme."""
+    mapping = {}
+    for row in read_csv(theme_map_path()):
+        ids = [x.strip() for x in (row["risk_ids"] or "").split(";") if x.strip()]
+        unknown = [x for x in ids if x not in library]
+        if unknown:
+            raise ValueError(f"{theme_map_path().name}: {row['category_text']!r} uses unknown risk_id {unknown}")
+        mapping[category_key(row["category_text"])] = ids
+    return mapping
+
+
+def is_lead_sentence(unit: dict, labels: dict[str, dict]) -> bool:
+    label = labels.get(unit["sentence_id"])
+    if label and label["source"] == "llm":
+        return bool(label["is_risk_heading"])
+    return bool(unit.get("rule_heading"))
+
+
+def assign(units: list[dict], labels: dict[str, dict],
+           mapping: dict[str, list[str]]) -> tuple[list[dict], list[dict]]:
+    """Return one row per category heading and one assignment per Item 1A unit."""
+    categories, assignments = [], []
+    section = category = lead = None
     for u in units:
         if u["section_type"] != "risk_factors":
             continue
         if (u["accession_number"], u["section_key"]) != section:
-            section, current, category = (u["accession_number"], u["section_key"]), None, None
+            section, category, lead = (u["accession_number"], u["section_key"]), None, None
         if u["role"] == "category_heading":
-            category, current = u["text"], None
-            continue
-        label = labels.get(u["sentence_id"])
-        llm = bool(label and label["source"] == "llm" and label["is_risk_heading"])
-        rule = bool(u.get("rule_heading"))
-        decided_by_llm = bool(label and label["source"] == "llm")
-        is_heading = llm if decided_by_llm else rule
-        if is_heading:
-            current = {
-                "heading_id": u["sentence_id"], "accession_number": u["accession_number"],
+            key = category_key(u["text"])
+            ids = mapping.get(key)
+            category = {
+                "risk_category_id": u["sentence_id"], "accession_number": u["accession_number"],
                 "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
-                "category": category, "heading_text": u["text"],
-                "rule_detected": rule, "llm_detected": llm if decided_by_llm else None,
-                "needs_review": decided_by_llm and llm != rule, "n_units": 0,
+                "category_text": u["text"], "risk_summary": u.get("risk_summary", False), "n_units": 0,
+                "risk_ids": ids or [],
+                "map_status": "unmapped" if ids is None else "mapped" if ids else "not_a_theme",
             }
-            headings.append(current)
-        elif rule and decided_by_llm:
-            # The rules proposed a heading that the LLM rejected: keep it visible for review.
-            headings.append({
-                "heading_id": u["sentence_id"], "accession_number": u["accession_number"],
-                "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
-                "category": category, "heading_text": u["text"], "rule_detected": True,
-                "llm_detected": False, "needs_review": True, "n_units": None,
-                "risk_factor_id": None, "match_method": "rejected", "match_score": None,
-            })
-        if current:
-            current["n_units"] += 1
-            assignments.append({"sentence_id": u["sentence_id"], "risk_heading_id": current["heading_id"],
-                                "risk_heading": current["heading_text"]})
-    return headings, assignments
-
-
-def match_headings(headings: list[dict], threshold: float) -> list[dict]:
-    """Group headings of the same company into RiskFactors. Adds risk_factor_id to each heading."""
-    period = {f["accession"]: f["period_end"] for f in filings()}
-    live = [h for h in headings if h.get("match_method") != "rejected"]
-    live.sort(key=lambda h: (period[h["accession_number"]], h["heading_id"]))  # earliest filing first
-
-    parent = {h["heading_id"]: h["heading_id"] for h in live}
-    method = {h["heading_id"]: ("single", None) for h in live}
-
-    def root(x: str) -> str:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    for i, a in enumerate(live):
-        for b in live[i + 1:]:
-            if a["ticker"] != b["ticker"] or a["accession_number"] == b["accession_number"]:
-                continue
-            if normalise(a["heading_text"]) == normalise(b["heading_text"]):
-                kind, score = "exact", 1.0
-            else:
-                score = similarity(a["heading_text"], b["heading_text"])
-                if score < threshold:
-                    continue
-                kind = "fuzzy"
-            ra, rb = root(a["heading_id"]), root(b["heading_id"])
-            if ra != rb:
-                parent[rb] = ra
-            for h in (a, b):
-                if method[h["heading_id"]][0] != "fuzzy":
-                    method[h["heading_id"]] = (kind, round(score, 3))
-
-    groups: dict[str, list[dict]] = {}
-    for h in live:
-        groups.setdefault(root(h["heading_id"]), []).append(h)
-
-    factors = []
-    for members in groups.values():
-        canonical = members[0]  # heading from the earliest filing names the RiskFactor
-        digest = hashlib.sha1(normalise(canonical["heading_text"]).encode()).hexdigest()[:10]
-        rf_id = f"rf-{canonical['ticker'].lower()}-{digest}"
-        methods = {method[h["heading_id"]][0] for h in members}
-        overall = "fuzzy" if "fuzzy" in methods else "exact" if "exact" in methods else "single"
-        for h in members:
-            h["risk_factor_id"] = rf_id
-            h["match_method"], h["match_score"] = method[h["heading_id"]]
-            if h["match_method"] == "fuzzy":
-                h["needs_review"] = True
-        factors.append({
-            "risk_factor_id": rf_id, "ticker": canonical["ticker"], "name": canonical["heading_text"],
-            "n_headings": len(members),
-            "accessions": " ".join(sorted({h["accession_number"] for h in members})),
-            "match_method": overall, "needs_review": overall == "fuzzy",
+            categories.append(category)
+            lead = None
+            continue
+        lead_here = is_lead_sentence(u, labels)
+        if lead_here:
+            lead = u["sentence_id"]
+        if category:
+            category["n_units"] += 1
+        assignments.append({
+            "sentence_id": u["sentence_id"],
+            "risk_category_id": category["risk_category_id"] if category else None,
+            "risk_ids": list(category["risk_ids"]) if category else [],
+            "risk_lead_sentence": lead_here,
+            "risk_lead_sentence_id": lead,
         })
-    return factors
+    return categories, assignments
 
 
 def run() -> None:
     units = list(read_jsonl(Paths.sentences()))
     labels = {l["sentence_id"]: l for l in read_jsonl(Paths.labels())} if Paths.labels().exists() else {}
-    headings, assignments = find_headings(units, labels)
-    factors = match_headings(headings, settings()["risk_factors"]["fuzzy_match_threshold"])
+    library = theme_library()
+    categories, assignments = assign(units, labels, theme_map(library))
 
-    factor_of = {h["heading_id"]: h.get("risk_factor_id") for h in headings}
-    for a in assignments:
-        a["risk_factor_id"] = factor_of.get(a["risk_heading_id"])
-
-    write_csv(Paths.risk_headings(), headings, HEADING_FIELDS)
-    write_csv(Paths.risk_factors(), factors, FACTOR_FIELDS)
+    write_csv(Paths.risk_categories(), [dict(c, risk_ids=";".join(c["risk_ids"])) for c in categories],
+              CATEGORY_FIELDS)
     write_jsonl(Paths.risk_assignments(), assignments)
-    review = sum(bool(h["needs_review"]) for h in headings)
-    log(STEP, f"{len(headings)} headings ({review} to review) -> {Paths.risk_headings()}")
-    log(STEP, f"{len(factors)} RiskFactors -> {Paths.risk_factors()}")
+    status = {s: sum(c["map_status"] == s for c in categories) for s in ("mapped", "not_a_theme", "unmapped")}
+    with_theme = sum(bool(a["risk_ids"]) for a in assignments)
+    log(STEP, f"{len(categories)} risk categories ({status}) -> {Paths.risk_categories()}")
+    log(STEP, f"{with_theme} of {len(assignments)} Item 1A units have a risk theme -> {Paths.risk_assignments()}")
+    for c in categories:
+        if c["map_status"] == "unmapped":
+            log(STEP, f"unmapped category, add it to {theme_map_path().name}: {c['ticker']} {c['category_text']!r}")
 
 
 if __name__ == "__main__":

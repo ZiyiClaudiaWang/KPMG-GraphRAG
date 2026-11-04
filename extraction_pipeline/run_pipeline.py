@@ -13,7 +13,7 @@ Steps, in order:
   segment       sentences.jsonl: numbered sentences and list groups
   label         labels.jsonl: one label per sentence (OpenAI)
   validate      errors.jsonl: every sentence has exactly one valid label
-  risk_factors  risk_headings.csv, risk_factors.csv
+  risk_factors  risk_categories.csv: risk category and themes of each Item 1A sentence
   build_claims  claims.jsonl
   load          Neo4j
 """

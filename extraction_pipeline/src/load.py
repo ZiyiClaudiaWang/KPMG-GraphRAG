@@ -1,11 +1,13 @@
 """Step 8 - Load: write Claims and their provenance into Neo4j.
 
 Input : data/output/claims.jsonl (one line per occurrence, step 7b), data/output/sentences.jsonl,
-        data/output/risk_factors.csv, data/interim/clean/*.jsonl
+        config/risk_themes.csv, data/interim/clean/*.jsonl
 Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher with --dry-run
 
 Occurrences with the same claim_id become one Claim node; the SUPPORTS relationship keeps
-every occurrence's sentence id and source spans. Claudia's candidate_occurrences.jsonl has
+every occurrence's sentence id and source spans. A Claim gets one CONCERNS_RISK edge per risk
+theme of any of its occurrences; RiskFactor nodes are the themes of config/risk_themes.csv
+that some Claim uses, keyed by risk_id. Claudia's candidate_occurrences.jsonl has
 the same format, so her results load by copying that file to data/output/claims.jsonl.
 
 Graph (names from the ontology):
@@ -34,7 +36,8 @@ import argparse
 import json
 import os
 
-from .common import Paths, filings, load_env, log, read_csv, read_jsonl, settings
+from .common import Paths, filings, load_env, log, read_jsonl, settings
+from .risk_factors import theme_library
 
 STEP = "load"
 BATCH = 500
@@ -63,22 +66,22 @@ MATCH (f:Filing {accession_number: r.accession_number, pipeline_scope: $scope})
 MERGE (f)-[x:CONTAINS {pipeline_scope: $scope}]->(s)""",
     "risk_factors": """
 UNWIND $rows AS r
-MERGE (k:RiskFactor {risk_factor_id: r.risk_factor_id, pipeline_scope: $scope})
-SET k.name = r.name, k.ticker = r.ticker, k.match_method = r.match_method,
-    k.extraction_status = 'needs_review'""",
+MERGE (k:RiskFactor {risk_id: r.risk_id, pipeline_scope: $scope})
+SET k.name = r.name, k.definition = r.definition, k.extraction_status = 'needs_review'""",
     "claims": """
 UNWIND $rows AS r
 MERGE (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
 SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.accession_number,
     c.section_id = r.section_id, c.extraction_status = r.extraction_status, c.context = r.context,
-    c.subject_scope = r.subject_scope, c.annotation_note = r.annotation_note
+    c.subject_scope = r.subject_scope, c.annotation_note = r.annotation_note,
+    c.risk_lead_sentence = r.risk_lead_sentence, c.risk_summary = r.risk_summary
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
 MERGE (s)-[x:SUPPORTS {pipeline_scope: $scope}]->(c)
 SET x += r.provenance
 WITH c, r
-WHERE r.risk_factor_id IS NOT NULL
-MATCH (k:RiskFactor {risk_factor_id: r.risk_factor_id, pipeline_scope: $scope})
+UNWIND r.risk_ids AS risk_id
+MATCH (k:RiskFactor {risk_id: risk_id, pipeline_scope: $scope})
 MERGE (c)-[y:CONCERNS_RISK {pipeline_scope: $scope}]->(k)""",
 }
 
@@ -95,19 +98,25 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
     for occ in occurrences:
         p = occ["provenance"]
         if occ["claim_id"] in claims:
-            prov = claims[occ["claim_id"]]["provenance"]
+            claim = claims[occ["claim_id"]]
+            prov = claim["provenance"]
             prov["sentence_ids"] += p["sentence_ids"]
             prov["raw_spans"].append(p["raw_spans"])
+            claim["risk_ids"] += [x for x in occ.get("risk_ids") or [] if x not in claim["risk_ids"]]
+            claim["risk_lead_sentence"] = claim["risk_lead_sentence"] or bool(occ.get("risk_lead_sentence"))
+            claim["risk_summary"] = claim["risk_summary"] and bool(occ.get("risk_summary"))
             continue
         claims[occ["claim_id"]] = {
             **{k: occ.get(k) for k in ("claim_id", "quote", "claim_type", "accession_number", "section_id",
-                                       "extraction_status", "context", "subject_scope", "annotation_note",
-                                       "risk_factor_id")},
+                                       "extraction_status", "context", "subject_scope", "annotation_note")},
+            "risk_ids": list(occ.get("risk_ids") or []),
+            "risk_lead_sentence": bool(occ.get("risk_lead_sentence")),
+            "risk_summary": bool(occ.get("risk_summary")),
             "provenance": {
                 "sentence_ids": list(p["sentence_ids"]),
                 "section_key": p["section_key"],
                 "section_path": p["section_path"],
-                "risk_heading_id": None,
+                "risk_lead_sentence_id": p.get("risk_lead_sentence_id"),
                 "role": roles.get(p["sentence_ids"][0], "body"),
                 "context_sentence_ids": p.get("context_sentence_ids") or [],
                 "raw_spans": [p["raw_spans"]],
@@ -126,7 +135,7 @@ def flat_provenance(p: dict) -> dict:
         "sentence_ids": p["sentence_ids"],
         "section_key": p["section_key"],
         "section_path": p["section_path"],
-        "risk_heading_id": p["risk_heading_id"],
+        "risk_lead_sentence_id": p["risk_lead_sentence_id"],
         "role": p["role"],
         "context_sentence_ids": p["context_sentence_ids"],
         "raw_spans_json": json.dumps(p["raw_spans"]),
@@ -162,9 +171,8 @@ def build_rows() -> dict[str, list[dict]]:
             }
             companies[sec["cik"]] = {"cik": sec["cik"], "name": sec["company_name"], "ticker": sec["ticker"]}
 
-    used_factors = {c["risk_factor_id"] for c in claims if c["risk_factor_id"]}
-    factors = [r for r in read_csv(Paths.risk_factors()) if r["risk_factor_id"] in used_factors] \
-        if Paths.risk_factors().exists() else []
+    used_themes = {x for c in claims for x in c["risk_ids"]}
+    factors = [row for risk_id, row in theme_library().items() if risk_id in used_themes]
 
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
