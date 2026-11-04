@@ -16,6 +16,25 @@ CONFIG_DIR = ROOT / "config"
 PROMPTS_DIR = ROOT / "prompts"
 
 
+# ---------- source text ----------
+
+# Characters the pipeline reads as a plain space (newlines, tabs, non-breaking and thin spaces).
+# Each is one character, so positions in the cleaned text and in the source stay aligned.
+ONE_FOR_ONE = str.maketrans({"\n": " ", "\r": " ", "\t": " ", "\u00a0": " ", "\u2009": " ", "\u202f": " "})
+
+
+def source_text(content: str, spans: list[list[int]]) -> str:
+    """A unit's text rebuilt from the Data team content: its pieces, whitespace read as spaces,
+    joined by one space. Steps 5, 6 and 7b all compare a unit with its source through this."""
+    return " ".join(content[a:b].translate(ONE_FOR_ONE) for a, b in spans)
+
+
+def is_one_source_piece(unit: dict, content: str) -> bool:
+    """True when the unit is one continuous piece of the source, so the UI can find its quote
+    as one string. List groups and sentences joined across a page break are not."""
+    return len(unit["raw_spans"]) == 1 and source_text(content, unit["raw_spans"]) == unit["text"]
+
+
 # ---------- config ----------
 
 @lru_cache(maxsize=None)
@@ -69,9 +88,9 @@ class Paths:
     label_cache = staticmethod(lambda: data_dir() / "cache" / "label")                     # step 5
     errors = staticmethod(lambda: data_dir() / "output" / "errors.jsonl")                  # step 6
     review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 6
-    risk_categories = staticmethod(lambda: data_dir() / "output" / "risk_categories.csv")  # step 7
-    risk_assignments = staticmethod(lambda: data_dir() / "interim" / "risk_assignments.jsonl")  # step 7
-    claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 7
+    risk_categories = staticmethod(lambda: data_dir() / "output" / "risk_categories.csv")  # step 7a
+    risk_assignments = staticmethod(lambda: data_dir() / "interim" / "risk_assignments.jsonl")  # step 7a
+    claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 7b
     cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 8
 
 

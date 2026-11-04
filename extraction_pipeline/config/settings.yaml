@@ -26,7 +26,8 @@ label:
   stop_on_failure: true              # stop the run at a failed batch for a person to look
   budget_usd: 3.0                    # stop before a request could take total spend past this
   # USD per 1M tokens for the model above (published gpt-4.1-mini rates).
-  # Check https://openai.com/api/pricing when changing the model; left empty, only tokens are reported.
+  # Check https://openai.com/api/pricing when changing the model. Left empty, only tokens are
+  # reported and budget_usd is not enforced (the run logs a warning).
   price_input_per_1m: 0.40
   price_cached_input_per_1m: 0.10
   price_output_per_1m: 1.60

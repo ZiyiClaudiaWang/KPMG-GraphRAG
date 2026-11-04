@@ -3,7 +3,8 @@ from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_p
                          is_category, mark_risk_summary)
 from src.entity_annotation import annotate_mentions
 from src.clean import drop_rule, should_join
-from src.risk_factors import assign, category_key
+from src.risk_factors import assign, category_key, is_lead_sentence
+from src.common import source_text, is_one_source_piece
 
 
 class SourceBoundary(unittest.TestCase):
@@ -260,3 +261,27 @@ class RiskCategories(unittest.TestCase):
         self.assertEqual(by_id["A|item-1a|s4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
         self.assertEqual(by_id["A|item-1a|s4"]["risk_lead_sentence_id"], "A|item-1a|s3")
         self.assertTrue(by_id["A|item-1a|s3"]["risk_lead_sentence"])
+
+
+class SourceMatching(unittest.TestCase):
+    """common.py: one rule for comparing a unit with the source (#35 review, point 2)."""
+
+    def test_whitespace_reads_as_one_space(self):
+        content = "Supply\nproblems\u00a0could raise costs. Next sentence."
+        end = content.index(" Next")
+        self.assertEqual(source_text(content, [[0, end]]), "Supply problems could raise costs.")
+
+    def test_one_source_piece(self):
+        content = "Supply\nproblems could raise costs. Delays may\n\n12\n\nfollow."
+        one = {"raw_spans": [[0, 34]], "text": "Supply problems could raise costs."}
+        second = content.index("follow.")
+        joined = {"raw_spans": [[35, 45], [second, second + 7]], "text": "Delays may follow."}
+        self.assertTrue(is_one_source_piece(one, content))
+        self.assertEqual(source_text(content, joined["raw_spans"]), joined["text"])
+        self.assertFalse(is_one_source_piece(joined, content))     # joined across a page break
+
+    def test_repaired_label_counts_as_model_judgement(self):
+        unit = {"sentence_id": "x", "rule_heading": None}
+        for source in ("llm", "llm_repair"):
+            self.assertTrue(is_lead_sentence(unit, {"x": {"source": source, "is_risk_heading": True}}))
+        self.assertTrue(is_lead_sentence({"sentence_id": "y", "rule_heading": "high"}, {}))

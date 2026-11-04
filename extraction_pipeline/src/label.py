@@ -54,8 +54,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import entity_annotation, source_review
-from .clean import ONE_FOR_ONE
-from .common import (PROMPTS_DIR, Paths, append_jsonl, data_dir, filings, load_config, load_env, log,
+from .common import (PROMPTS_DIR, source_text, Paths, append_jsonl, data_dir, filings, load_config, load_env, log,
                      read_jsonl, settings, write_jsonl)
 from .validate import LABELS, check_reply
 
@@ -107,16 +106,15 @@ def verify_units(units: list[dict], sources: dict) -> None:
         for key in ("section_id", "processing_set_id", "source_locator", "form", "ticker"):
             if u[key] != raw[key]:
                 raise ValueError(f"{u['sentence_id']}: {key} differs from the section export.")
-        pieces, cursor = [], -1
+        cursor = -1
         if not u["raw_spans"]:
             raise ValueError(f"{u['sentence_id']}: no raw_spans.")
         for start, end in u["raw_spans"]:
             if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(raw["content"]) \
                     or start < cursor:
                 raise ValueError(f"{u['sentence_id']}: invalid or overlapping raw_spans.")
-            pieces.append(raw["content"][start:end].translate(ONE_FOR_ONE))
             cursor = end
-        if " ".join(pieces) != u["text"]:
+        if source_text(raw["content"], u["raw_spans"]) != u["text"]:
             raise ValueError(f"{u['sentence_id']}: text cannot be rebuilt from the source.")
 
 
@@ -595,6 +593,9 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         log(STEP, f"{len(plans)} batches, {sum(len(p['batch']['sentence_ids']) for p in plans)} sentences; "
                   f"worst-case cost ${reserve:.2f} (dry run, no API calls)")
 
+    if cfg.get("price_input_per_1m") is None or cfg.get("price_output_per_1m") is None:
+        log(STEP, "warning: token prices are not set in config/settings.yaml, so costs are not "
+                  "estimated and budget_usd is not enforced")
     labeller = Labeller(cfg)
     labels = [rule_label(u) for u in units if u["prefilter"]]
     sent = rejected = complete = 0

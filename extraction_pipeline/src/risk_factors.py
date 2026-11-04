@@ -69,7 +69,7 @@ def theme_map(library: dict[str, dict]) -> dict[str, list[str]]:
 
 def is_lead_sentence(unit: dict, labels: dict[str, dict]) -> bool:
     label = labels.get(unit["sentence_id"])
-    if label and label["source"] == "llm":
+    if label and label["source"] in ("llm", "llm_repair"):
         return bool(label["is_risk_heading"])
     return bool(unit.get("rule_heading"))
 

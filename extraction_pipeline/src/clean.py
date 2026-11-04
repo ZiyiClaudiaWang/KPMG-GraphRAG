@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from .common import Paths, filings, log, read_jsonl, settings, write_jsonl
+from .common import ONE_FOR_ONE, Paths, filings, log, read_jsonl, settings, write_jsonl
 
 STEP = "clean"
 
@@ -49,7 +49,6 @@ DANGLING_WORDS = {"a", "an", "the", "of", "to", "by", "in", "for", "with", "on",
 BULLET_ONLY = re.compile(r"^([•●◦▪‣–-]|o)$")  # "o" is a second-level bullet
 TERMINAL = re.compile(r"[.?!:;\"”’)]$")
 MIN_WORDS_TO_JOIN = 8
-ONE_FOR_ONE = str.maketrans({"\n": " ", "\r": " ", "\t": " ", " ": " ", " ": " ", " ": " "})
 
 
 def split_paragraphs(raw: str) -> list[tuple[int, int]]:

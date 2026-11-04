@@ -294,6 +294,24 @@ class EndToEnd(unittest.TestCase):
         categories = list(csv.DictReader(open(Paths.risk_categories(), encoding="utf-8")))
         self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "mapped")])
 
+    def test_no_half_quotes_without_the_review_queue(self):
+        # #35 review, point 1: a multi-span unit must not be quoted by its first fragment only
+        queue = Paths.review_queue()
+        saved = queue.read_text(encoding="utf-8")
+        queue.unlink()
+        try:
+            build_claims.run()
+            claims = list(read_jsonl(Paths.claims()))
+        finally:
+            queue.write_text(saved, encoding="utf-8")
+            build_claims.run()
+        units = {u["sentence_id"]: u for u in self.units}
+        multi = [c for c in claims if len(c["source_fragments"]) > 1]
+        self.assertTrue(multi)                                   # the list group is built now
+        for c in claims:
+            unit = units[c["provenance"]["sentence_ids"][0]]
+            self.assertEqual(c["quote"].translate(ONE_FOR_ONE), unit["text"])
+
     def test_list_group_held_not_a_claim(self):
         held = validate.held_ids()
         group = next(u for u in self.units if u["role"] == "list_group")

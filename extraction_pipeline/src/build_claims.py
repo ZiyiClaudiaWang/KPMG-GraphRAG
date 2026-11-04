@@ -8,6 +8,10 @@ Follows her build_candidates() field by field, so the same labels give the same 
 her candidate_occurrences.jsonl. Units labelled not_a_claim or needs_review, and units held
 in step 6, are left out.
 
+quote: the unit's source text, every fragment joined by one space, so a multi-span unit (a list
+group, or a sentence joined across a page break) is never cut to its first fragment. Step 6
+holds such units for review; source_fragments gives each piece's position.
+
 Identity:
   claim_id                 uuid5 of "<accession>|<section_key>|<exact sentence text>". The same
                            sentence twice in one section shares a claim_id; in another filing it
@@ -74,7 +78,7 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
     record = {
         "claim_id": claim_id(unit["accession_number"], unit["section_key"], unit["text"]),
         "claim_identity_version": "exact_source_sentence_v1",
-        "quote": fragments[0]["quote"], "claim_type": result["label"],
+        "quote": " ".join(f["quote"] for f in fragments), "claim_type": result["label"],
         "accession_number": unit["accession_number"], "section_id": unit["section_id"],
         "section_logical_key": f"{unit['accession_number']}/{unit['section_key']}",
         "extraction_status": "needs_review", "context": " ".join(c["text"] for c in context) or None,

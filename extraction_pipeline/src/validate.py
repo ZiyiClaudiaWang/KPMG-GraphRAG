@@ -27,7 +27,7 @@ import json
 from collections import Counter
 
 from . import entity_annotation, source_review
-from .common import Paths, data_dir, log, read_jsonl, settings, write_jsonl
+from .common import Paths, data_dir, is_one_source_piece, log, read_jsonl, settings, write_jsonl
 
 STEP = "validate"
 
@@ -102,7 +102,7 @@ def review_entry(unit: dict, result: dict, units: dict[str, dict], neighbours: l
     if result["label"] == "not_a_claim":
         return None
     fragments = [{"start": a, "end": b, "quote": source["content"][a:b]} for a, b in unit["raw_spans"]]
-    if result["label"] == "needs_review" or len(fragments) != 1 or fragments[0]["quote"] != unit["text"]:
+    if result["label"] == "needs_review" or not is_one_source_piece(unit, source["content"]):
         return {"sentence_id": unit["sentence_id"], "assessment": result, "source_fragments": fragments,
                 "reason": HELD_UNCERTAIN_REASON}
     annotated = entity_annotation.annotate_mentions(unit["text"], result["entity_mentions"],
