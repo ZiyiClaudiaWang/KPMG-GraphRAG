@@ -141,6 +141,7 @@ class PageBreaks(unittest.TestCase):
 
     def test_page_furniture_is_removed(self):
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Continued)", set()), "continued_header")
+        self.assertEqual(drop_rule("FINANCIAL REVIEW (Concluded)", set()), "continued_header")
         self.assertEqual(drop_rule("Table of Contents | MD&A Index |", set()), "toc_link")
         self.assertIsNone(drop_rule("Fiscal Year 2026 Compared with Fiscal Year 2025", set()))
 
@@ -150,7 +151,7 @@ class PageBreaks(unittest.TestCase):
         self.assertIsNone(drop_rule("The unaudited results include the following:", set()))
 
     def test_listed_table_notes_are_table_residue_not_headings(self):
-        for note in ("NM - Not Meaningful.", "bp  -  Basis Point"):
+        for note in ("NM - Not Meaningful.", "bp  -  Basis Point", "Shares that May"):
             self.assertFalse(is_heading_like(note), note)
             self.assertEqual(prefilter(note, 4), "table_residue")
         self.assertIsNone(drop_rule("NM - Not Meaningful", set()))   # clean keeps it
@@ -206,3 +207,4 @@ class ListRule(unittest.TestCase):
 
 
 if __name__ == "__main__": unittest.main()
+

@@ -36,9 +36,9 @@ PAGE_LABEL = re.compile(r"^(part\s+[ivx]+|item\s+\d{1,2}[a-c]?)\.?$", re.IGNOREC
 TOC_LINK = re.compile(r"^table of contents$", re.IGNORECASE)
 # McKesson's page top: "Table of Contents | MD&A Index |" (a link row, not a table)
 NAV_LINKS = re.compile(r"^table of contents\s*\|[^.]{0,60}$", re.IGNORECASE)
-# McKesson's running header in MD&A: "FINANCIAL REVIEW (Continued)"; it repeats in one
+# McKesson's running header in MD&A: "FINANCIAL REVIEW (Continued)", and "(Concluded)" on its last page; it repeats in one
 # section only, so repeated_headers() (which needs several sections) misses it.
-CONTINUED_HEADER = re.compile(r"\(continued\)$", re.IGNORECASE)
+CONTINUED_HEADER = re.compile(r"\((?:continued|concluded)\)$", re.IGNORECASE)
 CONTINUED_HEADER_MAX_CHARS = 90
 # McKesson's 10-Q repeats "(UNAUDITED)" under that header on every page.
 UNAUDITED_LABEL = re.compile(r"^\(unaudited\)$", re.IGNORECASE)

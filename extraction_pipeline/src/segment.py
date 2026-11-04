@@ -156,6 +156,7 @@ TABLE_NOTES = [
     "Percentages may not add due to rounding",   # NTAP
     "NM - Not Meaningful",                       # NTAP
     "(3)Not meaningful (NM)",                    # MDT
+    "Shares that May",                           # MCK share-repurchase table header
 ]
 TABLE_NOTE_KEYS = frozenset(note_key(t) for t in TABLE_NOTES)
 
