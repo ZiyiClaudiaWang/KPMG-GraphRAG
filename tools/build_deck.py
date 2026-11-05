@@ -118,13 +118,18 @@ def build(figures: Path, out: Path):
             Inches(5.6), Inches(4.0))
     picture(s, figures / "fig_arm.png", Inches(6.2), Inches(1.3),
             Inches(3.35), Inches(1.5))
-    textbox(s, Inches(6.2), Inches(3.0), Inches(3.35), Inches(2.2), [
+    textbox(s, Inches(6.2), Inches(2.85), Inches(3.35), Inches(2.5), [
         ("Ask about the company, get the company.", INK, True, 10),
         ("Name a segment, get the segment. Same XBRL "
          "concept — only a dimension tells them apart.", MUTED, False, 9.5),
         ("", INK, False, 6),
         ("Nike consolidated   11.2bn", GREEN, True, 9.5),
-        ("Converse segment    22m", BLUE, True, 9.5),
+        ("Converse segment     263m", BLUE, True, 9.5),
+        ("Both the quarter ending 31 Aug 2026.", MUTED, False, 8.5),
+        ("", INK, False, 5),
+        ("Until this morning “Nike revenue” returned 3.3bn — a NIKE "
+         "Brand slice — because the filer tags its own brand as a "
+         "dimension. See the next slide.", WARN, False, 8.5),
     ])
 
     # 3 — identity
@@ -150,8 +155,12 @@ def build(figures: Path, out: Path):
         ("An empty first filing set every column's type, "
          "and the sixth could not be inserted.", MUTED, False, 9),
         ("", INK, False, 4),
-        ("Nike's revenue came back 50x too small.", INK, True, 9.5),
-        ("A segment slice tied with the consolidated figure.", MUTED, False, 9),
+        ("Naming the company named a segment.", INK, True, 9.5),
+        ("A filer tags its own brand as a dimension, so “Nike "
+         "revenue” returned a NIKE Brand slice and “Microsoft "
+         "Intelligent Cloud” returned Microsoft 365. Found while "
+         "checking this deck's own numbers; fixed, 10/10 holds.",
+         MUTED, False, 9),
         ("", INK, False, 4),
         ("A whole arm had never been tested.", INK, True, 9.5),
         ("A missing CI dependency meant nothing in "
