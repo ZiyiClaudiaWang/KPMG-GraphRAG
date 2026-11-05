@@ -23,10 +23,11 @@ legal identity from strings alone.  In particular, names such as ``LinkedIn`` an
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from difflib import SequenceMatcher
 import re
 import unicodedata
+from collections.abc import Sequence
 from typing import Mapping
 
 
@@ -261,3 +262,101 @@ def resolve_segment_names(*args, **kwargs) -> ResolutionResult:
     change later.
     """
     return resolve_entity_names(*args, **kwargs)
+
+
+EX21 = "ex21"
+TEXT = "text"
+
+
+@dataclass(frozen=True)
+class Provenance:
+    """Where a name was read from.
+
+    Only what is needed to judge succession. ``siblings`` is every name listed in
+    the same filing, including this one; supply it when you have it, because it is
+    what rules out two different subsidiaries collapsing into one.
+    """
+
+    registrant: str
+    document: str
+    fiscal_year: int | None = None
+    siblings: Sequence[str] = ()
+
+
+def _core_key(name: str) -> str:
+    """The name with its legal form removed, normalized for comparison."""
+    core, _ = split_legal_form(name)
+    return normalize_name(core)
+
+
+def _core_count(key: str, names: Sequence[str]) -> int:
+    return sum(1 for n in names if _core_key(n) == key)
+
+
+def succession_evidence(
+    name_a: str,
+    name_b: str,
+    provenance_a: Provenance | None,
+    provenance_b: Provenance | None,
+) -> bool:
+    """True when two names are the same subsidiary listed in two different years.
+
+    An Exhibit 21 is one registrant's own list of its subsidiaries. If the same
+    core name appears in that registrant's list for two different fiscal years,
+    and nothing else in either list shares that core, the later entry succeeds the
+    earlier one. Two names in the *same* Exhibit 21 are two different companies,
+    which is why the fiscal years must differ.
+
+    This is evidence, not a looser string rule. It never lowers the bar on names.
+    """
+    if provenance_a is None or provenance_b is None:
+        return False
+    if provenance_a.document != EX21 or provenance_b.document != EX21:
+        return False
+    if normalize_name(provenance_a.registrant) != normalize_name(provenance_b.registrant):
+        return False
+    if provenance_a.fiscal_year is None or provenance_b.fiscal_year is None:
+        return False
+    if provenance_a.fiscal_year == provenance_b.fiscal_year:
+        return False
+
+    key = _core_key(name_a)
+    if key != _core_key(name_b):
+        return False
+
+    # Where we know the rest of the filing, the core has to be unique in it.
+    for provenance in (provenance_a, provenance_b):
+        if provenance.siblings and _core_count(key, provenance.siblings) != 1:
+            return False
+    return True
+
+
+def resolve_subsidiary_names_with_provenance(
+    name_a: str,
+    name_b: str,
+    *,
+    provenance_a: Provenance | None = None,
+    provenance_b: Provenance | None = None,
+    **kwargs,
+) -> ResolutionResult:
+    """Resolve on names, then let Exhibit 21 succession settle an ambiguous pair.
+
+    Only ``ambiguous`` is ever revisited. A ``match`` or ``no_match`` from the
+    name rules is returned untouched, so the second pass can raise recall but
+    cannot create a false merge the first pass had already refused.
+    """
+    base = resolve_entity_names(name_a, name_b, **kwargs)
+    if base.decision != AMBIGUOUS:
+        return base
+    if not succession_evidence(name_a, name_b, provenance_a, provenance_b):
+        return base
+
+    years = sorted((provenance_a.fiscal_year, provenance_b.fiscal_year))
+    return replace(
+        base,
+        decision=MATCH,
+        reason=(
+            f"Exhibit 21 succession: {provenance_a.registrant} lists this name in "
+            f"FY{years[0]} and FY{years[1]}"
+        ),
+    )

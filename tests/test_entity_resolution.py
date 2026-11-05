@@ -7,11 +7,15 @@ import pytest
 
 from graphrag.entity_resolution import (
     AMBIGUOUS,
+    EX21,
     MATCH,
     NO_MATCH,
+    Provenance,
+    TEXT,
     name_similarity,
     normalize_name,
     resolve_subsidiary_names,
+    resolve_subsidiary_names_with_provenance,
     split_legal_form,
 )
 
@@ -107,3 +111,91 @@ def test_name_only_baseline_has_no_false_positive_on_50_pair_fixture():
         if result.decision == MATCH and row["label"] == "no":
             false_positives.append(row["pair_id"])
     assert false_positives == []
+
+
+# --- Exhibit 21 succession: the second pass ----------------------------------
+
+
+def _msft(year: int, siblings: tuple[str, ...] = ()) -> Provenance:
+    return Provenance("MSFT", EX21, year, siblings)
+
+
+def test_succession_settles_a_cross_year_rename():
+    out = resolve_subsidiary_names_with_provenance(
+        "Microsoft Global Finance",
+        "Microsoft Global Finance Unlimited Company",
+        provenance_a=_msft(2024),
+        provenance_b=_msft(2025),
+    )
+    assert out.decision == MATCH
+    assert "FY2024 and FY2025" in out.reason
+
+
+def test_two_names_in_the_same_exhibit_are_two_companies():
+    """J.P. Morgan Securities LLC and plc are co-listed, so they stay unresolved."""
+    out = resolve_subsidiary_names_with_provenance(
+        "J.P. Morgan Securities LLC",
+        "J.P. Morgan Securities plc",
+        provenance_a=Provenance("JPM", EX21, 2025),
+        provenance_b=Provenance("JPM", EX21, 2025),
+    )
+    assert out.decision != MATCH
+
+
+def test_prose_mention_is_not_succession():
+    """LinkedIn in the 10-K text is a business line, not last year's entry."""
+    out = resolve_subsidiary_names_with_provenance(
+        "LinkedIn",
+        "LinkedIn Corporation",
+        provenance_a=Provenance("MSFT", TEXT, 2025),
+        provenance_b=_msft(2025),
+    )
+    assert out.decision == AMBIGUOUS
+
+
+def test_different_registrants_are_not_succession():
+    out = resolve_subsidiary_names_with_provenance(
+        "Atlantic Industries",
+        "Atlantic Industries Limited",
+        provenance_a=Provenance("KO", EX21, 2024),
+        provenance_b=Provenance("PEP", EX21, 2025),
+    )
+    assert out.decision == AMBIGUOUS
+
+
+def test_a_shared_core_in_the_later_filing_blocks_the_merge():
+    """If two of this year's names share last year's core, neither is the successor."""
+    out = resolve_subsidiary_names_with_provenance(
+        "Acme Holdings",
+        "Acme Holdings Limited",
+        provenance_a=_msft(2024, ("Acme Holdings",)),
+        provenance_b=_msft(2025, ("Acme Holdings Limited", "Acme Holdings Inc.")),
+    )
+    assert out.decision == AMBIGUOUS
+
+
+def test_succession_never_revisits_a_refusal():
+    """The name rules already said no; evidence about years must not overturn it."""
+    out = resolve_subsidiary_names_with_provenance(
+        "Apple Operations Limited",
+        "Apple Operations GmbH",
+        provenance_a=Provenance("AAPL", EX21, 2018),
+        provenance_b=Provenance("AAPL", EX21, 2019),
+    )
+    assert out.decision == NO_MATCH
+
+
+def test_second_pass_raises_recall_on_the_fixture_without_a_false_merge():
+    import sys
+
+    sys.path.insert(0, str(ROOT))
+    from tools.evaluate_entity_resolution import evaluate
+
+    pairs = ROOT / "toy_graph" / "50_subsidiary_pairs.csv"
+    baseline = evaluate(pairs)
+    second = evaluate(pairs, second_pass=True)
+
+    assert baseline["fp"] == 0 and second["fp"] == 0
+    assert second["tp"] > baseline["tp"]
+    assert second["recall"] > baseline["recall"]
+    assert second["precision"] == baseline["precision"] == 1.0
