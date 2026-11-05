@@ -3,6 +3,7 @@ import duckdb
 import json
 
 import concept_match
+import segments
 
 # Set once per connection from the store itself, so the envelope describes
 # what is actually loaded instead of what someone typed.
@@ -202,39 +203,32 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         )"""
         params.extend(values)
 
-    if "segment" in filters:
-        segments = {
-            "Intelligent Cloud": "msft:IntelligentCloudMember",
-            "More Personal Computing": "msft:MorePersonalComputingMember",
-            "Productivity and Business Processes":
-                "msft:ProductivityAndBusinessProcessesMember"
-        }
-        member = segments.get(filters["segment"])
-        if member is None:
-            raise ValueError("Unknown segment: " + str(filters["segment"]))
-        sql += """ AND EXISTS (
-            SELECT 1 FROM json_each(financial_facts_v1.dimensions) AS d
-            WHERE d.value ->> 'axis' = 'us-gaap:StatementBusinessSegmentsAxis'
-              AND (d.value ->> 'member') = ?
-        )"""
-        params.append(member)
-
     if "basis" in filters:
         if filters["basis"] != "as_filed":
             raise ValueError(
                 "Only as_filed is available; no restated filing is loaded"
             )
 
-    # fact_id is a hash, so this orders nothing. It is here to make the result
-    # set stable between runs; the ranking happens in rank_records() below,
-    # after the question has been read.
-    sql += " ORDER BY fact_id"
-
-    conn = duckdb.connect(
-        _store_path(),
-        read_only=True
-    )
+    path = _store_path()
+    conn = duckdb.connect(path, read_only=True)
     try:
+        # The segment members come from the store, so this needs the
+        # connection open before the SQL is finished.
+        if "segment" in filters:
+            members = segments.resolve(conn, filters["segment"], path)
+            placeholders = ", ".join("?" for _ in members)
+            sql += f""" AND EXISTS (
+                SELECT 1 FROM json_each(financial_facts_v1.dimensions) AS d
+                WHERE d.value ->> 'axis' = '{segments.SEGMENT_AXIS}'
+                  AND (d.value ->> 'member') IN ({placeholders})
+            )"""
+            params.extend(members)
+
+        # fact_id is a hash, so this orders nothing. It is here to make the
+        # result set stable between runs; the ranking happens in
+        # rank_records() below, after the question has been read.
+        sql += " ORDER BY fact_id"
+
         return conn.execute(sql, params).df().to_dict("records")
     finally:
         conn.close()
