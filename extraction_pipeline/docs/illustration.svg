@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1330" height="819" viewBox="0 0 1330 819" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#047857"/></marker></defs>
+<rect width="1330" height="819" fill="#ffffff"/>
+<text x="40" y="38" font-size="20" font-weight="bold" fill="#111827">Illustration: how units, lists and risk fields are assigned in Item 1A (made-up text, one unit per row)</text>
+<rect x="40" y="58" width="640" height="648" rx="8" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="90" y="66" width="570" height="36" rx="5" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<circle cx="64" cy="84" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="89" font-size="13" fill="#374151" text-anchor="middle">1</text>
+<text x="102" y="90" font-size="15" font-weight="bold" fill="#111827">Item 1A. Risk Factors</text>
+<line x1="660" y1="85" x2="700" y2="85" stroke="#6b7280" stroke-width="1.2"/>
+<text x="708" y="90" font-size="14.5" fill="#6b7280">section_title</text>
+<rect x="90" y="112" width="570" height="36" rx="5" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.2"/>
+<circle cx="64" cy="130" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="135" font-size="13" fill="#374151" text-anchor="middle">2</text>
+<text x="102" y="136" font-size="15" font-weight="bold" fill="#111827">Summary of Risk Factors</text>
+<line x1="660" y1="131" x2="700" y2="131" stroke="#1d4ed8" stroke-width="1.2"/>
+<text x="708" y="136" font-size="14.5" fill="#1d4ed8">category_heading</text>
+<rect x="90" y="158" width="570" height="36" rx="5" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.2"/>
+<circle cx="64" cy="176" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="181" font-size="13" fill="#374151" text-anchor="middle">3</text>
+<text x="102" y="182" font-size="15" font-weight="bold" fill="#111827">Business Risks</text>
+<line x1="660" y1="177" x2="700" y2="177" stroke="#1d4ed8" stroke-width="1.2"/>
+<text x="708" y="182" font-size="14.5" fill="#1d4ed8">category_heading</text>
+<rect x="90" y="204" width="570" height="36" rx="5" fill="#f9fafb" stroke="#374151" stroke-width="1.2"/>
+<circle cx="64" cy="222" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="227" font-size="13" fill="#374151" text-anchor="middle">4</text>
+<text x="102" y="228" font-size="15" font-weight="normal" fill="#111827">• Supply disruptions could harm our results.</text>
+<line x1="660" y1="223" x2="700" y2="223" stroke="#374151" stroke-width="1.2"/>
+<text x="708" y="228" font-size="14.5" fill="#374151">body</text>
+<rect x="90" y="250" width="570" height="36" rx="5" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.2"/>
+<circle cx="64" cy="268" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="273" font-size="13" fill="#374151" text-anchor="middle">5</text>
+<text x="102" y="274" font-size="15" font-weight="bold" fill="#111827">Business Risks</text>
+<line x1="660" y1="269" x2="700" y2="269" stroke="#1d4ed8" stroke-width="1.2"/>
+<text x="708" y="274" font-size="14.5" fill="#1d4ed8">category_heading</text>
+<rect x="90" y="296" width="570" height="36" rx="5" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.2"/>
+<circle cx="64" cy="314" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="319" font-size="13" fill="#374151" text-anchor="middle">6</text>
+<text x="102" y="320" font-size="15" font-weight="bold" font-style="italic" fill="#111827">Supply disruptions could harm our results.</text>
+<line x1="660" y1="315" x2="700" y2="315" stroke="#7c3aed" stroke-width="1.2"/>
+<text x="708" y="312" font-size="14.5" fill="#7c3aed">body · risk lead sentence</text>
+<text x="708" y="330" font-size="12.5" fill="#7c3aed">bold in the filing; the model's is_risk_heading decides</text>
+<rect x="90" y="342" width="570" height="36" rx="5" fill="#f9fafb" stroke="#374151" stroke-width="1.2"/>
+<circle cx="64" cy="360" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="365" font-size="13" fill="#374151" text-anchor="middle">7</text>
+<text x="102" y="366" font-size="15" font-weight="normal" fill="#111827">We rely on a small number of suppliers in Asia.</text>
+<line x1="660" y1="361" x2="700" y2="361" stroke="#374151" stroke-width="1.2"/>
+<text x="708" y="366" font-size="14.5" fill="#374151">body · risk_lead_unit_id = unit_id of 6</text>
+<rect x="90" y="388" width="570" height="36" rx="5" fill="#d1fae5" stroke="#047857" stroke-width="1.2"/>
+<circle cx="64" cy="406" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="411" font-size="13" fill="#374151" text-anchor="middle">8</text>
+<text x="102" y="412" font-size="13.5" font-weight="normal" fill="#111827">Our main components include: • memory chips • power supplies</text>
+<line x1="660" y1="407" x2="700" y2="407" stroke="#047857" stroke-width="1.2"/>
+<text x="708" y="412" font-size="14.5" fill="#047857">list_group · merged list: one unit, one unit_id</text>
+<rect x="90" y="434" width="570" height="36" rx="5" fill="#f0fdf4" stroke="#047857" stroke-width="1.2" stroke-dasharray="5 3"/>
+<circle cx="64" cy="452" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="457" font-size="13" fill="#374151" text-anchor="middle">9</text>
+<text x="102" y="458" font-size="15" font-weight="normal" fill="#111827">Delays may come from:</text>
+<line x1="660" y1="453" x2="700" y2="453" stroke="#047857" stroke-width="1.2"/>
+<text x="708" y="458" font-size="14.5" fill="#047857">body · split list: the intro, its own unit_id</text>
+<rect x="114" y="480" width="546" height="36" rx="5" fill="#f0fdf4" stroke="#047857" stroke-width="1.2" stroke-dasharray="5 3"/>
+<circle cx="64" cy="498" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="503" font-size="13" fill="#374151" text-anchor="middle">10</text>
+<text x="126" y="504" font-size="13.5" font-weight="normal" fill="#111827">• changes in trade policy that raise the cost of imported parts</text>
+<line x1="660" y1="499" x2="700" y2="499" stroke="#047857" stroke-width="1.2"/>
+<text x="708" y="496" font-size="14.5" fill="#047857">body · split list item, its own unit_id</text>
+<text x="708" y="514" font-size="12.5" fill="#047857">list_intro_id = unit_id of 9</text>
+<rect x="114" y="526" width="546" height="36" rx="5" fill="#f0fdf4" stroke="#047857" stroke-width="1.2" stroke-dasharray="5 3"/>
+<circle cx="64" cy="544" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="549" font-size="13" fill="#374151" text-anchor="middle">11</text>
+<text x="126" y="550" font-size="13.5" font-weight="normal" fill="#111827">• shortages of memory chips at our two main suppliers</text>
+<line x1="660" y1="545" x2="700" y2="545" stroke="#047857" stroke-width="1.2"/>
+<text x="708" y="542" font-size="14.5" fill="#047857">body · split list item, its own unit_id</text>
+<text x="708" y="560" font-size="12.5" fill="#047857">list_intro_id = unit_id of 9</text>
+<rect x="90" y="572" width="570" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.2"/>
+<circle cx="64" cy="590" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="595" font-size="13" fill="#374151" text-anchor="middle">12</text>
+<text x="102" y="596" font-size="15" font-weight="normal" fill="#111827">See Note 5 for more information.</text>
+<line x1="660" y1="591" x2="700" y2="591" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="708" y="596" font-size="14.5" fill="#9ca3af">body · cross_reference (not sent)</text>
+<rect x="90" y="618" width="570" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.2"/>
+<circle cx="64" cy="636" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="641" font-size="13" fill="#374151" text-anchor="middle">13</text>
+<text x="102" y="642" font-size="15" font-weight="normal" fill="#111827">| Fiscal 2026 | Fiscal 2025 | Change |</text>
+<line x1="660" y1="637" x2="700" y2="637" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="708" y="642" font-size="14.5" fill="#9ca3af">body · table_residue (not sent)</text>
+<rect x="90" y="664" width="570" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.2"/>
+<circle cx="64" cy="682" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
+<text x="64" y="687" font-size="13" fill="#374151" text-anchor="middle">14</text>
+<text x="102" y="688" font-size="15" font-weight="normal" fill="#111827">Not applicable.</text>
+<line x1="660" y1="683" x2="700" y2="683" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="708" y="688" font-size="14.5" fill="#9ca3af">body · too_short (not sent)</text>
+<path d="M110,498 C82,498 82,458 92,460" fill="none" stroke="#047857" stroke-width="1.3" stroke-dasharray="3 2" marker-end="url(#a)"/>
+<path d="M110,544 C82,544 82,458 92,460" fill="none" stroke="#047857" stroke-width="1.3" stroke-dasharray="3 2" marker-end="url(#a)"/>
+<path d="M1100,114 h10 v128 h-10" fill="none" stroke="#b45309" stroke-width="2"/>
+<text x="1118" y="173.0" font-size="14" font-weight="bold" fill="#b45309">risk factor summary</text>
+<text x="1118" y="191.0" font-size="13" font-weight="normal" fill="#b45309">risk_summary = true</text>
+<path d="M1100,298 h10 v404 h-10" fill="none" stroke="#1d4ed8" stroke-width="2"/>
+<text x="1118" y="477.0" font-size="14" font-weight="bold" fill="#1d4ed8">under 5 Business Risks</text>
+<text x="1118" y="495.0" font-size="13" font-weight="normal" fill="#1d4ed8">risk_category_id =</text>
+<text x="1118" y="513.0" font-size="13" font-weight="normal" fill="#1d4ed8">unit_id of 5</text>
+<text x="1118" y="531.0" font-size="13" font-weight="normal" fill="#1d4ed8">theme: business_operations</text>
+<text x="40" y="744" font-size="14.5" fill="#374151">Rows 4 and 6 are the same sentence at two places, so they are two Claims (#45). Rows 7–11 all carry the risk_lead_unit_id of row 6.</text>
+<text x="40" y="768" font-size="14.5" fill="#374151">Row 8 is a merged list (one unit). Rows 9–11 are a split list (three units); each item points to row 9 by list_intro_id (dashed arrows).</text>
+<text x="40" y="792" font-size="14.5" fill="#374151">Every unit under row 5 takes its themes; each of their Claims gets one CONCERNS_RISK edge per theme. Row 1, the headings and rows 12–14 are not sent to the LLM.</text>
+</svg>
