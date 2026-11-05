@@ -61,3 +61,70 @@ jobs:
         run: python toy_graph/toy_graph.py --reset
       - name: Reproduce the schema findings
         run: python toy_graph/check_findings.py
+
+  # Each pipeline keeps its own requirements, so each gets its own job and a
+  # clean environment. A job does nothing until its folder exists on the branch
+  # being tested, so this file can merge before #34 and #35 do.
+  #
+  # A job that skips every step still reports green, so each one warns when it
+  # tested nothing. Delete both guards once #34 and #35 are on main: after that
+  # a missing folder is a real failure, and the guard would hide it.
+
+  # Exhibit 21 pipeline (#34): unit tests, then rebuild from the bundled
+  # exhibits and check the committed graph edges still match the code.
+  ex21:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: present
+        run: echo "yes=$([ -f ex21_pipeline/requirements.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - if: steps.present.outputs.yes != 'true'
+        run: echo "::warning title=Nothing tested::ex21_pipeline/ is not on this branch, so this job ran no tests."
+      - if: steps.present.outputs.yes == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ex21_pipeline/requirements.txt
+      - if: steps.present.outputs.yes == 'true'
+        run: pip install -r ex21_pipeline/requirements.txt pytest
+      - if: steps.present.outputs.yes == 'true'
+        name: Unit tests
+        working-directory: ex21_pipeline
+        run: pytest tests -q
+      - if: steps.present.outputs.yes == 'true'
+        name: Rebuild outputs from the bundled exhibits
+        working-directory: ex21_pipeline
+        run: python run_pipeline.py
+      - if: steps.present.outputs.yes == 'true'
+        name: Committed graph edges match a fresh rebuild
+        # The .xlsx is not compared: Excel files embed a timestamp, so they
+        # differ on every rebuild even when the data is identical.
+        run: |
+          git diff --exit-code -- ex21_pipeline/output/graph_edges.csv \
+            || { echo "::error::graph_edges.csv is stale. Re-run run_pipeline.py and commit the result."; exit 1; }
+
+  # Claim extraction pipeline (#35): the tests run every step over fixture
+  # filings with a fake OpenAI client, so no API key and no spend.
+  claims:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ""   # make sure nothing can reach the real API
+    steps:
+      - uses: actions/checkout@v4
+      - id: present
+        run: echo "yes=$([ -f extraction_pipeline/requirements.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - if: steps.present.outputs.yes != 'true'
+        run: echo "::warning title=Nothing tested::extraction_pipeline/ is not on this branch, so this job ran no tests."
+      - if: steps.present.outputs.yes == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: extraction_pipeline/requirements.txt
+      - if: steps.present.outputs.yes == 'true'
+        run: pip install -r extraction_pipeline/requirements.txt pytest
+      - if: steps.present.outputs.yes == 'true'
+        name: Pipeline tests
+        working-directory: extraction_pipeline
+        run: pytest tests -q
