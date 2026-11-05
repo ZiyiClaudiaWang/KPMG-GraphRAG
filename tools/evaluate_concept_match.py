@@ -29,14 +29,18 @@ GOLD = ROOT / "structured" / "msft_gold_questions_v1.json"
 DEFAULT_DB = ROOT / "msft_financial_facts_v1.duckdb"
 
 
-def ranked_concepts(rows, question, limit=3):
+def ranked_concepts(rows, question, filers=None, limit=3):
     """The distinct concepts this question reaches, best first."""
     terms = concept_match.question_terms(question)
     alias = concept_match.aliased_concept(terms)
+    filers = filers or {}
 
     scored = []
-    for fact_id, concept, dimensions, period_end in rows:
-        score = concept_match.score_fact(terms, concept, dimensions, alias)
+    for fact_id, concept, dimensions, period_end, ticker in rows:
+        score = concept_match.score_fact(
+            terms, concept, dimensions, alias,
+            filers.get(ticker, frozenset())
+        )
         if score > 0:
             scored.append((score, period_end or "", fact_id, concept))
     scored.sort(key=lambda r: (-r[0], [-ord(c) for c in r[1]], r[2]))
@@ -58,8 +62,18 @@ def main():
 
     con = duckdb.connect(db, read_only=True)
     rows = con.execute(
-        "SELECT fact_id, concept_name, dimensions, period_end FROM financial_facts_v1"
+        "SELECT fact_id, concept_name, dimensions, period_end, ticker "
+        "FROM financial_facts_v1"
     ).fetchall()
+    # The scorer ignores the filer's own words when matching dimensions, so the
+    # evaluator has to hand it the same words the query path does. Without
+    # this it scores the behaviour we replaced.
+    filers = {
+        ticker: concept_match.filer_words(ticker, name)
+        for ticker, name in con.execute(
+            "SELECT DISTINCT ticker, company_name FROM filings_v1"
+        ).fetchall()
+    }
     con.close()
 
     gold = json.loads(GOLD.read_text())
@@ -68,7 +82,7 @@ def main():
     print(f"{len(rows)} facts, {len(gold)} questions\n")
     for item in gold:
         want = item["concept"]
-        got = ranked_concepts(rows, item["question"])
+        got = ranked_concepts(rows, item["question"], filers)
         first = got[0] if got else None
         hit1, hit3 = first == want, want in got
         top1 += hit1
