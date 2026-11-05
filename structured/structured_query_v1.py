@@ -172,9 +172,19 @@ def rank_records(records, query, filters, top_k):
     alias = concept_match.aliased_concept(terms)
 
     scored = []
+    filers = {}
     for r in records:
+        ticker = r.get("ticker")
+        if ticker not in filers:
+            try:
+                name = _filing(r["accession_number"]).get("company_name")
+            except (KeyError, RuntimeError):
+                # Ranking still works off the ticker alone. A store too old to
+                # name its filers is not a reason to refuse to order rows.
+                name = None
+            filers[ticker] = concept_match.filer_words(ticker, name)
         score = concept_match.score_fact(
-            terms, r["concept_name"], r.get("dimensions"), alias
+            terms, r["concept_name"], r.get("dimensions"), alias, filers[ticker]
         )
         if score > 0:
             scored.append((score, r))

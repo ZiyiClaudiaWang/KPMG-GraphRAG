@@ -85,6 +85,17 @@ DIMENSION_BONUS = 0.05
 # sporting equipment line, and both are tagged with the same concept.
 DIMENSION_PENALTY = 0.10
 
+# Words that say which legal entity filed, not which business it describes.
+LEGAL_SUFFIXES = frozenset({
+    "inc", "incorporated", "corp", "corporation", "co", "company", "companies",
+    "ltd", "limited", "plc", "lp", "llc", "holdings", "group", "the", "and",
+})
+
+# This axis says whether a fact is a segment row or an elimination. Every
+# segment fact carries it and no question ever names it, so counting it would
+# charge every segment fact the same penalty and bury all of them.
+STRUCTURAL_AXES = frozenset({"srt:ConsolidationItemsAxis"})
+
 _WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z][a-z]+|[0-9]+|[a-z]+")
 _TOKEN = re.compile(r"[a-z0-9]+")
 _YEAR = re.compile(r"(19|20)\d\d")
@@ -151,8 +162,23 @@ def _dimension_words(dimensions: object) -> list[str]:
     return words
 
 
+def filer_words(ticker: object, company_name: object = None) -> frozenset:
+    """The words that name the filer rather than one of its segments.
+
+    A filer tags its own brand as a dimension member: Nike files
+    `nke:NIKEBrandMember`, Microsoft files `msft:MicrosoftCloudMember`. Without
+    this, asking "Nike revenue" scores every NIKE Brand slice above the
+    company's own figure, because the company's name looks like a segment name.
+    """
+    words = {str(ticker or "").lower()}
+    for word in _TOKEN.findall(str(company_name or "").lower()):
+        if word and word not in LEGAL_SUFFIXES:
+            words.add(word)
+    return frozenset(w for w in words if w)
+
+
 def score_fact(terms: list[str], concept: object, dimensions: object,
-               alias: str | None) -> float:
+               alias: str | None, filer: frozenset = frozenset()) -> float:
     """How well one fact answers the question. 0.0 means it does not."""
     if not terms:
         return 0.0
@@ -174,10 +200,23 @@ def score_fact(terms: list[str], concept: object, dimensions: object,
         lead = LEAD_BONUS if words and _matches(words[0], terms) else 0.0
         base = min(coverage * brevity + lead, MAX_GUESS_SCORE)
 
-    entries = _dimension_entries(dimensions)
-    matched = [t for t in terms if _matches(t, _dimension_words(dimensions))]
-    # One penalty per dimension, charged once if nothing in the question
-    # named it. A consolidated fact carries no dimensions and so pays nothing.
-    unasked = 0 if matched else len(entries)
-    score = base + DIMENSION_BONUS * len(matched) - DIMENSION_PENALTY * unasked
+    # The filer's own name describes the company, not one of its segments.
+    asked = [t for t in terms if t not in filer]
+
+    matched = 0
+    unasked = 0
+    for entry in _dimension_entries(dimensions):
+        if str(entry.get("axis", "")) in STRUCTURAL_AXES:
+            continue
+        words = concept_words(entry.get("member", ""))
+        hits = [t for t in asked if _matches(t, words)]
+        # Charge per axis, not once for the whole fact. One named axis used to
+        # excuse every other axis, so a three-axis slice of a segment tied with
+        # the segment itself and the fact id decided which one was returned.
+        if hits:
+            matched += len(hits)
+        else:
+            unasked += 1
+
+    score = base + DIMENSION_BONUS * matched - DIMENSION_PENALTY * unasked
     return round(max(score, 0.0), 6)
