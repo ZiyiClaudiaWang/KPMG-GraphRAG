@@ -134,24 +134,32 @@ def station_2_envelope() -> None:
 
 
 def station_3_question() -> None:
-    """The arm reads the question. It used to ignore it."""
+    """The arm reads the question. It used to ignore it.
+
+    Ask about the company and you get the company; name a segment and you get
+    the segment. Both are the same XBRL concept, told apart by a dimension.
+    """
     heading(3, "Question matching")
     from graphrag import retrieve
     import structured_query_v1
 
     retrieve.configure_structured_backend(structured_query_v1.structured_search)
     for question, filters in (
+        ("Nike revenue", {"ticker": "NKE"}),
+        ("Converse revenue", {"ticker": "NKE"}),
         (DEMO_QUESTION, {"ticker": "MSFT"}),
-        ("total revenue", {"ticker": "NKE"}),
         ("cash and cash equivalents", {"ticker": "AAPL"}),
     ):
-        shell(f'retrieve.structured_search("{question}", filters={filters}, top_k=3)')
-        for item in retrieve.structured_search(question, filters=filters, top_k=3):
+        shell(f'retrieve.structured_search("{question}", filters={filters}, top_k=1)')
+        for item in retrieve.structured_search(question, filters=filters, top_k=1):
             meta = item["metadata"]
-            print(
-                f'  {item["rank"]}  {item["ticker"]:5} {meta["concept"]:70} '
-                f'{meta["value_num"]!s:>18}  {item["reporting_period_end"]}'
-            )
+            where = " / ".join(
+                d["member"].split(":")[-1].replace("Member", "")
+                for d in meta["dimensions"]
+            ) or "consolidated"
+            print(f'  {item["ticker"]:5} {meta["value_num"]:>20,.0f}   {where}')
+            print(f'        {meta["concept"]}')
+            print(f'        {meta["period_start"] or "as at"} -> {meta["period_end"]}')
 
 
 def station_4_segments(store: str) -> None:
