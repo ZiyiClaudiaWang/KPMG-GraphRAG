@@ -80,6 +80,10 @@ LENGTH_PENALTY = 0.08
 LEAD_BONUS = 0.15
 # A dimension can sharpen a match. It can never create one.
 DIMENSION_BONUS = 0.05
+# A dimension the question did not ask for makes a fact less likely to be the
+# answer. "Nike's revenue" means the company's revenue, not the revenue of its
+# sporting equipment line, and both are tagged with the same concept.
+DIMENSION_PENALTY = 0.10
 
 _WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z][a-z]+|[0-9]+|[a-z]+")
 _TOKEN = re.compile(r"[a-z0-9]+")
@@ -125,6 +129,15 @@ def _matches(term: str, words: list[str]) -> bool:
     return any(term == w or term + "s" == w or term == w + "s" for w in words)
 
 
+def _dimension_entries(dimensions: object) -> list:
+    if isinstance(dimensions, str):
+        try:
+            dimensions = json.loads(dimensions or "[]")
+        except json.JSONDecodeError:
+            return []
+    return [e for e in (dimensions or []) if isinstance(e, dict)]
+
+
 def _dimension_words(dimensions: object) -> list[str]:
     if isinstance(dimensions, str):
         try:
@@ -161,5 +174,10 @@ def score_fact(terms: list[str], concept: object, dimensions: object,
         lead = LEAD_BONUS if words and _matches(words[0], terms) else 0.0
         base = min(coverage * brevity + lead, MAX_GUESS_SCORE)
 
-    matched_dimensions = [t for t in terms if _matches(t, _dimension_words(dimensions))]
-    return round(base + DIMENSION_BONUS * len(matched_dimensions), 6)
+    entries = _dimension_entries(dimensions)
+    matched = [t for t in terms if _matches(t, _dimension_words(dimensions))]
+    # One penalty per dimension, charged once if nothing in the question
+    # named it. A consolidated fact carries no dimensions and so pays nothing.
+    unasked = 0 if matched else len(entries)
+    score = base + DIMENSION_BONUS * len(matched) - DIMENSION_PENALTY * unasked
+    return round(max(score, 0.0), 6)
