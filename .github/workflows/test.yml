@@ -65,6 +65,10 @@ jobs:
   # Each pipeline keeps its own requirements, so each gets its own job and a
   # clean environment. A job does nothing until its folder exists on the branch
   # being tested, so this file can merge before #34 and #35 do.
+  #
+  # A job that skips every step still reports green, so each one warns when it
+  # tested nothing. Delete both guards once #34 and #35 are on main: after that
+  # a missing folder is a real failure, and the guard would hide it.
 
   # Exhibit 21 pipeline (#34): unit tests, then rebuild from the bundled
   # exhibits and check the committed graph edges still match the code.
@@ -74,6 +78,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: present
         run: echo "yes=$([ -f ex21_pipeline/requirements.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - if: steps.present.outputs.yes != 'true'
+        run: echo "::warning title=Nothing tested::ex21_pipeline/ is not on this branch, so this job ran no tests."
       - if: steps.present.outputs.yes == 'true'
         uses: actions/setup-python@v5
         with:
@@ -108,6 +114,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: present
         run: echo "yes=$([ -f extraction_pipeline/requirements.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - if: steps.present.outputs.yes != 'true'
+        run: echo "::warning title=Nothing tested::extraction_pipeline/ is not on this branch, so this job ran no tests."
       - if: steps.present.outputs.yes == 'true'
         uses: actions/setup-python@v5
         with:
