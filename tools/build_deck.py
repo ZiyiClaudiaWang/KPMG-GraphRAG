@@ -26,6 +26,9 @@ MUTED = RGBColor(0x6B, 0x72, 0x80)
 GREEN = RGBColor(0x2F, 0x6F, 0x4F)
 BLUE = RGBColor(0x1F, 0x4E, 0x79)
 WARN = RGBColor(0xA3, 0x3A, 0x2A)
+# The default table style fills the header row, so header text needs to sit
+# on top of it rather than beside it.
+PAPER = RGBColor(0xFF, 0xFF, 0xFF)
 FONT = "Helvetica Neue"
 
 
@@ -89,18 +92,21 @@ def build(figures: Path, out: Path):
     table.columns[2].width = Inches(4.2)
     def cell_text(cell, text, *, bold, size, colour):
         """Set a cell's text. An empty string leaves a paragraph with no runs,
-        so add the run rather than assigning cell.text."""
-        para = cell.text_frame.paragraphs[0]
-        run = para.add_run()
-        run.text = text
-        run.font.bold = bold
-        run.font.size = Pt(size)
-        run.font.name = FONT
-        run.font.color.rgb = colour
+        so add the run rather than assigning cell.text. A newline starts a new
+        paragraph, because a run keeps the character and draws nothing."""
+        frame = cell.text_frame
+        frame.word_wrap = True
+        for i, line in enumerate(str(text).split("\n")):
+            para = frame.paragraphs[0] if i == 0 else frame.add_paragraph()
+            run = para.add_run()
+            run.text = line
+            run.font.bold = bold and i == 0
+            run.font.size = Pt(size)
+            run.font.name = FONT
+            run.font.color.rgb = colour
 
     for c, head in enumerate([" ", "29 Oct", "5 Nov"]):
-        cell_text(table.cell(0, c), head, bold=True, size=11,
-                  colour=BLUE if c == 2 else MUTED)
+        cell_text(table.cell(0, c), head, bold=True, size=11, colour=PAPER)
     for r, row in enumerate(rows, start=1):
         for c, text in enumerate(row):
             cell_text(table.cell(r, c), text, bold=(c == 0), size=10,
@@ -132,14 +138,55 @@ def build(figures: Path, out: Path):
          "dimension. See the next slide.", WARN, False, 8.5),
     ])
 
-    # 3 — identity
+    # 3 — before and after
+    s = new_slide(prs, "Checking this deck's own numbers changed two of them",
+                  "Same questions, same store, same afternoon. The fix is two "
+                  "rules in the structured arm's scorer.")
+    rows = [
+        ("“Nike revenue”",
+         "3,259,000,000\nNIKE Brand / North America / Footwear",
+         "11,213,000,000\nconsolidated"),
+        ("“Converse revenue”",
+         "22,000,000\nother sales channel inside Converse",
+         "263,000,000\nConverse segment"),
+        ("“Microsoft Intelligent\nCloud revenue”",
+         "9,175,000,000\nMicrosoft 365 Consumer",
+         "137,791,000,000\nIntelligent Cloud"),
+        ("“Medtronic total assets”",
+         "93,306,000,000\nconsolidated",
+         "unchanged"),
+        ("Gold set, ten questions", "top-1 10/10", "top-1 10/10"),
+    ]
+    table = s.shapes.add_table(len(rows) + 1, 3, Inches(0.45), Inches(1.28),
+                               Inches(9.1), Inches(3.0)).table
+    table.columns[0].width = Inches(2.3)
+    table.columns[1].width = Inches(3.5)
+    table.columns[2].width = Inches(3.3)
+    for c, head in enumerate(["question", "this morning", "now"]):
+        cell_text(table.cell(0, c), head, bold=True, size=10, colour=PAPER)
+    for r, row in enumerate(rows, start=1):
+        for c, text in enumerate(row):
+            cell_text(table.cell(r, c), text, bold=(c == 0), size=8.5,
+                      colour=INK if c == 0 else (WARN if c == 1 else GREEN))
+    textbox(s, Inches(0.45), Inches(4.45), Inches(9.1), Inches(0.9), [
+        ("Why it did that: a filer tags its own brand as a dimension — "
+         "nke:NIKEBrandMember, msft:MicrosoftCloudMember — so the company's "
+         "own name scored as a segment name. And one matched axis excused "
+         "every other axis, so a three-axis slice tied with the segment "
+         "itself and a hash picked the winner.", MUTED, False, 9.5),
+        ("The two rules: ignore the filer's own words when matching "
+         "dimensions, and charge for every axis the question did not name.",
+         INK, True, 9.5),
+    ])
+
+    # 4 — identity
     s = new_slide(prs, "How a number gets its identity, and how the arms line up",
                   "Three arms produce three kinds of evidence. One rule keeps a "
                   "citation unambiguous.")
     picture(s, figures / "fig_ids.png", Inches(0.3), Inches(1.15),
             Inches(9.4), Inches(4.3))
 
-    # 4 — measured
+    # 5 — measured
     s = new_slide(prs, "Measured, not asserted",
                   "The gold questions record which concept answers each one, so "
                   "they are an answer key — not our own marking.")
@@ -167,7 +214,7 @@ def build(figures: Path, out: Path):
          "structured/ ran. CI passed throughout.", MUTED, False, 9),
     ])
 
-    # 5 — next
+    # 6 — next
     s = new_slide(prs, "The demo question, and what lands by Monday",
                   "M18, from Eval's own list — so we are not grading our arm on a "
                   "benchmark we wrote.")
