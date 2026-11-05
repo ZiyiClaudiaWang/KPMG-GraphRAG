@@ -97,7 +97,13 @@ def connect(uri: str | None = None, auth: tuple[str, str] | None = None,
     _database = database or os.environ.get("NEO4J_DATABASE") or None
 
     try:
-        driver = GraphDatabase.driver(uri, auth=auth)
+        # We read both the old and new names for the fields the extraction
+        # pipeline is renaming, so one of each pair is always absent. Neo4j
+        # warns about every missing property on every query, which would bury
+        # a real warning under three paragraphs of noise.
+        driver = GraphDatabase.driver(
+            uri, auth=auth, notifications_disabled_classifications=["UNRECOGNIZED"]
+        )
         driver.verify_connectivity()
     except Exception as exc:
         raise contract.RetrievalUnavailableError(
@@ -192,7 +198,15 @@ RETURN c.claim_id AS claim_id, c.quote AS quote, c.claim_type AS claim_type,
        sec.section_key AS section_key, sec.title AS section_title,
        sec.section_type AS section_type, sec.xpath AS section_xpath,
        sup.raw_spans_json AS raw_spans_json, sup.section_path AS section_path,
-       sup.sentence_ids AS sentence_ids, sup.role AS role, sup.model AS model,
+       sup.role AS role, sup.model AS model,
+       // The extraction pipeline is replacing sentence ids with unit ids, and
+       // Cypher returns null for a property that is not there rather than
+       // failing. Read both so the pointer back to the source survives the
+       // change in either direction.
+       sup.sentence_ids AS sentence_ids, sup.context_unit_ids AS context_unit_ids,
+       sup.risk_lead_unit_id AS risk_lead_unit_id,
+       c.risk_lead_sentence AS risk_lead_sentence, c.risk_summary AS risk_summary,
+       c.multi_fragment AS multi_fragment,
        fl.accession_number AS accession_number, fl.form AS form,
        fl.filing_date AS filing_date, fl.reporting_period_end AS reporting_period_end,
        co.cik AS cik, co.name AS company_name, co.ticker AS ticker
@@ -253,9 +267,15 @@ def _to_evidence(row: dict, trace_id: str | None) -> dict[str, Any]:
             # Offsets are section-relative and counted in Unicode codepoints.
             "raw_spans": _parse_spans(row["raw_spans_json"]),
             "coordinate_system": "exact_data_section_content_unicode_codepoints",
-            "sentence_ids": row["sentence_ids"],
+            # Whichever of the two the loader wrote. Never both.
+            "source_unit_ids": row.get("sentence_ids") or row.get("context_unit_ids") or [],
             "role": row["role"],
             "model": row["model"],
+            # Only set on Item 1A claims, and only by the newer loader.
+            "risk_lead_unit_id": row.get("risk_lead_unit_id"),
+            "risk_lead_sentence": row.get("risk_lead_sentence"),
+            "risk_summary": row.get("risk_summary"),
+            "multi_fragment": row.get("multi_fragment"),
             "hops": TRAVERSAL_HOPS,
         },
     }

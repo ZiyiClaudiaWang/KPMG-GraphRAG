@@ -38,6 +38,11 @@ def _row(**overrides):
         "raw_spans_json": "[[[27, 178]]]",
         "section_path": "Part I Item 1 > GENERAL",
         "sentence_ids": ["0001193125-26-323660|part-i-item-1|s0003"],
+        "context_unit_ids": None,
+        "risk_lead_unit_id": None,
+        "risk_lead_sentence": None,
+        "risk_summary": None,
+        "multi_fragment": None,
         "role": "body",
         "model": "gpt-4.1-mini-2025-04-14",
         "accession_number": "0001193125-26-323660",
@@ -75,6 +80,28 @@ def test_claim_type_and_subject_scope_reach_the_caller():
     )
     assert item["metadata"]["claim_type"] == "hedged_risk"
     assert item["metadata"]["subject_scope"] == "competitors"
+
+
+def test_source_pointer_survives_either_loader():
+    """The extraction pipeline is swapping sentence ids for unit ids. Cypher
+    returns null for a property that is not there instead of failing, so
+    reading only one name would lose the pointer without anything breaking."""
+    old = graph_backend._to_evidence(_row(), trace_id=None)
+    assert old["metadata"]["source_unit_ids"] == [
+        "0001193125-26-323660|part-i-item-1|s0003"
+    ]
+
+    new = graph_backend._to_evidence(
+        _row(sentence_ids=None, context_unit_ids=["u-1", "u-2"]), trace_id=None
+    )
+    assert new["metadata"]["source_unit_ids"] == ["u-1", "u-2"]
+
+
+def test_a_claim_with_neither_pointer_gives_an_empty_list():
+    item = graph_backend._to_evidence(
+        _row(sentence_ids=None, context_unit_ids=None), trace_id=None
+    )
+    assert item["metadata"]["source_unit_ids"] == []
 
 
 def test_spans_arrive_as_a_list_not_as_json_text():

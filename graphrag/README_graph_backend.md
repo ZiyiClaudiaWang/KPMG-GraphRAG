@@ -96,6 +96,18 @@ run, 10 of 10 exact.
 The loader writes spans as JSON text because Neo4j cannot store a nested list.
 This module parses them back, so callers get a list.
 
+`metadata.source_unit_ids` points back at the units a Claim came from. The
+extraction pipeline is partway through renaming these from `sentence_ids` to
+`context_unit_ids`, so the query reads both and returns whichever the loader
+wrote. This matters more than it looks: Cypher returns null for a property
+that is not there rather than failing, so reading only one name would lose
+the pointer without anything breaking. The driver also has `UNRECOGNIZED`
+notifications turned off, because one of each renamed pair is always absent
+and Neo4j warns about it on every query.
+
+Three Item 1A fields ride along when the newer loader wrote them and are null
+otherwise: `risk_lead_unit_id`, `risk_lead_sentence` and `risk_summary`.
+
 `source_url` is built from the CIK and accession rather than stored, because
 the envelope requires a non-null URL and the graph holds no such property.
 
