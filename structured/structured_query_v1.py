@@ -2,6 +2,71 @@ import os
 import duckdb
 import json
 
+# Set once per connection from the store itself, so the envelope describes
+# what is actually loaded instead of what someone typed.
+_STORE_PATH = None
+_FILINGS = {}
+_CORPUS_VERSION = None
+
+
+def _store_path():
+    return os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb")
+
+
+def load_store_metadata(conn=None):
+    """Read who filed what, from the store.
+
+    `company_name`, `form` and `corpus_version` used to be literals reading
+    "Microsoft Corporation", "10-K" and "msft-fy2025-10k". With ten companies
+    and a mix of annual and quarterly filings in the corpus, every envelope
+    claimed to be a Microsoft 10-K. `validate_results()` checks shape, not
+    whether a label agrees with the accession beside it, so the wrong one
+    travelled.
+
+    Stores written before the loader recorded this have no tables, which is
+    not an error: the fields fall back to None and the envelope says it does
+    not know rather than guessing.
+    """
+    global _STORE_PATH, _FILINGS, _CORPUS_VERSION
+    path = _store_path()
+    close_after = conn is None
+    if conn is None:
+        conn = duckdb.connect(path, read_only=True)
+    try:
+        try:
+            rows = conn.execute(
+                "SELECT accession_number, company_name, form FROM filings_v1"
+            ).fetchall()
+            _FILINGS = {r[0]: {"company_name": r[1], "form": r[2]} for r in rows}
+        except duckdb.CatalogException:
+            _FILINGS = {}
+        try:
+            row = conn.execute(
+                "SELECT value FROM store_meta_v1 WHERE key = 'corpus_version'"
+            ).fetchone()
+            _CORPUS_VERSION = row[0] if row else None
+        except duckdb.CatalogException:
+            _CORPUS_VERSION = None
+    finally:
+        if close_after:
+            conn.close()
+    _STORE_PATH = path
+
+
+def _filing(accession_number):
+    if _STORE_PATH != _store_path():
+        load_store_metadata()
+    if not _FILINGS:
+        # The contract does not allow a null company_name or form, so a store
+        # built before the loader recorded them cannot produce a valid
+        # envelope. Say that, rather than leaving the caller with
+        # "evidence field may not be null: company_name".
+        raise RuntimeError(
+            f"{_store_path()} has no filings_v1 table, so company_name and form "
+            "are unknown. Rebuild it with structured/fact_loader_v1.py."
+        )
+    return _FILINGS.get(accession_number, {})
+
 def query_database(query, filters=None, top_k=10, trace_id=None):
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query must be a non-empty string")
@@ -90,12 +155,12 @@ def structured_search(query, filters=None, top_k=10, trace_id=None):
     for rank, r in enumerate(records, 1):
         evidence.append({
             "rank": rank,
-            "company_name": "Microsoft Corporation",
+            "company_name": _filing(r["accession_number"]).get("company_name"),
             "filing_date": r["filing_date"],
             "reporting_period_end": r["period_end"],
             "source_url": None,
             "section": None,
-            "form": "10-K",
+            "form": _filing(r["accession_number"]).get("form"),
             "chunking_version": None,
             "extraction_version": "structured-loader-v1",
             "index_version": "duckdb-v1",
@@ -109,7 +174,7 @@ def structured_search(query, filters=None, top_k=10, trace_id=None):
             "chunk_id": None,
             "metadata": {
                 "trace_id": trace_id,
-                "corpus_version": "msft-fy2025-10k",
+                "corpus_version": _CORPUS_VERSION,
                 "basis": "as_filed",
                 "section_title": None,
                 "retrieval_method": "duckdb_exact_filter",
