@@ -35,10 +35,18 @@ A reply is rejected, and publishes no labels, when it is incomplete (finish_reas
 "stop"), a refusal, not exactly {"results": [...]}, or off the JSON schema. By default the
 run then stops (stop_on_failure); max_retries > 0 sends a follow-up request listing the problems.
 
-Ids: every stored record names a unit by its unit_id. The model sees short numbers instead
-("s0042": the unit's place in its section, counted from 1 over all units), made when a request
-is built and turned back into unit_ids as soon as a reply is read. They are never stored as
-ids; labels.jsonl has unit_id and context_unit_ids.
+Ids: every stored record names a unit by its unit_id. The model sees short numbers instead,
+counted within the request: "c1", "c2", ... for the context units and "s1" ... "s15" for the
+sentences to label (batch_numbers()). They are made when a request is built, appear only in
+the saved request and reply, and are turned back into unit_ids as soon as a reply is read;
+labels.jsonl has unit_id and context_unit_ids. Because they count within the request, a
+change elsewhere in the section that leaves a batch's own units and context alone (a heading
+or page footer added or removed further up) leaves its request, and its saved reply, as is.
+
+Context: the context_sentences units before a batch (or a repair target), plus the intro
+sentence of any split list item in it whose intro is neither in the batch nor in those units
+(list_intros()), in source order. So an item of a long list cut by a batch boundary still
+sees "... include:" (README Remaining issues 2.3, fixed 4 November 2026).
 
 Problems with single units are handled as in Claudia's run (her recovery v2 and repair scripts):
 - Unit quarantine: the rest of the reply is kept. A unit with invalid context ids, or whose
@@ -46,7 +54,8 @@ Problems with single units are handled as in Claudia's run (her recovery v2 and 
   with ids not in the batch are ignored. Nothing is guessed from row order.
 - Targeted repair: once every batch has a reply, units whose id was missing or repeated are
   sent again in one request, each under a key assigned by code (repair_1, repair_2, ...),
-  with its own 4 preceding units as context. Their labels replace the placeholders.
+  with its own context (its 4 preceding units, plus its list intro when missing). Their labels
+  replace the placeholders.
 
 Usage:
   python -m src.label --dry-run                         plan batches, estimate cost, no API calls
@@ -142,19 +151,29 @@ def entity_catalog() -> list[dict]:
 
 # ---------- prompt, schema, request ----------
 
-def local_ids(units: list[dict]) -> dict[str, str]:
-    """unit_id -> the short number the model sees: 's0042' for the 42nd unit of its section.
+def batch_numbers(context: list[dict], selected: list[dict]) -> tuple[list[str], list[str]]:
+    """The short numbers the model sees in one request: c1, c2, ... for the context units and
+    s1, s2, ... for the sentences to label, in order. Used inside requests and replies only."""
+    return [f"c{i}" for i in range(1, len(context) + 1)], [f"s{i}" for i in range(1, len(selected) + 1)]
 
-    Counted over every unit of the section (headings and prefiltered units too), in the order
-    of sentences.jsonl, so it is the same number the units had as sentence ids before #45 and
-    the requests read the same. Used inside requests and replies only.
-    """
-    numbers, count = {}, defaultdict(int)
-    for u in units:
-        key = (u["accession_number"], u["section_key"])
-        count[key] += 1
-        numbers[u["unit_id"]] = f"s{count[key]:04d}"
-    return numbers
+
+def context_units(section_units: list[dict], pos: int, targets: list[dict], cfg: dict) -> list[dict]:
+    """The context for units starting at section position pos: the context_sentences units
+    before it (section titles left out), plus any missing list intro (list_intros()), all in
+    source order."""
+    near = [u for u in section_units[:pos] if u["role"] != "section_title"][-cfg["context_sentences"]:]
+    chosen = {u["unit_id"] for u in near + list_intros(section_units, targets, near)}
+    return [u for u in section_units if u["unit_id"] in chosen]
+
+
+def list_intros(section_units: list[dict], targets: list[dict], near: list[dict]) -> list[dict]:
+    """Intro sentences of split list items among targets that are neither among the targets nor
+    in the nearby context. Usually the intro is further up than that context; an intro too
+    short to be labelled ("Solutions include:", prefilter too_short) can also sit among the
+    batch's own sentences, and is then only visible this way."""
+    present = {u["unit_id"] for u in targets} | {u["unit_id"] for u in near}
+    wanted = {u["list_intro_id"] for u in targets if u.get("list_intro_id")} - present
+    return [u for u in section_units if u["unit_id"] in wanted]
 
 
 def system_prompt(prompt_version: str) -> str:
@@ -245,7 +264,6 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
     verify_units(units, sources)
     system = system_prompt(cfg["prompt_version"])
     lookup = {u["unit_id"]: u for u in units}
-    numbers = local_ids(units)
     vocabulary = source_review.source_vocabulary(sources)
     catalog = entity_catalog()
 
@@ -263,7 +281,8 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
             while True:
                 selected = eligible[start:start + size]
                 first = next(i for i, u in enumerate(section_units) if u["unit_id"] == selected[0]["unit_id"])
-                context = [u for u in section_units[:first] if u["role"] != "section_title"][-cfg["context_sentences"]:]
+                context = context_units(section_units, first, selected, cfg)
+                context_numbers, numbers = batch_numbers(context, selected)
                 batch = {
                     "batch_id": f"{accession}|{section_key}|checked_start_{start}_n{len(selected)}",
                     "accession_number": accession, "section_key": section_key,
@@ -271,8 +290,8 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
                     "filing": f"{source['ticker']} {source['form']}",
                     "unit_ids": [u["unit_id"] for u in selected],
                     "context_unit_ids": [u["unit_id"] for u in context],
-                    "local_ids": [numbers[u["unit_id"]] for u in selected],
-                    "context_local_ids": [numbers[u["unit_id"]] for u in context],
+                    "local_ids": numbers,
+                    "context_local_ids": context_numbers,
                 }
                 request = build_request(batch, lookup, cfg, system)
                 if len(canonical(request).encode("utf-8")) <= cfg["max_request_bytes"] or size == 1:
@@ -511,7 +530,6 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
     """One request for every unit whose id was missing or repeated (Claudia's targeted repair)."""
     sources, _ = source_index()
     lookup = {u["unit_id"]: u for u in units}
-    numbers = local_ids(units)
     item = deepcopy(response_schema()["schema"]["properties"]["results"]["items"])
     item["required"].remove("id")
     del item["properties"]["id"]
@@ -522,9 +540,10 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
         section = [r for r in units if r["accession_number"] == u["accession_number"]
                    and r["section_key"] == u["section_key"]]
         pos = next(j for j, r in enumerate(section) if r["unit_id"] == uid)
-        prior = [r for r in section[:pos] if r["role"] != "section_title"][-cfg["context_sentences"]:]
+        prior = context_units(section, pos, [u], cfg)
+        prior_numbers, _ = batch_numbers(prior, [])
         target_schema = deepcopy(item)
-        target_schema["properties"]["context_ids"]["items"]["enum"] = [numbers[r["unit_id"]] for r in prior]
+        target_schema["properties"]["context_ids"]["items"]["enum"] = prior_numbers
         targets.append({"unit_id": uid, "text": u["text"],
                         "section_content_sha256": digest(source["content"]), "raw_spans": u["raw_spans"],
                         "gap": gaps[uid]})
@@ -532,7 +551,7 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
         contexts[key] = prior
         schemas[key] = target_schema
         payload[key] = {"target_sentence": u["text"], "section": u["section_path"],
-                        "context": [{"id": numbers[r["unit_id"]], "text": r["text"]} for r in prior]}
+                        "context": [{"id": n, "text": r["text"]} for n, r in zip(prior_numbers, prior)]}
     schema = {"name": "target_gap_repair", "strict": True, "schema": {
         "type": "object", "additionalProperties": False, "required": ["repairs"], "properties": {
             "repairs": {"type": "object", "additionalProperties": False, "required": list(schemas),
@@ -552,8 +571,7 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
                 "provisional_segment_definitions": source_review.source_vocabulary(sources)}
     return {"batch": {"batch_id": "target_repair", "unit_ids": gap_ids}, "request": request,
             "identity": identity, "request_hash": digest(canonical(request_key(request, REPAIR_VERSION))),
-            "contexts": contexts,
-            "numbers": numbers, "schema": schema}
+            "contexts": contexts, "schema": schema}
 
 
 def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
@@ -566,7 +584,7 @@ def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
     for i, uid in enumerate(plan["batch"]["unit_ids"], 1):
         key = f"repair_{i}"
         row = deepcopy(parsed["repairs"][key])
-        context = {plan["numbers"][r["unit_id"]]: r["unit_id"] for r in plan["contexts"][key]}
+        context = {f"c{j}": r["unit_id"] for j, r in enumerate(plan["contexts"][key], 1)}
         order = {n: j for j, n in enumerate(context)}
         refs = row["context_ids"]
         if len(refs) != len(set(refs)) or any(r not in order for r in refs) \

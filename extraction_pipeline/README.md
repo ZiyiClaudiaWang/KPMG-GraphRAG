@@ -85,7 +85,7 @@ flowchart TD
     SEC -->|"2 Clean"| CLN["Cleaned sections"]
     CLN -->|"3 Filter"| MAN["Kept sections"]
     MAN -->|"4 Segment<br/>(split into sentences and list groups)"| UNITS["Units<br/>(unit_id from source position)"]
-    UNITS -->|"5 Label: OpenAI<br/>15 per batch + 4 context units"| CACHE["Saved requests<br/>and raw replies"]
+    UNITS -->|"5 Label: OpenAI<br/>15 per batch + 4 context units<br/>(+ missing list intros)"| CACHE["Saved requests<br/>and raw replies"]
     CACHE -->|"checks, unit quarantine,<br/>targeted repair"| LAB["Labels"]
     UNITS -->|"prefilter: not_a_claim"| LAB
     LAB -->|"6 Validate"| REV["Label errors<br/>and review queue"]
@@ -171,8 +171,8 @@ flowchart LR
 ```
 
 The merge rule: [step 4](#step-4-segment). Open questions: the list rule and the step 6 hold
-([Remaining issues 1.2](#1-needs-a-decision-within-the-team-and-across-teams)), lists without a ":" intro and split items that
-miss their intro in step 5 ([2.2 and 2.3](#2-found-not-fixed-yet)).
+([Remaining issues 1.2](#1-needs-a-decision-within-the-team-and-across-teams)) and lists without a ":" intro ([2.2](#2-found-not-fixed-yet)). In step 5 every split item
+sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label)).
 
 #### d. Illustration
 
@@ -252,15 +252,23 @@ miss their intro in step 5 ([2.2 and 2.3](#2-found-not-fixed-yet)).
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
-  - The model sees each unit under a short number (`s0042`: its place in the section, counted
-    over all units) instead of its 36-character `unit_id`, which saves tokens and leaves nothing
-    long for the model to copy wrong. The numbers are made when the request is built and turned
-    back into `unit_id`s as soon as the reply is read; they are never stored as ids
-    (`labels.jsonl` has `unit_id` and `context_unit_ids`). They are the numbers the units had
-    before #45, so the request text is unchanged.
-  - Batches of up to 15 consecutive sentences per section, with the 4 units before them as
-    read-only context. The prompt is one file, `prompts/label_v2.txt`; the label definitions
-    are filled in from `config/claim_types.yaml`.
+  - Batches of up to 15 consecutive sentences per section, with read-only context: the 4 units
+    before them, plus the intro of any split list item in the batch whose intro is in neither
+    (a long list cut by a batch boundary, or an intro too short to be labelled, such as
+    "Solutions include:"). Context is in source order. Before 4 November 2026, 281 of the 983
+    split items sent to the LLM did not see their intro; now none. The prompt is one file,
+    `prompts/label_v2.txt`; the label definitions are filled in from `config/claim_types.yaml`.
+  - Inside a request, units go by short numbers counted within that request: `c1`, `c2`, … for
+    the context and `s1` … `s15` for the sentences. This is instead of the 36-character
+    `unit_id`, which saves tokens and leaves nothing long for the model to copy wrong.
+    - The batch keeps the table of numbers and `unit_id`s, and a reply is turned back into
+      `unit_id`s as soon as it is read. The numbers appear only in the saved request and reply
+      (`checked_pilot/`), never as ids in the output files (`labels.jsonl` has `unit_id` and
+      `context_unit_ids`).
+    - A rerun numbers the same batch the same way, so the same request finds its saved reply.
+      Because the numbers count within the request, a change further up the section that
+      leaves the batch's own units and context alone (a heading or page footer added or
+      removed) does not change the request.
   - Before sending, every sentence is rebuilt from the Data team text at its `raw_spans`; a
     mismatch stops the step, and so does a `unit_id` that does not match the unit's spans.
     Steps 5 and 7b compare a unit with its source the same way
@@ -282,8 +290,9 @@ miss their intro in step 5 ([2.2 and 2.3](#2-found-not-fixed-yet)).
     - Details are saved in `unit_quarantine.json` in the request folder.
   - Once every batch has a reply, the sentences whose number was missing or repeated are sent
     again in one repair request (`prompts/repair_v1.txt`, saved in `data/targeted_repair/`).
-    Each sentence goes under a key the code assigns, with its own 4 preceding units as context,
-    so the model cannot mix up numbers. Their labels replace `needs_review`.
+    Each sentence goes under a key the code assigns (`repair_1`, …), with its own context (its 4
+    preceding units, plus its list intro if missing, numbered `c1`, …), so the model cannot mix
+    up numbers. Their labels replace `needs_review`.
   - Nothing is resent automatically.
     - Each request gets a folder `checked_pilot/<hash>/`; a reply saved there is never
       requested again.
@@ -469,7 +478,7 @@ pytest tests -q                  # as CI does (pytest.ini puts src/ on the path)
 python -m unittest discover tests
 ```
 
-75 tests. They need no API key or database.
+80 tests. They need no API key or database.
 
 - `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
   fake model in place of OpenAI and its own risk theme map (`tests/fixtures/risk_theme_map.csv`).
@@ -497,7 +506,10 @@ python -m unittest discover tests
     never sees (a new field on the units, a filled entity catalog, a Data re-export with the
     same text) reuses the saved replies and costs nothing.
   - Changing the model, the prompt, a sentence, its context or its `section_path` sends new
-    requests.
+    requests. So does adding or removing a sentence sent to the LLM further up a section: the
+    batches after it start at different sentences. A unit that is not sent (a heading, a page
+    footer) changes nothing outside its own batch's context, because the short numbers count
+    within each request.
   - Until 4 November 2026 the whole record was hashed, as in Claudia's run, so replies saved
     before then are not reused. For scale, Microsoft's FY2026 10-K cost $0.14 (#47).
 - The dry run reports a worst-case cost: each request's full size as input, plus the full
@@ -535,8 +547,8 @@ python -m unittest discover tests
      lists are merged ([step 4](#step-4-segment), [diagram](#c-lists)). On the 20 filings: 41
      list groups, and 109 lists split into 1,006 items that carry `list_intro_id`.
    - Step 6 holds every split item that cites its intro as context, complete sentences too,
-     although the Claim already carries the intro in `context`. Items that never saw their
-     intro are not held ([2.3](#2-found-not-fixed-yet)).
+     although the Claim already carries the intro in `context`. Since every split item now sees
+     its intro in step 5, this hold can apply to any of the 983 split items.
    - To decide with Alina: keep the 600-character rule or not; keep the step 6 hold for split
      items or not.
 3. **How the other Item 1A Claims reach a risk theme.**
@@ -570,11 +582,9 @@ python -m unittest discover tests
    - MU's risk factor summary: about 54 units; 4 short items are `too_short`
    - MCK lists whose intro is separated from the items by "Fiscal 2026" / "Fiscal 2025"
      sub-headings: 7 items, all full sentences
-3. **Split list items may not see their intro in step 5.**
-   - A batch shows the 4 units before it. When a long list is cut by a batch boundary, the later
-     items do not see the intro (e.g. MU's 17 international-operations risks).
-   - Suggested: when the intro is outside the batch and its context, the context becomes the
-     intro plus the 3 nearest units, in source order.
+3. ~~**Split list items may not see their intro in step 5.**~~ Fixed on 4 November 2026: the
+   context adds the missing intro ([step 5](#step-5-label)). The number is kept so later items
+   keep theirs.
 4. **Headings have one level only.** A heading replaces the one above it (AAPL "Products" >
    "iPhone" keeps only "iPhone").
    - Of 913 sub-headings outside Item 1A, 58 directly follow another heading (so the first is
@@ -844,8 +854,9 @@ theme links:
 Claudia ran steps 5 to 8 on the five filings with her own version of this pipeline (handoff
 package `GraphRAG_Five_Filing_Handoff`). Her changes were merged into this code as below.
 The merged step 5 built the same 173 requests as her run, byte for byte. Since then the
-step 2 and 4 fixes changed some of the text sent, and the request hash covers only the
-request (Cost tracking), so the hashes no longer match hers. These notes describe
+step 2 and 4 fixes changed some of the text sent, the short numbers count within each request
+(`c1` / `s1`, not her `s0042`), the context adds missing list intros, and the request hash
+covers only the request (Cost tracking), so the requests and hashes no longer match hers. These notes describe
 that merge; steps 2 to 8 have changed since ([How it works](#how-it-works)), among them the
 ids (#45: `sentence_id` and `source_unit_key` removed, `claim_id` and every reference by
 `unit_id`; one line of `claim_review_flags()` in her `source_review.py` now reads context by

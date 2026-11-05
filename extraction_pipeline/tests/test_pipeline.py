@@ -181,6 +181,40 @@ class ReviewRules(unittest.TestCase):
         self.assertIn("model_missed_source_defined_segment_names", flags)
 
 
+class ListIntroContext(unittest.TestCase):
+    """README Remaining issues 2.3: a split list item always sees its intro in step 5."""
+    cfg = {"context_sentences": 4}
+
+    def section(self):
+        units = [{"unit_id": "intro", "role": "body", "text": "Delays may come from:"}]
+        units += [{"unit_id": f"i{k}", "role": "body", "text": f"• item {k}", "list_intro_id": "intro"}
+                  for k in range(1, 11)]
+        return units + [{"unit_id": "after", "role": "body", "text": "Such delays are costly."}]
+
+    def test_missing_intro_comes_first_then_the_four_nearest(self):
+        units = self.section()
+        context = label.context_units(units, 8, units[8:11], self.cfg)          # items 8-10
+        self.assertEqual([u["unit_id"] for u in context], ["intro", "i4", "i5", "i6", "i7"])
+
+    def test_intro_not_repeated_when_already_there(self):
+        units = self.section()
+        self.assertEqual([u["unit_id"] for u in label.context_units(units, 3, units[3:6], self.cfg)],
+                         ["intro", "i1", "i2"])                                  # already among the 4
+        self.assertEqual([u["unit_id"] for u in label.context_units(units, 0, units[0:4], self.cfg)], [])
+        self.assertNotIn("intro", [u["unit_id"] for u in label.context_units(units, 11, units[11:], self.cfg)])
+
+    def test_unlabelled_intro_inside_the_batch_is_added_in_source_order(self):
+        # b1 | b2 (first sentence of the batch) | intro, too short to label | i1 | i2
+        intro = dict(self.section()[0], prefilter="too_short")
+        units = [{"unit_id": "b1", "role": "body", "text": "Earlier text."},
+                 {"unit_id": "b2", "role": "body", "text": "More text."}, intro] + self.section()[1:3]
+        context = label.context_units(units, 1, [units[1], units[3], units[4]], self.cfg)
+        self.assertEqual([u["unit_id"] for u in context], ["b1", "intro"])
+
+    def test_numbers(self):
+        self.assertEqual(label.batch_numbers([{}, {}], [{}, {}, {}]), (["c1", "c2"], ["s1", "s2", "s3"]))
+
+
 class EndToEnd(unittest.TestCase):
     """Runs every step on the fixture; step 5 uses a fake model instead of OpenAI."""
 
@@ -202,8 +236,8 @@ class EndToEnd(unittest.TestCase):
             results = [dict(row, id=s["id"], is_risk_heading=bool(by_text[s["text"]]["rule_heading"]))
                        for s in payload["sentences"]]
             if len(FakeOpenAI.calls) == 1:
-                EndToEnd.dropped = results[-1]["id"]
-                EndToEnd.bad_context = results[0]["id"]
+                EndToEnd.dropped = payload["sentences"][-1]["text"]
+                EndToEnd.bad_context = payload["sentences"][0]["text"]
                 results[0]["context_ids"] = [results[1]["id"]]
                 results = results[:-1]
             return results
@@ -258,10 +292,9 @@ class EndToEnd(unittest.TestCase):
 
     def test_unit_quarantine_and_repair(self):
         self.assertEqual(self.errors, 0)
-        numbers = label.local_ids(self.units)          # the short numbers the model saw
-        section = {u["unit_id"] for u in self.units
-                   if (u["accession_number"], u["section_key"]) == self.requests_first_section}
-        labels = {numbers[l["unit_id"]]: l for l in read_jsonl(Paths.labels()) if l["unit_id"] in section}
+        texts = {u["unit_id"]: u["text"] for u in self.units
+                 if (u["accession_number"], u["section_key"]) == self.requests_first_section}
+        labels = {texts[l["unit_id"]]: l for l in read_jsonl(Paths.labels()) if l["unit_id"] in texts}
         bad = labels[self.bad_context]                  # invalid context: needs_review, no Claim
         self.assertEqual((bad["label"], bad["source"]), ("needs_review", "code_quarantine"))
         fixed = labels[self.dropped]                    # missing id: answered by the repair request
@@ -382,6 +415,17 @@ class EndToEnd(unittest.TestCase):
         cfg["max_completion_tokens"] += 1
         after = [p["request_hash"] for p in label.plan_batches(self.units, cfg)]
         self.assertTrue(all(a != b for a, b in zip(before, after)))           # the request changed: new hash
+
+    def test_numbers_count_within_the_request(self):
+        # a unit further up that is in no batch or context (here the section titles) can come or
+        # go without changing any request: numbers are c1.. / s1.. within each request
+        cfg = dict(label.settings()["label"])
+        plans = label.plan_batches(self.units, cfg)
+        fewer = label.plan_batches([u for u in self.units if u["role"] != "section_title"], cfg)
+        self.assertEqual([p["request_hash"] for p in plans], [p["request_hash"] for p in fewer])
+        first = json.loads(plans[0]["request"]["messages"][1]["content"])
+        self.assertEqual([s["id"] for s in first["sentences"]][:2], ["s1", "s2"])
+        self.assertEqual(plans[0]["batch"]["local_ids"][:2], ["s1", "s2"])
 
     def test_rerun_uses_cache(self):
         self.assertEqual(self.rerun_calls, 0)
