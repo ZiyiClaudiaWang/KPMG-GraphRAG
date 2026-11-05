@@ -336,8 +336,8 @@ def deduplicate_facts(df):
                 row for _, row in group.iterrows()
             )
 
-    canonical_df = pd.DataFrame(canonical_rows)
-    review_df = pd.DataFrame(review_rows)
+    canonical_df = pd.DataFrame(canonical_rows, columns=df.columns)
+    review_df = pd.DataFrame(review_rows, columns=df.columns)
 
     return canonical_df, review_df
 
