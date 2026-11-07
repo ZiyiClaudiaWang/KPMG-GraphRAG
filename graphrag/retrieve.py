@@ -65,6 +65,10 @@ def _run(
         rows = backend(clean_query, clean_filters, clean_top_k, clean_trace_id)
     except contract.RetrievalUnavailableError:
         raise
+    except contract.FilterNotSupportedError:
+        # A filter this arm cannot serve is not an outage. Wrapping it as one
+        # would tell the caller to retry something that can never succeed.
+        raise
     except Exception as exc:  # backend failures are not 'no evidence'
         raise contract.RetrievalUnavailableError(
             f"{backend_name} retrieval backend failed: {exc}"
