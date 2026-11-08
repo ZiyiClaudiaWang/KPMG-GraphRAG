@@ -191,3 +191,47 @@ def test_ranking_is_identical_between_runs():
 def test_top_k_is_respected():
     records = [_record(x, "us-gaap:Assets") for x in "abcdef"]
     assert len(structured_query_v1.rank_records(records, "total assets", {}, 2)) == 2
+
+
+# ---- the filer's own name -------------------------------------------------
+
+REVENUE = "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax"
+SEGMENT_AXIS = "us-gaap:StatementBusinessSegmentsAxis"
+CONSOLIDATION = {"axis": "srt:ConsolidationItemsAxis",
+                 "member": "us-gaap:OperatingSegmentsMember"}
+
+
+def test_the_company_name_does_not_name_a_segment():
+    """Nike files nke:NIKEBrandMember, so "Nike revenue" used to return a
+    NIKE Brand slice rather than the company's own figure."""
+    terms = concept_match.question_terms("Nike revenue")
+    alias = concept_match.aliased_concept(terms)
+    filer = concept_match.filer_words("NKE", "NIKE, Inc.")
+    brand = json.dumps([CONSOLIDATION,
+                        {"axis": SEGMENT_AXIS, "member": "nke:NIKEBrandMember"},
+                        {"axis": "us-gaap:SubsegmentsAxis",
+                         "member": "nke:NorthAmericaSegmentMember"}])
+    assert (concept_match.score_fact(terms, REVENUE, "[]", alias, filer)
+            > concept_match.score_fact(terms, REVENUE, brand, alias, filer))
+
+
+def test_a_segment_total_beats_a_slice_of_that_segment():
+    """Both carry ConverseSegmentMember. The one that also splits by sales
+    channel answers a narrower question than the one that was asked."""
+    terms = concept_match.question_terms("Converse revenue")
+    alias = concept_match.aliased_concept(terms)
+    filer = concept_match.filer_words("NKE", "NIKE, Inc.")
+    converse = {"axis": SEGMENT_AXIS, "member": "nke:ConverseSegmentMember"}
+    total = json.dumps([CONSOLIDATION, converse])
+    slice_ = json.dumps([CONSOLIDATION, converse,
+                         {"axis": "us-gaap:ContractWithCustomerSalesChannelAxis",
+                          "member": "nke:SalesChannelOtherMember"}])
+    assert (concept_match.score_fact(terms, REVENUE, total, alias, filer)
+            > concept_match.score_fact(terms, REVENUE, slice_, alias, filer))
+
+
+def test_legal_suffixes_are_not_treated_as_filer_words():
+    """Otherwise "group revenue" would stop matching for any filer whose
+    registered name ends in Group."""
+    assert "nike" in concept_match.filer_words("NKE", "NIKE, Inc.")
+    assert "inc" not in concept_match.filer_words("NKE", "NIKE, Inc.")
