@@ -48,6 +48,37 @@ def test_plain_text_list():
     ]
 
 
+DESCRIBED_TEXT = """SUBSIDIARIES OF SAMPLE STORES, INC.
+1. Sample’s Marketing Company, an Iowa corporation
+2. Sample Stores, LLC, an Iowa limited liability company
+3. Sample Wholesale, LLC, a Texas limited liability company
+Each of the subsidiaries listed above is wholly owned, directly or indirectly, by Sample Stores, Inc.
+"""
+
+DESCRIBED_HTML = (
+    "<html><body><p>SUBSIDIARIES OF SAMPLE STORES, INC.</p>"
+    "<p>1. <span>Sample’s</span> Marketing Company, an <font>Iowa</font> corporation</p>"
+    "<p>2. Sample Holdings, LLC, a Delaware limited liability company</p></body></html>"
+)
+
+
+def test_described_lines():
+    rows = parse_text(DESCRIBED_TEXT)
+    assert [(r["subsidiary_name"], r["jurisdiction_raw"]) for r in rows] == [
+        ("Sample’s Marketing Company", "Iowa"),
+        ("Sample Stores, LLC", "Iowa"),
+        ("Sample Wholesale, LLC", "Texas"),
+    ]
+
+
+def test_described_lines_in_html_with_inline_tags():
+    rows = parse_html(DESCRIBED_HTML)
+    assert [(r["subsidiary_name"], r["jurisdiction_raw"]) for r in rows] == [
+        ("Sample’s Marketing Company", "Iowa"),
+        ("Sample Holdings, LLC", "Delaware"),
+    ]
+
+
 def test_jurisdictions_and_keys():
     assert normalize_jurisdiction("Delaware, U.S.") == ("United States", "Delaware")
     assert normalize_jurisdiction("United States") == ("United States", "")
