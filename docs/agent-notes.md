@@ -28,8 +28,10 @@ Build against `mock/mock_retrieval_tools.py` the way you built `rag_tool.py` aga
 
 ```python
 from mock.mock_retrieval_tools import graph_search      # today
-from graphrag.retrieve import graph_search              # later
+from graphrag.backends import graph_search              # later
 ```
+
+Import `graphrag.backends`, not `graphrag.retrieve`. Both expose the same `graph_search`, but `backends` connects from the environment as it loads and `retrieve` does not. Importing `retrieve` directly gets you a working function that raises on every call.
 
 Connecting to Neo4j will be an environment variable on our side, not a function call on yours. That is ours to build and it is a card this week; we are not asking you to configure our database.
 
