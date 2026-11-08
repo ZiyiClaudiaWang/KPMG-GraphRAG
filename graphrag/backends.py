@@ -11,7 +11,12 @@ Same four arguments, same envelope back. What each arm needs:
     graph        NEO4J_URI, NEO4J_USERNAME (or NEO4J_USER), NEO4J_PASSWORD,
                  and optionally NEO4J_DATABASE. On Aura the username is the
                  instance id, not `neo4j`.
-    structured   MSFT_FACT_DB_PATH, the DuckDB store the loader writes
+    structured   MSFT_FACT_DB_PATH, the DuckDB store a loader writes
+
+Two loaders write that store and the arm reads either: `fact_loader_v1.py`
+parses EDGAR HTML, `fact_loader_data_api.py` reads the Data team's Postgres.
+Moving to Postgres changes where the facts come from, not what this reads, so
+`MSFT_FACT_DB_PATH` is the knob either way.
 
 This is deliberately not in `retrieve.py`. That module raising when no backend
 is registered is the property it exists for: it keeps *retrieval is down* apart
@@ -62,7 +67,14 @@ def _register_structured() -> str:
     """Register the structured arm, or say why it was skipped."""
     store = Path(os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb"))
     if not store.exists():
-        return f"skipped: no DuckDB store at {store}; set MSFT_FACT_DB_PATH"
+        # Two loaders write this store and the arm reads either, so say both
+        # rather than sending everyone to the one that needs no credentials.
+        return (
+            f"skipped: no DuckDB store at {store}. Point MSFT_FACT_DB_PATH at one, "
+            "or build it: tools/build_fact_store.py --output <path> (from EDGAR, "
+            "needs SEC_USER_AGENT), or structured/fact_loader_data_api.py --output "
+            "<path> (from the Data team's Postgres, needs their dotenv)"
+        )
     if str(_STRUCTURED_DIR) not in sys.path:
         sys.path.insert(0, str(_STRUCTURED_DIR))
     try:
