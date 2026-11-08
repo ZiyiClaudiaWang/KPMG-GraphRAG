@@ -44,8 +44,20 @@ python run_pipeline.py
 ```
 
 - **Ticker** = the stock symbol (AAPL = Apple, MSFT = Microsoft, NVDA = Nvidia). You do **not**
-  download anything yourself: the script looks the ticker up on SEC EDGAR, finds the latest
-  `--years` 10-K filings, and downloads each one's Exhibit 21.
+  download anything yourself: the script looks the ticker up on SEC EDGAR, finds the 10-K
+  filings you chose, and downloads each one's Exhibit 21.
+- **Choosing filings:**
+
+  | Command | Fetches |
+  |---|---|
+  | `python fetch_edgar.py AAPL MSFT --years 3` | the 3 most recent 10-Ks of each |
+  | `python fetch_edgar.py AAPL MSFT --fy 2024 2025` | those fiscal years for every ticker |
+  | `python fetch_edgar.py AAPL:2025 NKE:2024,2026` | chosen years per ticker |
+  | `python fetch_edgar.py --from-filings ../extraction_pipeline/config/filings.yaml` | exactly the 10-K accessions listed there (the Data Scope); 10-Q rows are skipped |
+
+  Fiscal year = the calendar year the 10-K's period ends (Apple's year ending 2025-09-27 is
+  FY2025). A year with no 10-K is listed in `data/fetch_log.csv`. Amendments (10-K/A) are
+  not fetched. `--from-filings` needs `pyyaml`.
 - Pass **as many tickers as you like in one command**. Already-downloaded filings are skipped,
   so re-running is safe.
 - Each file is recorded in `data/manifest.csv` with the company name, CIK, fiscal year,
@@ -205,7 +217,8 @@ ex21_pipeline/
 │   └── raw/              one Exhibit 21 file per company per year
 ├── ex21/                 pipeline code (parse → normalize → build → report)
 ├── output/               parent_subsidiary_report.xlsx, graph_edges.csv
-└── tests/test_parse.py   format tests:  python tests/test_parse.py
+├── tests/test_parse.py   format tests:  python tests/test_parse.py
+└── tests/test_fetch.py   filing choice on a fake EDGAR:  python tests/test_fetch.py
 ```
 
 **About the bundled Apple and Microsoft files:** they are `.md` text renderings of the SEC HTML
