@@ -8,8 +8,9 @@ moving off the mock is one import and nothing else:
 
 Same four arguments, same envelope back. What each arm needs:
 
-    graph        NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD, and optionally
-                 NEO4J_DATABASE
+    graph        NEO4J_URI, NEO4J_USERNAME (or NEO4J_USER), NEO4J_PASSWORD,
+                 and optionally NEO4J_DATABASE. On Aura the username is the
+                 instance id, not `neo4j`.
     structured   MSFT_FACT_DB_PATH, the DuckDB store the loader writes
 
 This is deliberately not in `retrieve.py`. That module raising when no backend
