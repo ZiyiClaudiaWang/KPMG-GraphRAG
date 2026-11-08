@@ -37,7 +37,7 @@ def bare_env(monkeypatch):
 
 
 def _fake_graph_backend(monkeypatch):
-    """Stand in for graph_backend, which is still on its own branch."""
+    """Stand in for graph_backend, which may not be present yet."""
     module = types.ModuleType("graphrag.graph_backend")
     module.search = lambda query, filters, top_k, trace_id: []
     monkeypatch.setitem(sys.modules, "graphrag.graph_backend", module)
@@ -52,7 +52,7 @@ def test_no_environment_registers_nothing(bare_env, monkeypatch, tmp_path):
 
 
 def test_nothing_registered_still_reads_as_unavailable(bare_env, monkeypatch, tmp_path):
-    """The whole reason this lives outside retrieve.py: the failure stays loud."""
+    """This is why it lives outside retrieve.py. The failure stays loud."""
     monkeypatch.chdir(tmp_path)
     backends.configure_from_env()
     with pytest.raises(contract.RetrievalUnavailableError, match="not configured"):

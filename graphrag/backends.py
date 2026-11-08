@@ -16,12 +16,11 @@ Same four arguments, same envelope back. What each arm needs:
 Two loaders write that store and the arm reads either: `fact_loader_v1.py`
 parses EDGAR HTML, `fact_loader_data_api.py` reads the Data team's Postgres.
 Moving to Postgres changes where the facts come from, not what this reads, so
-`MSFT_FACT_DB_PATH` is the knob either way.
+you still point `MSFT_FACT_DB_PATH` at the store either way.
 
-This is deliberately not in `retrieve.py`. That module raising when no backend
-is registered is the property it exists for: it keeps *retrieval is down* apart
-from *no evidence*. Registering inside it would make that failure quiet, which
-is the opposite of the point.
+Keep this out of `retrieve.py`. That module raises when nothing has registered
+a backend, which is what tells you retrieval is down rather than that it found
+no evidence. Register inside it and that failure goes quiet.
 
 An arm whose environment is missing stays unregistered, and calling it still
 raises `RetrievalUnavailableError`. Ask `configure_from_env()` what happened
@@ -41,30 +40,30 @@ from .retrieve import graph_search, structured_search  # noqa: F401  (re-exporte
 __all__ = ["configure_from_env", "graph_search", "structured_search", "status"]
 
 # The structured arm lives outside the package and imports `concept_match` by
-# bare name, so its own directory has to be importable before it loads.
+# bare name, so Python needs that directory on the path before the import works.
 _STRUCTURED_DIR = Path(__file__).resolve().parent.parent / "structured"
 
-# Filled in by configure_from_env(), so a caller that got an unconfigured-backend
-# error can ask why without re-deriving it.
+# configure_from_env() fills this in, so a caller that hits an
+# unconfigured-backend error can ask why instead of working it out again.
 status: dict[str, str] = {}
 
 
 def _register_graph() -> str:
-    """Register the graph arm, or say why it was skipped."""
+    """Register the graph arm, or say why it did not."""
     if not os.environ.get("NEO4J_URI"):
         return "skipped: NEO4J_URI is not set"
     try:
         graph_backend = importlib.import_module("graphrag.graph_backend")
     except ImportError as exc:
-        # graph_backend.py is still on its own branch. Say so plainly instead
-        # of failing the import for everyone who only wants the other arm.
+        # graph_backend.py may not be present yet. Say so plainly instead of
+        # failing the import for everyone who only wants the other arm.
         return f"skipped: graphrag.graph_backend is not importable ({exc})"
     retrieve.configure_graph_backend(graph_backend.search)
     return f"registered: {os.environ['NEO4J_URI']}"
 
 
 def _register_structured() -> str:
-    """Register the structured arm, or say why it was skipped."""
+    """Register the structured arm, or say why it did not."""
     store = Path(os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb"))
     if not store.exists():
         # Two loaders write this store and the arm reads either, so say both
@@ -88,8 +87,8 @@ def _register_structured() -> str:
 def configure_from_env() -> dict[str, str]:
     """Register every arm the environment describes, and report on all of them.
 
-    Safe to call again. Re-reading the environment is how a caller picks up a
-    store path or a password that was set after import.
+    Safe to call again. Call it again to pick up a store path or password set
+    after import.
     """
     status.clear()
     status["graph"] = _register_graph()
