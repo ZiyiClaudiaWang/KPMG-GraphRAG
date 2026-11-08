@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import sys
 import types
+from pathlib import Path
 
 import pytest
 
-from graphrag import backends, contract, retrieve
+# Every module here puts the repo root on the path itself. Collection is
+# alphabetical and this file sorts first, so it cannot rely on another one
+# having done it already.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from graphrag import backends, contract, retrieve  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
