@@ -5,6 +5,8 @@ Exhibit 21 has no required format. Companies use:
   * an HTML table with extra columns, e.g. ownership %
   * indentation to show which subsidiary owns which (multi-level groups)
   * plain text lines: "Name (Jurisdiction)" or "Name .... Jurisdiction"
+  * described lines: "Name, an Iowa corporation" or
+    "1. Name, LLC, a Texas limited liability company"   (Casey's)
 This module turns all of these into the same row shape:
   {row_order, subsidiary_name, jurisdiction_raw, ownership_pct, level, parse_method, flags}
 """
@@ -26,6 +28,14 @@ PCT = re.compile(r"^\(?\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)?$")
 FOOTNOTE_MARK = re.compile(r"(\s*(\*+|\(\d{1,2}\)|\[\d{1,2}\]|†|‡))+$")
 PAREN_JURIS = re.compile(r"^(?P<name>.+?)\s*\((?P<j>[^()]+)\)\s*$")
 LEADER = re.compile(r"^(?P<name>.+?)\s*(?:\.{3,}|\t+|\s{3,}|\s+[-–—]\s+)\s*(?P<j>[^.\t]+)$")
+# "Name, an Iowa corporation" / "Name, LLC, a Delaware limited liability company":
+# the jurisdiction sits between the article and the kind of entity.
+ENTITY_KIND = (r"(?:(?:private|public)\s+)?(?:(?:limited|unlimited)\s+(?:liability\s+)?)?"
+               r"(?:corporation|company|partnership|trust|association|cooperative|bank)")
+DESCRIBED = re.compile(
+    r"^(?:\(?\d{1,3}[.)]\s*)?(?P<name>.+?),\s+(?:an?|the)\s+(?P<j>[A-Z][\w.’'&\- ]*?)\s+"
+    + ENTITY_KIND + r"\b[^,]*\.?$"
+)
 NOISE = re.compile(
     r"^(exhibit\s+\d|subsidiaries\s+of|list\s+of\s+subsidiaries|the\s+following|pursuant\s+to|"
     r"\*|#|note|omit|page\s+\d|\d+$)",
@@ -106,8 +116,24 @@ def parse_html(html: str) -> list[dict]:
             rows.append(_row(len(rows) + 1, name, juris, pct, _indent_of(first_cell), "html_table"))
     if rows:
         return rows
-    # No usable table: fall back to text lines.
-    return parse_text(soup.get_text("\n"), method="html_text_lines")
+    # No usable table: fall back to text lines. Inline tags (a <span> around "Casey’s", a
+    # <font>) cut an entry over several lines when every tag starts a line, so also read
+    # one line per block element, and keep whichever reading finds more entries.
+    by_tag = parse_text(soup.get_text("\n"), method="html_text_lines")
+    by_block = parse_text(_block_text(soup), method="html_block_lines")
+    return by_block if len(by_block) > len(by_tag) else by_tag
+
+
+BLOCKS = {"p", "div", "li", "tr", "td", "h1", "h2", "h3", "h4", "h5", "h6", "table"}
+
+
+def _block_text(soup) -> str:
+    for br in soup.find_all("br"):
+        br.replace_with("\n")
+    for el in soup.find_all(BLOCKS):
+        el.insert_before("\n")
+        el.insert_after("\n")
+    return soup.get_text("")
 
 
 def parse_text(text: str, method: str = "text_lines") -> list[dict]:
@@ -135,7 +161,7 @@ def parse_text(text: str, method: str = "text_lines") -> list[dict]:
             continue
         if NOISE.match(line) or HEADER_WORDS.match(line) or len(line) > 160:
             continue
-        m = PAREN_JURIS.match(line) or LEADER.match(line)
+        m = DESCRIBED.match(line) or PAREN_JURIS.match(line) or LEADER.match(line)
         if m:
             rows.append(_row(len(rows) + 1, m.group("name"), m.group("j"), None, indent // 2, method))
     return rows
