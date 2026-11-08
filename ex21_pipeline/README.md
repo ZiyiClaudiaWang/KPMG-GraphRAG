@@ -98,7 +98,8 @@ fetch_edgar.py (optional)            run_pipeline.py
 1. **Parse** (`ex21/parse.py`). Exhibit 21 has no required format, so the parser handles the
    common layouts: HTML tables (including blank spacer columns, `% owned` columns and
    footnote marks such as `*` or `(1)`), tables that use **indentation** to show which
-   subsidiary owns which, and plain-text lists (`Name (Delaware)` or `Name ...... Japan`).
+   subsidiary owns which, plain-text lists (`Name (Delaware)` or `Name ...... Japan`), and described lists
+   (`1. Name, LLC, an Iowa limited liability company`, as Casey's files it).
 2. **Normalize** (`ex21/normalize.py`). Jurisdictions are split into country and state, so
    `Delaware, U.S.` becomes *United States / Delaware*. Each name also gets a matching key
    with legal suffixes removed (Inc., Limited, Unlimited Company, ...).
