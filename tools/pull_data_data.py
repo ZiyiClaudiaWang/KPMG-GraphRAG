@@ -101,7 +101,8 @@ PULL_SQL = """
         ff.period_start,
         ff.period_end,
         ff.instant_date,
-        ff.dimensions::text      AS dimensions          -- jsonb -> text for DuckDB
+        ff.dimensions::text     AS dimensions,          -- jsonb -> text for DuckDB
+        ff.source_reference::text AS source_reference
     FROM sec.financial_facts AS ff
     JOIN sec.filings AS f ON f.id = ff.filing_id
     WHERE f.accession_number = %s
