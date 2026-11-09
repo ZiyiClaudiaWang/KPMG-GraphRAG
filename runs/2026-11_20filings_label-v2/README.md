@@ -2,6 +2,7 @@
 
 How to use this folder: [`runs/README.md`](../README.md).
 
+|Run Detail|Value|
 |---|---|
 | Run by | wenyu-kelly-zhou |
 | Run date | 2026-11-05 |
