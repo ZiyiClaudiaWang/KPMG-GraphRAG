@@ -1,7 +1,8 @@
 """Step 8 - Load: write Claims and their provenance into Neo4j.
 
 Input : data/output/claims.jsonl (one line per occurrence, step 7b), data/output/sentences.jsonl,
-        config/risk_themes.csv, data/interim/clean/*.jsonl
+        config/risk_themes.csv, data/interim/clean/*.jsonl,
+        data/output/subsidiaries.jsonl (the subsidiaries step; optional)
 Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher with --dry-run
 
 Each Claim node is one statement at one place (claim_id = the unit's position id, #45), so
@@ -14,6 +15,14 @@ the same format, so her results load by copying that file to data/output/claims.
 
 Graph (names from the ontology):
   (Company)-[:FILES]->(Filing)-[:CONTAINS]->(Section)-[:SUPPORTS]->(Claim)-[:CONCERNS_RISK]->(RiskFactor)
+  (Company)-[:OWNS]->(Subsidiary)
+
+Subsidiary nodes are keyed by sub_id (parent CIK + normalised name), so one subsidiary listed
+in several 10-Ks is one node. Each listing is its own OWNS edge, keyed by the 10-K's
+accession_number and the row's position in the exhibit, and carries what that exhibit says
+(name as filed, jurisdiction, nesting). OWNS has no section_id: Exhibit 21 is a separate
+document of the filing, not a section of the Data team's export. Each run loads the claims,
+the subsidiaries, or both, whichever files exist.
 
 Every node and relationship carries pipeline_scope (config/settings.yaml), and
 nodes are merged on their key plus that scope. The pilot therefore never
@@ -40,6 +49,7 @@ import os
 
 from .common import Paths, filings, load_env, log, read_jsonl, settings
 from .risk_factors import theme_library
+from .subsidiaries import read_rows as subsidiary_rows
 
 STEP = "load"
 BATCH = 500
@@ -86,6 +96,22 @@ WITH c, r
 UNWIND r.risk_ids AS risk_id
 MATCH (k:RiskFactor {risk_id: risk_id, pipeline_scope: $scope})
 MERGE (c)-[y:CONCERNS_RISK {pipeline_scope: $scope}]->(k)""",
+    "subsidiaries": """
+UNWIND $rows AS r
+MERGE (s:Subsidiary {sub_id: r.sub_id, pipeline_scope: $scope})
+SET s.name = r.name, s.normalised_name = r.normalised_name, s.parent_cik = r.parent_cik,
+    s.jurisdiction_raw = r.jurisdiction_raw, s.country = r.country,
+    s.state_or_region = r.state_or_region, s.extraction_status = 'needs_review'
+WITH s, r
+MATCH (c:Company {cik: r.parent_cik, pipeline_scope: $scope})
+MERGE (c)-[o:OWNS {accession_number: r.accession_number, row_order: r.row_order, pipeline_scope: $scope}]->(s)
+SET o.fiscal_year = r.fiscal_year, o.period_end = r.period_end, o.name_as_filed = r.name,
+    o.jurisdiction_raw = r.jurisdiction_raw, o.country = r.country,
+    o.state_or_region = r.state_or_region, o.ownership_pct = r.ownership_pct, o.level = r.level,
+    o.immediate_parent = r.immediate_parent, o.relationship = r.relationship,
+    o.parse_method = r.parse_method, o.flags = r.flags, o.source_url = r.source_url,
+    o.source_file = r.source_file, o.parser_version = r.parser_version,
+    o.evidence = 'Exhibit 21', o.extraction_status = 'needs_review'""",
 }
 
 COUNT_QUERY = """
@@ -155,10 +181,16 @@ def flat_provenance(p: dict) -> dict:
 def build_rows() -> dict[str, list[dict]]:
     roles = {u["unit_id"]: u["role"] for u in read_jsonl(Paths.sentences())} \
         if Paths.sentences().exists() else {}
-    claims = merge_occurrences(list(read_jsonl(Paths.claims())), roles)
+    subsidiaries = subsidiary_rows()
+    if not Paths.claims().exists() and not subsidiaries:
+        raise SystemExit(f"Nothing to load: neither {Paths.claims()} nor the subsidiaries output exists.")
+    occurrences = list(read_jsonl(Paths.claims())) if Paths.claims().exists() else []
+    if not occurrences:
+        log(STEP, f"no Claims to load ({Paths.claims()} missing or empty); loading subsidiaries only")
+    claims = merge_occurrences(occurrences, roles)
     used_sections = {c["section_id"] for c in claims}
     sections, filing_rows, companies = {}, {}, {}
-    for f in filings():
+    for f in filings() if claims else []:
         for sec in read_jsonl(Paths.cleaned(f)):
             if sec["section_id"] not in used_sections:
                 continue
@@ -181,8 +213,14 @@ def build_rows() -> dict[str, list[dict]]:
 
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
+
+    # A parent company with subsidiaries but no Claims still needs its Company node.
+    for r in subsidiaries:
+        companies.setdefault(r["parent_cik"], {"cik": r["parent_cik"], "name": r["parent_name"],
+                                               "ticker": r["parent_ticker"]})
     return {"companies": list(companies.values()), "filings": list(filing_rows.values()),
-            "sections": list(sections.values()), "risk_factors": factors, "claims": claim_rows}
+            "sections": list(sections.values()), "risk_factors": factors, "claims": claim_rows,
+            "subsidiaries": subsidiaries}
 
 
 def write_preview(rows: dict[str, list[dict]], scope: str) -> None:

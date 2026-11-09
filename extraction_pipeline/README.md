@@ -95,6 +95,8 @@ flowchart TD
     RF --> CLM
     REV -->|"held units left out"| CLM
     CLM -->|"8 Load: one Claim node per claim_id"| NEO[("Neo4j")]
+    EDGAR[("SEC EDGAR<br/>Exhibit 21 of each 10-K")] -->|"1b Subsidiaries"| SUBS["Subsidiaries<br/>sub_id = parent CIK + name"]
+    SUBS -->|"8 Load: Company OWNS Subsidiary"| NEO
 ```
 
 Code does everything that must be exact and repeatable. The LLM only judges meaning.
@@ -102,6 +104,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | # | Step | Module | Output (under `data/`) | LLM |
 |---|------|--------|------------------------|-----|
 | 1 | Fetch | `fetch.py` | `sections/*.jsonl` (from the Data-team database) | no |
+| 1b | [Subsidiaries](#step-1b-subsidiaries) | `subsidiaries.py`, `ex21/` | `output/subsidiaries.jsonl`, `output/subsidiary_qa.csv`, `output/subsidiary_catalog.json`, `ex21/raw/` | no |
 | 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl` | no |
@@ -179,6 +182,25 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
 ![Illustration: how units, lists and risk fields are assigned in Item 1A (made-up text)](docs/illustration.png)
 
 ### 3. Details of each step
+
+- <a id="step-1b-subsidiaries"></a>**[1b] Subsidiaries** reads the Exhibit 21 subsidiary list of every
+  `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's
+  export or the LLM, and changes no label request hash.
+  - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`. Each exhibit is downloaded once
+    into `data/ex21/raw/` (listed in `data/ex21/manifest.csv`); later runs read the saved copy.
+    Downloading needs `SEC_USER_AGENT="Name email"` in the environment or `.env`. A 10-K that cannot
+    be downloaded is a CHECK row in `subsidiary_qa.csv`, and the run goes on.
+  - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there.
+  - **Parsing** (`src/ex21/`, from the standalone `ex21_pipeline/`, #34): HTML tables, `Name (Delaware)`,
+    `Name ...... Japan`, and `Name, LLC, an Iowa limited liability company`. A file that gives no rows
+    (image or PDF exhibit, an unusual layout) is a CHECK row; read `subsidiary_qa.csv` after each run.
+  - **Identity:** `sub_id` = uuid5 of `<parent CIK>|<normalised name>` (case, accents and punctuation
+    removed, legal form kept), as agreed in `docs/schema-ids-operations.md`. The same name under the
+    same parent is one node across filings; a renamed subsidiary gets a new `sub_id`.
+  - `subsidiary_catalog.json` holds the same subsidiaries in the entity-catalog format (all
+    `needs_review`, scoped to every filing of the parent), for linking Claims to subsidiaries later.
+    No step reads it yet; step 7b reads `data/entity_catalog.json`.
+  - `python compare_ex21.py` checks the output against the standalone run's `graph_edges.csv`.
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's
@@ -377,6 +399,12 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     RiskFactor nodes are the themes of `config/risk_themes.csv` that some Claim uses, keyed by
     `risk_id`.
   - Entity mentions and review fields stay in `claims.jsonl`; they are not loaded into the graph.
+  - Subsidiaries (step 1b): one `Subsidiary` node per `sub_id`, and one `Company -[:OWNS]-> Subsidiary`
+    edge per listing, keyed by the 10-K's `accession_number` and the row's position. The edge holds
+    what that exhibit says (name as filed, jurisdiction, nesting, source URL). The Company is matched
+    by CIK. `OWNS` has no `section_id`, since Exhibit 21 is not a section of the Data team's export.
+  - Claims and subsidiaries load independently: `--steps subsidiaries,load` loads subsidiaries
+    without any Claims.
   - Step 8 only adds and updates; Claims whose ids changed in a rebuild stay in the graph
     ([Remaining issues 3.5](#3-not-built-yet)).
 

@@ -41,6 +41,22 @@ NOISE = re.compile(
     r"\*|#|note|omit|page\s+\d|\d+$)",
     re.I,
 )
+# A whole row that is a title, date or group heading, not a subsidiary. Only used on rows with
+# no jurisdiction, and the whole name must match, so "United States Steel" is never dropped.
+#   Medtronic: "Medtronic plc and Subsidiaries", "At April 24, 2026"
+#   Parker-Hannifin: "UNITED STATES", "INTERNATIONAL" over the two halves of its table
+TITLE_ROW = re.compile(
+    r"(?:united\s+states|u\.?\s?s\.?|domestic|international|foreign|non[-\s]u\.?\s?s\.?|"
+    r"north\s+america|europe|asia(?:\s+pacific)?|latin\s+america|americas|emea)"
+    r"(?:\s+subsidiar(?:y|ies))?:?"
+    r"|(?:at|as\s+of)\s+[a-z]+\.?\s+\d{1,2},?\s+\d{4}"
+    r"|.+\s+and\s+(?:its\s+)?(?:consolidated\s+)?subsidiaries",
+    re.I,
+)
+
+
+def _not_a_subsidiary(name: str, juris: str) -> bool:
+    return not juris and bool(NOISE.match(name) or TITLE_ROW.fullmatch(name))
 
 
 def _clean(text: str) -> str:
@@ -111,7 +127,7 @@ def parse_html(html: str) -> list[dict]:
                 m = PAREN_JURIS.match(name)
                 if m:
                     name, juris = m.group("name"), m.group("j")
-            if NOISE.match(name) and not juris:
+            if _not_a_subsidiary(name, juris):
                 continue
             rows.append(_row(len(rows) + 1, name, juris, pct, _indent_of(first_cell), "html_table"))
     if rows:
@@ -155,7 +171,7 @@ def parse_text(text: str, method: str = "text_lines") -> list[dict]:
                 continue
             pct = next((float(PCT.match(p).group(1)) for p in parts[1:] if PCT.match(p)), None)
             jur = [p for p in parts[1:] if not PCT.match(p)]
-            if NOISE.match(parts[0]) and not jur:
+            if _not_a_subsidiary(parts[0], jur[-1] if jur else ""):
                 continue
             rows.append(_row(len(rows) + 1, parts[0], jur[-1] if jur else "", pct, indent // 2,
                              method + ":pipe"))

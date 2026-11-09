@@ -86,6 +86,20 @@ def test_span_inside_a_name_keeps_the_whole_name():
     assert [r["subsidiary_name"] for r in rows] == ["Sample’s Marketing Company"]
 
 
+def test_title_and_group_heading_rows_are_dropped():
+    html = ("<table>"
+            "<tr><td>Example plc and Subsidiaries</td><td></td></tr>"
+            "<tr><td>At April 24, 2026</td><td></td></tr>"
+            "<tr><td>UNITED STATES</td><td></td></tr>"
+            "<tr><td>Example Holdings, Inc.</td><td>Delaware</td></tr>"
+            "<tr><td>INTERNATIONAL</td><td></td></tr>"
+            "<tr><td>Example (Australia) Pty. Limited</td><td>Australia</td></tr>"
+            "<tr><td>United States Example Corp.</td><td>Ohio</td></tr>"
+            "</table>")
+    assert [r["subsidiary_name"] for r in parse_html(html)] == [
+        "Example Holdings, Inc.", "Example (Australia) Pty. Limited", "United States Example Corp."]
+
+
 def test_jurisdictions_and_keys():
     assert normalize_jurisdiction("Delaware, U.S.") == ("United States", "Delaware")
     assert normalize_jurisdiction("United States") == ("United States", "")
