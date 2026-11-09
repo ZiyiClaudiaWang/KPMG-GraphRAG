@@ -12,7 +12,12 @@ _CORPUS_VERSION = None
 
 
 def _store_path():
-    return os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb")
+    path = os.environ.get("MSFT_FACT_DB_PATH")
+    if not path:
+        raise ValueError(
+            "Set MSFT_FACT_DB_PATH to the path of a rebuilt DuckDB fact store."
+        )
+    return path
 
 
 def load_store_metadata(conn=None):
@@ -143,7 +148,7 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
     sql += " ORDER BY fact_id"
 
     conn = duckdb.connect(
-        os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb"),
+        _store_path(),
         read_only=True
     )
     try:
