@@ -1,0 +1,7 @@
+# Everything CI installs. One file so local setup and CI cannot drift.
+pytest>=8.0
+-r toy_graph/requirements.txt
+
+# The structured arm. Without this the whole tests/ run fails at collection,
+# so nothing in structured/ was covered by CI at all.
+duckdb>=1.0
