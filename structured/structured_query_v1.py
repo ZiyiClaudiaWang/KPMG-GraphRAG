@@ -74,6 +74,55 @@ def _filing(accession_number):
         )
     return _FILINGS.get(accession_number, {})
 
+# The ten keys the contract allows every tool, plus our three. Kept the same
+# as `graphrag/contract.py` STRUCTURED_FILTERS, and `tests/test_structured_
+# filters.py` fails if the two drift. A key the contract permits must not raise
+# here: Eval's gold set fills `filters` from the contract, and 148 of its 155
+# questions carry form, fiscal_year or fiscal_period.
+SUPPORTED_FILTERS = {
+    "ticker", "cik", "form", "accession_number", "filing_date",
+    "reporting_period_end", "fiscal_year", "fiscal_period", "section",
+    "is_table", "concept", "segment", "basis",
+}
+
+# Accepted and not applied, which is what the mock already does.
+#
+#   fiscal_year, fiscal_period  a fiscal year is not a calendar year and the
+#                               year end moves by company. Deriving one needs a
+#                               fiscal calendar we do not hold.
+#   section, is_table           an XBRL fact has no section pointer. That is
+#                               issue #40, and until it closes there is nothing
+#                               to filter on.
+#
+# Ignoring a filter silently is its own hazard: the caller gets unfiltered rows
+# that look filtered. Keep this list short, and say so in the reply to Eval
+# whenever it changes.
+IGNORED_FILTERS = {"fiscal_year", "fiscal_period", "section", "is_table"}
+
+# Old names that turned up in earlier drafts. Hint rather than guess.
+RENAMED_FILTERS = {
+    "form_type": "form",
+    "accession": "accession_number",
+    "period_end": "reporting_period_end",
+    "question": "query",
+}
+
+
+def _filings_table_exists(conn=None):
+    """Whether this store carries filings_v1. Old stores predate it."""
+    close_after = conn is None
+    if conn is None:
+        conn = duckdb.connect(_store_path(), read_only=True)
+    try:
+        conn.execute("SELECT 1 FROM filings_v1 LIMIT 1")
+        return True
+    except duckdb.CatalogException:
+        return False
+    finally:
+        if close_after:
+            conn.close()
+
+
 def query_database(query, filters=None, top_k=10, trace_id=None):
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query must be a non-empty string")
@@ -87,19 +136,9 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         raise ValueError("filters must be a dict or None")
 
     filters = filters or {}
-    supported = {
-        "ticker", "cik", "accession_number",
-        "concept", "reporting_period_end", "segment", "basis"
-    }
-    renamed = {
-        "form_type": "form",
-        "accession": "accession_number",
-        "period_end": "reporting_period_end",
-        "question": "query"
-    }
     for key in filters:
-        if key not in supported:
-            hint = renamed.get(key)
+        if key not in SUPPORTED_FILTERS:
+            hint = RENAMED_FILTERS.get(key)
             message = f"unsupported filter: {key}"
             if hint:
                 message += f" (use '{hint}')"
@@ -113,11 +152,25 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         "cik": "cik",
         "accession_number": "accession_number",
         "concept": "concept_name",
-        "reporting_period_end": "period_end"
+        "reporting_period_end": "period_end",
+        "filing_date": "filing_date"
     }.items():
         if key in filters:
             sql += f" AND {column} = ?"
             params.append(filters[key])
+
+    if "form" in filters:
+        # form lives on the filing, not the fact. filings_v1 is required for a
+        # valid envelope anyway, so a store without it cannot serve this.
+        if not _filings_table_exists():
+            raise RuntimeError(
+                f"{_store_path()} has no filings_v1 table, so the form filter "
+                "cannot be applied. Rebuild it with structured/fact_loader_v1.py."
+            )
+        sql += """ AND accession_number IN (
+            SELECT accession_number FROM filings_v1 WHERE form = ?
+        )"""
+        params.append(filters["form"])
 
     if "segment" in filters:
         segments = {
