@@ -88,17 +88,22 @@ flowchart TB
   DQ --> DB
 
   subgraph agent["Agent — kpmg-agentic-backbone"]
-    AT["graph_tool.py / structured_tool.py<br>not written — mirrors rag_tool.py"]
-    AT --> COMP["compose one answer<br>from three evidence lists"]
+    GT["graph_tool.py<br>not written"]
+    ST["structured_tool.py<br>not written"]
+    RT["rag_tool.py<br>built, the template to copy"]
+    GT --> COMP["compose one answer<br>from the evidence lists"]
+    ST --> COMP
+    RT --> COMP
   end
 
-  GS -.->|"list of evidence dicts"| AT
-  SS -.->|"list of evidence dicts"| AT
-  RAG["RAG retrieve()"] -.-> AT
+  GS -.->|"list of evidence dicts"| GT
+  SS -.->|"list of evidence dicts"| ST
+  RAG["RAG retrieve()"] -.-> RT
   COMP --> UI["UI renders<br>answer + citations"]
 
   style CY fill:#FFF2CC,stroke:#D6B656,color:#000000
-  style AT fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style GT fill:#FFF2CC,stroke:#D6B656,color:#000000
+  style ST fill:#FFF2CC,stroke:#D6B656,color:#000000
   style ERR fill:#F8CECC,stroke:#B85450,color:#000000
 ```
 
