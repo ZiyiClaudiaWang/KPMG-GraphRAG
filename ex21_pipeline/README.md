@@ -57,7 +57,7 @@ python run_pipeline.py
 
   Fiscal year = the calendar year the 10-K's period ends (Apple's year ending 2025-09-27 is
   FY2025). A year with no 10-K is listed in `data/fetch_log.csv`. Amendments (10-K/A) are
-  not fetched. `--from-filings` needs `pyyaml`.
+  not fetched. `--from-filings` reads YAML with `pyyaml` (in `requirements.txt`).
 - Pass **as many tickers as you like in one command**. Already-downloaded filings are skipped,
   so re-running is safe.
 - Each file is recorded in `data/manifest.csv` with the company name, CIK, fiscal year,

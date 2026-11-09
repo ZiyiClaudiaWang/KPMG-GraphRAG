@@ -117,11 +117,12 @@ def parse_html(html: str) -> list[dict]:
     if rows:
         return rows
     # No usable table: fall back to text lines. Inline tags (a <span> around "Casey’s", a
-    # <font>) cut an entry over several lines when every tag starts a line, so also read
-    # one line per block element, and keep whichever reading finds more entries.
+    # <font>) cut an entry over several lines when every tag starts a line: the entry is
+    # lost, or its name loses the words before the tag. Reading one line per block element
+    # keeps each entry whole, so it wins unless the tag reading finds more entries.
     by_tag = parse_text(soup.get_text("\n"), method="html_text_lines")
     by_block = parse_text(_block_text(soup), method="html_block_lines")
-    return by_block if len(by_block) > len(by_tag) else by_tag
+    return by_block if by_block and len(by_block) >= len(by_tag) else by_tag
 
 
 BLOCKS = {"p", "div", "li", "tr", "td", "h1", "h2", "h3", "h4", "h5", "h6", "table"}

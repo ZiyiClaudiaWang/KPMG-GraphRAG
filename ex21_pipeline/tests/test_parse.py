@@ -79,6 +79,13 @@ def test_described_lines_in_html_with_inline_tags():
     ]
 
 
+def test_span_inside_a_name_keeps_the_whole_name():
+    # Both readings find one entry; only the block reading keeps "Sample’s".
+    html = "<p>1. <span>Sample’s</span> Marketing Company, an Iowa corporation</p>"
+    rows = parse_html(html)
+    assert [r["subsidiary_name"] for r in rows] == ["Sample’s Marketing Company"]
+
+
 def test_jurisdictions_and_keys():
     assert normalize_jurisdiction("Delaware, U.S.") == ("United States", "Delaware")
     assert normalize_jurisdiction("United States") == ("United States", "")
