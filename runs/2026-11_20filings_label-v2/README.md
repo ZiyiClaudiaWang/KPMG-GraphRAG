@@ -2,7 +2,6 @@
 
 How to use this folder: [`runs/README.md`](../README.md).
 
-| | |
 |---|---|
 | Run by | wenyu-kelly-zhou |
 | Run date | 2026-11-05 |
@@ -14,7 +13,3 @@ How to use this folder: [`runs/README.md`](../README.md).
 | Sentences | 15053 (`output/sentences.jsonl`) |
 | Claims | 10774 (`output/claims.jsonl`) |
 | Held for review | 1410 (`output/review_queue.jsonl`) |
-
-## Known issues
-
-- [anything a user of these results should know, or "None known"]
