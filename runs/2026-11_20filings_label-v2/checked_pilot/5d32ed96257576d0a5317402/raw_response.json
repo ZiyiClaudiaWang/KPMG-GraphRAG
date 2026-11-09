@@ -1,0 +1,50 @@
+{
+  "request_hash": "5d32ed96257576d0a5317402651383ab65002d661608bb69f9cadea07e595433",
+  "raw_response": {
+    "id": "chatcmpl-EgqQaxYcKnTftkeSdLkmRPD0lqhpA",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"outsourcing partners\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"outsourcing partners\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"outsourcing partners\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"outsourcing partners located primarily in China mainland, India, Japan, South Korea, Taiwan and Vietnam\"},{\"mention_text\":\"partners and facilities located in the U.S.\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"partners and facilities located in the U.S.\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"single-source partners in the U.S., Asia and Europe\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"single-source partners in the U.S., Asia and Europe\"},{\"mention_text\":\"partners primarily located in Asia\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"partners primarily located in Asia\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"transportation and logistics management\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"outsourced much of its transportation and logistics management\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions both cost benefits and reduced control; primary assertion is current condition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Mentions past and possible future adverse effects due to diminished control.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions both contractual provisions and actual liabilities experienced from time to time.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions that violations occur from time to time and can materially adversely affect the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions risks and uncertainties involved in supply chain changes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States dependence on ability to obtain components on reasonable terms as a future condition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States supply and pricing risks due to single or limited sources.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"industry\",\"annotation_note\":\"Mentions industry-wide shortages and commodity pricing fluctuations as possible adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global semiconductor industry\",\"annotation_note\":\"Describes past events affecting the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":\"global semiconductor industry\",\"annotation_note\":\"Explicitly states possible future disruptions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current product component sourcing.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880016,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 885,
+      "prompt_tokens": 2500,
+      "total_tokens": 3385,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_ed802fe14d0448edbe133fbfc43acd7c",
+  "latency_ms": 6777
+}

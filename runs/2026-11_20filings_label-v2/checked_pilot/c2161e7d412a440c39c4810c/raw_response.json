@@ -1,0 +1,50 @@
+{
+  "request_hash": "c2161e7d412a440c39c4810c59749fc812f89b15f695652af052cd90a028374d",
+  "raw_response": {
+    "id": "chatcmpl-EgrQB3tQMgA1cYmKBKc3uegBMMNgz",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued global penetration, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Micra transcatheter pacing portfolio\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Micra transcatheter pacing portfolio\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"3830 lead\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"3830 lead\"}]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of global adoption and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Aurora EV-ICD\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Aurora EV-ICD\"}]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of growth of product portfolio, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cobalt and Crome portfolio of ICDs and CRT-Ds\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Cobalt and Crome portfolio of ICDs and CRT-Ds\"}]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued growth and utilization, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"TYRX Envelope for implantable devices\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"TYRX Envelope for implantable devices\"}]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued use and expansion, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Reveal LINQ\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Reveal LINQ\"},{\"mention_text\":\"LINQ II cardiac monitor\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"LINQ II cardiac monitor\"}]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance, adoption, and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"PulseSelect pulsed field ablation system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"PulseSelect pulsed field ablation system\"},{\"mention_text\":\"Affera mapping and ablation system with Sphere-9 catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Affera mapping and ablation system with Sphere-9 catheter\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Affera mapping and ablation system and Sphere-9 catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Affera mapping and ablation system and Sphere-9 catheter\"},{\"mention_text\":\"U.S. FDA approval\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"U.S. FDA approval\"}]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued growth and market acceptance, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Affera Sphere-360 pulsed field ablation single-shot catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Affera Sphere-360 pulsed field ablation single-shot catheter\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"catheter\"},{\"mention_text\":\"CE Mark\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"CE Mark\"}]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"self-expanding CoreValve Evolut transcatheter aortic valve replacement (TAVR) platform\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"self-expanding CoreValve Evolut transcatheter aortic valve replacement (TAVR) platform\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes features of Evolut PRO and Evolut FX as existing products.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Evolut PRO\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Evolut PRO\"},{\"mention_text\":\"Evolut FX\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Evolut FX\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes features and design of Evolut FX+ TAVR system as existing product.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Evolut FX+ TAVR system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Evolut FX+ TAVR system\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"system\"},{\"mention_text\":\"U.S. FDA\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"U.S. FDA\"},{\"mention_text\":\"CE Mark\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"CE Mark\"}]},{\"id\":\"s15\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of market acceptance and reimbursement, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Symplicity Spyral renal denervation system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Symplicity Spyral renal denervation system\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883835,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1500,
+      "prompt_tokens": 2292,
+      "total_tokens": 3792,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_4522e5de9f374fa1b98533770aef09a2",
+  "latency_ms": 12689
+}

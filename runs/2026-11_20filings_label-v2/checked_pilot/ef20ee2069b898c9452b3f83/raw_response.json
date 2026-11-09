@@ -1,0 +1,50 @@
+{
+  "request_hash": "ef20ee2069b898c9452b3f834c0743df4eb1c70e58074aadcd47e0098577548c",
+  "raw_response": {
+    "id": "chatcmpl-EgrMR5qQ4vzgTwgqGAF9vEWv35PDT",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"academic institutions, governmental agencies and other public and private research organizations\",\"annotation_note\":\"Describes possible competition and research activities by external entities that may affect the company.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"academic institutions, governmental agencies and other public and private research organizations\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"academic institutions, governmental agencies and other public and private research organizations\"}]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"these companies and institutions\",\"annotation_note\":\"Describes competition for personnel and technologies without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"These companies and institutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"These companies and institutions\"}]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Mentions past and possible future loss of market share due to various factors; mixed past fact and future risk but primarily hedged risk due to future uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"market competition\",\"annotation_note\":\"Describes current competitive environment and factors essential to success.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"government-driven pricing and procurement mechanisms\",\"annotation_note\":\"Describes possible adverse effects of pricing mechanisms on competition and pricing flexibility.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"pricing control mechanisms in some markets\",\"annotation_note\":\"Describes possible retrospective payment adjustments or clawbacks that could affect payments.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s5\",\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects on revenue, margins, and competitive positioning due to factors in prior sentences.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"States the company's dependence on product differentiation and technology execution.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes competition for development, marketing, and intellectual property relationships without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes dependencies and challenges in executing multiple product and technology initiatives concurrently, implying risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes risks of delays, cost overruns, and other challenges in executing initiatives.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects on growth, competitive position, and financial results if execution or product launches fail.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes necessary ongoing actions and challenges to support sustained growth, implying risk if not achieved.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes current impact of data science, machine learning, AI, and evolving regulations on products and competitive landscape.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible significant expenditures or limitations due to compliance with developing AI regulations.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883603,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1027,
+      "prompt_tokens": 2622,
+      "total_tokens": 3649,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d79daf0f278a4d9085a1239e316934d8",
+  "latency_ms": 11820
+}

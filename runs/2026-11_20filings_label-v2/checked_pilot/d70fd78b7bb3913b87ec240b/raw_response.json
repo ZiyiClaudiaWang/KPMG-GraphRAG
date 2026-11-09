@@ -1,0 +1,50 @@
+{
+  "request_hash": "d70fd78b7bb3913b87ec240b283054531f310a716e5c9dd964a483db5a8a0f90",
+  "raw_response": {
+    "id": "chatcmpl-EgrCIaVHQquTlI9p5CVjluGNGSNiC",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":\"competitors\",\"annotation_note\":\"The sentence expresses a possible decline in revenue and profitability if competitors develop better products or if the company fails to develop high-quality products; it is a possible adverse outcome, not a stated fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"online and mobile games marketplaces\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"s2\"],\"subject_scope\":\"consumer adoption of new platforms and technological advances in online or mobile game offerings\",\"annotation_note\":\"The sentence states a possible negative effect on sales due to widespread adoption of new platforms and technologies; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"development and use of AI in the industry and products\",\"annotation_note\":\"The sentence states possible operational, reputational, financial, and competition risks related to AI; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"growth of AI technologies in the industry\",\"annotation_note\":\"The sentence states a current influence of AI technologies on game production and gaming experience; it is a stated fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s5\"],\"subject_scope\":\"use and incorporation of AI technologies in the industry\",\"annotation_note\":\"The sentence states possible social and ethical issues that may result in legal and reputational harm and liability; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":\"integration of AI technologies into the company's products or services\",\"annotation_note\":\"The sentence lists possible adverse consequences from AI integration; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"AI regulatory landscape\",\"annotation_note\":\"The sentence states a possible requirement to dedicate resources due to evolving AI regulations; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"European Union Artificial Intelligence Act\",\"annotation_note\":\"The sentence states facts about the Act's enforcement timeline; it is a stated fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"U.S. state AI laws\",\"annotation_note\":\"The sentence states facts about enacted AI laws and potential future laws; it is a stated fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":\"uncertainty in AI laws and compliance efforts\",\"annotation_note\":\"The sentence states possible need for additional investments due to uncertainty; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"development and deployment of AI technologies\",\"annotation_note\":\"The sentence states that risks may nevertheless exist despite safeguards; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":\"use of AI tools by employees, contractors, vendors, or partners\",\"annotation_note\":\"The sentence lists possible adverse consequences from misuse of AI tools; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":\"AI tools and data sets\",\"annotation_note\":\"The sentence states possible negative impacts from flawed data or biased AI outputs; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"intellectual property ownership of AI technologies\",\"annotation_note\":\"The sentence states possible exposure to claims and uncertainty regarding IP ownership; it is a hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882974,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 958,
+      "prompt_tokens": 2761,
+      "total_tokens": 3719,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_32de15e72e4546338910ac065f47e76a",
+  "latency_ms": 9724
+}

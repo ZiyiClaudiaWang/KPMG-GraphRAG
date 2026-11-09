@@ -1,0 +1,50 @@
+{
+  "request_hash": "d32bbfb4013fc37003f13ff93ec921e1f6e32bb1ddd11123bb21ba58ec6f1452",
+  "raw_response": {
+    "id": "chatcmpl-EgqrQqXQfk7cPI6L2TwSTEQHfihCX",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible company responses to adverse conditions; uses 'might' indicating potential future actions and risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\"],\"subject_scope\":\"trade environment\",\"annotation_note\":\"Describes current state of trade environment as dynamic and uncertain; 'may be interrelated' indicates uncertainty but is a stated observation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Possible adverse impacts of tariffs or trade restrictions on company costs and supply; uses 'might' indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Potential negative consequences if company cannot manage tariffs or supply; 'might' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Possible harm to customer relationships; 'might' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\",\"s4\",\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Summarizes potential adverse impacts of prior risks; 'might have' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"global climate change\",\"annotation_note\":\"Potential adverse effects from climate change or responses to it; 'may be adversely affected' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"global climate change\",\"annotation_note\":\"Uncertainty about long-term effects of climate change; 'difficult to predict' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":\"global climate change\",\"annotation_note\":\"Lists possible impacts of climate change; uses 'may include' indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"global climate change\",\"annotation_note\":\"Potential impairment of availability and cost of products and services due to climate change effects; 'could impair' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"States actual losses the company bears due to climate-related events; factual past or current losses.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Potential materially adverse impact of climate-related risks; 'might have' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"governance and sustainability matters\",\"annotation_note\":\"Potential damage to reputation and adverse effects from evolving governance and sustainability expectations; 'may' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":\"governance and sustainability matters\",\"annotation_note\":\"Describes current stakeholder focus on governance and sustainability practices; stated fact about external views.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":\"governance and sustainability matters\",\"annotation_note\":\"Potential negative perception by stakeholders of company's actions or inactions; 'may be perceived negatively' indicates risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881680,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 896,
+      "prompt_tokens": 2565,
+      "total_tokens": 3461,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_1b7a89103e754df69d76e03d2576c671",
+  "latency_ms": 7401
+}
