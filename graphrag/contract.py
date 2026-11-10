@@ -80,6 +80,47 @@ RENAMED_FILTERS = {
 
 MAX_TOP_K = 50
 
+# Retrieval-level decision taxonomy for the Eval/CLI search envelope.
+# The Agent-facing evidence-list contract remains unchanged.
+SEARCH_STATUSES = frozenset({"answer", "clarify", "abstain", "block"})
+SEARCH_REASONS = frozenset({
+    "out_of_scope",
+    "false_premise",
+    "fabricated_relationship",
+    "missing_fact",
+    "ambiguous",
+})
+
+
+def validate_search_decision(status: object, reason: object) -> tuple[str, str | None]:
+    """Validate the high-level retrieval decision used by the Eval envelope."""
+    if status not in SEARCH_STATUSES:
+        raise ValueError(
+            "status must be one of: " + ", ".join(sorted(SEARCH_STATUSES))
+        )
+    if reason is not None and reason not in SEARCH_REASONS:
+        raise ValueError(
+            "reason must be None or one of: " + ", ".join(sorted(SEARCH_REASONS))
+        )
+
+    if status == "answer" and reason is not None:
+        raise ValueError("answer status must have reason=None")
+    if status == "clarify" and reason != "ambiguous":
+        raise ValueError("clarify status currently requires reason='ambiguous'")
+    if status == "abstain" and reason not in {
+        "out_of_scope",
+        "false_premise",
+        "fabricated_relationship",
+        "missing_fact",
+    }:
+        raise ValueError(
+            "abstain status requires out_of_scope, false_premise, "
+            "fabricated_relationship, or missing_fact"
+        )
+    if status == "block" and reason is not None:
+        raise ValueError("block status currently has reason=None")
+    return status, reason
+
 
 class RetrievalUnavailableError(RuntimeError):
     """The store could not be reached. Distinct from 'nothing matched'."""

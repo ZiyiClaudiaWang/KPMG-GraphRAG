@@ -142,23 +142,35 @@ Needed handoff from Extraction 2:
 - filing-defined aliases/renames;
 - a small labelled positive/negative/ambiguous validation set.
 
-### Abstention contract
+### Abstention / decision envelope
 
-Not changed here because the W6 sprint explicitly assigns the envelope decision to
-**Retrieval with Eval**. `[]` currently means no evidence and cannot safely be redefined by
-one workstream.
+The Retrieval + Eval representation is now implemented as an additive internal
+`search()` envelope while preserving the existing Agent-facing evidence-list API.
 
-The agreed design must distinguish at least:
+Statuses:
 
-1. search completed and found no evidence;
-2. system deliberately refused/abstained;
-3. two tied candidates were found and the system cannot choose.
+- `answer` — evidence is available;
+- `clarify` — the system needs disambiguation;
+- `abstain` — the system cannot support a reliable answer;
+- `block` — reserved for a disallowed operation such as a future Text2Cypher write guard.
 
-Once Eval approves the shape, implementation order remains:
+Reasons:
 
-```text
-contract.py -> mock -> tests -> real tools -> Agents/Eval integration
-```
+- `out_of_scope`;
+- `false_premise`;
+- `fabricated_relationship`;
+- `missing_fact`;
+- `ambiguous`.
+
+`search()` returns `{request_id, trace_id, status, reason, results}`. A legacy backend
+returning a non-empty evidence list maps to `answer`; a bare empty list maps to
+`abstain / missing_fact`. Backends with stronger knowledge can return an explicit decision
+dict, for example `abstain / fabricated_relationship` or `clarify / ambiguous`.
+Backend outages remain `RetrievalUnavailableError` and unsupported filters remain
+`FilterNotSupportedError`; neither is silently converted into abstention.
+
+The existing `graph_search()` and `structured_search()` signatures still return evidence
+lists, so current Agent callers do not break.
 
 ## Immediate dependency requests
 
