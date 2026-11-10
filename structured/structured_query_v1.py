@@ -147,7 +147,12 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         read_only=True
     )
     try:
-        return conn.execute(sql, params).df().to_dict("records")
+        # Read rows as plain Python values, not through pandas: pandas would
+        # turn a missing number into NaN and a missing date into NaT, which
+        # pass an `is not None` check and then print as "nan" in evidence text.
+        cursor = conn.execute(sql, params)
+        columns = [d[0] for d in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
     finally:
         conn.close()
 
@@ -208,6 +213,25 @@ def _period_sort_key(record):
     return -int(digits) if digits else 0
 
 
+def _iso(value):
+    """A DATE column comes back as datetime.date; the envelope carries text.
+
+    A store built before the columns were typed still holds text, which passes
+    through unchanged, so old stores keep working until they are rebuilt.
+    """
+    return value.isoformat() if hasattr(value, "isoformat") else value
+
+
+def _number(value):
+    """64696000000.0 -> '64696000000'; 13.64 -> '13.64'; None -> 'None'.
+
+    Matches what the evidence text showed when the column was still text.
+    """
+    if value is None:
+        return "None"
+    return str(int(value)) if float(value).is_integer() else str(value)
+
+
 def structured_search(query, filters=None, top_k=10, trace_id=None):
     records = query_database(query, filters, top_k, trace_id)
     ranked = rank_records(records, query, filters or {}, top_k)
@@ -217,8 +241,8 @@ def structured_search(query, filters=None, top_k=10, trace_id=None):
         evidence.append({
             "rank": rank,
             "company_name": _filing(r["accession_number"]).get("company_name"),
-            "filing_date": r["filing_date"],
-            "reporting_period_end": r["period_end"],
+            "filing_date": _iso(r["filing_date"]),
+            "reporting_period_end": _iso(r["period_end"]),
             "source_url": None,
             "section": None,
             "form": _filing(r["accession_number"]).get("form"),
@@ -228,7 +252,7 @@ def structured_search(query, filters=None, top_k=10, trace_id=None):
             "ticker": r["ticker"],
             "cik": r["cik"],
             "accession_number": r["accession_number"],
-            "text": f"{r['concept_name']}: {r['numeric_value']} {r['unit']}",
+            "text": f"{r['concept_name']}: {_number(r['numeric_value'])} {r['unit']}",
             "quote": None,
             "score": score,
             "section_id": None,
@@ -245,8 +269,8 @@ def structured_search(query, filters=None, top_k=10, trace_id=None):
                 "unit_ref": r["unit_ref"],
                 "value_raw": r["raw_value"],
                 "value_num": float(r["numeric_value"]) if r["numeric_value"] is not None else None,
-                "period_start": r["period_start"],
-                "period_end": r["period_end"],
+                "period_start": _iso(r["period_start"]),
+                "period_end": _iso(r["period_end"]),
                 "dimensions": json.loads(r["dimensions"])
             }
         })

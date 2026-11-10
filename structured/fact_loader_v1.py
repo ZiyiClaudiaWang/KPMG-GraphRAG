@@ -407,6 +407,47 @@ def corpus_version(conn):
     return f"edgar-xbrl-v1:{len(accessions)}:{digest}"
 
 
+# The parser produces text. Columns that are not text are typed here, once,
+# as the rows are saved, and after make_fact_id() has hashed the text forms.
+# Typing earlier would change every fact_id (docs/identity-keys.md).
+#
+# CAST, not TRY_CAST: a value that will not convert is a parser bug, and should
+# stop the build instead of turning silently into NULL. NULLIF maps the empty
+# string to NULL first, because '' means "no value" here, not a bad value.
+#
+# Two columns stay text on purpose:
+#   raw_value - what the filing literally said; keeping it verbatim is the point.
+#   decimals  - XBRL allows "INF" (the value is exact), which no integer can hold.
+TYPED_COLUMNS = """
+    SELECT * REPLACE (
+        CAST(NULLIF(numeric_value, '') AS DOUBLE)  AS numeric_value,
+        CAST(NULLIF(scale, '')         AS INTEGER) AS scale,
+        CAST(NULLIF(period_start, '')  AS DATE)    AS period_start,
+        CAST(NULLIF(period_end, '')    AS DATE)    AS period_end,
+        CAST(NULLIF(filing_date, '')   AS DATE)    AS filing_date
+    )
+    FROM {view}
+"""
+
+
+def _require_typed_store(conn, table):
+    """Refuse to append to a store built before the columns were typed.
+
+    DuckDB would cast the new, typed rows back to text on insert without
+    complaint, so the store would stay untyped and nothing would say so.
+    """
+    row = conn.execute(
+        "SELECT data_type FROM information_schema.columns "
+        "WHERE table_name = ? AND column_name = 'numeric_value'",
+        [table],
+    ).fetchone()
+    if row is not None and row[0] == "VARCHAR":
+        raise RuntimeError(
+            f"{table} was built by an older loader and stores numbers as text. "
+            "Rebuild the store from scratch instead of appending to it."
+        )
+
+
 def save_to_duckdb(raw_df, canonical_df, review_df, db_path, filing=None,
                    append=False):
     """Write one filing's facts, plus the row describing the filing itself.
@@ -423,16 +464,21 @@ def save_to_duckdb(raw_df, canonical_df, review_df, db_path, filing=None,
         conn.register("raw_data", raw_df)
         conn.register("canonical_data", canonical_df)
         conn.register("review_data", review_df)
+        for _, view in TABLES:
+            conn.execute(f"CREATE OR REPLACE TEMP VIEW {view}_typed AS "
+                         + TYPED_COLUMNS.format(view=view))
 
         for table, view in TABLES:
+            view = f"{view}_typed"
             if append:
+                _require_typed_store(conn, table)
                 # Take the schema from the raw frame, never from this one. All
                 # three hold the same columns, but canonical and review can be
                 # empty, and an empty frame types every column as NULL. The
                 # first filing would then fix the table that way, and the next
                 # filing with real review rows could not insert into it.
                 conn.execute(
-                    f"CREATE TABLE IF NOT EXISTS {table} AS SELECT * FROM raw_data LIMIT 0"
+                    f"CREATE TABLE IF NOT EXISTS {table} AS SELECT * FROM raw_data_typed LIMIT 0"
                 )
                 # Reloading a filing should correct it, not duplicate it.
                 conn.execute(
@@ -449,7 +495,7 @@ def save_to_duckdb(raw_df, canonical_df, review_df, db_path, filing=None,
                     accession_number VARCHAR PRIMARY KEY,
                     cik VARCHAR, ticker VARCHAR,
                     company_name VARCHAR, form VARCHAR,
-                    filing_date VARCHAR, loader_version VARCHAR
+                    filing_date DATE, loader_version VARCHAR
                 )
             """)
             if not append:
