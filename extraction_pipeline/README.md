@@ -187,20 +187,34 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's
   export or the LLM, and changes no label request hash.
   - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`. Each exhibit is downloaded once
-    into `data/ex21/raw/` (listed in `data/ex21/manifest.csv`); later runs read the saved copy.
-    Downloading needs `SEC_USER_AGENT="Name email"` in the environment or `.env`. A 10-K that cannot
-    be downloaded is a CHECK row in `subsidiary_qa.csv`, and the run goes on.
-  - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there.
-  - **Parsing** (`src/ex21/`, from the standalone `ex21_pipeline/`, #34): HTML tables, `Name (Delaware)`,
-    `Name ...... Japan`, and `Name, LLC, an Iowa limited liability company`. A file that gives no rows
-    (image or PDF exhibit, an unusual layout) is a CHECK row; read `subsidiary_qa.csv` after each run.
+    into the git-ignored `data/ex21/raw/` (listed in `data/ex21/manifest.csv`); later runs read the
+    saved copy. Everyone downloads with their own `SEC_USER_AGENT="Name email"` (environment or
+    `.env`); an accession's documents on EDGAR do not change, so nothing is stored in the repo.
+    A 10-K that cannot be downloaded is a CHECK row in `subsidiary_qa.csv`, and the run goes on.
+  - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there. Each
+    row carries the same date as `period_end` and `reporting_period_end`; the step reads
+    `reporting_period_end` (the name the graph and retrieval use) and stops if the two differ.
+  - **Code layout:** `src/subsidiaries.py` runs the step only. `src/ex21/` is a library that imports
+    nothing from the pipeline: `edgar.py` downloads, `parse.py` reads an exhibit, `normalize.py`
+    maps jurisdictions and builds the identity keys. A change to SEC's site touches only
+    `edgar.py`; a parsing change only `parse.py`.
+  - **Parsing:** HTML tables (a row holding several subsidiaries in stacked paragraphs is split),
+    `Name (Delaware)`, `Name ...... Japan`, and `Name, LLC, an Iowa limited liability company`.
+    Title, date and group-heading rows are skipped, and so is a row that names the registrant itself
+    (counted in `registrant_rows_dropped`). A file that gives no rows (image or PDF exhibit, an
+    unusual layout) is a CHECK row; read `subsidiary_qa.csv` after each run.
+  - **Jurisdiction:** `country` and `state_or_region` come from the text as filed, which stays in
+    `jurisdiction_raw`. US states and Canadian provinces give the country and the state/province.
+    A value that cannot be mapped leaves `country` empty and makes the 10-K a CHECK row, so a
+    count of subsidiaries by country never takes a province or a typo for a country.
   - **Identity:** `sub_id` = uuid5 of `<parent CIK>|<normalised name>` (case, accents and punctuation
     removed, legal form kept), as agreed in `docs/schema-ids-operations.md`. The same name under the
-    same parent is one node across filings; a renamed subsidiary gets a new `sub_id`.
+    same parent is one node across filings; a renamed subsidiary gets a new `sub_id`. Each node also
+    stores `entity_key` (legal form removed too): across years, a subsidiary that disappears and one
+    that appears under the same parent with the same `entity_key` is likely a rename.
   - `subsidiary_catalog.json` holds the same subsidiaries in the entity-catalog format (all
     `needs_review`, scoped to every filing of the parent), for linking Claims to subsidiaries later.
     No step reads it yet; step 7b reads `data/entity_catalog.json`.
-  - `python compare_ex21.py` checks the output against the standalone run's `graph_edges.csv`.
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's
@@ -399,10 +413,16 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     RiskFactor nodes are the themes of `config/risk_themes.csv` that some Claim uses, keyed by
     `risk_id`.
   - Entity mentions and review fields stay in `claims.jsonl`; they are not loaded into the graph.
-  - Subsidiaries (step 1b): one `Subsidiary` node per `sub_id`, and one `Company -[:OWNS]-> Subsidiary`
-    edge per listing, keyed by the 10-K's `accession_number` and the row's position. The edge holds
-    what that exhibit says (name as filed, jurisdiction, nesting, source URL). The Company is matched
-    by CIK. `OWNS` has no `section_id`, since Exhibit 21 is not a section of the Data team's export.
+  - Subsidiaries (step 1b): one `Subsidiary` node per `sub_id` (with `entity_key`), and one
+    `Company -[:OWNS]-> Subsidiary` edge per listing, keyed by the 10-K's `accession_number` and the
+    row's position. The edge holds what that exhibit says (name as filed, jurisdiction, nesting) and
+    the filing's `reporting_period_end`, the same name as on the Filing node.
+  - **How OWNS is cited:** it has no `section_id`, since Exhibit 21 is a separate document of the
+    filing, not a section of the Data team's export. It cites its source by `accession_number` +
+    `source_url` (the Exhibit 21 document on EDGAR) + `evidence = 'Exhibit 21'`.
+  - The parent Company is matched by CIK. Loading subsidiaries never sets a Company's name: a
+    Company first created by the subsidiaries has `cik` and `ticker` only, and gets its name from
+    the Data team's `company_name` when the Claims load.
   - Claims and subsidiaries load independently: `--steps subsidiaries,load` loads subsidiaries
     without any Claims.
   - Step 8 only adds and updates; Claims whose ids changed in a rebuild stay in the graph

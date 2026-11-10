@@ -1,16 +1,18 @@
-"""The subsidiaries step (Exhibit 21) and how step 8 loads it. No network: the fixture
-exhibits are already saved, and the download test uses a fake SEC."""
+"""Step 1b (subsidiaries) and how step 8 loads it. No network: the fixture exhibits are
+already saved, and the download tests use a fake SEC."""
 
 import json
 import os
 import shutil
 import tempfile
 import unittest
-import uuid
 from pathlib import Path
 
+import yaml
+
 from src import entity_annotation, load, subsidiaries
-from src.common import read_csv, read_jsonl
+from src.common import ROOT, Paths, read_csv, read_jsonl
+from src.ex21 import edgar
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ex21"
 TBL_10K, TBL_10Q, DSC_10K = "0000000001-25-000001", "0000000001-26-000002", "0000000002-26-000003"
@@ -28,11 +30,12 @@ class Ex21Case(unittest.TestCase):
         os.environ["PIPELINE_DATA_DIR"] = str(self.tmp)
         os.environ["PIPELINE_FILINGS"] = str(FIXTURES / "filings.yaml")
         os.environ.pop("SEC_USER_AGENT", None)
-        self.real_get = subsidiaries.get
-        subsidiaries.get = self.no_network
+        self.real_get, self.real_env = edgar.get, subsidiaries.load_env
+        edgar.get = self.no_network
+        subsidiaries.load_env = lambda: None       # do not pick up a developer's .env
 
     def tearDown(self):
-        subsidiaries.get = self.real_get
+        edgar.get, subsidiaries.load_env = self.real_get, self.real_env
         for k, v in self.saved_env.items():
             if v is None:
                 os.environ.pop(k, None)
@@ -45,54 +48,67 @@ class Ex21Case(unittest.TestCase):
         raise AssertionError(f"tried to download {url}")
 
     def rows(self):
-        return list(read_jsonl(subsidiaries.Paths.rows()))
+        return list(read_jsonl(Paths.subsidiaries()))
+
+    def qa(self):
+        return {q["accession"]: q for q in read_csv(Paths.subsidiary_qa())}
 
 
 class TestSubsidiariesStep(Ex21Case):
 
     def test_saved_exhibits_parse_without_network(self):
         subsidiaries.run()
-        names = [(r["parent_ticker"], r["name"], r["jurisdiction_raw"]) for r in self.rows()]
-        self.assertEqual(names, [
-            ("TBL", "Table Example Asia Limited", "Hong Kong"),
-            ("TBL", "Table Example Asia LLC", "Delaware, U.S."),
-            ("TBL", "Table Example Operations International", "Ireland"),
-            ("DSC", "Described’s Marketing Company", "Iowa"),
-            ("DSC", "DES Stores, LLC", "Iowa"),
-            ("DSC", "Example Wholesale, LLC", "Texas"),
+        got = [(r["parent_ticker"], r["name"], r["country"], r["state_or_region"]) for r in self.rows()]
+        self.assertEqual(got, [
+            ("TBL", "Table Example Asia Limited", "Hong Kong", ""),
+            ("TBL", "Table Example Asia LLC", "United States", "Delaware"),
+            ("TBL", "Table Example Operations International", "Ireland", ""),
+            ("TBL", "Table Example Arabia LLC", "Saudi Arabia", ""),
+            ("TBL", "Table Example Regional Headquarter Company", "Saudi Arabia", ""),
+            ("TBL", "Table Example Canada Ltd.", "Canada", "Ontario"),
+            ("TBL", "Table Example Cayman Ltd.", "Cayman Islands", ""),
+            ("DSC", "Described’s Marketing Company", "United States", "Iowa"),
+            ("DSC", "DES Stores, LLC", "United States", "Iowa"),
+            ("DSC", "Example Wholesale, LLC", "United States", "Texas"),
         ])
-        self.assertTrue(all(q["status"] == "OK" for q in read_csv(subsidiaries.Paths.qa())))
+        self.assertTrue(all(q["status"] == "OK" for q in self.qa().values()))
 
-    def test_only_10ks_and_padded_ciks(self):
+    def test_registrant_row_is_dropped_and_counted(self):
+        subsidiaries.run()
+        self.assertNotIn("Table Example, Inc.", [r["name"] for r in self.rows()])
+        self.assertEqual(self.qa()[TBL_10K]["registrant_rows_dropped"], "1")
+        self.assertEqual(self.qa()[DSC_10K]["registrant_rows_dropped"], "0")
+
+    def test_only_10ks_padded_ciks_and_reporting_period_end(self):
         subsidiaries.run()
         self.assertEqual({r["accession_number"] for r in self.rows()}, {TBL_10K, DSC_10K})
         self.assertEqual({r["parent_cik"] for r in self.rows()}, {"0000000001", "0000000002"})
+        row = self.rows()[0]
+        self.assertEqual(row["reporting_period_end"], "2025-09-30")
+        for gone in ("fiscal_year", "period_end", "parent_name"):
+            self.assertNotIn(gone, row)
 
-    def test_rows_carry_country_and_provenance(self):
+    def test_rows_carry_identity_keys_and_provenance(self):
         subsidiaries.run()
         row = next(r for r in self.rows() if r["name"] == "Table Example Asia LLC")
-        self.assertEqual((row["country"], row["state_or_region"]), ("United States", "Delaware"))
-        self.assertEqual(row["fiscal_year"], "2025")
+        self.assertEqual(row["normalised_name"], "table example asia llc")
+        self.assertEqual(row["entity_key"], "table example asia")
+        self.assertEqual(row["immediate_parent"], "TBL")
         self.assertTrue(row["source_url"].startswith("https://www.sec.gov/"))
         self.assertEqual(row["parser_version"], subsidiaries.PARSER_VERSION)
 
-    def test_sub_id_is_parent_cik_and_normalised_name(self):
-        a = subsidiaries.sub_id("0000000001", "Table Example Asia LLC")
-        self.assertEqual(a, subsidiaries.sub_id("0000000001", "TABLE EXAMPLE ASIA LLC"))
-        self.assertEqual(a, subsidiaries.sub_id("0000000001", "Table  Example Asia LLC."))
-        self.assertNotEqual(a, subsidiaries.sub_id("0000000001", "Table Example Asia Limited"))
-        self.assertNotEqual(a, subsidiaries.sub_id("0000000002", "Table Example Asia LLC"))
-        uuid.UUID(a)                                   # a valid uuid
+    def test_sub_ids_are_stable(self):
         subsidiaries.run()
         ids = [r["sub_id"] for r in self.rows()]
         subsidiaries.run()
         self.assertEqual(ids, [r["sub_id"] for r in self.rows()])
+        self.assertEqual(len(set(ids)), len(ids))
 
     def test_catalog_is_valid_and_covers_the_10q(self):
         subsidiaries.run()
-        catalog = json.loads(subsidiaries.Paths.catalog().read_text(encoding="utf-8"))
+        catalog = json.loads(Paths.subsidiary_catalog().read_text(encoding="utf-8"))
         entity_annotation.validate_catalog(catalog)
-        self.assertEqual(len(catalog), 6)
+        self.assertEqual(len(catalog), 10)
         tbl = next(e for e in catalog if e["name"] == "Table Example Asia LLC")
         self.assertEqual(tbl["accessions"], [TBL_10K, TBL_10Q])
         self.assertEqual(tbl["review_status"], "needs_review")
@@ -106,6 +122,43 @@ class TestSubsidiariesStep(Ex21Case):
         os.environ["PIPELINE_FILINGS"] = str(short)
         subsidiaries.run()
         self.assertEqual({r["parent_ticker"] for r in self.rows()}, {"TBL"})
+
+    def test_unmapped_jurisdiction_is_flagged(self):
+        raw = self.tmp / "ex21" / "raw" / f"DSC_FY2026_{DSC_10K}_ex21.htm"
+        raw.write_text("<table><tr><td>Example Atlantis Ltd.</td><td>Atlantis</td></tr>"
+                       "<tr><td>Example Iowa Co.</td><td>Iowa</td></tr></table>", encoding="utf-8")
+        subsidiaries.run()
+        row = next(r for r in self.rows() if r["name"] == "Example Atlantis Ltd.")
+        self.assertEqual((row["jurisdiction_raw"], row["country"]), ("Atlantis", ""))
+        qa = self.qa()[DSC_10K]
+        self.assertEqual(qa["unmapped_jurisdiction"], "1")
+        self.assertIn("not mapped to a country: Atlantis", qa["status"])
+
+
+class TestPeriodFields(Ex21Case):
+
+    def write_filings(self, line):
+        path = self.tmp / "filings.yaml"
+        path.write_text("filings:\n  - " + line + "\n", encoding="utf-8")
+        os.environ["PIPELINE_FILINGS"] = str(path)
+
+    def test_period_fields_that_disagree_stop_the_step(self):
+        self.write_filings('{ticker: TBL, cik: "1", form: 10-K, period_end: "2025-09-30", '
+                           f'reporting_period_end: "2025-10-31", accession: "{TBL_10K}"}}')
+        with self.assertRaises(SystemExit) as stop:
+            subsidiaries.run()
+        self.assertIn("must be the same date", str(stop.exception))
+
+    def test_either_field_alone_is_read(self):
+        self.write_filings(f'{{ticker: TBL, cik: "1", form: 10-K, period_end: "2025-09-30", accession: "{TBL_10K}"}}')
+        self.assertEqual(subsidiaries.ten_ks()[0]["reporting_period_end"], "2025-09-30")
+        self.write_filings(f'{{ticker: TBL, cik: "1", form: 10-K, reporting_period_end: "2025-09-30", accession: "{TBL_10K}"}}')
+        self.assertEqual(subsidiaries.ten_ks()[0]["reporting_period_end"], "2025-09-30")
+
+    def test_real_filings_yaml_has_both_fields_and_they_agree(self):
+        rows = yaml.safe_load((ROOT / "config" / "filings.yaml").read_text(encoding="utf-8"))["filings"]
+        for r in rows:
+            self.assertEqual(r["period_end"], r["reporting_period_end"], r["accession"])
 
 
 class TestDownload(Ex21Case):
@@ -132,31 +185,41 @@ class TestDownload(Ex21Case):
 
     def test_downloads_missing_exhibit_once(self):
         os.environ["SEC_USER_AGENT"] = "Test test@example.com"
-        subsidiaries.get = self.fake_sec
+        edgar.get = self.fake_sec
         subsidiaries.run()
         self.assertEqual(len([r for r in self.rows() if r["parent_ticker"] == "DSC"]), 3)
-        self.assertEqual(len(self.calls), 3)            # index, exhibit, company name
-        entry = {r["accession"]: r for r in read_csv(subsidiaries.Paths.manifest())}[DSC_10K]
+        self.assertEqual(len(self.calls), 3)            # index, exhibit, registrant name
+        entry = {r["accession"]: r for r in read_csv(Paths.ex21_manifest())}[DSC_10K]
         self.assertEqual(entry["source_url"], "https://www.sec.gov/Archives/edgar/data/2/000000000226000003/ex211.htm")
+        self.assertEqual(entry["registrant_name"], "DESCRIBED EXAMPLE STORES INC")
+        self.assertEqual(entry["reporting_period_end"], "2026-04-30")
         subsidiaries.run()                              # saved now: no more requests
         self.assertEqual(len(self.calls), 3)
 
     def test_no_user_agent_is_a_check_not_a_stop(self):
         subsidiaries.run()                              # would raise if it tried the network
-        qa = {q["accession"]: q for q in read_csv(subsidiaries.Paths.qa())}
-        self.assertIn("SEC_USER_AGENT", qa[DSC_10K]["status"])
-        self.assertEqual(qa[TBL_10K]["status"], "OK")
+        self.assertIn("SEC_USER_AGENT", self.qa()[DSC_10K]["status"])
+        self.assertEqual(self.qa()[TBL_10K]["status"], "OK")
 
     def test_network_failure_is_a_check_not_a_stop(self):
         os.environ["SEC_USER_AGENT"] = "Test test@example.com"
 
         def offline(url):
             raise OSError("network unreachable")
-        subsidiaries.get = offline
+        edgar.get = offline
         subsidiaries.run()
-        qa = {q["accession"]: q for q in read_csv(subsidiaries.Paths.qa())}
-        self.assertIn("download failed", qa[DSC_10K]["status"])
+        self.assertIn("download failed", self.qa()[DSC_10K]["status"])
         self.assertEqual({r["parent_ticker"] for r in self.rows()}, {"TBL"})
+
+    def test_old_manifest_column_still_read(self):
+        """A manifest written before this change names the EDGAR name parent_name."""
+        path = self.tmp / "ex21" / "manifest.csv"
+        path.write_text(path.read_text(encoding="utf-8").replace("registrant_name", "parent_name"),
+                        encoding="utf-8")
+        (self.tmp / "ex21" / "raw").joinpath(f"DSC_FY2026_{DSC_10K}_ex21.htm").write_bytes(
+            (FIXTURES / "raw" / f"DSC_FY2026_{DSC_10K}_ex21.htm").read_bytes())
+        subsidiaries.run()
+        self.assertEqual(self.qa()[TBL_10K]["registrant_rows_dropped"], "1")
 
 
 class TestLoad(Ex21Case):
@@ -164,19 +227,21 @@ class TestLoad(Ex21Case):
     def test_subsidiaries_load_without_claims(self):
         subsidiaries.run()
         rows = load.build_rows()
-        self.assertEqual(len(rows["subsidiaries"]), 6)
+        self.assertEqual(len(rows["subsidiaries"]), 10)
         self.assertEqual(rows["claims"], [])
-        self.assertEqual({c["cik"] for c in rows["companies"]}, {"0000000001", "0000000002"})
-        self.assertEqual({c["name"] for c in rows["companies"]},
-                         {"Table Example Inc.", "Described Example Stores Inc."})
+        self.assertEqual(rows["companies"], [])        # parents are made by the OWNS query itself
 
-    def test_preview_has_owns(self):
+    def test_preview_has_owns_and_never_sets_company_name(self):
         subsidiaries.run()
         load.run(dry_run=True)
         preview = (self.tmp / "output" / "load_preview.cypher").read_text(encoding="utf-8")
-        self.assertIn("// subsidiaries: 6 rows", preview)
-        self.assertIn("MERGE (c)-[o:OWNS {accession_number: r.accession_number, row_order: r.row_order", preview)
-        self.assertIn("MATCH (c:Company {cik: r.parent_cik", preview)
+        self.assertIn("// subsidiaries: 10 rows", preview)
+        query = load.QUERIES["subsidiaries"]
+        self.assertIn("MERGE (c:Company {cik: r.parent_cik", query)
+        self.assertIn("o.reporting_period_end = r.reporting_period_end", query)
+        self.assertIn("s.entity_key = r.entity_key", query)
+        self.assertNotIn("c.name", query)
+        self.assertNotIn("fiscal_year", query)
 
     def test_nothing_to_load_says_so(self):
         with self.assertRaises(SystemExit):

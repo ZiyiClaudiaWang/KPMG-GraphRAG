@@ -118,6 +118,13 @@ def parse_html(html: str) -> list[dict]:
                 continue
             if HEADER_WORDS.match(filled[0][1]) and len(filled[0][1]) < 60:
                 continue
+            split = _split_stacked_row(filled)
+            if split:
+                for name, juris in split:
+                    if not _not_a_subsidiary(name, juris):
+                        rows.append(_row(len(rows) + 1, name, juris, None, _indent_of(filled[0][0]),
+                                         "html_table:stacked"))
+                continue
             first_cell, name = filled[0]
             rest = [t for _, t in filled[1:]]
             pct = next((float(PCT.match(t).group(1)) for t in rest if PCT.match(t)), None)
@@ -142,6 +149,31 @@ def parse_html(html: str) -> list[dict]:
 
 
 BLOCKS = {"p", "div", "li", "tr", "td", "h1", "h2", "h3", "h4", "h5", "h6", "table"}
+
+
+def _paragraphs(cell) -> list[str]:
+    """The non-empty <p>/<div> blocks of a cell, or its <br>-separated lines."""
+    blocks = [_clean(b.get_text(" ")) for b in cell.find_all(["p", "div"]) if not b.find(["p", "div"])]
+    blocks = [b for b in blocks if b]
+    if len(blocks) > 1:
+        return blocks
+    if cell.find("br"):
+        lines = [_clean(t) for t in cell.get_text("\n").split("\n")]
+        return [t for t in lines if t]
+    return blocks
+
+
+def _split_stacked_row(filled) -> list[tuple[str, str]]:
+    """One table row holding several subsidiaries stacked in the same cells (NetApp:
+    "Network Appliance Saudi Arabia LLC" / "NetApp Regional Headquarter Company" over
+    "Saudi Arabia" / "Saudi Arabia"). Split only when the name cell and the jurisdiction
+    cell have the same number (2 or more) of paragraphs; otherwise return []."""
+    if len(filled) < 2:
+        return []
+    names, jurs = _paragraphs(filled[0][0]), _paragraphs(filled[-1][0])
+    if len(names) < 2 or len(names) != len(jurs) or any(PCT.match(j) for j in jurs):
+        return []
+    return list(zip(names, jurs))
 
 
 def _block_text(soup) -> str:

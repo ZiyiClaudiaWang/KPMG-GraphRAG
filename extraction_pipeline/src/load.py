@@ -18,11 +18,18 @@ Graph (names from the ontology):
   (Company)-[:OWNS]->(Subsidiary)
 
 Subsidiary nodes are keyed by sub_id (parent CIK + normalised name), so one subsidiary listed
-in several 10-Ks is one node. Each listing is its own OWNS edge, keyed by the 10-K's
-accession_number and the row's position in the exhibit, and carries what that exhibit says
-(name as filed, jurisdiction, nesting). OWNS has no section_id: Exhibit 21 is a separate
-document of the filing, not a section of the Data team's export. Each run loads the claims,
-the subsidiaries, or both, whichever files exist.
+in several 10-Ks is one node; each also stores entity_key (legal form removed), for spotting
+renames across years. Each listing is its own OWNS edge, keyed by the 10-K's accession_number
+and the row's position in the exhibit, and carries what that exhibit says (name as filed,
+jurisdiction, nesting) and the filing's reporting_period_end, the name the Filing node uses.
+OWNS has no section_id: Exhibit 21 is a separate document of the filing, not a section of the
+Data team's export. It cites its source by accession_number + source_url (the Exhibit 21
+document on EDGAR) + evidence = 'Exhibit 21'.
+
+The parent Company is matched by CIK. Loading subsidiaries never sets the Company's name: a
+Company first created by the subsidiaries carries cik and ticker only, and gets its name when
+the Claims load (company_name from the Data team's export). Each run loads the claims, the
+subsidiaries, or both, whichever files exist.
 
 Every node and relationship carries pipeline_scope (config/settings.yaml), and
 nodes are merged on their key plus that scope. The pilot therefore never
@@ -99,13 +106,14 @@ MERGE (c)-[y:CONCERNS_RISK {pipeline_scope: $scope}]->(k)""",
     "subsidiaries": """
 UNWIND $rows AS r
 MERGE (s:Subsidiary {sub_id: r.sub_id, pipeline_scope: $scope})
-SET s.name = r.name, s.normalised_name = r.normalised_name, s.parent_cik = r.parent_cik,
-    s.jurisdiction_raw = r.jurisdiction_raw, s.country = r.country,
+SET s.name = r.name, s.normalised_name = r.normalised_name, s.entity_key = r.entity_key,
+    s.parent_cik = r.parent_cik, s.jurisdiction_raw = r.jurisdiction_raw, s.country = r.country,
     s.state_or_region = r.state_or_region, s.extraction_status = 'needs_review'
 WITH s, r
-MATCH (c:Company {cik: r.parent_cik, pipeline_scope: $scope})
+MERGE (c:Company {cik: r.parent_cik, pipeline_scope: $scope})
+SET c.ticker = r.parent_ticker
 MERGE (c)-[o:OWNS {accession_number: r.accession_number, row_order: r.row_order, pipeline_scope: $scope}]->(s)
-SET o.fiscal_year = r.fiscal_year, o.period_end = r.period_end, o.name_as_filed = r.name,
+SET o.reporting_period_end = r.reporting_period_end, o.name_as_filed = r.name,
     o.jurisdiction_raw = r.jurisdiction_raw, o.country = r.country,
     o.state_or_region = r.state_or_region, o.ownership_pct = r.ownership_pct, o.level = r.level,
     o.immediate_parent = r.immediate_parent, o.relationship = r.relationship,
@@ -213,11 +221,6 @@ def build_rows() -> dict[str, list[dict]]:
 
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
-
-    # A parent company with subsidiaries but no Claims still needs its Company node.
-    for r in subsidiaries:
-        companies.setdefault(r["parent_cik"], {"cik": r["parent_cik"], "name": r["parent_name"],
-                                               "ticker": r["parent_ticker"]})
     return {"companies": list(companies.values()), "filings": list(filing_rows.values()),
             "sections": list(sections.values()), "risk_factors": factors, "claims": claim_rows,
             "subsidiaries": subsidiaries}
