@@ -85,6 +85,20 @@ class RetrievalUnavailableError(RuntimeError):
     """The store could not be reached. Distinct from 'nothing matched'."""
 
 
+class FilterNotSupportedError(ValueError):
+    """A filter is in the contract but this arm cannot serve it.
+
+    `validate_filters` rejects keys no arm knows. This one is for keys an arm
+    knows and cannot answer: the graph holds no fiscal year, the structured
+    store has no column for six of the ten shared keys.
+
+    It is separate from `RetrievalUnavailableError` because the two deserve
+    different handling. An outage is worth retrying and scores as
+    infrastructure noise. A filter an arm does not hold never becomes
+    serveable, so retrying it only hides the gap.
+    """
+
+
 def validate_query(query: object) -> str:
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query must be a non-empty string")
