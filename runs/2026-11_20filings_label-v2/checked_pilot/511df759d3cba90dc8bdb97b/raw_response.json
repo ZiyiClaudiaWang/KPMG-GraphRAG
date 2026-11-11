@@ -1,0 +1,50 @@
+{
+  "request_hash": "511df759d3cba90dc8bdb97b66c068e391cdb248a88c0f50c3bd8f76afc53752",
+  "raw_response": {
+    "id": "chatcmpl-EgqXANgXEID12hGIVtzSwhPepU4PH",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"the industry\",\"annotation_note\":\"Describes a cyclical risk in the industry, not a current fact about the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"the company's markets and customers\",\"annotation_note\":\"Expresses a possible negative impact on gross margin due to inability to predict or respond to market trends.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"AI demand for the company's products\",\"annotation_note\":\"Describes uncertainty and variability in AI-related demand, a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Discusses difficulty in forecasting demand and incurring costs that may not be recovered, a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"memory and storage product market\",\"annotation_note\":\"Describes possible reduction in demand or customer design changes due to higher prices, a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a possible adverse impact on gross margins if demand is lower than expected and costs cannot be reduced.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a possible adverse outcome if demand exceeds forecast and supply cannot be increased.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a possible material adverse effect on business if supply and demand are not aligned.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"geopolitical and other risks related to international operations\",\"annotation_note\":\"Describes possible adverse effects on business due to international risks.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Taiwan\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Taiwan\"},{\"mention_text\":\"Singapore\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Singapore\"},{\"mention_text\":\"Japan\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Japan\"},{\"mention_text\":\"Malaysia\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Malaysia\"},{\"mention_text\":\"China\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"China\"},{\"mention_text\":\"India\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"India\"},{\"mention_text\":\"customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"customers\"},{\"mention_text\":\"suppliers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"suppliers\"},{\"mention_text\":\"vendors\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"vendors\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"customers\"},{\"mention_text\":\"customer locations\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"customer locations\"}]},{\"id\":\"s12\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory phrase listing risks to follow.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Lists a possible restriction risk on sales to foreign customers.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible negative effects on payments and cash flows due to export/import duties and regulations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Lists compliance risks with various laws related to international operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880424,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1012,
+      "prompt_tokens": 2620,
+      "total_tokens": 3632,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3253a2d7532c45f58bc77cb1b1048356",
+  "latency_ms": 7435
+}

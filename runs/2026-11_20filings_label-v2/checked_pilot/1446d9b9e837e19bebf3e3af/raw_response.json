@@ -1,0 +1,50 @@
+{
+  "request_hash": "1446d9b9e837e19bebf3e3afc8adece9185969b678872bc1465f68c9a40cdbef",
+  "raw_response": {
+    "id": "chatcmpl-EgquAEsVbUvDoZduKBkoFfRoC11jb",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is a footnote explaining table exclusions, not a factual claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is a footnote about rounding adjustments, not a factual claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States exclusions from remaining authorization outstanding for repurchases as of specific years.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States Board authorization for share repurchase with no expiration date as of July 2024.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States Board approval for additional share repurchase authorization as of April 29, 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States entry into an ASR program with a third-party financial institution in March 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"ASR program\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"ASR program\"}]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"States that average price and total shares purchased under ASR program are estimates and may differ upon final settlement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"ASR program\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"ASR program\"}]},{\"id\":\"s8\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Footnote explaining basis for year-end balances and sales or cost of sales for last 90 days.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Footnote describing a ratio calculation method, not a factual claim about the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States how cash equivalents are carried at fair value.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States primary investments of cash equivalents.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States currency denominations of deposits with financial institutions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States deposits could exceed insured amounts, implying a possible risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States mitigation actions for short-term investment portfolio risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States cash and cash equivalents balance held by subsidiaries outside the U.S. as of specific dates.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"subsidiaries\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"subsidiaries\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881850,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 822,
+      "prompt_tokens": 2516,
+      "total_tokens": 3338,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_b0449ea0aca041a3998e6fe086941a75",
+  "latency_ms": 6556
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "dbcb6eb84fa5105ec3b5d0db0c4db05cf1a93231ca5249a6f51a47b70d148797",
+  "raw_response": {
+    "id": "chatcmpl-EgqUPM8gQuIXUhljK13lIJGWkDfQM",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"macroeconomic environment\",\"annotation_note\":\"Describes possible adverse impacts on the company due to trade disputes, not asserting these impacts have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is an introduction to a table showing net sales by segment, not a substantive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Americas\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Americas net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone, Services and Mac.\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Europe\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Europe net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone, Services and Mac.\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes impact of currency strength on sales, a factual statement about past periods.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Europe\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"The strength in foreign currencies relative to the U.S. dollar had a net favorable year-over-year impact on Europe net sales during the first nine months of 2026.\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Greater China\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Greater China net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone.\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes impact of currency strength on sales, a factual statement about past periods.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Greater China\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"The strength in the renminbi relative to the U.S. dollar had a favorable year-over-year impact on Greater China net sales during the third quarter and first nine months of 2026.\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Japan\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Japan net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 due to higher net sales of iPhone.\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes impact of currency weakness on sales, a factual statement about past periods.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Japan\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"The weakness in the yen relative to the U.S. dollar had an unfavorable year-over-year impact on Japan net sales during the third quarter and first nine months of 2026.\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rest of Asia Pacific\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rest of Asia Pacific net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone, Services and Mac.\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes impact of currency strength on sales, a factual statement about past periods.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rest of Asia Pacific\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"The strength in foreign currencies relative to the U.S. dollar had a net favorable year-over-year impact on Rest of Asia Pacific net sales during the third quarter of 2026.\"}]},{\"id\":\"s12\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is an introduction to a table showing net sales by category, not a substantive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880253,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1198,
+      "prompt_tokens": 2616,
+      "total_tokens": 3814,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_230430ba41cc4912a979650c791d80c3",
+  "latency_ms": 8698
+}

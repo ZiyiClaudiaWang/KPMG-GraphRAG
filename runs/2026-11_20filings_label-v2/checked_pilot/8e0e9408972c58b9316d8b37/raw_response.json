@@ -1,0 +1,50 @@
+{
+  "request_hash": "8e0e9408972c58b9316d8b370a453ff3a34335d857ea65a0c4f684a34d19a409",
+  "raw_response": {
+    "id": "chatcmpl-EgrGqr6zJeLAIz6oMGaEA55UL5SQQ",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":\"U.S. states\",\"annotation_note\":\"Describes existing or proposed legislation in various U.S. states similar to the U.K. code; no prediction or risk asserted.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"California\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":\"California Attorney General\",\"annotation_note\":\"Reports a legal injunction status as of September 2023; past event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s3\"],\"subject_scope\":\"injunction on California Age-Appropriate Design Code Act\",\"annotation_note\":\"Describes a narrowing of injunction and ongoing court review as of March 2026; factual update.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"U.S. states\",\"annotation_note\":\"Describes recent regulatory efforts and laws in various states effective in 2026; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses uncertainty and potential future impact on company compliance and operations due to age-based obligations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"U.S. government and Congress\",\"annotation_note\":\"Discusses ongoing reviews and legislative proposals that may affect regulation of personal information collection in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"government and consumer agencies worldwide\",\"annotation_note\":\"States that various agencies have called for new regulation and industry practice changes; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Expresses uncertainty about enactment, form, and timing of proposals mentioned in prior sentence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Predicts potential increased complexity and resource expenditure due to new or amended privacy laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"industry and internet-enabled ecosystem\",\"annotation_note\":\"Predicts continued impact of privacy-based litigation and legal challenges on the industry.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"existing laws with private rights of action\",\"annotation_note\":\"States that private litigants may continue to use existing laws even if not aligned with recent laws; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"States a possible increased risk when laws include statutory damages instead of harm evaluation; does not assert occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"legal challenges affecting organizations using internet-enabled data collection\",\"annotation_note\":\"States possible effects on company engagement and operations depending on resolution of legal challenges; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"mobile ecosystem platform providers\",\"annotation_note\":\"Describes current changes by platform providers affecting terms for data collection and use; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883256,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 844,
+      "prompt_tokens": 2659,
+      "total_tokens": 3503,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_1a2374d228ae4dbe97955c16cbbaf372",
+  "latency_ms": 8335
+}

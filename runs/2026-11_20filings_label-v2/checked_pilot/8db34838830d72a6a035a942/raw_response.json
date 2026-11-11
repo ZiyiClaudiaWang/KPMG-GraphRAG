@@ -1,0 +1,50 @@
+{
+  "request_hash": "8db34838830d72a6a035a94274bc2a77fa27c5621703dcf12914687e1f29da1d",
+  "raw_response": {
+    "id": "chatcmpl-EgqidweRC8c0WDZGpBDOgsecMTp98",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"New York fab\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"our first New York fab\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"that fab\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"that fab\"}]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expectation about future wafer output date.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expectation about future importance of new fabs for capacity and market share.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes production start and capability addition in 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"1α (1-alpha) DDR4 technology\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"our 1α (1-alpha) DDR4 technology\"},{\"mention_text\":\"Manassas, Virginia, fab\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"our Manassas, Virginia, fab\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes funding agreements entered in December 2024.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"U.S. Department of Commerce\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"U.S. Department of Commerce\"},{\"mention_text\":\"CHIPS Act\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"CHIPS Act\"},{\"mention_text\":\"planned fab in Boise, Idaho\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"planned fab in Boise, Idaho\"},{\"mention_text\":\"two planned fabs in Clay, New York\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"two planned fabs in Clay, New York\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes amendments to funding agreements in June 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"direct funding agreements\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"direct funding agreements\"},{\"mention_text\":\"second planned fab in Boise, Idaho\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"second planned fab in Boise, Idaho\"},{\"mention_text\":\"$6.1 billion grants\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"$6.1 billion grants\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Confirms unchanged funding amount.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a separate funding agreement for Manassas fab expansion.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"direct funding agreement\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"direct funding agreement\"},{\"mention_text\":\"U.S. Department of Commerce\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"U.S. Department of Commerce\"},{\"mention_text\":\"fab in Manassas, Virginia\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"fab in Manassas, Virginia\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\",\"s7\",\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Summarizes total CHIPS Act grants related to projects.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CHIPS Act grants\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"CHIPS Act grants\"},{\"mention_text\":\"U.S. manufacturing expansion and modernization projects\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"U.S. manufacturing expansion and modernization projects\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Announces plans for advanced packaging capabilities in the U.S.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes tax credit received under CHIPS Act.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes non-binding term sheet with New York State for funding.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"State of New York\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"State of New York\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Announces establishment of research labs and planned investment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Micron Research Labs\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Micron Research Labs\"},{\"mention_text\":\"Boise, Idaho\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Boise, Idaho\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global semiconductor manufacturing ecosystem\",\"annotation_note\":\"Describes ongoing investments outside the U.S.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881135,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1268,
+      "prompt_tokens": 2534,
+      "total_tokens": 3802,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_66bc7b08db274ea2a3ec8f8c44cdd518",
+  "latency_ms": 12277
+}

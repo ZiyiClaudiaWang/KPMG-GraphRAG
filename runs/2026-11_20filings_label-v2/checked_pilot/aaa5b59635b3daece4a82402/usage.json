@@ -1,0 +1,35 @@
+{
+  "time": "2026-11-05T12:40:07+00:00",
+  "batch_id": "0001193125-26-259683|part-i-item-1|checked_start_135_n15",
+  "request_hash": "aaa5b59635b3daece4a82402867cc1e1467fc8f0ba9545566005115048116c81",
+  "response_id": "chatcmpl-Egr33PUrK2SMQgi3nO1163gkM8rlK",
+  "api_request_id": "req_c4ee84ab0d654f0396ea1fac1696f49b",
+  "model_returned": "gpt-4.1-mini-2025-04-14",
+  "usage_raw": {
+    "completion_tokens": 635,
+    "prompt_tokens": 2354,
+    "total_tokens": 2989,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "text_tokens": null
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": null,
+      "cached_tokens": 0,
+      "image_tokens": null,
+      "text_tokens": null
+    }
+  },
+  "input_tokens": 2354,
+  "cached_input_tokens": 0,
+  "output_tokens": 635,
+  "reasoning_tokens": 0,
+  "total_tokens": 2989,
+  "generation_latency_ms": 6140,
+  "estimated_cost_usd": 0.0019576,
+  "cost_status": "estimated_from_configured_rates"
+}

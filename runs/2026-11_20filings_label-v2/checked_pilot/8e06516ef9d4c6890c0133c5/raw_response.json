@@ -1,0 +1,50 @@
+{
+  "request_hash": "8e06516ef9d4c6890c0133c57dabad4ee4b9b91b6ccd28278735e2b6fb6ec889",
+  "raw_response": {
+    "id": "chatcmpl-EgqdiCxe7M5gRO4pP3mwRhZm6TVSp",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"international operations\",\"annotation_note\":\"This is a possible adverse event related to international operations, not asserted as having occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"international operations\",\"annotation_note\":\"Possible risk of compliance issues in various jurisdictions, not asserted as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"international operations\",\"annotation_note\":\"Possible contractual and regulatory limitations, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"international operations\",\"annotation_note\":\"Potential disruptions due to government actions, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"foreign governments\",\"annotation_note\":\"Possible changes in economic policies, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"foreign jurisdictions\",\"annotation_note\":\"Possible loss of market share due to political and regulatory uncertainty, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"international operations\",\"annotation_note\":\"Possible difficulties in staffing and managing international operations, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"public health\",\"annotation_note\":\"Public health issues stated as a possible risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\",\"s2\",\"s3\",\"s4\",\"s5\",\"s6\",\"s7\",\"s8\"],\"subject_scope\":null,\"annotation_note\":\"This sentence states a possible material adverse effect if prior risks occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a past decision and its impact on revenue; factual statement about a regulatory action and its effect.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":\"operations in China and revenue\",\"annotation_note\":\"Possible future adverse effects from further government actions, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States past and ongoing U.S. government restrictions; factual statement about regulatory environment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible inability to prevent unauthorized resale or misuse, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible competitive disadvantage due to restrictions not applying to competitors, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible continuing negative impact on revenue and operations even if restrictions are lifted, stated as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880830,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 905,
+      "prompt_tokens": 2487,
+      "total_tokens": 3392,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_e4b6255daf9c4759ad062356cc34c440",
+  "latency_ms": 7466
+}

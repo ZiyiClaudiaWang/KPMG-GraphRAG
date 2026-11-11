@@ -1,0 +1,50 @@
+{
+  "request_hash": "04eb277519712502b5c1dcc353c80580a6838f3883fe1867ecc807cd37b4fa24",
+  "raw_response": {
+    "id": "chatcmpl-EgqzQM5NuDj7pZtshfGToufb13BsP",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"companies like us\",\"annotation_note\":\"The sentence states a general challenge faced by companies like the reporting company, indicating a possible adverse event but not asserting it has occurred to the company specifically.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"our customers\",\"annotation_note\":\"Mentions past nation-state attack affecting customers and possibility of future attacks; hedged risk about future threats.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains an explicit expectation ('we expect that to continue') about adversaries' focus continuing in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"our customers’ on-premises or cloud environments\",\"annotation_note\":\"Describes possible attacks exploiting zero-day vulnerabilities without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"customers’ systems\",\"annotation_note\":\"Describes possible persistence of vulnerabilities and exploitation by attackers; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"customers using our cloud services\",\"annotation_note\":\"Explicit prediction that adversaries will continue attacks as customers embrace digital transformation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"our users’ accounts\",\"annotation_note\":\"Describes possible compromise of user accounts by adversaries acquiring account information; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"a customer’s use of our products or services\",\"annotation_note\":\"Describes possible unauthorized access and ransomware impact; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that weaknesses in development processes can result in vulnerabilities; hedged risk about potential vulnerabilities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that open-source software can contain vulnerabilities making products susceptible; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States software including AI-generated features can be susceptible to cyberattacks; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"our customers’ complex systems\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"our customers\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a limitation on discontinuing support despite more secure alternatives; implies a possible adverse outcome but hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882176,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 785,
+      "prompt_tokens": 2773,
+      "total_tokens": 3558,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_c6a32dce692446f497b629c6bca89fa9",
+  "latency_ms": 7261
+}

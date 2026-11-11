@@ -1,0 +1,390 @@
+accession_number,ticker,form,section_order,section_key,section_type,original_title,n_chars,n_paragraphs,table_share,digit_share,decision,reason
+0000320193-25-000079,AAPL,10-K,0,front-matter,front_matter,Front Matter,8844,86,0.26,0.038,drop,Cover page and table of contents.
+0000320193-25-000079,AAPL,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0000320193-25-000079,AAPL,10-K,2,part-i-item-1,business,Item 1. Business,15919,53,0.0,0.003,keep,"Company, product and segment descriptions."
+0000320193-25-000079,AAPL,10-K,3,part-i-item-1a,risk_factors,Item 1A. Risk Factors,67757,107,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000320193-25-000079,AAPL,10-K,4,part-i-item-1b,unknown,Item 1B. Unresolved Staff Comments,41,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000320193-25-000079,AAPL,10-K,5,part-i-item-1c,cybersecurity,Item 1C. Cybersecurity,2702,5,0.0,0.004,review,Narrative on risk management and governance; may hold Claims.
+0000320193-25-000079,AAPL,10-K,6,part-i-item-2,properties,Item 2. Properties,484,2,0.0,0.014,drop,Short list of facilities.
+0000320193-25-000079,AAPL,10-K,7,part-i-item-3,legal_proceedings,Item 3. Legal Proceedings,5406,9,0.0,0.019,drop,Out of scope for this pilot.
+0000320193-25-000079,AAPL,10-K,8,part-i-item-4,mine_safety,Item 4. Mine Safety Disclosures,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000320193-25-000079,AAPL,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0000320193-25-000079,AAPL,10-K,10,part-ii-item-5,market_equity,"Item 5. Market for Registrant’s Common Equity, Related Stockholder Matters and Issuer Purchases of Equity Securities",2994,22,0.39,0.083,drop,Mostly share-repurchase tables.
+0000320193-25-000079,AAPL,10-K,11,part-ii-item-6,unknown,Item 6. [Reserved],18,1,0.0,0.056,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000320193-25-000079,AAPL,10-K,12,part-ii-item-7,mda,Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations,18796,135,0.12,0.057,keep,Narrative explanations of results; supports M17.
+0000320193-25-000079,AAPL,10-K,13,part-ii-item-7a,market_risk,Item 7A. Quantitative and Qualitative Disclosures About Market Risk,3069,13,0.11,0.02,drop,Sensitivity tables; no eval question uses it yet.
+0000320193-25-000079,AAPL,10-K,14,part-ii-item-8,financial_statements,Item 8. Financial Statements and Supplementary Data,67678,580,0.35,0.079,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000320193-25-000079,AAPL,10-K,15,part-ii-item-9,accounting_changes,Item 9. Changes in and Disagreements with Accountants on Accounting and Financial Disclosure,99,2,0.0,0.01,drop,"Usually ""None""."
+0000320193-25-000079,AAPL,10-K,16,part-ii-item-9a,controls,Item 9A. Controls and Procedures,4475,13,0.0,0.01,drop,Standard controls-and-procedures language.
+0000320193-25-000079,AAPL,10-K,17,part-ii-item-9b,other_information,Item 9B. Other Information,572,4,0.0,0.021,drop,Mostly insider trading-plan notices.
+0000320193-25-000079,AAPL,10-K,18,part-ii-item-9c,unknown,Item 9C. Disclosure Regarding Foreign Jurisdictions that Prevent Inspections,93,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000320193-25-000079,AAPL,10-K,19,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0000320193-25-000079,AAPL,10-K,20,part-iii-item-10,directors_governance,"Item 10. Directors, Executive Officers and Corporate Governance",398,2,0.0,0.048,drop,Incorporated by reference to the proxy statement.
+0000320193-25-000079,AAPL,10-K,21,part-iii-item-11,executive_compensation,Item 11. Executive Compensation,157,2,0.0,0.038,drop,Incorporated by reference to the proxy statement.
+0000320193-25-000079,AAPL,10-K,22,part-iii-item-12,ownership,Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters,229,2,0.0,0.026,drop,Incorporated by reference to the proxy statement.
+0000320193-25-000079,AAPL,10-K,23,part-iii-item-13,related_party_transactions,"Item 13. Certain Relationships and Related Transactions, and Director Independence",208,2,0.0,0.029,drop,Incorporated by reference to the proxy statement.
+0000320193-25-000079,AAPL,10-K,24,part-iii-item-14,audit_fees,Item 14. Principal Accountant Fees and Services,173,2,0.0,0.035,drop,Incorporated by reference to the proxy statement.
+0000320193-25-000079,AAPL,10-K,25,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0000320193-25-000079,AAPL,10-K,26,part-iv-item-15,exhibits,Item 15. Exhibit and Financial Statement Schedules,12918,84,0.91,0.141,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000320193-25-000079,AAPL,10-K,27,part-iv-item-16,summary,Item 16. Form 10-K Summary,2272,32,0.49,0.037,drop,Form 10-K summary; no content.
+0000320193-26-000013,AAPL,10-Q,0,front-matter,front_matter,Front Matter,3708,57,0.4,0.056,drop,Cover page and table of contents.
+0000320193-26-000013,AAPL,10-Q,1,part-i,part_heading,PART I — FINANCIAL INFORMATION,30,1,0.0,0.0,drop,Part title only.
+0000320193-26-000013,AAPL,10-Q,2,part-i-item-1,financial_statements,Item 1. Financial Statements,31805,347,0.59,0.116,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000320193-26-000013,AAPL,10-Q,3,part-i-item-2,mda,Item 2. Management’s Discussion and Analysis of Financial Condition and Results of Operations,22901,123,0.13,0.052,keep,Narrative explanations of results; supports M17.
+0000320193-26-000013,AAPL,10-Q,4,part-i-item-3,market_risk,Item 3. Quantitative and Qualitative Disclosures About Market Risk,390,2,0.0,0.031,drop,Sensitivity tables; no eval question uses it yet.
+0000320193-26-000013,AAPL,10-Q,5,part-i-item-4,controls,Item 4. Controls and Procedures,1352,5,0.0,0.02,drop,Standard controls-and-procedures language.
+0000320193-26-000013,AAPL,10-Q,6,part-ii,part_heading,PART II — OTHER INFORMATION,27,1,0.0,0.0,drop,Part title only.
+0000320193-26-000013,AAPL,10-Q,7,part-ii-item-1,legal_proceedings,Item 1. Legal Proceedings,5120,9,0.0,0.018,drop,Out of scope for this pilot.
+0000320193-26-000013,AAPL,10-Q,8,part-ii-item-1a,risk_factors,Item 1A. Risk Factors,22011,28,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000320193-26-000013,AAPL,10-Q,9,part-ii-item-2,equity_sales,Item 2. Unregistered Sales of Equity Securities and Use of Proceeds,1689,13,0.42,0.068,drop,Mostly share-repurchase tables.
+0000320193-26-000013,AAPL,10-Q,10,part-ii-item-3,defaults,Item 3. Defaults Upon Senior Securities,46,2,0.0,0.022,drop,"Usually ""None""."
+0000320193-26-000013,AAPL,10-Q,11,part-ii-item-4,mine_safety,Item 4. Mine Safety Disclosures,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000320193-26-000013,AAPL,10-Q,12,part-ii-item-5,other_information,Item 5. Other Information,720,3,0.0,0.043,drop,Mostly insider trading-plan notices.
+0000320193-26-000013,AAPL,10-Q,13,part-ii-item-6,exhibits,Item 6. Exhibits,1570,20,0.77,0.057,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000320193-26-000020,AAPL,10-Q,0,front-matter,front_matter,Front Matter,3705,57,0.4,0.056,drop,Cover page and table of contents.
+0000320193-26-000020,AAPL,10-Q,1,part-i,part_heading,PART I — FINANCIAL INFORMATION,30,1,0.0,0.0,drop,Part title only.
+0000320193-26-000020,AAPL,10-Q,2,part-i-item-1,financial_statements,Item 1. Financial Statements,32067,354,0.59,0.117,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000320193-26-000020,AAPL,10-Q,3,part-i-item-2,mda,Item 2. Management’s Discussion and Analysis of Financial Condition and Results of Operations,22534,116,0.13,0.052,keep,Narrative explanations of results; supports M17.
+0000320193-26-000020,AAPL,10-Q,4,part-i-item-3,market_risk,Item 3. Quantitative and Qualitative Disclosures About Market Risk,391,2,0.0,0.031,drop,Sensitivity tables; no eval question uses it yet.
+0000320193-26-000020,AAPL,10-Q,5,part-i-item-4,controls,Item 4. Controls and Procedures,1350,5,0.0,0.02,drop,Standard controls-and-procedures language.
+0000320193-26-000020,AAPL,10-Q,6,part-ii,part_heading,PART II — OTHER INFORMATION,27,1,0.0,0.0,drop,Part title only.
+0000320193-26-000020,AAPL,10-Q,7,part-ii-item-1,legal_proceedings,Item 1. Legal Proceedings,5505,9,0.0,0.019,drop,Out of scope for this pilot.
+0000320193-26-000020,AAPL,10-Q,8,part-ii-item-1a,risk_factors,Item 1A. Risk Factors,18994,24,0.0,0.002,keep,Main source of Claims; supports eval questions M06 and M18.
+0000320193-26-000020,AAPL,10-Q,9,part-ii-item-2,equity_sales,Item 2. Unregistered Sales of Equity Securities and Use of Proceeds,2285,15,0.33,0.064,drop,Mostly share-repurchase tables.
+0000320193-26-000020,AAPL,10-Q,10,part-ii-item-3,defaults,Item 3. Defaults Upon Senior Securities,46,2,0.0,0.022,drop,"Usually ""None""."
+0000320193-26-000020,AAPL,10-Q,11,part-ii-item-4,mine_safety,Item 4. Mine Safety Disclosures,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000320193-26-000020,AAPL,10-Q,12,part-ii-item-5,other_information,Item 5. Other Information,1425,4,0.0,0.042,drop,Mostly insider trading-plan notices.
+0000320193-26-000020,AAPL,10-Q,13,part-ii-item-6,exhibits,Item 6. Exhibits,1185,17,0.76,0.046,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000726958-26-000046,CASY,10-K,0,front-matter,front_matter,Front Matter,6099,67,0.36,0.04,drop,Cover page and table of contents.
+0000726958-26-000046,CASY,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0000726958-26-000046,CASY,10-K,2,part-i-item-1,business,ITEM 1. | BUSINESS |,23467,73,0.04,0.016,keep,"Company, product and segment descriptions."
+0000726958-26-000046,CASY,10-K,3,part-i-item-1a,risk_factors,ITEM 1A. | RISK FACTORS |,40846,69,0.0,0.0,keep,Main source of Claims; supports eval questions M06 and M18.
+0000726958-26-000046,CASY,10-K,4,part-i-item-1b,unknown,ITEM 1B. | UNRESOLVED STAFF COMMENTS |,55,2,0.69,0.018,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000726958-26-000046,CASY,10-K,5,part-i-item-1c,cybersecurity,ITEM 1C. | CYBERSECURITY |,4190,6,0.01,0.002,review,Narrative on risk management and governance; may hold Claims.
+0000726958-26-000046,CASY,10-K,6,part-i-item-2,properties,ITEM 2. | PROPERTIES |,1756,3,0.01,0.028,drop,Short list of facilities.
+0000726958-26-000046,CASY,10-K,7,part-i-item-3,legal_proceedings,ITEM 3. | LEGAL PROCEEDINGS |,218,2,0.13,0.018,drop,Out of scope for this pilot.
+0000726958-26-000046,CASY,10-K,8,part-i-item-4,mine_safety,ITEM 4. | MINE SAFETY DISCLOSURES |,52,2,0.67,0.019,drop,Not applicable to these companies.
+0000726958-26-000046,CASY,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0000726958-26-000046,CASY,10-K,10,part-ii-item-5,market_equity,"ITEM 5. | MARKET FOR REGISTRANT’S COMMON EQUITY, RELATED STOCKHOLDER MATTERS, AND ISSUER PURCHASES OF EQUITY SECURITIES |",3825,27,0.4,0.101,drop,Mostly share-repurchase tables.
+0000726958-26-000046,CASY,10-K,11,part-ii-item-6,unknown,ITEM 6. | [Reserved] |,39,2,0.56,0.026,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000726958-26-000046,CASY,10-K,12,part-ii-item-7,mda,ITEM 7. | MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,39692,153,0.1,0.046,keep,Narrative explanations of results; supports M17.
+0000726958-26-000046,CASY,10-K,13,part-ii-item-7a,market_risk,ITEM 7A. | QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK |,2546,4,0.03,0.007,drop,Sensitivity tables; no eval question uses it yet.
+0000726958-26-000046,CASY,10-K,14,part-ii-item-8,financial_statements,ITEM 8. | FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA |,79350,487,0.24,0.065,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000726958-26-000046,CASY,10-K,15,part-ii-item-9,accounting_changes,ITEM 9. | CHANGES IN AND DISAGREEMENTS WITH ACCOUNTANTS ON ACCOUNTING AND FINANCIAL DISCLOSURE |,103,2,0.93,0.01,drop,"Usually ""None""."
+0000726958-26-000046,CASY,10-K,16,part-ii-item-9a,controls,ITEM 9A. | CONTROLS AND PROCEDURES |,3170,11,0.01,0.014,drop,Standard controls-and-procedures language.
+0000726958-26-000046,CASY,10-K,17,part-ii-item-9b,other_information,ITEM 9B. | OTHER INFORMATION |,47,2,0.64,0.021,drop,Mostly insider trading-plan notices.
+0000726958-26-000046,CASY,10-K,18,part-ii-item-9c,unknown,ITEM 9C. | DISCLOSURE REGARDING FOREIGN JURISDICTIONS THAT PREVENT INSPECTIONS |,97,2,0.82,0.01,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000726958-26-000046,CASY,10-K,19,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0000726958-26-000046,CASY,10-K,20,part-iii-item-10,directors_governance,"ITEM 10. | DIRECTORS, EXECUTIVE OFFICERS, AND CORPORATE GOVERNANCE |",2065,4,0.03,0.012,drop,Incorporated by reference to the proxy statement.
+0000726958-26-000046,CASY,10-K,21,part-iii-item-11,executive_compensation,ITEM 11. | EXECUTIVE COMPENSATION |,725,2,0.05,0.023,drop,Incorporated by reference to the proxy statement.
+0000726958-26-000046,CASY,10-K,22,part-iii-item-12,ownership,ITEM 12. | SECURITY OWNERSHIP OF CERTAIN BENEFICIAL OWNERS AND MANAGEMENT AND RELATED STOCKHOLDER MATTERS |,561,2,0.19,0.03,drop,Incorporated by reference to the proxy statement.
+0000726958-26-000046,CASY,10-K,23,part-iii-item-13,related_party_transactions,ITEM 13. | CERTAIN RELATIONSHIPS AND RELATED TRANSACTIONS AND DIRECTOR INDEPENDENCE |,508,2,0.17,0.033,drop,Incorporated by reference to the proxy statement.
+0000726958-26-000046,CASY,10-K,24,part-iii-item-14,audit_fees,ITEM 14. | PRINCIPAL ACCOUNTANT FEES AND SERVICES |,398,2,0.13,0.038,drop,Incorporated by reference to the proxy statement.
+0000726958-26-000046,CASY,10-K,25,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0000726958-26-000046,CASY,10-K,26,part-iv-item-15,exhibits,ITEM 15. | EXHIBITS AND FINANCIAL STATEMENT SCHEDULES |,11022,73,0.92,0.088,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000726958-26-000046,CASY,10-K,27,part-iv-item-16,summary,ITEM 16. | FORM 10-K SUMMARY |,2104,55,0.72,0.05,drop,Form 10-K summary; no content.
+0000726958-26-000085,CASY,10-Q,0,front-matter,front_matter,Front Matter,3918,51,0.46,0.044,drop,Cover page and table of contents.
+0000726958-26-000085,CASY,10-Q,1,part-i,part_heading,PART I—FINANCIAL INFORMATION,28,1,0.0,0.0,drop,Part title only.
+0000726958-26-000085,CASY,10-Q,2,part-i-item-1,financial_statements,Item 1. Condensed Consolidated Financial Statements,27484,201,0.29,0.069,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000726958-26-000085,CASY,10-Q,3,part-i-item-2,mda,Item 2. | Management’s Discussion and Analysis of Financial Condition and Results of Operations (Dollars in Thousands). |,26664,91,0.11,0.039,keep,Narrative explanations of results; supports M17.
+0000726958-26-000085,CASY,10-Q,4,part-i-item-3,market_risk,Item 3. Quantitative and Qualitative Disclosures about Market Risk.,2542,4,0.0,0.009,drop,Sensitivity tables; no eval question uses it yet.
+0000726958-26-000085,CASY,10-Q,5,part-i-item-4,controls,Item 4. Controls and Procedures.,1335,5,0.0,0.01,drop,Standard controls-and-procedures language.
+0000726958-26-000085,CASY,10-Q,6,part-ii,part_heading,PART II—OTHER INFORMATION,25,1,0.0,0.0,drop,Part title only.
+0000726958-26-000085,CASY,10-Q,7,part-ii-item-1,legal_proceedings,Item 1. Legal Proceedings,239,2,0.0,0.021,drop,Out of scope for this pilot.
+0000726958-26-000085,CASY,10-Q,8,part-ii-item-1a,risk_factors,Item 1A. Risk Factors,152,2,0.0,0.046,keep,Main source of Claims; supports eval questions M06 and M18.
+0000726958-26-000085,CASY,10-Q,9,part-ii-item-2,equity_sales,Item 2. Unregistered Sales of Equity Securities and Use of Proceeds,2096,9,0.28,0.074,drop,Mostly share-repurchase tables.
+0000726958-26-000085,CASY,10-Q,10,part-ii-item-6,exhibits,Item 6. Exhibits.,1629,22,0.84,0.064,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000927653-26-000069,MCK,10-K,0,front-matter,front_matter,Front Matter,5863,71,0.36,0.047,drop,Cover page and table of contents.
+0000927653-26-000069,MCK,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0000927653-26-000069,MCK,10-K,2,part-i-item-1,business,Item 1. Business.,53390,120,0.01,0.007,keep,"Company, product and segment descriptions."
+0000927653-26-000069,MCK,10-K,3,part-i-item-1a,risk_factors,Item 1A. Risk Factors.,62772,91,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000927653-26-000069,MCK,10-K,4,part-i-item-1b,unknown,Item 1B. Unresolved Staff Comments.,42,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000927653-26-000069,MCK,10-K,5,part-i-item-1c,cybersecurity,Item 1C. Cybersecurity.,5633,12,0.0,0.002,review,Narrative on risk management and governance; may hold Claims.
+0000927653-26-000069,MCK,10-K,6,part-i-item-2,properties,Item 2. Properties.,715,2,0.0,0.003,drop,Short list of facilities.
+0000927653-26-000069,MCK,10-K,7,part-i-item-3,legal_proceedings,Item 3. Legal Proceedings.,424,2,0.0,0.009,drop,Out of scope for this pilot.
+0000927653-26-000069,MCK,10-K,8,part-i-item-4,mine_safety,Item 4. Mine Safety Disclosures.,2674,11,0.83,0.062,drop,Not applicable to these companies.
+0000927653-26-000069,MCK,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0000927653-26-000069,MCK,10-K,10,part-ii-item-5,market_equity,"Item 5. Market for Registrant’s Common Equity, Related Stockholder Matters, and Issuer Purchases of Equity Securities.",6216,31,0.15,0.061,drop,Mostly share-repurchase tables.
+0000927653-26-000069,MCK,10-K,11,part-ii-item-7,mda,Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations.,92591,367,0.07,0.03,keep,Narrative explanations of results; supports M17.
+0000927653-26-000069,MCK,10-K,12,part-ii-item-7a,market_risk,Item 7A. Quantitative and Qualitative Disclosures about Market Risk.,3456,6,0.0,0.025,drop,Sensitivity tables; no eval question uses it yet.
+0000927653-26-000069,MCK,10-K,13,part-ii-item-8,financial_statements,Item 8. Financial Statements and Supplementary Data.,215135,1138,0.18,0.039,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000927653-26-000069,MCK,10-K,14,part-ii-item-9,accounting_changes,Item 9. Changes in and Disagreements with Accountants on Accounting and Financial Disclosure.,100,2,0.0,0.01,drop,"Usually ""None""."
+0000927653-26-000069,MCK,10-K,15,part-ii-item-9a,controls,Item 9A. Controls and Procedures.,1509,7,0.0,0.025,drop,Standard controls-and-procedures language.
+0000927653-26-000069,MCK,10-K,16,part-ii-item-9b,other_information,Item 9B. Other Information.,912,3,0.0,0.024,drop,Mostly insider trading-plan notices.
+0000927653-26-000069,MCK,10-K,17,part-ii-item-9c,unknown,Item 9C. Disclosure Regarding Foreign Jurisdictions that Prevent Inspections.,94,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000927653-26-000069,MCK,10-K,18,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0000927653-26-000069,MCK,10-K,19,part-iii-item-10,directors_governance,"Item 10. Directors, Executive Officers, and Corporate Governance.",5534,10,0.0,0.005,drop,Incorporated by reference to the proxy statement.
+0000927653-26-000069,MCK,10-K,20,part-iii-item-11,executive_compensation,Item 11. Executive Compensation.,190,2,0.0,0.011,drop,Incorporated by reference to the proxy statement.
+0000927653-26-000069,MCK,10-K,21,part-iii-item-12,ownership,Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters.,1701,13,0.26,0.029,drop,Incorporated by reference to the proxy statement.
+0000927653-26-000069,MCK,10-K,22,part-iii-item-13,related_party_transactions,"Item 13. Certain Relationships and Related Transactions, and Director Independence.",738,2,0.0,0.005,drop,Incorporated by reference to the proxy statement.
+0000927653-26-000069,MCK,10-K,23,part-iii-item-14,audit_fees,Item 14. Principal Accountant Fees and Services.,340,2,0.0,0.018,drop,Incorporated by reference to the proxy statement.
+0000927653-26-000069,MCK,10-K,24,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0000927653-26-000069,MCK,10-K,25,part-iv-item-15,exhibits,Item 15. Exhibits and Financial Statement Schedule.,15767,119,0.87,0.106,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000927653-26-000069,MCK,10-K,26,part-iv-item-16,summary,Item 16. Form 10-K Summary.,1673,30,0.59,0.016,drop,Form 10-K summary; no content.
+0000927653-26-000234,MCK,10-Q,0,front-matter,front_matter,Front Matter,4717,66,0.54,0.057,drop,Cover page and table of contents.
+0000927653-26-000234,MCK,10-Q,1,part-i,part_heading,PART I—FINANCIAL INFORMATION,28,1,0.0,0.0,drop,Part title only.
+0000927653-26-000234,MCK,10-Q,2,part-i-item-1,financial_statements,Item 1. Condensed Consolidated Financial Statements.,95022,651,0.24,0.042,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000927653-26-000234,MCK,10-Q,3,part-i-item-2,mda,Item 2. Management’s Discussion and Analysis of Financial Condition and Results of Operations.,50260,267,0.11,0.037,keep,Narrative explanations of results; supports M17.
+0000927653-26-000234,MCK,10-Q,4,part-i-item-3,market_risk,Item 3.Quantitative and Qualitative Disclosures about Market Risk.,303,2,0.0,0.03,drop,Sensitivity tables; no eval question uses it yet.
+0000927653-26-000234,MCK,10-Q,5,part-i-item-4,controls,Item 4.Controls and Procedures.,1111,3,0.0,0.035,drop,Standard controls-and-procedures language.
+0000927653-26-000234,MCK,10-Q,6,part-ii,part_heading,PART II—OTHER INFORMATION,25,1,0.0,0.0,drop,Part title only.
+0000927653-26-000234,MCK,10-Q,7,part-ii-item-1,legal_proceedings,Item 1.Legal Proceedings.,654,2,0.0,0.024,drop,Out of scope for this pilot.
+0000927653-26-000234,MCK,10-Q,8,part-ii-item-1a,risk_factors,Item 1A.Risk Factors.,322,2,0.0,0.043,keep,Main source of Claims; supports eval questions M06 and M18.
+0000927653-26-000234,MCK,10-Q,9,part-ii-item-2,equity_sales,Item 2.Unregistered Sales of Equity Securities and Use of Proceeds.,2920,21,0.16,0.051,drop,Mostly share-repurchase tables.
+0000927653-26-000234,MCK,10-Q,10,part-ii-item-3,defaults,Item 3.Defaults Upon Senior Securities.,46,2,0.0,0.022,drop,"Usually ""None""."
+0000927653-26-000234,MCK,10-Q,11,part-ii-item-4,mine_safety,Item 4.Mine Safety Disclosures.,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000927653-26-000234,MCK,10-Q,12,part-ii-item-5,other_information,Item 5.Other Information.,60,3,0.0,0.017,drop,Mostly insider trading-plan notices.
+0000927653-26-000234,MCK,10-Q,13,part-ii-item-6,exhibits,Item 6.Exhibits.,2574,23,0.78,0.045,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001628280-26-044354,MDT,10-K,0,front-matter,front_matter,Front Matter,12641,115,0.27,0.036,drop,Cover page and table of contents.
+0001628280-26-044354,MDT,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0001628280-26-044354,MDT,10-K,2,part-i-item-1,business,Item 1. Business,53389,136,0.0,0.003,keep,"Company, product and segment descriptions."
+0001628280-26-044354,MDT,10-K,3,part-i-item-1a,risk_factors,Item 1A. Risk Factors,84420,146,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0001628280-26-044354,MDT,10-K,4,part-i-item-1b,unknown,Item 1B. Unresolved Staff Comments,41,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001628280-26-044354,MDT,10-K,5,part-i-item-1c,cybersecurity,Item 1C. Cybersecurity,5682,18,0.0,0.003,review,Narrative on risk management and governance; may hold Claims.
+0001628280-26-044354,MDT,10-K,6,part-i-item-2,properties,Item 2. Properties,1140,4,0.0,0.01,drop,Short list of facilities.
+0001628280-26-044354,MDT,10-K,7,part-i-item-3,legal_proceedings,Item 3. Legal Proceedings,522,2,0.0,0.019,drop,Out of scope for this pilot.
+0001628280-26-044354,MDT,10-K,8,part-i-item-4,mine_safety,Item 4. Mine Safety Disclosures,5947,30,0.17,0.06,drop,Not applicable to these companies.
+0001628280-26-044354,MDT,10-K,9,part-ii-item-7,mda,Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations,77794,330,0.09,0.027,keep,Narrative explanations of results; supports M17.
+0001628280-26-044354,MDT,10-K,10,part-ii-item-7a,market_risk,Item 7A. Quantitative and Qualitative Disclosures About Market Risk,2904,8,0.0,0.028,drop,Sensitivity tables; no eval question uses it yet.
+0001628280-26-044354,MDT,10-K,11,part-ii-item-8,financial_statements,Item 8. Financial Statements and Supplementary Data,218008,1400,0.25,0.049,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001628280-26-044354,MDT,10-K,12,part-ii-item-9,accounting_changes,Item 9. Changes in and Disagreements with Accountants on Accounting and Financial Disclosure,109,2,0.0,0.009,drop,"Usually ""None""."
+0001628280-26-044354,MDT,10-K,13,part-ii-item-9a,controls,Item 9A. Controls and Procedures,2160,7,0.0,0.023,drop,Standard controls-and-procedures language.
+0001628280-26-044354,MDT,10-K,14,part-ii-item-9b,other_information,Item 9B. Other Information,2678,8,0.0,0.04,drop,Mostly insider trading-plan notices.
+0001628280-26-044354,MDT,10-K,15,part-ii-item-9c,unknown,Item 9C. Disclosure Regarding Foreign Jurisdictions that Prevent Inspections,293,3,0.0,0.055,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001628280-26-044354,MDT,10-K,16,part-iii-item-10,directors_governance,"Item 10. Directors, Executive Officers, and Corporate Governance",6574,18,0.0,0.045,drop,Incorporated by reference to the proxy statement.
+0001628280-26-044354,MDT,10-K,17,part-iii-item-11,executive_compensation,Item 11. Executive Compensation,524,2,0.0,0.032,drop,Incorporated by reference to the proxy statement.
+0001628280-26-044354,MDT,10-K,18,part-iii-item-12,ownership,Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Shareholder Matters,566,2,0.0,0.03,drop,Incorporated by reference to the proxy statement.
+0001628280-26-044354,MDT,10-K,19,part-iii-item-13,related_party_transactions,"Item 13. Certain Relationships and Related Transactions, and Director Independence",472,2,0.0,0.036,drop,Incorporated by reference to the proxy statement.
+0001628280-26-044354,MDT,10-K,20,part-iii-item-14,audit_fees,Item 14. Principal Accounting Fees and Services,409,2,0.0,0.042,drop,Incorporated by reference to the proxy statement.
+0001628280-26-044354,MDT,10-K,21,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0001628280-26-044354,MDT,10-K,22,part-iv-item-15,exhibits,Item 15. Exhibits and Financial Statement Schedules,24548,118,0.96,0.093,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001628280-26-044354,MDT,10-K,23,part-iv-item-16,summary,Item 16. Form 10-K Summary,1907,38,0.53,0.026,drop,Form 10-K summary; no content.
+0001628280-26-060473,MDT,10-Q,0,front-matter,front_matter,Front Matter,4897,67,0.58,0.069,drop,Cover page and table of contents.
+0001628280-26-060473,MDT,10-Q,1,part-i,part_heading,PART I — FINANCIAL INFORMATION,30,1,0.0,0.0,drop,Part title only.
+0001628280-26-060473,MDT,10-Q,2,part-i-item-1,financial_statements,Item 1. Financial Statements,116341,820,0.27,0.048,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001628280-26-060473,MDT,10-Q,3,part-i-item-2,mda,Item 2. Management’s Discussion and Analysis of Financial Condition and Results of Operations,69855,340,0.1,0.026,keep,Narrative explanations of results; supports M17.
+0001628280-26-060473,MDT,10-Q,4,part-i-item-3,market_risk,Item 3. Quantitative and Qualitative Disclosures About Market Risk,2612,8,0.0,0.028,drop,Sensitivity tables; no eval question uses it yet.
+0001628280-26-060473,MDT,10-Q,5,part-i-item-4,controls,Item 4. Controls and Procedures,1221,5,0.0,0.019,drop,Standard controls-and-procedures language.
+0001628280-26-060473,MDT,10-Q,6,part-ii,part_heading,PART II — OTHER INFORMATION,27,1,0.0,0.0,drop,Part title only.
+0001628280-26-060473,MDT,10-Q,7,part-ii-item-1,legal_proceedings,Item 1. Legal Proceedings,440,2,0.0,0.016,drop,Out of scope for this pilot.
+0001628280-26-060473,MDT,10-Q,8,part-ii-item-2,equity_sales,Item 2. Unregistered Sales of Equity Securities and Use of Proceeds,1040,9,0.56,0.153,drop,Mostly share-repurchase tables.
+0001628280-26-060473,MDT,10-Q,9,part-ii-item-5,other_information,Item 5. Other Information,1772,7,0.0,0.039,drop,Mostly insider trading-plan notices.
+0001628280-26-060473,MDT,10-Q,10,part-ii-item-6,exhibits,Item 6. Exhibits,1836,23,0.86,0.06,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001193125-26-191507,MSFT,10-Q,0,front-matter,front_matter,Front Matter,3968,56,0.5,0.062,drop,Cover page and table of contents.
+0001193125-26-191507,MSFT,10-Q,1,part-i,part_heading,PART I. FINANCIAL INFORMATION,29,1,0.0,0.0,drop,Part title only.
+0001193125-26-191507,MSFT,10-Q,2,part-i-item-1,financial_statements,ITEM 1. FINANCIAL STATEMENTS,80469,756,0.48,0.081,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001193125-26-191507,MSFT,10-Q,3,part-i-item-2,mda,ITEM 2. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,61384,316,0.15,0.034,keep,Narrative explanations of results; supports M17.
+0001193125-26-191507,MSFT,10-Q,4,part-i-item-3,market_risk,ITEM 3. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,2075,21,0.29,0.017,drop,Sensitivity tables; no eval question uses it yet.
+0001193125-26-191507,MSFT,10-Q,5,part-i-item-4,controls,ITEM 4. CONTROLS AND PROCEDURES,734,2,0.0,0.015,drop,Standard controls-and-procedures language.
+0001193125-26-191507,MSFT,10-Q,6,part-ii,part_heading,PART II. OTHER INFORMATION,26,1,0.0,0.0,drop,Part title only.
+0001193125-26-191507,MSFT,10-Q,7,part-ii-item-1,legal_proceedings,ITEM 1. LEGAL PROCEEDINGS,201,2,0.0,0.03,drop,Out of scope for this pilot.
+0001193125-26-191507,MSFT,10-Q,8,part-ii-item-1a,risk_factors,ITEM 1A. RISK FACTORS,70712,100,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0001193125-26-191507,MSFT,10-Q,9,part-ii-item-2,equity_sales,ITEM 2. UNREGISTERED SALES OF EQUITY SECURITIES AND USE OF PROCEEDS,1818,29,0.42,0.092,drop,Mostly share-repurchase tables.
+0001193125-26-191507,MSFT,10-Q,10,part-ii-item-5,other_information,ITEM 5. OTHER INFORMATION,1535,5,0.0,0.05,drop,Mostly insider trading-plan notices.
+0001193125-26-191507,MSFT,10-Q,11,part-ii-item-6,exhibits,ITEM 6. EXHIBITS,2103,28,0.73,0.042,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001193125-26-323660,MSFT,10-K,0,front-matter,front_matter,Front Matter,8042,77,0.35,0.038,drop,Cover page and table of contents.
+0001193125-26-323660,MSFT,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-323660,MSFT,10-K,2,part-i-item-1,business,ITEM 1. BUSINESS,41247,153,0.01,0.007,keep,"Company, product and segment descriptions."
+0001193125-26-323660,MSFT,10-K,3,part-i-item-1a,risk_factors,ITEM 1A. RISK FACTORS,81031,111,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0001193125-26-323660,MSFT,10-K,4,part-i-item-1b,unknown,ITEM 1B. UNRESOLVED STAFF COMMENTS,271,2,0.0,0.03,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001193125-26-323660,MSFT,10-K,5,part-i-item-1c,cybersecurity,ITEM 1C. CYBERSECURITY,8210,13,0.0,0.003,review,Narrative on risk management and governance; may hold Claims.
+0001193125-26-323660,MSFT,10-K,6,part-i-item-2,properties,ITEM 2. PROPERTIES,1325,9,0.15,0.026,drop,Short list of facilities.
+0001193125-26-323660,MSFT,10-K,7,part-i-item-3,legal_proceedings,ITEM 3. LEGAL PROCEEDINGS,202,2,0.0,0.03,drop,Out of scope for this pilot.
+0001193125-26-323660,MSFT,10-K,8,part-i-item-4,mine_safety,ITEM 4. MINE SAFETY DISCLOSURES,48,2,0.0,0.021,drop,Not applicable to these companies.
+0001193125-26-323660,MSFT,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-323660,MSFT,10-K,10,part-ii-item-5,market_equity,"ITEM 5. MARKET FOR REGISTRANT’S COMMON EQUITY, RELATED STOCKHOLDER MATTERS, AND ISSUER PURCHASES OF EQUITY SECURITIES",2047,29,0.38,0.088,drop,Mostly share-repurchase tables.
+0001193125-26-323660,MSFT,10-K,11,part-ii-item-7,mda,ITEM 7. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,53108,268,0.14,0.028,keep,Narrative explanations of results; supports M17.
+0001193125-26-323660,MSFT,10-K,12,part-ii-item-7a,market_risk,ITEM 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,2085,21,0.29,0.017,drop,Sensitivity tables; no eval question uses it yet.
+0001193125-26-323660,MSFT,10-K,13,part-ii-item-8,financial_statements,ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA,120043,1010,0.37,0.064,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001193125-26-323660,MSFT,10-K,14,part-ii-item-9,accounting_changes,ITEM 9. CHANGES IN AND DISAGREEMENTS WITH ACCOUNTANTS ON ACCOUNTING AND FINANCIAL DISCLOSURE,109,2,0.0,0.009,drop,"Usually ""None""."
+0001193125-26-323660,MSFT,10-K,15,part-ii-item-9a,controls,ITEM 9A. CONTROLS AND PROCEDURES,6640,20,0.0,0.01,drop,Standard controls-and-procedures language.
+0001193125-26-323660,MSFT,10-K,16,part-ii-item-9b,other_information,ITEM 9B. OTHER INFORMATION,1497,5,0.0,0.062,drop,Mostly insider trading-plan notices.
+0001193125-26-323660,MSFT,10-K,17,part-ii-item-9c,unknown,ITEM 9C. DISCLOSURE REGARDING FOREIGN JURISDICTIONS THAT PREVENT INSPECTIONS,93,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001193125-26-323660,MSFT,10-K,18,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-323660,MSFT,10-K,19,part-iii-item-10,directors_governance,"ITEM 10. DIRECTORS, EXECUTIVE OFFICERS, AND CORPORATE GOVERNANCE",1610,4,0.0,0.009,drop,Incorporated by reference to the proxy statement.
+0001193125-26-323660,MSFT,10-K,20,part-iii-item-11,executive_compensation,ITEM 11. EXECUTIVE COMPENSATION,316,2,0.0,0.006,drop,Incorporated by reference to the proxy statement.
+0001193125-26-323660,MSFT,10-K,21,part-iii-item-12,ownership,ITEM 12. SECURITY OWNERSHIP OF CERTAIN BENEFICIAL OWNERS AND MANAGEMENT AND RELATED STOCKHOLDER MATTERS,309,2,0.0,0.006,drop,Incorporated by reference to the proxy statement.
+0001193125-26-323660,MSFT,10-K,22,part-iii-item-13,related_party_transactions,"ITEM 13. CERTAIN RELATIONSHIPS AND RELATED TRANSACTIONS, AND DIRECTOR INDEPENDENCE",265,2,0.0,0.008,drop,Incorporated by reference to the proxy statement.
+0001193125-26-323660,MSFT,10-K,23,part-iii-item-14,audit_fees,ITEM 14. PRINCIPAL ACCOUNTANT FEES AND SERVICES,406,2,0.0,0.01,drop,Incorporated by reference to the proxy statement.
+0001193125-26-323660,MSFT,10-K,24,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-323660,MSFT,10-K,25,part-iv-item-15,exhibits,ITEM 15. EXHIBIT AND FINANCIAL STATEMENT SCHEDULES,14640,107,0.95,0.107,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001193125-26-323660,MSFT,10-K,26,part-iv-item-16,summary,ITEM 16. FORM 10-K SUMMARY,1800,43,0.54,0.016,drop,Form 10-K summary; no content.
+0000723125-26-000015,MU,10-Q,0,front-matter,front_matter,Front Matter,9641,72,0.45,0.037,drop,Cover page and table of contents.
+0000723125-26-000015,MU,10-Q,1,part-i,part_heading,PART I. FINANCIAL INFORMATION,29,1,0.0,0.0,drop,Part title only.
+0000723125-26-000015,MU,10-Q,2,part-i-item-1,financial_statements,ITEM 1. FINANCIAL STATEMENTS,55358,451,0.37,0.08,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000723125-26-000015,MU,10-Q,3,part-i-item-2,mda,ITEM 2. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,34946,139,0.11,0.043,keep,Narrative explanations of results; supports M17.
+0000723125-26-000015,MU,10-Q,4,part-i-item-3,market_risk,ITEM 3. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,448,2,0.0,0.036,drop,Sensitivity tables; no eval question uses it yet.
+0000723125-26-000015,MU,10-Q,5,part-i-item-4,controls,ITEM 4. CONTROLS AND PROCEDURES,1295,3,0.0,0.013,drop,Standard controls-and-procedures language.
+0000723125-26-000015,MU,10-Q,6,part-ii,part_heading,PART II. OTHER INFORMATION,26,1,0.0,0.0,drop,Part title only.
+0000723125-26-000015,MU,10-Q,7,part-ii-item-1,legal_proceedings,ITEM 1. LEGAL PROCEEDINGS,520,3,0.0,0.015,drop,Out of scope for this pilot.
+0000723125-26-000015,MU,10-Q,8,part-ii-item-1a,risk_factors,ITEM 1A. RISK FACTORS,108513,289,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000723125-26-000015,MU,10-Q,9,part-ii-item-2,equity_sales,ITEM 2. UNREGISTERED SALES OF EQUITY SECURITIES AND USE OF PROCEEDS,1810,9,0.27,0.048,drop,Mostly share-repurchase tables.
+0000723125-26-000015,MU,10-Q,10,part-ii-item-5,other_information,ITEM 5. OTHER INFORMATION,3026,33,0.69,0.044,drop,Mostly insider trading-plan notices.
+0000723125-26-000023,MU,10-K,0,front-matter,front_matter,Front Matter,10927,86,0.55,0.043,drop,Cover page and table of contents.
+0000723125-26-000023,MU,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0000723125-26-000023,MU,10-K,2,part-i-item-1,business,ITEM 1. BUSINESS,61646,136,0.08,0.012,keep,"Company, product and segment descriptions."
+0000723125-26-000023,MU,10-K,3,part-i-item-1a,risk_factors,ITEM 1A. RISK FACTORS,118116,300,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000723125-26-000023,MU,10-K,4,part-i-item-1b,unknown,ITEM 1B. UNRESOLVED STAFF COMMENTS,41,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000723125-26-000023,MU,10-K,5,part-i-item-1c,cybersecurity,ITEM 1C. CYBERSECURITY,5626,12,0.0,0.001,review,Narrative on risk management and governance; may hold Claims.
+0000723125-26-000023,MU,10-K,6,part-i-item-2,properties,ITEM 2. PROPERTIES,7439,25,0.07,0.018,drop,Short list of facilities.
+0000723125-26-000023,MU,10-K,7,part-i-item-3,legal_proceedings,ITEM 3. LEGAL PROCEEDINGS,518,3,0.0,0.015,drop,Out of scope for this pilot.
+0000723125-26-000023,MU,10-K,8,part-i-item-4,mine_safety,ITEM 4. MINE SAFETY DISCLOSURES,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000723125-26-000023,MU,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0000723125-26-000023,MU,10-K,10,part-ii-item-5,market_equity,"ITEM 5. MARKET FOR REGISTRANT’S COMMON EQUITY, RELATED STOCKHOLDER MATTERS, AND ISSUER PURCHASES OF EQUITY SECURITIES",7271,41,0.18,0.043,drop,Mostly share-repurchase tables.
+0000723125-26-000023,MU,10-K,11,part-ii-item-7,mda,ITEM 7. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,40631,140,0.07,0.031,keep,Narrative explanations of results; supports M17.
+0000723125-26-000023,MU,10-K,12,part-ii-item-7a,market_risk,ITEM 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,3676,8,0.0,0.021,drop,Sensitivity tables; no eval question uses it yet.
+0000723125-26-000023,MU,10-K,13,part-ii-item-8,financial_statements,ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA,98211,633,0.24,0.054,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000723125-26-000023,MU,10-K,14,part-ii-item-9,accounting_changes,ITEM 9. CHANGES IN AND DISAGREEMENTS WITH ACCOUNTANTS ON ACCOUNTING AND FINANCIAL DISCLOSURE,99,2,0.0,0.01,drop,"Usually ""None""."
+0000723125-26-000023,MU,10-K,15,part-ii-item-9a,controls,ITEM 9A. CONTROLS AND PROCEDURES,3579,7,0.0,0.009,drop,Standard controls-and-procedures language.
+0000723125-26-000023,MU,10-K,16,part-ii-item-9b,other_information,ITEM 9B. OTHER INFORMATION,1244,5,0.0,0.04,drop,Mostly insider trading-plan notices.
+0000723125-26-000023,MU,10-K,17,part-ii-item-9c,unknown,ITEM 9C. DISCLOSURE REGARDING FOREIGN JURISDICTIONS THAT PREVENT INSPECTIONS,475,3,0.0,0.051,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000723125-26-000023,MU,10-K,18,part-iii-item-10,directors_governance,"ITEM 10. DIRECTORS, EXECUTIVE OFFICERS, AND CORPORATE GOVERNANCE",64,1,0.0,0.031,drop,Incorporated by reference to the proxy statement.
+0000723125-26-000023,MU,10-K,19,part-iii-item-11,executive_compensation,ITEM 11. EXECUTIVE COMPENSATION,31,1,0.0,0.065,drop,Incorporated by reference to the proxy statement.
+0000723125-26-000023,MU,10-K,20,part-iii-item-12,ownership,ITEM 12. SECURITY OWNERSHIP OF CERTAIN BENEFICIAL OWNERS AND MANAGEMENT AND RELATED STOCKHOLDER MATTERS,103,1,0.0,0.019,drop,Incorporated by reference to the proxy statement.
+0000723125-26-000023,MU,10-K,21,part-iii-item-13,related_party_transactions,"ITEM 13. CERTAIN RELATIONSHIPS AND RELATED TRANSACTIONS, AND DIRECTOR INDEPENDENCE",82,1,0.0,0.024,drop,Incorporated by reference to the proxy statement.
+0000723125-26-000023,MU,10-K,22,part-iii-item-14,audit_fees,ITEM 14. PRINCIPAL ACCOUNTANT FEES AND SERVICES,11515,87,0.94,0.111,drop,Incorporated by reference to the proxy statement.
+0000723125-26-000023,MU,10-K,23,part-iv-item-16,summary,ITEM 16. FORM 10-K SUMMARY,1774,36,0.67,0.043,drop,Form 10-K summary; no content.
+0000320187-26-000088,NKE,10-K,0,front-matter,front_matter,Front Matter,6321,91,0.8,0.048,drop,Cover page and table of contents.
+0000320187-26-000088,NKE,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0000320187-26-000088,NKE,10-K,2,part-i-item-1,business,ITEM 1. BUSINESS,37013,109,0.16,0.01,keep,"Company, product and segment descriptions."
+0000320187-26-000088,NKE,10-K,3,part-i-item-1a,risk_factors,ITEM 1A. RISK FACTORS,96942,131,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000320187-26-000088,NKE,10-K,4,part-i-item-1b,unknown,ITEM 1B. UNRESOLVED STAFF COMMENTS,41,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000320187-26-000088,NKE,10-K,5,part-i-item-1c,cybersecurity,ITEM 1C. CYBERSECURITY,4872,11,0.0,0.0,review,Narrative on risk management and governance; may hold Claims.
+0000320187-26-000088,NKE,10-K,6,part-i-item-2,properties,ITEM 2. PROPERTIES,2433,6,0.0,0.008,drop,Short list of facilities.
+0000320187-26-000088,NKE,10-K,7,part-i-item-3,legal_proceedings,ITEM 3. LEGAL PROCEEDINGS,377,2,0.0,0.008,drop,Out of scope for this pilot.
+0000320187-26-000088,NKE,10-K,8,part-i-item-4,mine_safety,ITEM 4. MINE SAFETY DISCLOSURES,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000320187-26-000088,NKE,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0000320187-26-000088,NKE,10-K,10,part-ii-item-5,market_equity,"ITEM 5. MARKET FOR REGISTRANT'S COMMON EQUITY, RELATED STOCKHOLDER MATTERS AND ISSUER PURCHASES OF EQUITY SECURITIES",3296,9,0.0,0.022,drop,Mostly share-repurchase tables.
+0000320187-26-000088,NKE,10-K,11,part-ii-item-6,unknown,ITEM 6. [RESERVED],18,1,0.0,0.056,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000320187-26-000088,NKE,10-K,12,part-ii-item-7,mda,ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,74526,427,0.21,0.048,keep,Narrative explanations of results; supports M17.
+0000320187-26-000088,NKE,10-K,13,part-ii-item-7a,market_risk,ITEM 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,7441,22,0.11,0.02,drop,Sensitivity tables; no eval question uses it yet.
+0000320187-26-000088,NKE,10-K,14,part-ii-item-8,financial_statements,ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA,129873,825,0.26,0.049,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000320187-26-000088,NKE,10-K,15,part-ii-item-9,accounting_changes,ITEM 9. CHANGES IN AND DISAGREEMENTS WITH ACCOUNTANTS ON ACCOUNTING AND FINANCIAL DISCLOSURE,299,2,0.0,0.003,drop,"Usually ""None""."
+0000320187-26-000088,NKE,10-K,16,part-ii-item-9a,controls,ITEM 9A. CONTROLS AND PROCEDURES,1846,5,0.0,0.007,drop,Standard controls-and-procedures language.
+0000320187-26-000088,NKE,10-K,17,part-ii-item-9b,other_information,ITEM 9B. OTHER INFORMATION,343,3,0.0,0.073,drop,Mostly insider trading-plan notices.
+0000320187-26-000088,NKE,10-K,18,part-ii-item-9c,unknown,ITEM 9C. DISCLOSURE REGARDING FOREIGN JURISDICTIONS THAT PREVENT INSPECTIONS,93,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000320187-26-000088,NKE,10-K,19,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0000320187-26-000088,NKE,10-K,20,part-iii-item-10,directors_governance,"ITEM 10. DIRECTORS, EXECUTIVE OFFICERS AND CORPORATE GOVERNANCE",1405,2,0.0,0.026,drop,Incorporated by reference to the proxy statement.
+0000320187-26-000088,NKE,10-K,21,part-iii-item-11,executive_compensation,ITEM 11. EXECUTIVE COMPENSATION,562,2,0.0,0.037,drop,Incorporated by reference to the proxy statement.
+0000320187-26-000088,NKE,10-K,22,part-iii-item-12,ownership,ITEM 12. SECURITY OWNERSHIP OF CERTAIN BENEFICIAL OWNERS AND MANAGEMENT AND RELATED STOCKHOLDER MATTERS,667,2,0.0,0.024,drop,Incorporated by reference to the proxy statement.
+0000320187-26-000088,NKE,10-K,23,part-iii-item-13,related_party_transactions,ITEM 13. CERTAIN RELATIONSHIPS AND RELATED TRANSACTIONS AND DIRECTOR INDEPENDENCE,430,2,0.0,0.028,drop,Incorporated by reference to the proxy statement.
+0000320187-26-000088,NKE,10-K,24,part-iii-item-14,audit_fees,ITEM 14. PRINCIPAL ACCOUNTANT FEES AND SERVICES,334,2,0.0,0.027,drop,Incorporated by reference to the proxy statement.
+0000320187-26-000088,NKE,10-K,25,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0000320187-26-000088,NKE,10-K,26,part-iv-item-15,exhibits,ITEM 15. EXHIBITS AND FINANCIAL STATEMENT SCHEDULES,11008,70,0.94,0.075,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000320187-26-000088,NKE,10-K,27,part-iv-item-16,summary,ITEM 16. FORM 10-K SUMMARY,2415,48,0.34,0.115,drop,Form 10-K summary; no content.
+0000320187-26-000193,NKE,10-Q,0,front-matter,front_matter,Front Matter,3681,54,0.76,0.047,drop,Cover page and table of contents.
+0000320187-26-000193,NKE,10-Q,1,part-i,part_heading,PART I - FINANCIAL INFORMATION,30,1,0.0,0.0,drop,Part title only.
+0000320187-26-000193,NKE,10-Q,2,part-i-item-1,financial_statements,ITEM 1. FINANCIAL STATEMENTS,42507,401,0.45,0.065,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000320187-26-000193,NKE,10-Q,3,part-i-item-2,mda,ITEM 2. MANAGEMENT'S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS,44495,369,0.22,0.047,keep,Narrative explanations of results; supports M17.
+0000320187-26-000193,NKE,10-Q,4,part-i-item-3,market_risk,ITEM 3. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,245,2,0.0,0.041,drop,Sensitivity tables; no eval question uses it yet.
+0000320187-26-000193,NKE,10-Q,5,part-i-item-4,controls,ITEM 4. CONTROLS AND PROCEDURES,8162,7,0.0,0.003,drop,Standard controls-and-procedures language.
+0000320187-26-000193,NKE,10-Q,6,part-ii,part_heading,PART II - OTHER INFORMATION,27,1,0.0,0.0,drop,Part title only.
+0000320187-26-000193,NKE,10-Q,7,part-ii-item-1,legal_proceedings,ITEM 1. LEGAL PROCEEDINGS,210,2,0.0,0.014,drop,Out of scope for this pilot.
+0000320187-26-000193,NKE,10-Q,8,part-ii-item-1a,risk_factors,ITEM 1A. RISK FACTORS,192,2,0.0,0.052,keep,Main source of Claims; supports eval questions M06 and M18.
+0000320187-26-000193,NKE,10-Q,9,part-ii-item-2,equity_sales,ITEM 2. UNREGISTERED SALES OF EQUITY SECURITIES AND USE OF PROCEEDS,831,3,0.0,0.046,drop,Mostly share-repurchase tables.
+0000320187-26-000193,NKE,10-Q,10,part-ii-item-5,other_information,ITEM 5. OTHER INFORMATION,345,3,0.0,0.072,drop,Mostly insider trading-plan notices.
+0000320187-26-000193,NKE,10-Q,11,part-ii-item-6,exhibits,ITEM 6. EXHIBITS,2003,28,0.78,0.057,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001193125-26-259683,NTAP,10-K,0,front-matter,front_matter,Front Matter,12540,111,0.15,0.021,drop,Cover page and table of contents.
+0001193125-26-259683,NTAP,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-259683,NTAP,10-K,2,part-i-item-1,business,Item 1. Business,49916,135,0.01,0.005,keep,"Company, product and segment descriptions."
+0001193125-26-259683,NTAP,10-K,3,part-i-item-1a,risk_factors,Item 1A. Risk Factors,90130,159,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0001193125-26-259683,NTAP,10-K,4,part-i-item-1b,unknown,Item 1B. Unresolved Staff Comments,51,2,0.0,0.02,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001193125-26-259683,NTAP,10-K,5,part-i-item-1c,cybersecurity,Item 1C. Cybersecurity,5149,16,0.0,0.003,review,Narrative on risk management and governance; may hold Claims.
+0001193125-26-259683,NTAP,10-K,6,part-i-item-2,properties,Item 2. Properties,334,2,0.0,0.003,drop,Short list of facilities.
+0001193125-26-259683,NTAP,10-K,7,part-i-item-3,legal_proceedings,Item 3. Legal Proceedings,266,2,0.0,0.023,drop,Out of scope for this pilot.
+0001193125-26-259683,NTAP,10-K,8,part-i-item-4,mine_safety,Item 4. Mine Safety Disclosures,48,2,0.0,0.021,drop,Not applicable to these companies.
+0001193125-26-259683,NTAP,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-259683,NTAP,10-K,10,part-ii-item-5,market_equity,"Item 5. Market for Registrant’s Common Equity, Related Stockholder Matters and Issuer Purchases of Equity Securities",5142,35,0.35,0.085,drop,Mostly share-repurchase tables.
+0001193125-26-259683,NTAP,10-K,11,part-ii-item-7,mda,Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations,52481,295,0.24,0.036,keep,Narrative explanations of results; supports M17.
+0001193125-26-259683,NTAP,10-K,12,part-ii-item-7a,market_risk,Item 7A. Quantitative and Qualitative Disclosures about Market Risk,4754,10,0.0,0.009,drop,Sensitivity tables; no eval question uses it yet.
+0001193125-26-259683,NTAP,10-K,13,part-ii-item-8,financial_statements,Item 8. Financial Statements and Supplementary Data,121061,926,0.29,0.041,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001193125-26-259683,NTAP,10-K,14,part-ii-item-9,accounting_changes,Item 9. Changes in and Disagreements with Accountants on Accounting and Financial Disclosure,99,2,0.0,0.01,drop,"Usually ""None""."
+0001193125-26-259683,NTAP,10-K,15,part-ii-item-9a,controls,Item 9A. Controls and Procedures,3908,10,0.0,0.015,drop,Standard controls-and-procedures language.
+0001193125-26-259683,NTAP,10-K,16,part-ii-item-9b,other_information,Item 9B. Other Information,934,4,0.0,0.044,drop,Mostly insider trading-plan notices.
+0001193125-26-259683,NTAP,10-K,17,part-ii-item-9c,unknown,Item 9C. Disclosure Regarding Foreign Jurisdictions that Prevent Inspections,93,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001193125-26-259683,NTAP,10-K,18,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-259683,NTAP,10-K,19,part-iii-item-10,directors_governance,"Item 10. Directors, Executive Officers and Corporate Governance",2105,4,0.0,0.017,drop,Incorporated by reference to the proxy statement.
+0001193125-26-259683,NTAP,10-K,20,part-iii-item-11,executive_compensation,Item 11. Executive Compensation,485,2,0.0,0.012,drop,Incorporated by reference to the proxy statement.
+0001193125-26-259683,NTAP,10-K,21,part-iii-item-12,ownership,Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters,422,2,0.0,0.014,drop,Incorporated by reference to the proxy statement.
+0001193125-26-259683,NTAP,10-K,22,part-iii-item-13,related_party_transactions,"Item 13. Certain Relationships and Related Transactions, and Director Independence",386,2,0.0,0.016,drop,Incorporated by reference to the proxy statement.
+0001193125-26-259683,NTAP,10-K,23,part-iii-item-14,audit_fees,Item 14. Principal Accountant Fees and Services,445,3,0.0,0.045,drop,Incorporated by reference to the proxy statement.
+0001193125-26-259683,NTAP,10-K,24,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0001193125-26-259683,NTAP,10-K,25,part-iv-item-15,exhibits,"Item 15. Exhibits, Financial Statement Schedules",11117,97,0.77,0.091,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000076334-26-000073,PH,10-Q,0,front-matter,front_matter,Front Matter,2618,28,0.28,0.045,drop,Cover page and table of contents.
+0000076334-26-000073,PH,10-Q,1,part-i,part_heading,PART I - FINANCIAL INFORMATION,30,1,0.0,0.0,drop,Part title only.
+0000076334-26-000073,PH,10-Q,2,part-i-item-1,financial_statements,ITEM 1. FINANCIAL STATEMENTS,54895,482,0.41,0.065,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000076334-26-000073,PH,10-Q,3,part-i-item-2,mda,ITEM 2. MANAGEMENT’S DISCUSSION AND ANALYSIS OF,40086,230,0.15,0.036,keep,Narrative explanations of results; supports M17.
+0000076334-26-000073,PH,10-Q,4,part-i-item-3,market_risk,ITEM 3. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK,3220,5,0.0,0.009,drop,Sensitivity tables; no eval question uses it yet.
+0000076334-26-000073,PH,10-Q,5,part-i-item-4,controls,ITEM 4. CONTROLS AND PROCEDURES,1033,3,0.0,0.024,drop,Standard controls-and-procedures language.
+0000076334-26-000073,PH,10-Q,6,part-ii,part_heading,PART II - OTHER INFORMATION,27,1,0.0,0.0,drop,Part title only.
+0000076334-26-000073,PH,10-Q,7,part-ii-item-1,legal_proceedings,ITEM 1. Legal Proceedings.,437,2,0.0,0.007,drop,Out of scope for this pilot.
+0000076334-26-000073,PH,10-Q,8,part-ii-item-2,equity_sales,ITEM 2. Unregistered Sales of Equity Securities and Use of Proceeds.,1267,18,0.4,0.102,drop,Mostly share-repurchase tables.
+0000076334-26-000073,PH,10-Q,9,part-ii-item-5,other_information,ITEM 5. Other Information,235,2,0.0,0.064,drop,Mostly insider trading-plan notices.
+0000076334-26-000073,PH,10-Q,10,part-ii-item-6,exhibits,ITEM 6. Exhibits.,2504,24,0.62,0.063,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000076334-26-000105,PH,10-K,0,front-matter,front_matter,Front Matter,5707,68,0.37,0.045,drop,Cover page and table of contents.
+0000076334-26-000105,PH,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0000076334-26-000105,PH,10-K,2,part-i-item-1,business,Item 1. Business,29168,129,0.1,0.021,keep,"Company, product and segment descriptions."
+0000076334-26-000105,PH,10-K,3,part-i-item-1a,risk_factors,ITEM 1A. Risk Factors,40265,95,0.0,0.001,keep,Main source of Claims; supports eval questions M06 and M18.
+0000076334-26-000105,PH,10-K,4,part-i-item-1b,unknown,Item 1B. Unresolved Staff Comments,41,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000076334-26-000105,PH,10-K,5,part-i-item-1c,cybersecurity,Item 1C. Cybersecurity,6782,13,0.0,0.004,review,Narrative on risk management and governance; may hold Claims.
+0000076334-26-000105,PH,10-K,6,part-i-item-2,properties,Item 2. Properties,1112,3,0.0,0.013,drop,Short list of facilities.
+0000076334-26-000105,PH,10-K,7,part-i-item-3,legal_proceedings,Item 3. Legal Proceedings,442,2,0.0,0.007,drop,Out of scope for this pilot.
+0000076334-26-000105,PH,10-K,8,part-i-item-4,mine_safety,Item 4. Mine Safety Disclosures,48,2,0.0,0.021,drop,Not applicable to these companies.
+0000076334-26-000105,PH,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0000076334-26-000105,PH,10-K,10,part-ii-item-5,market_equity,"Item 5. Market for Registrant’s Common Equity, Related Stockholder Matters and Issuer Purchases of Equity Securities",1565,15,0.38,0.089,drop,Mostly share-repurchase tables.
+0000076334-26-000105,PH,10-K,11,part-ii-item-7,mda,Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations,40419,236,0.11,0.027,keep,Narrative explanations of results; supports M17.
+0000076334-26-000105,PH,10-K,12,part-ii-item-7a,market_risk,Item 7A. Quantitative and Qualitative Disclosures About Market Risk.,3191,5,0.0,0.009,drop,Sensitivity tables; no eval question uses it yet.
+0000076334-26-000105,PH,10-K,13,part-ii-item-8,financial_statements,Item 8. Financial Statements and Supplementary Data,119456,920,0.32,0.052,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0000076334-26-000105,PH,10-K,14,part-ii-item-9,accounting_changes,Item 9. Changes in and Disagreements with Accountants on Accounting and Financial Disclosure,99,2,0.0,0.01,drop,"Usually ""None""."
+0000076334-26-000105,PH,10-K,15,part-ii-item-9a,controls,Item 9A. Controls and Procedures,2526,7,0.0,0.028,drop,Standard controls-and-procedures language.
+0000076334-26-000105,PH,10-K,16,part-ii-item-9b,other_information,Item 9B. Other Information,235,2,0.0,0.064,drop,Mostly insider trading-plan notices.
+0000076334-26-000105,PH,10-K,17,part-ii-item-9c,unknown,Item 9C. Disclosure Regarding Foreign Jurisdictions that Prevent Inspections,93,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0000076334-26-000105,PH,10-K,18,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0000076334-26-000105,PH,10-K,19,part-iii-item-10,directors_governance,"Item 10. Directors, Executive Officers and Corporate Governance",1549,5,0.0,0.017,drop,Incorporated by reference to the proxy statement.
+0000076334-26-000105,PH,10-K,20,part-iii-item-11,executive_compensation,Item 11. Executive Compensation,277,2,0.0,0.022,drop,Incorporated by reference to the proxy statement.
+0000076334-26-000105,PH,10-K,21,part-iii-item-12,ownership,Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters,2103,9,0.23,0.046,drop,Incorporated by reference to the proxy statement.
+0000076334-26-000105,PH,10-K,22,part-iii-item-13,related_party_transactions,"Item 13. Certain Relationships and Related Transactions, and Director Independence",340,2,0.0,0.021,drop,Incorporated by reference to the proxy statement.
+0000076334-26-000105,PH,10-K,23,part-iii-item-14,audit_fees,Item 14. Principal Accountant Fees and Services,249,2,0.0,0.024,drop,Incorporated by reference to the proxy statement.
+0000076334-26-000105,PH,10-K,24,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0000076334-26-000105,PH,10-K,25,part-iv-item-15,exhibits,Item 15. Exhibits and Financial Statement Schedules,26126,116,0.94,0.071,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0000076334-26-000105,PH,10-K,26,part-iv-item-16,summary,Item 16. Form 10-K Summary.,1276,15,0.29,0.022,drop,Form 10-K summary; no content.
+0001628280-26-037434,TTWO,10-K,0,front-matter,front_matter,Front Matter,8331,71,0.26,0.029,drop,Cover page and table of contents.
+0001628280-26-037434,TTWO,10-K,1,part-i,part_heading,PART I,0,0,0.0,0.0,drop,Part title only.
+0001628280-26-037434,TTWO,10-K,2,part-i-item-1,business,Item 1. Business,32324,70,0.0,0.008,keep,"Company, product and segment descriptions."
+0001628280-26-037434,TTWO,10-K,3,part-i-item-1a,risk_factors,Item 1A. Risk Factors,170234,289,0.0,0.002,keep,Main source of Claims; supports eval questions M06 and M18.
+0001628280-26-037434,TTWO,10-K,4,part-i-item-1b,unknown,Item 1B. Unresolved Staff Comments,41,2,0.0,0.024,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001628280-26-037434,TTWO,10-K,5,part-i-item-1c,cybersecurity,Item 1C. Cybersecurity,8494,23,0.0,0.001,review,Narrative on risk management and governance; may hold Claims.
+0001628280-26-037434,TTWO,10-K,6,part-i-item-2,properties,Item 2. Properties,2376,9,0.0,0.032,drop,Short list of facilities.
+0001628280-26-037434,TTWO,10-K,7,part-i-item-3,legal_proceedings,Item 3. Legal Proceedings,165,2,0.0,0.018,drop,Out of scope for this pilot.
+0001628280-26-037434,TTWO,10-K,8,part-i-item-4,mine_safety,Item 4. Mine Safety Disclosures,48,2,0.0,0.021,drop,Not applicable to these companies.
+0001628280-26-037434,TTWO,10-K,9,part-ii,part_heading,PART II,0,0,0.0,0.0,drop,Part title only.
+0001628280-26-037434,TTWO,10-K,10,part-ii-item-5,market_equity,"Item 5. Market for Registrant's Common Equity, Related Stockholder Matters and Issuer Purchases of Equity Securities",4531,28,0.19,0.06,drop,Mostly share-repurchase tables.
+0001628280-26-037434,TTWO,10-K,11,part-ii-item-6,unknown,Item 6. [Reserved],18,1,0.0,0.056,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001628280-26-037434,TTWO,10-K,12,part-ii-item-7,mda,Item 7. Management's Discussion and Analysis of Financial Condition and Results of Operations,40897,166,0.14,0.052,keep,Narrative explanations of results; supports M17.
+0001628280-26-037434,TTWO,10-K,13,part-ii-item-7a,market_risk,Item 7A. Quantitative and Qualitative Disclosures About Market Risk,6353,15,0.0,0.031,drop,Sensitivity tables; no eval question uses it yet.
+0001628280-26-037434,TTWO,10-K,14,part-ii-item-8,financial_statements,Item 8. Financial Statements and Supplementary Data,527,2,0.0,0.009,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001628280-26-037434,TTWO,10-K,15,part-ii-item-9,accounting_changes,Item 9. Changes in and Disagreements with Accountants on Accounting and Financial Disclosure,99,2,0.0,0.01,drop,"Usually ""None""."
+0001628280-26-037434,TTWO,10-K,16,part-ii-item-9a,controls,Item 9A. Controls and Procedures,3513,11,0.0,0.015,drop,Standard controls-and-procedures language.
+0001628280-26-037434,TTWO,10-K,17,part-ii-item-9b,other_information,Item 9B. Other Information,1719,7,0.0,0.054,drop,Mostly insider trading-plan notices.
+0001628280-26-037434,TTWO,10-K,18,part-ii-item-9c,unknown,Item 9C. Disclosure Regarding Foreign Jurisdictions that Prevent Inspections,93,2,0.0,0.011,drop,"Items 1B, 6 and 9C, which are ""None"" or ""[Reserved]"" here."
+0001628280-26-037434,TTWO,10-K,19,part-iii,part_heading,PART III,0,0,0.0,0.0,drop,Part title only.
+0001628280-26-037434,TTWO,10-K,20,part-iii-item-10,directors_governance,"Item 10. Directors, Executive Officers and Corporate Governance",874,2,0.0,0.022,drop,Incorporated by reference to the proxy statement.
+0001628280-26-037434,TTWO,10-K,21,part-iii-item-11,executive_compensation,Item 11. Executive Compensation,179,2,0.0,0.011,drop,Incorporated by reference to the proxy statement.
+0001628280-26-037434,TTWO,10-K,22,part-iii-item-12,ownership,Item 12. Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters,342,2,0.0,0.006,drop,Incorporated by reference to the proxy statement.
+0001628280-26-037434,TTWO,10-K,23,part-iii-item-13,related_party_transactions,"Item 13. Certain Relationships and Related Transactions, and Director Independence",254,2,0.0,0.008,drop,Incorporated by reference to the proxy statement.
+0001628280-26-037434,TTWO,10-K,24,part-iii-item-14,audit_fees,Item 14. Principal Accounting Fees and Services,208,2,0.0,0.01,drop,Incorporated by reference to the proxy statement.
+0001628280-26-037434,TTWO,10-K,25,part-iv,part_heading,PART IV,0,0,0.0,0.0,drop,Part title only.
+0001628280-26-037434,TTWO,10-K,26,part-iv-item-15,exhibits,"Item 15. Exhibits, Financial Statement Schedules",17117,111,0.9,0.103,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.
+0001628280-26-037434,TTWO,10-K,27,part-iv-item-16,summary,Item 16. Form 10-K Summary,158510,1034,0.23,0.049,drop,Form 10-K summary; no content.
+0001628280-26-054870,TTWO,10-Q,0,front-matter,front_matter,Front Matter,3755,49,0.43,0.042,drop,Cover page and table of contents.
+0001628280-26-054870,TTWO,10-Q,1,part-i,part_heading,PART I. FINANCIAL INFORMATION,29,1,0.0,0.0,drop,Part title only.
+0001628280-26-054870,TTWO,10-Q,2,part-i-item-1,financial_statements,Item 1. Financial Statements,50083,445,0.36,0.062,drop,Numbers belong to Fact; segments and notes belong to Segment.
+0001628280-26-054870,TTWO,10-Q,3,part-i-item-2,mda,Item 2. Management's Discussion and Analysis of Financial Condition and Results of Operations,44356,159,0.1,0.034,keep,Narrative explanations of results; supports M17.
+0001628280-26-054870,TTWO,10-Q,4,part-i-item-3,market_risk,Item 3. Quantitative and Qualitative Disclosures About Market Risk,6508,14,0.0,0.029,drop,Sensitivity tables; no eval question uses it yet.
+0001628280-26-054870,TTWO,10-Q,5,part-i-item-4,controls,Item 4. Controls and Procedures,2155,7,0.0,0.013,drop,Standard controls-and-procedures language.
+0001628280-26-054870,TTWO,10-Q,6,part-ii,part_heading,PART II. OTHER INFORMATION,26,1,0.0,0.0,drop,Part title only.
+0001628280-26-054870,TTWO,10-Q,7,part-ii-item-1,legal_proceedings,Item 1. Legal Proceedings,171,2,0.0,0.018,drop,Out of scope for this pilot.
+0001628280-26-054870,TTWO,10-Q,8,part-ii-item-1a,risk_factors,Item 1A. Risk Factors,175,2,0.0,0.057,keep,Main source of Claims; supports eval questions M06 and M18.
+0001628280-26-054870,TTWO,10-Q,9,part-ii-item-2,equity_sales,Item 2. Unregistered Sales of Equity Securities and Use of Proceeds,1541,8,0.26,0.038,drop,Mostly share-repurchase tables.
+0001628280-26-054870,TTWO,10-Q,10,part-ii-item-5,other_information,Item 5. Other Information,1708,7,0.0,0.057,drop,Mostly insider trading-plan notices.
+0001628280-26-054870,TTWO,10-Q,11,part-ii-item-6,exhibits,Item 6. Exhibits,2962,29,0.5,0.053,drop,Exhibit index; Exhibit 21 is handled by the Subsidiary work.

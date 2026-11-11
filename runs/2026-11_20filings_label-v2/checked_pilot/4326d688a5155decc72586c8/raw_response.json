@@ -1,0 +1,50 @@
+{
+  "request_hash": "4326d688a5155decc72586c8a0f0c8a999f73ce30e588d2a3393e6ae87d9a8be",
+  "raw_response": {
+    "id": "chatcmpl-Egqv4jIKotG2Iya9mPjUpaqMI8AxR",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Mentions possible adverse effects on fair value in future periods, indicating risk without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to another section for additional disclosure, not a statement by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Describes classification of charges in financial statements, factual reporting.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes approved initiatives and their purpose, factual statement about company actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Details of initiatives including organizational changes and automation, factual description.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[\"s5\",\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Anticipated total charges with approximate amounts, a prediction about future costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Reports immaterial charges recorded, factual past event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Expectation about program completion timing, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes approved initiative within a named segment, factual statement about company action.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Prescription Technology Solutions segment\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Details of initiative components, factual description.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\",\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Anticipated total charges with approximate amounts, a prediction about future costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Reports charges recorded in a past quarter, factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Expectation about program completion timing, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes approved enterprise-wide initiatives and their intended purposes, factual statement about company actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881906,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 774,
+      "prompt_tokens": 2471,
+      "total_tokens": 3245,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_23228da078384ef4b780a27d899e7416",
+  "latency_ms": 6737
+}

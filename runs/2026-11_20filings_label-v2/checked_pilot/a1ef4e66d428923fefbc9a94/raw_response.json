@@ -1,0 +1,50 @@
+{
+  "request_hash": "a1ef4e66d428923fefbc9a9478c5032ec606bbadf2565925a74e6a31bbf9fb32",
+  "raw_response": {
+    "id": "chatcmpl-EgrQXzCPTwOBC9Y6TbGxQYQKMRcv4",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuroscience\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Neuroscience's products\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuroscience\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Neuroscience also manufactures products\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuroscience\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Neuroscience’s net sales for fiscal year 2026\"}]},{\"id\":\"s4\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Table or chart introduction, no standalone claim\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cranial & Spinal Technologies (CST)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cranial & Spinal Technologies (CST) net sales\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"AiBLE ecosystem of spine implants and enabling technology\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"continued adoption of the AiBLE ecosystem of spine implants and enabling technology\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Specialty Therapies (Specialty)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Specialty Therapies (Specialty) net sales\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"ENT and Flow Diversion\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"growth in ENT and Flow Diversion\"},{\"mention_text\":\"Pelvic Health and the Pipeline Vantage recall\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"offset by Pelvic Health and the Pipeline Vantage recall\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuromodulation (NM)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Neuromodulation (NM) net sales\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Inceptiv closed-loop spinal cord stimulator\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Inceptiv closed-loop spinal cord stimulator\"},{\"mention_text\":\"Percept RC neurostimulator with BrainSense technology\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Percept RC neurostimulator with BrainSense technology\"},{\"mention_text\":\"Interventional\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"and Interventional\"}]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"Neuroscience\",\"annotation_note\":\"Introduces expected future factors affecting Neuroscience segment\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuroscience\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"we expect Neuroscience could be affected by the following\"}]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[\"s11\"],\"subject_scope\":\"Neuroscience\",\"annotation_note\":\"Expectation about future adoption and growth of AiBLE integrated solutions\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"AiBLE offering\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued global adoption, growth, and market acceptance of integrated solutions through the AiBLE offering\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Regulatory approvals received in early 2026\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Stealth AXiS Surgical System\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The Stealth AXiS Surgical System received U.S. FDA approval for spinal procedures in February 2026\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Regulatory approvals received in 2026\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"The system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The system received CE mark approval for spinal and cranial procedures in April 2026, and for ENT procedures in June 2026\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Description of system features\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"The system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The system incorporates navigation workflows with a modular robotic architecture\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883857,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1265,
+      "prompt_tokens": 2461,
+      "total_tokens": 3726,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_c92f05601b2e418ab5a3f79d55395974",
+  "latency_ms": 9048
+}

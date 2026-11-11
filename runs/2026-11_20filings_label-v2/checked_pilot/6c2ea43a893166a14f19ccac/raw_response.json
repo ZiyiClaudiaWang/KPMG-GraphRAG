@@ -1,0 +1,50 @@
+{
+  "request_hash": "6c2ea43a893166a14f19ccace719bef41e6015f6263d0bd2f18a071138696ace",
+  "raw_response": {
+    "id": "chatcmpl-EgrOwKItf6RTmAYTEKpTCdW1EsPN9",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"healthcare industry\",\"annotation_note\":\"Describes a possible adverse effect due to consolidation increasing negotiating power; does not assert it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"healthcare industry\",\"annotation_note\":\"Describes a possible adverse effect of downward pricing pressure due to procedure shifts; does not assert it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects on the company if certain conditions occur; conditional and hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"healthcare industry\",\"annotation_note\":\"Possible adverse effect of cost-containment measures on sales; does not assert it has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"healthcare providers\",\"annotation_note\":\"Describes current reliance of customers and providers on third-party payors for reimbursement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"governmental authorities, insurance companies and other payors of healthcare costs\",\"annotation_note\":\"Possible adverse effect of cost containment leading to patients unable to obtain coverage; does not assert it has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Possible adverse effect on sales and purchases if coverage/payment approval is not obtained; conditional and hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"healthcare providers\",\"annotation_note\":\"Possible adverse effect of cost-containment measures on company's profitability; does not assert it has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"healthcare industry\",\"annotation_note\":\"Describes existing volume discounts and purchasing concentration causing downward pricing pressure including on the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"government and private payors in the U.S.\",\"annotation_note\":\"Describes current use of utilization management programs and their effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current dependence on maintaining relationships with healthcare professionals for product development.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Possible adverse effect on earnings and profitability if relationships with healthcare professionals fail; conditional and hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current dependence on relationships with healthcare professionals for research, development, marketing and sales.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current reliance on healthcare professionals for knowledge and insight.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current roles of healthcare professionals assisting the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883758,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 836,
+      "prompt_tokens": 2484,
+      "total_tokens": 3320,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_8b085b1ba2344366b11046726268e76a",
+  "latency_ms": 8574
+}

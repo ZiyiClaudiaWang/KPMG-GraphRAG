@@ -1,0 +1,50 @@
+{
+  "request_hash": "d6b75d3846c0a237c02704932eb3290fa54f609d67c16ff41edc7cd00a75ff58",
+  "raw_response": {
+    "id": "chatcmpl-Egq9pSEYwpfB3PdtQcfZUUo8rUqDu",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"industry\",\"annotation_note\":\"Describes the industry environment as dynamic and competitive, not a risk or forecast.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[\"s5\"],\"subject_scope\":\"industry\",\"annotation_note\":\"Expresses opportunity and potential future developments in the industry and company business.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current company activities and approach to R&D.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States existence and start date of partnership with OpenAI.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"OpenAI\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Describes recent extensions of partnership and shared vision; no explicit future prediction or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"OpenAI\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"States current investment and revenue-sharing arrangement with OpenAI.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"OpenAI\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"States current rights held to OpenAI intellectual property for product integration.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"OpenAI’s intellectual property\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"markets for software, devices, and cloud-based services\",\"annotation_note\":\"Describes current market conditions as dynamic and competitive.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"competitors\",\"annotation_note\":\"Describes competitors' current activities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"customers\",\"annotation_note\":\"Describes current customer preferences and their impact on service usage.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global macroeconomic and geopolitical factors\",\"annotation_note\":\"Describes correlation of demand with dynamic external factors.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793878977,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 797,
+      "prompt_tokens": 2237,
+      "total_tokens": 3034,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_e731c6d5b9004c54a2cdda501007d7ba",
+  "latency_ms": 6486
+}

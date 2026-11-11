@@ -1,0 +1,50 @@
+{
+  "request_hash": "87d11ee5a14d850f82a6933f0b102e39137716c84e5df154ffd5e7265a37b70c",
+  "raw_response": {
+    "id": "chatcmpl-EgrDuJtTHSAqHf6jc7JXRnTWeRAAu",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible adverse event (business interruptions and costs) if the company terminates a third-party relationship; it does not assert that this has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"third-party business partner\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"third-party business partner\"}]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"digital sales and free-to-play games business model\",\"annotation_note\":\"The sentence states possible risks related to the business model, including greater competition, without asserting these have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"digital content delivery industry\",\"annotation_note\":\"The sentence describes increased potential competition as a risk due to industry changes; it does not assert this has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse outcome that alternative marketing strategies may not be successful.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible adverse event (deprioritization by retailers) as a risk, not a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes possible adverse effects on business if prior risks occur; it is forward-looking about potential negative impacts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states current and expected facts about profit margins and order volumes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states exposure to risks of the free-to-play business model without asserting specific outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible adverse outcome (lower revenues and unrecovered costs) if new products do not succeed commercially.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence lists multiple possible adverse impacts on business without asserting they have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence describes the difficulty and requirements for successful monetization as a risk factor, not a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"factors beyond company control including consumer preferences, competing games, new mobile platforms, other entertainment experiences\",\"annotation_note\":\"The sentence describes unpredictable and volatile external factors that affect game success as risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states possible negative effects on revenue and financial performance if games do not meet expectations or are delayed.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883074,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 869,
+      "prompt_tokens": 2617,
+      "total_tokens": 3486,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_6c6d0c4d2c1a4e0d939dc1ebda1596af",
+  "latency_ms": 8362
+}

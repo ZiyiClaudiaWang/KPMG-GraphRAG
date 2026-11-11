@@ -1,0 +1,50 @@
+{
+  "request_hash": "6f12822cda83971ae04e3041c7957683c64361d6fb17dce512ccf962211fe206",
+  "raw_response": {
+    "id": "chatcmpl-EgrSo1VCo0MA3PeBBW6zJZOEW30kr",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains a stated fact about the portfolio and a forward-looking aim to be at the forefront of technological innovation; primary label is forward_looking due to the future-oriented aim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":\"consumers worldwide\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Includes a belief statement but presents current ownership and development as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current revenue sources as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States dependency of operating margins on ability to release successful products and manage costs, implying possible adverse outcomes if not achieved.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Rockstar Games\",\"annotation_note\":\"Describes Rockstar Games' strategy as stated fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games' strategy\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Rockstar Games\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Software titles published by our Rockstar Games label\"}]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"Rockstar Games\",\"annotation_note\":\"Contains expectation about Rockstar Games continuing leadership and creating groundbreaking entertainment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"We expect Rockstar Games\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Rockstar Games\",\"annotation_note\":\"Describes Rockstar Games' established brand and sales as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games has established a uniquely original, popular, cultural phenomenon\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Rockstar Games\",\"annotation_note\":\"Reports sales figures and release date as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Grand Theft Auto V\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Grand Theft Auto V\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Rockstar Games\",\"annotation_note\":\"Describes current membership program and benefits as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games offers its GTA+ membership program\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883998,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 874,
+      "prompt_tokens": 2434,
+      "total_tokens": 3308,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_bc7bfe0f32a842bf8f0ef45d7ac352a6",
+  "latency_ms": 6851
+}
