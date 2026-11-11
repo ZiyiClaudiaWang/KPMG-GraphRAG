@@ -12,7 +12,12 @@ _CORPUS_VERSION = None
 
 
 def _store_path():
-    return os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb")
+    path = os.environ.get("MSFT_FACT_DB_PATH")
+    if not path:
+        raise ValueError(
+            "Set MSFT_FACT_DB_PATH to the path of a rebuilt DuckDB fact store."
+        )
+    return path
 
 
 def load_store_metadata(conn=None):
@@ -69,6 +74,81 @@ def _filing(accession_number):
         )
     return _FILINGS.get(accession_number, {})
 
+# The ten keys the contract allows every tool, plus our three. Kept the same
+# as `graphrag/contract.py` STRUCTURED_FILTERS, and `tests/test_structured_
+# filters.py` fails if the two drift. A key the contract permits must not raise
+# here: Eval's gold set fills `filters` from the contract, and 148 of its 155
+# questions carry form, fiscal_year or fiscal_period.
+SUPPORTED_FILTERS = {
+    "ticker", "cik", "form", "accession_number", "filing_date",
+    "reporting_period_end", "fiscal_year", "fiscal_period", "section",
+    "is_table", "concept", "segment", "basis",
+}
+
+# Accepted and not applied, which is what the mock already does.
+#
+#   fiscal_year, fiscal_period  a fiscal year is not a calendar year and the
+#                               year end moves by company. Deriving one needs a
+#                               fiscal calendar we do not hold.
+#   section, is_table           an XBRL fact has no section pointer. That is
+#                               issue #40, and until it closes there is nothing
+#                               to filter on.
+#
+# Ignoring a filter silently is its own hazard: the caller gets unfiltered rows
+# that look filtered. Keep this list short, and say so in the reply to Eval
+# whenever it changes.
+IGNORED_FILTERS = {"fiscal_year", "fiscal_period", "section", "is_table"}
+
+# Filters that take one value only. Everything else may be given a list, which
+# becomes an IN. `segment` and `basis` are looked up in a table of known names
+# rather than compared, so a list has nowhere to go.
+SINGLE_VALUE_FILTERS = {"segment", "basis"}
+
+
+def _match_one_or_many(key, column, value):
+    """`column = ?` for one value, `column IN (?, ?)` for several.
+
+    A list used to reach DuckDB as a single parameter and fail as a cast error,
+    which the wrapper then reported as RetrievalUnavailableError -- an outage,
+    telling the caller to retry something that could never work.
+    """
+    if not isinstance(value, (list, tuple, set)):
+        return f" AND {column} = ?", [value]
+
+    values = list(value)
+    if not values:
+        raise ValueError(f"{key} is an empty list; give at least one value or drop the filter")
+    for item in values:
+        if isinstance(item, (list, tuple, set, dict)):
+            raise ValueError(f"{key} may be a list of values, but not a list of lists")
+
+    placeholders = ", ".join("?" for _ in values)
+    return f" AND {column} IN ({placeholders})", values
+
+# Old names that turned up in earlier drafts. Hint rather than guess.
+RENAMED_FILTERS = {
+    "form_type": "form",
+    "accession": "accession_number",
+    "period_end": "reporting_period_end",
+    "question": "query",
+}
+
+
+def _filings_table_exists(conn=None):
+    """Whether this store carries filings_v1. Old stores predate it."""
+    close_after = conn is None
+    if conn is None:
+        conn = duckdb.connect(_store_path(), read_only=True)
+    try:
+        conn.execute("SELECT 1 FROM filings_v1 LIMIT 1")
+        return True
+    except duckdb.CatalogException:
+        return False
+    finally:
+        if close_after:
+            conn.close()
+
+
 def query_database(query, filters=None, top_k=10, trace_id=None):
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query must be a non-empty string")
@@ -82,23 +162,15 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         raise ValueError("filters must be a dict or None")
 
     filters = filters or {}
-    supported = {
-        "ticker", "cik", "accession_number",
-        "concept", "reporting_period_end", "segment", "basis"
-    }
-    renamed = {
-        "form_type": "form",
-        "accession": "accession_number",
-        "period_end": "reporting_period_end",
-        "question": "query"
-    }
-    for key in filters:
-        if key not in supported:
-            hint = renamed.get(key)
+    for key, value in filters.items():
+        if key not in SUPPORTED_FILTERS:
+            hint = RENAMED_FILTERS.get(key)
             message = f"unsupported filter: {key}"
             if hint:
                 message += f" (use '{hint}')"
             raise ValueError(message)
+        if key in SINGLE_VALUE_FILTERS and isinstance(value, (list, tuple, set)):
+            raise ValueError(f"{key} takes one value, not a list")
 
     sql = "SELECT * FROM financial_facts_v1 WHERE 1=1"
     params = []
@@ -108,11 +180,27 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         "cik": "cik",
         "accession_number": "accession_number",
         "concept": "concept_name",
-        "reporting_period_end": "period_end"
+        "reporting_period_end": "period_end",
+        "filing_date": "filing_date"
     }.items():
         if key in filters:
-            sql += f" AND {column} = ?"
-            params.append(filters[key])
+            clause, values = _match_one_or_many(key, column, filters[key])
+            sql += clause
+            params.extend(values)
+
+    if "form" in filters:
+        # form lives on the filing, not the fact. filings_v1 is required for a
+        # valid envelope anyway, so a store without it cannot serve this.
+        if not _filings_table_exists():
+            raise RuntimeError(
+                f"{_store_path()} has no filings_v1 table, so the form filter "
+                "cannot be applied. Rebuild it with structured/fact_loader_v1.py."
+            )
+        clause, values = _match_one_or_many("form", "form", filters["form"])
+        sql += f""" AND accession_number IN (
+            SELECT accession_number FROM filings_v1 WHERE 1=1{clause}
+        )"""
+        params.extend(values)
 
     if "segment" in filters:
         segments = {
@@ -143,7 +231,7 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
     sql += " ORDER BY fact_id"
 
     conn = duckdb.connect(
-        os.environ.get("MSFT_FACT_DB_PATH", "msft_financial_facts_v1.duckdb"),
+        _store_path(),
         read_only=True
     )
     try:

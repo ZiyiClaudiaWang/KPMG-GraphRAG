@@ -11,12 +11,21 @@ Python 3
 pip install pandas beautifulsoup4 lxml duckdb
 
 ## Usage
-python fact_loader_v1.py \
-  --html msft_2025_10k.htm \
-  --cik 0000789019 \
-  --ticker MSFT \
-  --accession 0000950170-25-100235 \
-  --output msft_financial_facts_v1.duckdb
+
+From the repository root, install the build dependencies and rebuild the
+fact store for the 20 filings in `extraction_pipeline/config/filings.yaml`.
+Use your own name and email for `SEC_USER_AGENT`.
+
+```bash
+python3 -m pip install pandas beautifulsoup4 lxml duckdb requests pyyaml
+export SEC_USER_AGENT="Your Name you@example.com"
+python3 tools/build_fact_store.py --output ./facts-w8.duckdb
+export MSFT_FACT_DB_PATH="$PWD/facts-w8.duckdb"
+```
+
+Choose a new output path if you want to keep an existing database.
+Structured retrieval requires `MSFT_FACT_DB_PATH` to point to the rebuilt
+database.
 
 ## Output Tables
 - facts_raw_v1: All extracted XBRL fact occurrences.
@@ -48,7 +57,7 @@ End-to-end, command-line, and reproducibility tests passed.
 
 ## Structured Query v1
 
-`structured_query_v1.py` provides `structured_search(query, filters=None, top_k=10, trace_id=None)` over the Microsoft FY2025 10-K DuckDB fact table. Set `MSFT_FACT_DB_PATH` to the database file path before querying.
+`structured_query_v1.py` provides `structured_search(query, filters=None, top_k=10, trace_id=None)` over the rebuilt DuckDB fact store. Set `MSFT_FACT_DB_PATH` to the database path before querying.
 
 Supported filters: `ticker`, `cik`, `accession_number`, `concept`, `reporting_period_end`, `segment`, and `basis` (`as_filed` only). Results use the Mock retrieval Evidence Envelope structure and include `fact_id`, numeric value, unit reference, periods, and dimensions.
 
