@@ -67,9 +67,36 @@ HYBRID_NOTE = (
     "from the structured arm, which the graph cannot reach"
 )
 
-# Verdicts already given in the week 8 reply, so the script does not ask for
-# them a second time. Keyed by question, with the reason we gave at the time.
+# Where the fact that corrects a false premise lives. Eval named these in
+# their 11/11 reply: the four numeric ones come from the structured arm, and
+# EV1-070 is corrected by the filing's own text saying what the reportable
+# segments are. The question's own route says `refusal`, so this cannot be
+# read off it.
+PREMISE_ROUTE = {
+    "EV1-068": "xbrl",
+    "EV1-069": "xbrl",
+    "EV1-070": "text",
+    "EV2-048": "xbrl",
+    "EV2-049": "xbrl",
+}
+
+
+# Verdicts given by a person rather than derived, so the script does not ask
+# for them twice. Each one carries the reason we gave at the time.
 SETTLED = {
+    # Exhibit 21 is not in the graph's section scope. We hold Items 1, 1A, 2
+    # and 7 only, so Microsoft's subsidiary list is not there as claims either
+    # -- Eval asked, and the answer is no. This read `yes` through the claim
+    # path until they checked it.
+    "EV1R-001": {
+        "hops": str(OWNS_HOPS),
+        "graph_path": OWNS_PATH,
+        "graph_support": "blocked",
+        "graph_note": (
+            "Exhibit 21 is outside our section scope (Items 1, 1A, 2, 7), so the "
+            "list is not in the graph as claims either; " + EX21_NOTE
+        ),
+    },
     "EV1R-003": {
         "hops": str(CLAIM_HOPS),
         "graph_path": CLAIM_PATH,
@@ -121,9 +148,33 @@ def classify(row: dict) -> dict:
             "filled_by": "graphrag:derived",
         }
 
-    # The unanswerable controls. Returning nothing is the right answer, and
-    # that is a property of the graph rather than a path through it.
+    # Refusals split in two, and Eval caught us treating them alike.
+    #
+    # A false premise is answerable: the answer has to state the correct fact,
+    # so the evidence still has to come from somewhere and the question takes
+    # its route's support like any other. Only a genuinely unanswerable
+    # question has no path to describe.
     if route == "refusal":
+        if row.get("answer_type") == "false_premise" or row.get("answerable") is True:
+            # Which arm holds the correcting fact is not derivable from the
+            # route, because the route says `refusal`. Eval named them, so
+            # PREMISE_ROUTE carries their answer rather than a guess at it.
+            if PREMISE_ROUTE.get(row["qid"]) == "text":
+                return {
+                    "hops": str(CLAIM_HOPS),
+                    "graph_path": CLAIM_PATH,
+                    "graph_support": "yes",
+                    "graph_note": "false premise, but answerable: the correcting fact is in the claims",
+                    "filled_by": "graphrag:eval-named",
+                }
+            return {
+                "hops": "",
+                "graph_path": "",
+                "graph_support": "no",
+                "graph_note": "false premise, but answerable: " + STRUCTURED_NOTE,
+                "filled_by": "graphrag:eval-named",
+            }
+
         support = "yes" if pattern == "absent_edge" else "n/a"
         note = (
             "the absence is real in our graph, which is what the control tests"
@@ -152,7 +203,7 @@ def classify(row: dict) -> dict:
 
     # Prose. Everything the graph actually serves today walks the claim path.
     if route == "text":
-        if pattern in (None, "list_aggregate", "cross_period", "text_plus_fact"):
+        if pattern in (None, "list_aggregate", "cross_period", "text_plus_fact", "fiscal_label"):
             return {
                 "hops": str(CLAIM_HOPS),
                 "graph_path": CLAIM_PATH,
