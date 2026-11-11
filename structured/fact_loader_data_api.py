@@ -291,6 +291,29 @@ def write(rows_df, filings_df, output, source, snapshot):
         conn.close()
 
 
+def accessions_from(path: str) -> list[str]:
+    """Every accession in a filing list, in file order.
+
+    Reads the same `config/filings.yaml` the extraction pipeline uses, so the
+    structured arm and the graph arm describe the same filings. Typing twenty
+    accessions by hand is how the two drift apart.
+    """
+    try:
+        import yaml
+    except ImportError:
+        raise SystemExit(
+            "--all-of needs PyYAML. Install it, or pass --accessions instead."
+        )
+
+    with open(os.path.expanduser(path)) as fh:
+        doc = yaml.safe_load(fh) or {}
+
+    found = [f["accession"] for f in (doc.get("filings") or []) if f.get("accession")]
+    if not found:
+        raise SystemExit(f"no filings with an accession in {path}")
+    return found
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -298,11 +321,18 @@ def main():
     p.add_argument("--output", required=True)
     p.add_argument("--source", choices=("ready", "raw"), default="ready")
     p.add_argument("--accessions", nargs="+", help="accession numbers to load")
+    p.add_argument("--all-of", metavar="FILINGS_YAML",
+                   help="load every accession in a filing list, e.g. config/filings.yaml")
     p.add_argument("--dry-run", action="store_true", help="report what would be written, write nothing")
     args = p.parse_args()
 
+    if args.accessions and args.all_of:
+        p.error("give --accessions or --all-of, not both")
+    if args.all_of:
+        args.accessions = accessions_from(args.all_of)
+        print(f"{len(args.accessions)} accessions from {args.all_of}")
     if not args.accessions:
-        p.error("give --accessions")
+        p.error("give --accessions or --all-of")
 
     load_env(args.env)
     import pandas as pd  # noqa: F401  (duckdb reads the frame by name)
@@ -315,10 +345,11 @@ def main():
         conn.close()
 
     if not records:
-        raise SystemExit(
-            f"no facts for those accessions in --source {args.source}. "
-            "analysis_ready_facts holds only filing-import-v4 sets; try --source raw."
-        )
+        hint = ("analysis_ready_facts holds only filing-import-v4 sets; try --source raw."
+                if args.source == "ready" else
+                "check the accessions are the ones in sec.filings, and that your shell "
+                "passed them as separate arguments rather than one string.")
+        raise SystemExit(f"no facts for those accessions in --source {args.source}. {hint}")
 
     rows, unknown = to_rows(records, prefixes)
     rows = canonicalise(rows)
