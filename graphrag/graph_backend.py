@@ -48,16 +48,21 @@ _FILTER_TO_PROPERTY = {
     "section": ("sec", "section_key"),
 }
 
+# Accepted and not applied, matching the structured arm. Both arms are offered
+# the same keys by the contract, so refusing here and ignoring there meant one
+# filter dict worked on one arm and raised on the other, and every caller had
+# to learn which was which.
+#
+#   fiscal_year    the graph stores reporting_period_end, and a fiscal year
+#                  cannot be read off it for every filer
+#   fiscal_period  the graph stores form (10-K, 10-Q) but not the quarter
+#
+# Ignoring a filter silently is its own hazard: the caller gets rows that look
+# filtered and are not. Filter on reporting_period_end or form instead.
+_IGNORED_FILTERS = {"fiscal_year", "fiscal_period"}
+
 # Why each of the rest is refused, so the caller gets a reason and not a shrug.
 _UNSUPPORTED_FILTERS = {
-    "fiscal_year": (
-        "the graph stores reporting_period_end, and a fiscal year cannot be read "
-        "off it for every filer; filter on reporting_period_end instead"
-    ),
-    "fiscal_period": (
-        "the graph stores form (10-K, 10-Q) but not the quarter; filter on form "
-        "or reporting_period_end instead"
-    ),
     "is_table": (
         "Claims are extracted from prose only, so every result would match "
         "is_table=False and nothing would match is_table=True"
@@ -140,7 +145,7 @@ def ensure_index(driver=None) -> None:
 def _check_filters(filters: dict) -> None:
     """Refuse a filter this graph cannot serve, by name and with a reason."""
     for key in filters:
-        if key in _FILTER_TO_PROPERTY or key == "max_hops":
+        if key in _FILTER_TO_PROPERTY or key == "max_hops" or key in _IGNORED_FILTERS:
             continue
         reason = _UNSUPPORTED_FILTERS.get(key)
         if reason:
@@ -162,8 +167,20 @@ def _where_clause(filters: dict) -> tuple[str, dict]:
         if key not in _FILTER_TO_PROPERTY:
             continue
         alias, prop = _FILTER_TO_PROPERTY[key]
-        clauses.append(f"{alias}.{prop} = ${key}")
-        params[key] = value
+        if isinstance(value, (list, tuple, set)):
+            # A list used to compare against a scalar property and match
+            # nothing, so a cross-company question looked like no evidence
+            # rather than a filter the arm did not apply.
+            values = list(value)
+            if not values:
+                raise ValueError(
+                    f"{key} is an empty list; give at least one value or drop the filter"
+                )
+            clauses.append(f"{alias}.{prop} IN ${key}")
+            params[key] = values
+        else:
+            clauses.append(f"{alias}.{prop} = ${key}")
+            params[key] = value
     return (" AND ".join(clauses), params)
 
 

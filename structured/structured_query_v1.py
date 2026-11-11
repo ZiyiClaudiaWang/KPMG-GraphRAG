@@ -99,6 +99,32 @@ SUPPORTED_FILTERS = {
 # whenever it changes.
 IGNORED_FILTERS = {"fiscal_year", "fiscal_period", "section", "is_table"}
 
+# Filters that take one value only. Everything else may be given a list, which
+# becomes an IN. `segment` and `basis` are looked up in a table of known names
+# rather than compared, so a list has nowhere to go.
+SINGLE_VALUE_FILTERS = {"segment", "basis"}
+
+
+def _match_one_or_many(key, column, value):
+    """`column = ?` for one value, `column IN (?, ?)` for several.
+
+    A list used to reach DuckDB as a single parameter and fail as a cast error,
+    which the wrapper then reported as RetrievalUnavailableError -- an outage,
+    telling the caller to retry something that could never work.
+    """
+    if not isinstance(value, (list, tuple, set)):
+        return f" AND {column} = ?", [value]
+
+    values = list(value)
+    if not values:
+        raise ValueError(f"{key} is an empty list; give at least one value or drop the filter")
+    for item in values:
+        if isinstance(item, (list, tuple, set, dict)):
+            raise ValueError(f"{key} may be a list of values, but not a list of lists")
+
+    placeholders = ", ".join("?" for _ in values)
+    return f" AND {column} IN ({placeholders})", values
+
 # Old names that turned up in earlier drafts. Hint rather than guess.
 RENAMED_FILTERS = {
     "form_type": "form",
@@ -136,13 +162,15 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         raise ValueError("filters must be a dict or None")
 
     filters = filters or {}
-    for key in filters:
+    for key, value in filters.items():
         if key not in SUPPORTED_FILTERS:
             hint = RENAMED_FILTERS.get(key)
             message = f"unsupported filter: {key}"
             if hint:
                 message += f" (use '{hint}')"
             raise ValueError(message)
+        if key in SINGLE_VALUE_FILTERS and isinstance(value, (list, tuple, set)):
+            raise ValueError(f"{key} takes one value, not a list")
 
     sql = "SELECT * FROM financial_facts_v1 WHERE 1=1"
     params = []
@@ -156,8 +184,9 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         "filing_date": "filing_date"
     }.items():
         if key in filters:
-            sql += f" AND {column} = ?"
-            params.append(filters[key])
+            clause, values = _match_one_or_many(key, column, filters[key])
+            sql += clause
+            params.extend(values)
 
     if "form" in filters:
         # form lives on the filing, not the fact. filings_v1 is required for a
@@ -167,10 +196,11 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
                 f"{_store_path()} has no filings_v1 table, so the form filter "
                 "cannot be applied. Rebuild it with structured/fact_loader_v1.py."
             )
-        sql += """ AND accession_number IN (
-            SELECT accession_number FROM filings_v1 WHERE form = ?
+        clause, values = _match_one_or_many("form", "form", filters["form"])
+        sql += f""" AND accession_number IN (
+            SELECT accession_number FROM filings_v1 WHERE 1=1{clause}
         )"""
-        params.append(filters["form"])
+        params.extend(values)
 
     if "segment" in filters:
         segments = {
