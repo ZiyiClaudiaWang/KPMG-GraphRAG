@@ -7,3 +7,6 @@ venv/
 .DS_Store
 .env.aws
 *.pem
+data/
+/runs/*/output/load_preview.cypher
+*.duckdb

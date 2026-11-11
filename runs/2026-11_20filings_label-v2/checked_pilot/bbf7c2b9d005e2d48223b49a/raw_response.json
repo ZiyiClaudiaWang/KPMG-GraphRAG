@@ -1,0 +1,50 @@
+{
+  "request_hash": "bbf7c2b9d005e2d48223b49a1c0bcd92bfc9a0c56f919a623965b052d00eac68",
+  "raw_response": {
+    "id": "chatcmpl-EgrIH0J7YFPdV7apfbpnBoVJnPPTK",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Mentions possible adverse effects from bankruptcies or consolidations of large retail customers, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"large retail customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"bankruptcies or consolidations of our large retail customers\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports a past number for fiscal year ended March 31, 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"global economic factors\",\"annotation_note\":\"States dependency on consumer acceptance and growth of platforms, which could be impacted by global economic factors, not asserting certainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions possible negative effect during market transition to new consoles, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a feature of latest Sony and Microsoft consoles as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"States that inclusion of backwards compatibility could mitigate risk of decline, possibility not certainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Expresses uncertainty about how backwards compatibility will affect demand, a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions events beyond control may impact availability or pricing, possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current management approach and belief about effectiveness.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes current strategy focus on development efforts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current offerings and their effects on engagement and revenue.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports a past number for fiscal year ended March 31, 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about future business composition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current distribution channels for mobile titles.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Apple’s App Store\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"primarily Apple’s App Store\"},{\"mention_text\":\"Google Play Store\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"the Google Play Store\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883345,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 845,
+      "prompt_tokens": 2420,
+      "total_tokens": 3265,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_4844e6ac5d6c4d878d621136b3b78df2",
+  "latency_ms": 6645
+}

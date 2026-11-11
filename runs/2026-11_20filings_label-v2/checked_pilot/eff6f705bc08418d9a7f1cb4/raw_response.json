@@ -1,0 +1,50 @@
+{
+  "request_hash": "eff6f705bc08418d9a7f1cb48c88c3806615ef5df347b7de092364142e8e8aab",
+  "raw_response": {
+    "id": "chatcmpl-EgqlFDv9hVqLqwK2UtgVLfuEa9end",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":\"convenience store industry\",\"annotation_note\":\"Describes competitive landscape and potential disadvantage relative to competitors; implies risk but does not assert occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":\"convenience store industry\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":\"non-traditional retailers\",\"annotation_note\":\"Describes possible competitive actions that may affect the company; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":\"competitors\",\"annotation_note\":\"States facts about competitors' existence and resources.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s4\"],\"subject_scope\":\"competitors\",\"annotation_note\":\"Describes possible advantages competitors may have that could affect the company; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s4\"],\"subject_scope\":\"competitors and third parties\",\"annotation_note\":\"Describes possible future competitive disadvantages if competitors adopt innovations faster; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\",\"s5\",\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects of intense competition; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible failure to grow business; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes past and current growth strategy.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"forward_looking\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation to continue acquisitions and associated risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Lists various risks related to acquisitions that could adversely affect growth or results.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible future volatility affecting investment value; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"securities markets worldwide\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effect of market volatility on stock price; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Lists factors that could cause wide fluctuations in stock price; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881297,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 776,
+      "prompt_tokens": 2793,
+      "total_tokens": 3569,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_24314570b84346459cc89f4a6245daeb",
+  "latency_ms": 8329
+}

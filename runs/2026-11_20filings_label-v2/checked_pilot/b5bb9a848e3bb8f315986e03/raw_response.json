@@ -1,0 +1,50 @@
+{
+  "request_hash": "b5bb9a848e3bb8f315986e03e00ed8b96ee726d5a95218f50eb20c854e1c549e",
+  "raw_response": {
+    "id": "chatcmpl-Egq3ZmpxEkfK0oVWkEPWuvxFIA94M",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current benefits of the cloud business; no future prediction or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current security priorities and product offerings.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory sentence listing ambitions; no factual or predictive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Expresses a goal to reinvent productivity and business processes in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Expresses a goal to build intelligent cloud and edge platforms in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Expresses a goal to create more personal computing experiences in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses focus and leadership expectations in AI platform wave and digital spend.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ongoing development of intelligent solutions and future empowerment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of sustained growth from leading technology areas.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory fragment listing investment areas; no standalone claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned investments in security solutions across clouds and platforms.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned transformation of workplace with new applications and collaboration.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes plans to build and run cloud services for new experiences and opportunities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes plans to apply AI and ambient intelligence for productivity gains.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes plans to help customers with frontier AI capabilities and business outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793878589,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 733,
+      "prompt_tokens": 2407,
+      "total_tokens": 3140,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_10aac5a606d141848a4eb80355e5027f",
+  "latency_ms": 6393
+}

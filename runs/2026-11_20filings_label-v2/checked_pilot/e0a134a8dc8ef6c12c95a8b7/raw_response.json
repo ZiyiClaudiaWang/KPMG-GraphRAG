@@ -1,0 +1,50 @@
+{
+  "request_hash": "e0a134a8dc8ef6c12c95a8b78bad5ddf248d06310f0340f1449c6b0b807a590d",
+  "raw_response": {
+    "id": "chatcmpl-Egq3g1bsl57CAZyTAeXcvaulWGqGW",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Describes an explicit future capability and offering the company plans to provide.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned future training and access initiatives.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Describes future invention and innovation plans in gaming.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Describes future business growth strategies leveraging Windows and services.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses a future dependency for growth, an expectation about future business conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States announced goals with future target dates but as a current commitment fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports observed changes since announcement, a past and current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to another report, not a claim about the company itself.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current business structure and reporting segments.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Productivity and Business Processes\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal Computing\"},{\"mention_text\":\"Intelligent Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal Computing\"},{\"mention_text\":\"More Personal Computing\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal Computing\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the purpose of segments for management reporting.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes how segments enable strategy alignment and resource allocation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to notes in financial statements, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory sentence to segment descriptions, not a substantive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the composition of a named reportable segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Productivity and Business Processes segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Our Productivity and Business Processes segment consists of products and services in our portfolio of productivity, communication, and information services\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793878596,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 905,
+      "prompt_tokens": 2383,
+      "total_tokens": 3288,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_6b7207552444463e933a937cb910b93b",
+  "latency_ms": 7057
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "d2ed9c105a4f18172a7a4c093e907daa8f6adde93949753e9d4707ad4e2ef2fd",
+  "raw_response": {
+    "id": "chatcmpl-Egr0dRCacES3q4WXEzJ0KpfXJNXFc",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"international partners and customers\",\"annotation_note\":\"Mentions possible increases in operational costs and uncertainty; hedged risk about future impacts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Discusses potential impact of tariff volatility on supply chain cost competitiveness; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Potential adverse effects of regulatory changes on business and operations; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microsoft’s business, strategy, and operations\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"regional trade ecosystems among our customers, partners, and us\",\"annotation_note\":\"Describes possible negative impacts from conflicts and sanctions; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Legislative and regulatory actions may increase costs; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Uncertainty about compliance obligations is stated as a current condition but implies risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Increased risk of additional costs and enforcement actions; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":\"EU and other markets\",\"annotation_note\":\"Mentions past and possible future restrictions; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Potential increase in cost and complexity due to new rules; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Describes new requirements adding rules and restrictions; stated fact about regulations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"Europe, the U.S., and elsewhere\",\"annotation_note\":\"Describes laws and policies being developed that may impose caps and requirements; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882251,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 929,
+      "prompt_tokens": 2599,
+      "total_tokens": 3528,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_676cb305000a491ab4f60b851a328422",
+  "latency_ms": 8664
+}

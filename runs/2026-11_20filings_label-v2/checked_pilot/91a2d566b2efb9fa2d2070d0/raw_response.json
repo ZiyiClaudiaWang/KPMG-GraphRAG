@@ -1,0 +1,50 @@
+{
+  "request_hash": "91a2d566b2efb9fa2d2070d04a0e6eb04dca65f90b96f5a9bf52d93669333896",
+  "raw_response": {
+    "id": "chatcmpl-EgqqK2Qq6VKBi0jeqC1d82ltkHBDB",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Statement of intent about future corporate action.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medical-Surgical Solutions segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Medical-Surgical Solutions segment\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes expected method and tax treatment of future transaction.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Lists conditions that must be met for future event completion.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NewCo\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NewCo\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse developments that could delay or prevent separation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Lists specific risks related to the separation process.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Internal Revenue Service (the “IRS”)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Internal Revenue Service (the “IRS”)\"}]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"States uncertainty about achieving intended benefits and value.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes potential negative impacts on stock price and business.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible failure to realize expected tax treatment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Change Healthcare LLC (“Change Healthcare JV”)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Change Healthcare LLC (“Change Healthcare JV”)\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Describes completed divestiture transaction steps.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"PF2 SpinCo, Inc. (“SpinCo”)\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"PF2 SpinCo, Inc. (“SpinCo”)\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Legal opinion on tax qualification of transactions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"IRS or courts may disagree with tax treatment opinion.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"IRS\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"IRS\"}]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Opinion depends on accuracy of assumptions and representations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Potential tax liability if tax-free treatment is not sustained.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes agreement governing tax matters related to transactions.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"SpinCo\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"SpinCo\"},{\"mention_text\":\"Change Healthcare JV\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Change Healthcare JV\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881612,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 946,
+      "prompt_tokens": 2789,
+      "total_tokens": 3735,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_eaf70b6138bb4ad69bf55f92c4d6b2bb",
+  "latency_ms": 11017
+}

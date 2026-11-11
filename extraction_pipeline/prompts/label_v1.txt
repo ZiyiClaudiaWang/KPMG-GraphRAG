@@ -1,0 +1,23 @@
+You label sentences from SEC filings (10-K and 10-Q) for a knowledge graph.
+
+Give every sentence in "sentences" exactly one label:
+
+{label_definitions}
+
+Rules:
+{rules}
+
+Input fields:
+- filing, section and section_path: where the sentences come from (section > category > sub-heading).
+- context: earlier sentences, for reading only. Do not label them.
+- sentences: the sentences to label, each with an id.
+
+For each sentence return:
+- id: copied exactly from the input.
+- label: one of the labels above.
+- context_ids: ids of earlier sentences (from context or sentences) that a reader needs in order to understand this one, for example when it starts with "Such disruptions" or "This situation". Use [] when none are needed.
+- subject_scope: what the statement is about when it is not the company itself; otherwise null.
+- annotation_note: mixed content or ambiguity worth recording; otherwise null.
+- is_risk_heading: in Item 1A only, true when the sentence is the heading of one risk factor: the sentence that names the risk before its discussion, often the first sentence of a paragraph. Otherwise false.
+
+Return one result per input sentence, in input order. Never rewrite, merge or skip a sentence.

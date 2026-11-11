@@ -1,0 +1,50 @@
+{
+  "request_hash": "364f04a13ebae59fe7e0425349e56ba04846ea7cc8bd52d93d0036bef253cbb2",
+  "raw_response": {
+    "id": "chatcmpl-EgrD1fNSKsWRdLZRNpV6qCKNCcbHx",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"major third-party platforms\",\"annotation_note\":\"Describes current requirements imposed by platforms reflecting regulatory responses; no explicit future prediction or risk asserted.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"major third-party platforms\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"major third-party platforms\"}]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":\"our games on these platforms\",\"annotation_note\":\"Uses 'may' indicating possible adverse effect on classification, distribution, access, or presentation of games.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"s2\"],\"subject_scope\":\"our ability to collect, process, and use data\",\"annotation_note\":\"Describes possible negative impacts on data use and planning due to platform provider actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"platform providers or their services\",\"annotation_note\":\"States possible unavailability or malfunction of platform services, including in-app purchasing.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"platform providers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"platform providers\"}]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"platforms\",\"annotation_note\":\"Describes platforms' retained rights to change fee structures and potential negative impact on costs and margins.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"platforms\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Some of these platforms\"}]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"payment processing systems\",\"annotation_note\":\"Lists possible interruptions and security incidents that could impair transaction completion and harm financial results.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"distribution channels\",\"annotation_note\":\"States inability to distribute content profitably could adversely affect business and financial condition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"new devices, platforms, systems and software application stores\",\"annotation_note\":\"No guarantee of continued support or service level; implies possible adverse future outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"player access and engagement\",\"annotation_note\":\"States difficulty for players to access games could significantly harm business and player metrics.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible negative impact from system or network disruption or cyberattack.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current reliance on internal and third-party IT systems and networks.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Take-Two\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"some of which are within Take-Two\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"supply chain of hardware\",\"annotation_note\":\"Reports past disruption and geopolitical events that may complicate constraints; no explicit prediction or risk assertion.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"information technology systems and networks\",\"annotation_note\":\"Lists various potential sources of damage or interruption without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current practice of securely storing source code as created.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883019,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 909,
+      "prompt_tokens": 2627,
+      "total_tokens": 3536,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_7874ee2c934a4e1a8e94a4e2f3dc7376",
+  "latency_ms": 7864
+}

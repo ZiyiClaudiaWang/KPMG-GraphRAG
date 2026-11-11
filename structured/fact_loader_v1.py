@@ -228,12 +228,14 @@ def extract_units(soup):
     return units
 
 
-def filing_date_from_edgar(cik, accession_number):
-    """Ask EDGAR when this accession was filed.
+def filing_metadata_from_edgar(cik, accession_number):
+    """Ask EDGAR who filed this, what form it is, and when it was filed.
 
-    The filing date is EDGAR metadata, not something tagged inside the document,
-    so it has to be looked up rather than parsed. Reading it here keeps it a fact
-    from the source instead of a value someone typed on the command line.
+    None of the three are tagged as numeric facts inside the document, so they
+    have to be looked up rather than parsed. Reading them here keeps them facts
+    from the source instead of values someone typed into the query layer, which
+    is what `company_name` and `form` used to be: literals reading
+    "Microsoft Corporation" and "10-K" on every row of every filing.
     """
     import json
     import os
@@ -242,19 +244,34 @@ def filing_date_from_edgar(cik, accession_number):
     user_agent = os.environ.get("SEC_USER_AGENT")
     if not user_agent:
         raise RuntimeError(
-            "Set SEC_USER_AGENT to 'Name email' to look up the filing date, "
-            "or pass --filing-date."
+            "Set SEC_USER_AGENT to 'Name email' to look up filing metadata, "
+            "or pass --filing-date, --form and --company-name."
         )
     url = f"https://data.sec.gov/submissions/CIK{str(cik).zfill(10)}.json"
     request = urllib.request.Request(url, headers={"User-Agent": user_agent})
     with urllib.request.urlopen(request, timeout=30) as response:
-        recent = json.load(response)["filings"]["recent"]
-    for number, filed in zip(recent["accessionNumber"], recent["filingDate"]):
+        submissions = json.load(response)
+
+    recent = submissions["filings"]["recent"]
+    for number, filed, form in zip(recent["accessionNumber"],
+                                   recent["filingDate"],
+                                   recent["form"]):
         if number == accession_number:
-            return filed
+            return {
+                "filing_date": filed,
+                "form": form,
+                # EDGAR's conformed name is upper case ("MICROSOFT CORP").
+                # `entityName` is the readable one when it is there.
+                "company_name": submissions.get("entityName") or submissions.get("name"),
+            }
     raise ValueError(
         f"EDGAR has no filing dated against {accession_number} for CIK {cik}"
     )
+
+
+def filing_date_from_edgar(cik, accession_number):
+    """Just the filing date. Kept because callers and docs already use it."""
+    return filing_metadata_from_edgar(cik, accession_number)["filing_date"]
 
 
 def extract_facts(soup, contexts, units, cik, ticker, accession_number, filing_date):
@@ -336,8 +353,8 @@ def deduplicate_facts(df):
                 row for _, row in group.iterrows()
             )
 
-    canonical_df = pd.DataFrame(canonical_rows)
-    review_df = pd.DataFrame(review_rows)
+    canonical_df = pd.DataFrame(canonical_rows, columns=df.columns)
+    review_df = pd.DataFrame(review_rows, columns=df.columns)
 
     return canonical_df, review_df
 
@@ -362,7 +379,42 @@ def process_filing(html_path, cik, ticker, accession_number, filing_date):
     return raw_df, canonical_df, review_df
 
 
-def save_to_duckdb(raw_df, canonical_df, review_df, db_path):
+LOADER_VERSION = "structured-loader-v1"
+
+TABLES = (
+    ("facts_raw_v1", "raw_data"),
+    ("financial_facts_v1", "canonical_data"),
+    ("facts_review_v1", "review_data"),
+)
+
+
+def corpus_version(conn):
+    """A name for what is in the store, derived from what is in the store.
+
+    The query layer used to stamp a literal, `msft-fy2025-10k`, on every
+    envelope. It was wrong the moment the store held anything else, and
+    `validate_results()` checks shape rather than whether the label agrees
+    with the data, so a wrong one travels into experiment results unnoticed.
+
+    Counting the filings and hashing their accessions means adding a filing
+    changes the corpus version, which is the behaviour experiments need.
+    """
+    rows = conn.execute(
+        "SELECT accession_number FROM filings_v1 ORDER BY accession_number"
+    ).fetchall()
+    accessions = [r[0] for r in rows]
+    digest = hashlib.sha256("|".join(accessions).encode("utf-8")).hexdigest()[:8]
+    return f"edgar-xbrl-v1:{len(accessions)}:{digest}"
+
+
+def save_to_duckdb(raw_df, canonical_df, review_df, db_path, filing=None,
+                   append=False):
+    """Write one filing's facts, plus the row describing the filing itself.
+
+    With `append`, facts for this accession replace any already in the store
+    and everything else is left alone, so a corpus is built one filing at a
+    time. Without it the store is replaced, which is the old behaviour.
+    """
     import duckdb
 
     conn = duckdb.connect(db_path)
@@ -372,20 +424,53 @@ def save_to_duckdb(raw_df, canonical_df, review_df, db_path):
         conn.register("canonical_data", canonical_df)
         conn.register("review_data", review_df)
 
-        conn.execute("""
-            CREATE OR REPLACE TABLE facts_raw_v1
-            AS SELECT * FROM raw_data
-        """)
+        for table, view in TABLES:
+            if append:
+                # Take the schema from the raw frame, never from this one. All
+                # three hold the same columns, but canonical and review can be
+                # empty, and an empty frame types every column as NULL. The
+                # first filing would then fix the table that way, and the next
+                # filing with real review rows could not insert into it.
+                conn.execute(
+                    f"CREATE TABLE IF NOT EXISTS {table} AS SELECT * FROM raw_data LIMIT 0"
+                )
+                # Reloading a filing should correct it, not duplicate it.
+                conn.execute(
+                    f"DELETE FROM {table} WHERE accession_number = ?",
+                    [filing["accession_number"]],
+                )
+                conn.execute(f"INSERT INTO {table} SELECT * FROM {view}")
+            else:
+                conn.execute(f"CREATE OR REPLACE TABLE {table} AS SELECT * FROM {view}")
 
-        conn.execute("""
-            CREATE OR REPLACE TABLE financial_facts_v1
-            AS SELECT * FROM canonical_data
-        """)
+        if filing is not None:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS filings_v1 (
+                    accession_number VARCHAR PRIMARY KEY,
+                    cik VARCHAR, ticker VARCHAR,
+                    company_name VARCHAR, form VARCHAR,
+                    filing_date VARCHAR, loader_version VARCHAR
+                )
+            """)
+            if not append:
+                conn.execute("DELETE FROM filings_v1")
+            conn.execute("DELETE FROM filings_v1 WHERE accession_number = ?",
+                         [filing["accession_number"]])
+            conn.execute(
+                "INSERT INTO filings_v1 VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [filing["accession_number"], filing["cik"], filing["ticker"],
+                 filing["company_name"], filing["form"], filing["filing_date"],
+                 LOADER_VERSION],
+            )
 
-        conn.execute("""
-            CREATE OR REPLACE TABLE facts_review_v1
-            AS SELECT * FROM review_data
-        """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS store_meta_v1 (
+                    key VARCHAR PRIMARY KEY, value VARCHAR
+                )
+            """)
+            conn.execute("DELETE FROM store_meta_v1 WHERE key = 'corpus_version'")
+            conn.execute("INSERT INTO store_meta_v1 VALUES ('corpus_version', ?)",
+                         [corpus_version(conn)])
     finally:
         conn.close()
 
@@ -405,18 +490,49 @@ if __name__ == "__main__":
         "--filing-date",
         help="YYYY-MM-DD. Looked up from EDGAR when not given.",
     )
+    parser.add_argument("--form", help="10-K, 10-Q. Looked up from EDGAR when not given.")
+    parser.add_argument("--company-name", help="Looked up from EDGAR when not given.")
+    parser.add_argument(
+        "--append",
+        action="store_true",
+        help="Add to the store instead of replacing it, so a corpus can be "
+             "built one filing at a time. Reloading a filing replaces its own "
+             "rows and leaves the rest alone.",
+    )
 
     args = parser.parse_args()
 
-    filing_date = args.filing_date or filing_date_from_edgar(
-        args.cik, args.accession
-    )
+    # One EDGAR call unless everything was supplied on the command line.
+    if args.filing_date and args.form and args.company_name:
+        metadata = {"filing_date": args.filing_date, "form": args.form,
+                    "company_name": args.company_name}
+    else:
+        looked_up = filing_metadata_from_edgar(args.cik, args.accession)
+        metadata = {
+            "filing_date": args.filing_date or looked_up["filing_date"],
+            "form": args.form or looked_up["form"],
+            "company_name": args.company_name or looked_up["company_name"],
+        }
 
     raw, canonical, review = process_filing(
-        args.html, args.cik, args.ticker, args.accession, filing_date
+        args.html, args.cik, args.ticker, args.accession, metadata["filing_date"]
     )
 
-    save_to_duckdb(raw, canonical, review, args.output)
+    filing = {
+        "accession_number": args.accession,
+        "cik": str(args.cik).zfill(10),
+        "ticker": args.ticker,
+        **metadata,
+    }
+    save_to_duckdb(raw, canonical, review, args.output, filing=filing,
+                   append=args.append)
+
+    print(f"Raw facts: {len(raw)}")
+    print(f"Canonical facts: {len(canonical)}")
+    print(f"Review rows: {len(review)}")
+    print(f"Filing: {filing['ticker']} {filing['form']} {filing['accession_number']} "
+          f"({filing['company_name']})")
+    print(f"Database saved: {args.output}")
 
     print("Raw facts:", len(raw))
     print("Canonical facts:", len(canonical))

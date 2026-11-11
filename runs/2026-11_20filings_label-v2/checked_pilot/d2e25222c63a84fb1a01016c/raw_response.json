@@ -1,0 +1,50 @@
+{
+  "request_hash": "d2e25222c63a84fb1a01016cbb5a25d9f51b78a39ce7c7c0137d5adec93ce5d2",
+  "raw_response": {
+    "id": "chatcmpl-Egqsjmn3f2rMF0W7POp6CGHL70n2t",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence explains the presentation of percentage changes; it is a factual statement about reporting conventions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":null,\"annotation_note\":\"This sentence explains drivers of revenue changes within the segment; it is a factual statement about past sales.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Prescription Technology Solutions revenues for the year ended March 31, 2026 increased $589 million or 11% compared to the prior year\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medical-Surgical Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Medical-Surgical Solutions revenues for the year ended March 31, 2026 increased $127 million or 1% compared to the prior year.\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"This sentence breaks down sales increases within the Medical-Surgical Solutions segment; factual statement about past sales.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"ambulatory care customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"sales to ambulatory care customers increased $60 million\"},{\"mention_text\":\"extended care customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"sales to extended care customers increased by $53 million\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence defines 'Other segment expense, net' for reportable segments; factual statement about accounting classification.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence specifies that 'Other segment expense, net' applies to North American Pharmaceutical segment; factual statement about accounting classification.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Other segment expense, net for our North American Pharmaceutical segment includes the following:\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"This sentence reports specific charges and credits related to inventory accounting for specified years; factual statement about past accounting events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"This sentence reports cash receipts from antitrust legal settlements for specified years; factual statement about past events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"This sentence reports a charge related to asset remeasurement for a Canadian retail disposal group for a specified year; factual statement about past accounting event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"This sentence reports a credit related to reassessment of a prepetition balance for a customer bankruptcy for a specified year; factual statement about past accounting event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"This sentence reports restructuring charges for a specified year; factual statement about past accounting event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"This sentence reports a charge related to estimated liability for opioid-related claims for a specified year; factual statement about past accounting event.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881761,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1004,
+      "prompt_tokens": 2608,
+      "total_tokens": 3612,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3d783ecdbdb94d43ace8dec0002860dc",
+  "latency_ms": 7664
+}

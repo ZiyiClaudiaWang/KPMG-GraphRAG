@@ -1,0 +1,50 @@
+{
+  "request_hash": "742aaa1af817af82373bdafde933d7e855a81c92a32d975698062c36b961091c",
+  "raw_response": {
+    "id": "chatcmpl-EgqupUZYgFlpOY0R7gpgz2hvWbich",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions subsidiaries within the Medical-Surgical Solutions segment explicitly.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medical-Surgical Solutions segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"certain of our subsidiaries within the Medical-Surgical Solutions segment\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes intention to separate business and investment by Apollo Funds.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medical-Surgical Solutions business\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Medical-Surgical Solutions business\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Board approval of repurchase plan.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past cash returned to shareholders.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports remaining authorization for repurchases as of June 30, 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports Board decision to raise dividend on July 21, 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"industry\",\"annotation_note\":\"Describes regulatory risks and uncertainties affecting the industry.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":\"industry\",\"annotation_note\":\"Explicitly states possible significant changes and unpredictability in healthcare policy and laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains presentation of percentage changes; no claim about company facts or risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes revenue increase and reasons including market growth and customer volumes.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"market growth in our North American Pharmaceutical segment\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":\"market\",\"annotation_note\":\"Describes factors contributing to market growth including drug utilization and price changes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes revenue growth impact from Oncology & Multispecialty segment due to specialty pharmaceutical sales.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Oncology & Multispecialty segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"growth in our Oncology & Multispecialty segment\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881891,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 829,
+      "prompt_tokens": 2565,
+      "total_tokens": 3394,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_efe538383c80422baa8f091cfa002c04",
+  "latency_ms": 7342
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "9d6170054c3b317b8c0e4c1d8141771d2829f0ada3297d2c7018e1b73892ea96",
+  "raw_response": {
+    "id": "chatcmpl-EgqG31cBstOmZyjOK77dB7HrW0t2A",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence expresses uncertainty about future ability to find or acquire businesses, indicating a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence hedges risk about inability to consummate transactions due to regulatory or other issues, with specific mention of CIRCOR Aerospace acquisition.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CIRCOR Aerospace\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"acquisition of CIRCOR Aerospace\"}]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence hedges risk about acquiring or assuming unexpected liabilities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse effect on results and financial condition if risks are not avoided.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence hedges risk about unsuccessful integration and possible unprofitability of acquired businesses or joint ventures, with mention of FGC and Curtis.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"FGC\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"including FGC\"},{\"mention_text\":\"Curtis\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"including FGC and Curtis\"}]},{\"id\":\"s6\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence introduces a list of difficulties encountered or that may be encountered during integration; it is a fragment, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists a possible adverse consequence of change in tax treatment and integration costs, hedged risk about not realizing full benefits.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists a possible delay risk in integration of management and operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists possible delays due to differences in business backgrounds and cultures.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists risk about ability to retain key employees during integration.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists risk about ability to create and enforce uniform standards and controls.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists risk about challenges integrating complex systems and minimizing adverse impacts on stakeholders.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists risk about unknown liabilities and unforeseen expenses or delays beyond estimates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states current company practice of assessing strategic fit and possible divestitures.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states that such transactions pose risks and challenges that could negatively impact the business.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879363,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 929,
+      "prompt_tokens": 2356,
+      "total_tokens": 3285,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_01f7a5297e5a44feb49ae9568f208c3f",
+  "latency_ms": 6676
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "f6b839d3baac6509dbe7f79662bf14beb265bf17d628ee2361d9562256ff34c8",
+  "raw_response": {
+    "id": "chatcmpl-EgrBNE2QeKUuDecaS2S2soMjju08l",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible negative effect without asserting it will occur.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible negative effect without asserting it will occur.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse effect without asserting it will occur.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a dependency that could affect value, implying risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a potential adverse event without asserting it will occur.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Government regulation is stated as a factor that can affect business, implying risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Legislation is stated as a possible cause of claims or harm, implying risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Failure to comply with laws is stated as a possible cause of harm, implying risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Adverse effects of alleged or actual infringement are stated as possible risks.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Provisions may impede or discourage a takeover, stated as a possible effect.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Adverse effects of changes in tax rates and liabilities are stated as possible risks.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Limitation of use of net operating losses due to ownership change is stated as a risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"international trade\",\"annotation_note\":\"Risks and uncertainties of international trade including currency fluctuations are stated as possible risks.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Potential adverse effects of accounting standards are stated as possible risks.\",\"is_risk_heading\":true,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882917,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 751,
+      "prompt_tokens": 2151,
+      "total_tokens": 2902,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_659b1ece21a54e6eb385f6903c3255ed",
+  "latency_ms": 5701
+}

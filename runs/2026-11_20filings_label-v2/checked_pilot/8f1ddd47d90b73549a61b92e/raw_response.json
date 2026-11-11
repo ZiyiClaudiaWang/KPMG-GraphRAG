@@ -1,0 +1,50 @@
+{
+  "request_hash": "8f1ddd47d90b73549a61b92ece14ace97dca691826ad5509ca239d4d693350c8",
+  "raw_response": {
+    "id": "chatcmpl-EgqIXOSHfDo9VoZpbPzodJjcski0I",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"contract manufacturers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"contract manufacturers\"},{\"mention_text\":\"finished goods apparel factories\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"finished goods apparel factories\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand apparel finished goods\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NIKE Brand apparel finished goods\"},{\"mention_text\":\"contract manufacturers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"contract manufacturers\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"factories in Vietnam, Cambodia and China\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"factories in Vietnam, Cambodia and China\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"apparel contract manufacturers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"apparel contract manufacturers\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The statement includes a description of suppliers but is primarily a fact about the company's supply chain.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"materials suppliers (\\\"Tier 2 suppliers\\\")\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"materials suppliers (\\\"Tier 2 suppliers\\\")\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"205 strategic Tier 2 suppliers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"205 strategic Tier 2 suppliers\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE's contract manufacturers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NIKE's contract manufacturers\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence lists materials used in products; it is a factual description, not a risk or forecast.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence describes suppliers and locations as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Air Manufacturing Innovation, a wholly-owned subsidiary\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Air Manufacturing Innovation, a wholly-owned subsidiary\"},{\"mention_text\":\"contract manufacturers in China and Vietnam\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"contract manufacturers in China and Vietnam\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists materials used in apparel products as a factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible periods of high demand, shortages, and price volatility as risks without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a historical and ongoing relationship with Sojitz Corporation of America.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Sojitz Corporation of America (\\\"Sojitz America\\\")\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"Sojitz Corporation of America (\\\"Sojitz America\\\")\"}]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"global business environment\",\"annotation_note\":\"Lists various possible adverse global and regional risks affecting international operations and supply.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"global economic and political conditions\",\"annotation_note\":\"Describes uncertain conditions and increased protectionist actions as risks without asserting they will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879517,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1069,
+      "prompt_tokens": 2554,
+      "total_tokens": 3623,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_789838d984dc4ad0a26940b0b5fbb526",
+  "latency_ms": 7491
+}

@@ -65,6 +65,16 @@ def _run(
         rows = backend(clean_query, clean_filters, clean_top_k, clean_trace_id)
     except contract.RetrievalUnavailableError:
         raise
+    except contract.FilterNotSupportedError:
+        # A filter this arm cannot serve is not an outage. Wrapping it as one
+        # would tell the caller to retry something that can never succeed.
+        raise
+    except ValueError:
+        # Nor is a filter value the arm cannot use. The contract already raises
+        # ValueError for an unknown filter key before a backend is called, so a
+        # bad value for a known key should land the same way. Wrapping it said
+        # the store was down and sent callers to retry a call that could not work.
+        raise
     except Exception as exc:  # backend failures are not 'no evidence'
         raise contract.RetrievalUnavailableError(
             f"{backend_name} retrieval backend failed: {exc}"

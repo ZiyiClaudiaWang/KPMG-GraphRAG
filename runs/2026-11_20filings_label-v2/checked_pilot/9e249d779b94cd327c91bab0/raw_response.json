@@ -1,0 +1,50 @@
+{
+  "request_hash": "9e249d779b94cd327c91bab0ea32918d756602a5881603bd1a42fbfb47e73d7d",
+  "raw_response": {
+    "id": "chatcmpl-EgqNCMGMEKvUdAjKFtsrOwxLrnHXn",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NTC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"NTC, a wholly-owned sourcing hub\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NTC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"The NTC, whose functional currency is the U.S. Dollar\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":null,\"annotation_note\":\"Describes a resulting foreign currency exposure as a fact for NTC.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NTC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"NTC sales to a NIKE entity with a different functional currency results in a foreign currency exposure for the NTC\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\",\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Describes effects of currency strength fluctuations on inventory costs as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Describes the design and purpose of the foreign currency adjustment program as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\",\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes the offset effect of currency fluctuations on inventory cost as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Describes the inverse effect of currency fluctuations on inventory cost as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"European operations\",\"annotation_note\":\"Describes foreign currency exposure from sales in currencies other than Euro.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":\"European operations\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Notes foreign currency risk from non-functional currency denominated costs, but states as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global subsidiaries\",\"annotation_note\":\"Describes assets and liabilities denominated in currencies other than functional currencies as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"global subsidiaries\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our global subsidiaries\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879806,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 828,
+      "prompt_tokens": 2422,
+      "total_tokens": 3250,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d205b780fa7c408fae158be91fc63eb0",
+  "latency_ms": 6087
+}

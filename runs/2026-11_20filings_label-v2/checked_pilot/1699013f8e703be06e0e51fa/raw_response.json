@@ -1,0 +1,50 @@
+{
+  "request_hash": "1699013f8e703be06e0e51faa26a12f87bafa6fbde2ddf4f7282f6f371dc787d",
+  "raw_response": {
+    "id": "chatcmpl-EgqoiFVdiXbhaXT1tLf1QW32vc2S8",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expresses uncertainty and inability to predict future regulatory impact, indicating a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is a heading introducing the topic of operational licenses and permits; it lists regulatory agencies but does not assert a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"U.S. Drug Enforcement Administration (“DEA”)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"U.S. Drug Enforcement Administration (“DEA”)\"}]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a possible requirement depending on operations and location, not asserting that all businesses are registered.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current monitoring and reporting programs and associated expense.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the nature of government contracts and applicable procurement laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"States that statutory and regulatory requirements complicate business and increase compliance burden.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that the company is subject to audits and investigations regarding compliance.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"government healthcare programs\",\"annotation_note\":\"Describes governmental scrutiny of practices related to fraud, waste, and abuse in healthcare programs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the company's relationships and the applicable statutes and regulations intended to prevent fraud and abuse.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists specific prohibitions and requirements under healthcare fraud and abuse laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Indicates that laws are vague and subject to evolving interpretations that could require operational changes at added expense.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"healthcare industry\",\"annotation_note\":\"Describes ongoing reform efforts and challenges impacting the healthcare industry.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"U.S. healthcare system\",\"annotation_note\":\"Describes the impact of the ACA on health insurance coverage and healthcare financing.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States inability to predict impact of initiatives to change or repeal ACA provisions, indicating uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881512,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 796,
+      "prompt_tokens": 2640,
+      "total_tokens": 3436,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_0eaa9b1c092047f0a074fd0be5f09957",
+  "latency_ms": 5974
+}

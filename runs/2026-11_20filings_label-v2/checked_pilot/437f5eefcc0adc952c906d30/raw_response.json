@@ -1,0 +1,50 @@
+{
+  "request_hash": "437f5eefcc0adc952c906d30c740a93df261c9f684fdacbc901946ca746ead02",
+  "raw_response": {
+    "id": "chatcmpl-EgqV7HNgCnRKVxggvOL0k6gNsMFof",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"DMA regulatory environment\",\"annotation_note\":\"States the existence of potential fines and penalties as a risk, not a current fact of noncompliance.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"privacy and security risks to EU users\",\"annotation_note\":\"Acknowledges intended risk reduction but states many risks remain, indicating possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Company's business and reputation\",\"annotation_note\":\"Describes possible material adverse effects from regulatory changes, not asserting they have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Company's business and financial condition\",\"annotation_note\":\"Describes ongoing investigations that could result in adverse impacts, not asserting outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports existence of lawsuits as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports ongoing investigations as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Company's business and financial condition\",\"annotation_note\":\"Describes possible adverse consequences if investigations or litigation resolve against the Company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Company's commercial relationships and business\",\"annotation_note\":\"Describes possible adverse effects from investigations against business partners, not asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports current licensing arrangements and ongoing investigations as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Google LLC\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"Google LLC (“Google”)\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports a past legal finding as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Reports a court order as a fact following the finding in s10.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":\"court order remedies\",\"annotation_note\":\"Describes possible future changes to court order remedies, indicating uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Reports the appeal of the court order as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":\"court order remedies\",\"annotation_note\":\"Describes possible reversal on appeal and potential imposition of remedies, not asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":\"Company's revenue from licensing arrangements\",\"annotation_note\":\"Describes possible adverse effect if remedies are implemented, not asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880297,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 805,
+      "prompt_tokens": 2480,
+      "total_tokens": 3285,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_130f2dab48a84548bf4c402d03dc2963",
+  "latency_ms": 6238
+}

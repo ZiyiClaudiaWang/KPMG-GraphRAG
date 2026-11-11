@@ -1,0 +1,50 @@
+{
+  "request_hash": "f9c46c78e3cb01df90169817d2e4a9b480b1417311781c2c19f6328497ffbb70",
+  "raw_response": {
+    "id": "chatcmpl-Egq7rDIv62z3lIHN2zeZ0GLOmkboD",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":\"digital markets in the EU, the United Kingdom, the U.S., and China\",\"annotation_note\":\"Describes ongoing government enforcement and new regulations as a possible adverse event affecting markets; does not assert certainty of impact on the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":\"jurisdictions allowing competitors or consumers to assert claims\",\"annotation_note\":\"States a possible adverse event (claims of anti-competitive conduct) without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Reports past and ongoing enforcement actions and scrutiny by antitrust authorities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse consequences of competition law enforcement and new regulations on the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"States possibility of new competition law actions or obligations being initiated, using previous actions as precedent.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"AI legislative and regulatory environment\",\"annotation_note\":\"Describes evolving regulation as a possible adverse event that could increase costs or restrict opportunity.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":\"EU’s AI Act impact on AI models and services in the European market\",\"annotation_note\":\"States a possible adverse impact of the EU AI Act on costs or operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":\"government restrictions on advanced AI models\",\"annotation_note\":\"Describes possible government restrictions or laws applied in unanticipated ways as potential adverse events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":\"AI regulatory areas\",\"annotation_note\":\"Lists regulatory areas related to AI without asserting impact or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes existing laws and regulations applicable to the company and its employees/vendors/agents.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports that the company receives inquiries from authorities based on reports about compliance.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Describes company actions in response to reports and investigations by law enforcement authorities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that increasing trade laws and regulations affect company operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":\"economic sanctions in the U.S., the EU, and other countries\",\"annotation_note\":\"States possible prohibitions on business with restricted entities or countries as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":\"U.S. export controls restricting offerings to certain entities in specified countries\",\"annotation_note\":\"Describes possible restrictions on product and service offerings and investments as a risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793878855,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 867,
+      "prompt_tokens": 2600,
+      "total_tokens": 3467,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_35b70ade55b84ecda4eb1b0410320776",
+  "latency_ms": 6630
+}

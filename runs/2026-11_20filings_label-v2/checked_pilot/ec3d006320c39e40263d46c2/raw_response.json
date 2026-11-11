@@ -1,0 +1,50 @@
+{
+  "request_hash": "ec3d006320c39e40263d46c2a6018ef1712e189e1ca7eabfe6ec5c884e387bf0",
+  "raw_response": {
+    "id": "chatcmpl-EgquwFK5g3Mqr5QEIvgDt8CRiZtMB",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c3\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"growth in our North American Pharmaceutical segment\"},{\"mention_text\":\"Oncology & Multispecialty segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"growth in our Oncology & Multispecialty segment\"}]},{\"id\":\"s2\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is an introductory sentence to a summary table, not a substantive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Defines components of SDG&A expenses; descriptive statement about expense composition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes nature of claims and litigation charges; factual description of accounting treatment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes inclusion of legal fees within SDG&A expenses; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes restructuring and impairment charges; factual description of accounting treatment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains presentation of percentage changes; not a substantive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports changes in total operating expenses and their percentage of revenues; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"not_a_claim\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Introductory sentence to list of significant items impacting expenses; not a substantive claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Reports increase in SDG&A expenses and charges related to planned separation; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Reports provision for bad debts related to customer bankruptcy; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rite Aid Corporation\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"bankruptcy of our customer Rite Aid Corporation (including certain of its subsidiaries, “Rite Aid”)\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Reports credit related to estimated liability for opioid-related claims; factual statement with reference to contingent liabilities note.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Reports restructuring and impairment charges amounts for two periods; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes goodwill impairment evaluation process; factual statement about company practice.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Reports results of annual goodwill impairment testing; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881898,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 859,
+      "prompt_tokens": 2570,
+      "total_tokens": 3429,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3859b79049d747b38a30ebec7c2edf97",
+  "latency_ms": 7682
+}

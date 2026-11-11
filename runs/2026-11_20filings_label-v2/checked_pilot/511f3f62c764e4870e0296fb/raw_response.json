@@ -1,0 +1,50 @@
+{
+  "request_hash": "511f3f62c764e4870e0296fb4fafa8db62916d03ab8eca4fc1a9134d896a6cb1",
+  "raw_response": {
+    "id": "chatcmpl-EgqKy7TZpk7RnNaqY6Xjtib92hjWE",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse impacts and mitigation steps, not asserting they will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists potential claims without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects from labor organization increases, not asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"international operations\",\"annotation_note\":\"General statement of inherent risks without asserting specific events.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s5\"],\"subject_scope\":\"global trade and doing business abroad\",\"annotation_note\":\"Describes risks associated with global trade and international business.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"U.S. or international social, political, regulatory and economic conditions\",\"annotation_note\":\"Potential impacts described without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"political and economic instability, geopolitical conflicts, political unrest, civil strife, terrorist activity, acts of war, public corruption, expropriation, nationalism and other uncertainties\",\"annotation_note\":\"Lists possible adverse events without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":\"negative sentiment toward the United States\",\"annotation_note\":\"Possible adverse effect described without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"terrorist acts, military conflict and disease outbreaks\",\"annotation_note\":\"Describes increased risks without asserting specific events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":\"ability to manufacture products or procure materials, costs, ability to import and sell products abroad\",\"annotation_note\":\"Possible adverse effects described without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":\"conduct of business in a particular country\",\"annotation_note\":\"Possible adverse effect described without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"risks associated with overseas sourcing, manufacturing and financing\",\"annotation_note\":\"General statement of risks without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"ability of contract manufacturers to locate, train, employ and retain adequate personnel\",\"annotation_note\":\"Describes dependency and implied risk without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879668,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 779,
+      "prompt_tokens": 2600,
+      "total_tokens": 3379,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_5702d9f0a67b4baa8684d8b900a1f6c4",
+  "latency_ms": 5884
+}
