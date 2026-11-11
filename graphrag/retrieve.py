@@ -23,6 +23,7 @@ Backend = Callable[[str, dict, int, str | None], list[dict[str, Any]]]
 
 _graph_backend: Backend | None = None
 _structured_backend: Backend | None = None
+_cypher_backend: Backend | None = None
 
 
 def configure_graph_backend(backend: Backend | None) -> None:
@@ -39,6 +40,14 @@ def configure_structured_backend(backend: Backend | None) -> None:
     if backend is not None and not callable(backend):
         raise TypeError("structured backend must be callable or None")
     _structured_backend = backend
+
+
+def configure_cypher_backend(backend: Backend | None) -> None:
+    """Register (or clear with ``None``) the generated-Cypher retrieval backend."""
+    global _cypher_backend
+    if backend is not None and not callable(backend):
+        raise TypeError("cypher backend must be callable or None")
+    _cypher_backend = backend
 
 
 def _run(
@@ -131,4 +140,27 @@ def structured_search(
         top_k=top_k,
         trace_id=trace_id,
         allowed_filters=contract.STRUCTURED_FILTERS,
+    )
+
+
+def cypher_search(
+    query: str,
+    filters: dict | None = None,
+    top_k: int = 10,
+    trace_id: str | None = None,
+) -> list[dict]:
+    """Search the graph with a query written for the question, not a fixed one.
+
+    A separate entry point rather than a mode on ``graph_search``, so that a
+    caller scoring one arm is never handed results from the other. Every row
+    still says which produced it in ``metadata.retrieval_method``.
+    """
+    return _run(
+        backend=_cypher_backend,
+        backend_name="cypher",
+        query=query,
+        filters=filters,
+        top_k=top_k,
+        trace_id=trace_id,
+        allowed_filters=contract.CYPHER_FILTERS,
     )
