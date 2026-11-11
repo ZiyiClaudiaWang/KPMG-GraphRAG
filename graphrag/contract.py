@@ -68,6 +68,11 @@ SHARED_FILTERS = frozenset({
 })
 GRAPH_FILTERS = SHARED_FILTERS | {"max_hops"}
 STRUCTURED_FILTERS = SHARED_FILTERS | {"concept", "segment", "basis"}
+# The generated-Cypher arm takes the same keys as the graph arm. It is a
+# separate name because the two arms answer differently, not because they are
+# filtered differently, and a caller should not have to know which is which to
+# write a filter.
+CYPHER_FILTERS = GRAPH_FILTERS
 
 # Old names that turned up in earlier drafts. Hint rather than guess.
 RENAMED_FILTERS = {
