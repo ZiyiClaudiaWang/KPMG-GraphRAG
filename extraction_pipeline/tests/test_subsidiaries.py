@@ -134,6 +134,18 @@ class TestSubsidiariesStep(Ex21Case):
         self.assertEqual(qa["unmapped_jurisdiction"], "1")
         self.assertIn("not mapped to a country: Atlantis", qa["status"])
 
+    def test_repeated_listing_is_one_row(self):
+        raw = self.tmp / "ex21" / "raw" / f"DSC_FY2026_{DSC_10K}_ex21.htm"
+        raw.write_text("<table><tr><td>Example – Cayman Partners, Ltd</td><td>Cayman Islands</td></tr>"
+                       "<tr><td>Example Iowa Co.</td><td>Iowa</td></tr>"
+                       "<tr><td>Example Cayman Partners, Ltd.</td><td>Cayman Islands</td></tr></table>",
+                       encoding="utf-8")
+        subsidiaries.run()
+        rows = [r for r in self.rows() if r["parent_ticker"] == "DSC"]
+        self.assertEqual([r["name"] for r in rows], ["Example – Cayman Partners, Ltd", "Example Iowa Co."])
+        self.assertIn("also_listed_as_row_3", rows[0]["flags"])
+        qa = self.qa()[DSC_10K]
+        self.assertEqual((qa["rows_parsed"], qa["duplicate_names"]), ("3", "1"))
 
 class TestDownload(Ex21Case):
 

@@ -125,6 +125,16 @@ def parse(target: dict, entry: dict) -> tuple[list[dict], dict]:
             "source_url": entry["source_url"], "source_file": entry["local_file"],
             "parser_version": PARSER_VERSION,
         })
+    
+    seen, unique = {}, []
+    for r in rows:
+        if r["sub_id"] in seen:
+            first = seen[r["sub_id"]]
+            first["flags"] = ";".join(f for f in [first["flags"], f"also_listed_as_row_{r['row_order']}"] if f)
+            continue
+        seen[r["sub_id"]] = r
+        unique.append(r)
+
     names = [r["normalised_name"] for r in rows]
     unmapped = sorted({r["jurisdiction_raw"] for r in rows if r["jurisdiction_raw"] and not r["country"]})
     status = "OK" if rows else "CHECK: no rows parsed (image/PDF exhibit or unusual layout?)"
@@ -138,7 +148,7 @@ def parse(target: dict, entry: dict) -> tuple[list[dict], dict]:
           "multi_level": int(any(r["level"] > 0 for r in rows)),
           "parse_method": ",".join(sorted({r["parse_method"] for r in rows})) or "NONE",
           "status": status}
-    return rows, qa
+    return unique, qa
 
 
 def catalog(rows: list[dict]) -> list[dict]:
