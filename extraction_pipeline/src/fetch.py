@@ -59,8 +59,7 @@ def check_exports() -> bool:
             ok = False
         log(STEP, f"{path.name}: {len(rows)} sections, processing_set_id={next(iter(sets))}")
     if not ok:
-        accessions = " ".join(f["accession"] for f in filings())
-        log(STEP, "Export missing filings with:  uv run graphrag_data.py fetch --accessions " + accessions)
+        log(STEP, "Export them with:  python run_pipeline.py --steps fetch --from-db <folder holding graphrag_data.py and .env.aws>")
     return ok
 
 
