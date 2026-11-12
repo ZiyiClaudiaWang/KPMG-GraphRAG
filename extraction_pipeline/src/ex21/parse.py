@@ -210,7 +210,7 @@ def parse_text(text: str, method: str = "text_lines") -> list[dict]:
             continue
         if NOISE.match(line) or HEADER_WORDS.match(line) or len(line) > 160:
             continue
-        m = DESCRIBED.match(line) or PAREN_JURIS.match(line) or LEADER.match(line)
+        m = DESCRIBED.match(line) or PAREN_JURIS.match(line) or LEADER.match(raw.replace("\xa0", " ").strip())
         if m:
             rows.append(_row(len(rows) + 1, m.group("name"), m.group("j"), None, indent // 2, method))
     return rows
