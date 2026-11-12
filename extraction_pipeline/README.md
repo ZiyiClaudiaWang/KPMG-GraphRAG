@@ -52,7 +52,7 @@ Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCER
 `validation_status` passed, listed in `config/filings.yaml`. The NTAP 10-Q
 0001193125-26-380207 is left out (`review_required`).
 
-| Company | Industry | Form | Period end | Accession | Filing |
+| Company | Industry | Form | Reporting period end | Accession | Filing |
 |---------|----------|------|------------|-----------|--------|
 | AAPL | Technology | 10-K | 2025-09-27 | 0000320193-25-000079 | [aapl-20250927.htm](https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm) |
 | AAPL | Technology | 10-Q | 2026-03-28 | 0000320193-26-000013 | [aapl-20260328.htm](https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm) |

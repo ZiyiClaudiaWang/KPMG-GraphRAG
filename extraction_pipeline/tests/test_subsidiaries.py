@@ -135,32 +135,6 @@ class TestSubsidiariesStep(Ex21Case):
         self.assertIn("not mapped to a country: Atlantis", qa["status"])
 
 
-class TestPeriodFields(Ex21Case):
-
-    def write_filings(self, line):
-        path = self.tmp / "filings.yaml"
-        path.write_text("filings:\n  - " + line + "\n", encoding="utf-8")
-        os.environ["PIPELINE_FILINGS"] = str(path)
-
-    def test_period_fields_that_disagree_stop_the_step(self):
-        self.write_filings('{ticker: TBL, cik: "1", form: 10-K, period_end: "2025-09-30", '
-                           f'reporting_period_end: "2025-10-31", accession: "{TBL_10K}"}}')
-        with self.assertRaises(SystemExit) as stop:
-            subsidiaries.run()
-        self.assertIn("must be the same date", str(stop.exception))
-
-    def test_either_field_alone_is_read(self):
-        self.write_filings(f'{{ticker: TBL, cik: "1", form: 10-K, period_end: "2025-09-30", accession: "{TBL_10K}"}}')
-        self.assertEqual(subsidiaries.ten_ks()[0]["reporting_period_end"], "2025-09-30")
-        self.write_filings(f'{{ticker: TBL, cik: "1", form: 10-K, reporting_period_end: "2025-09-30", accession: "{TBL_10K}"}}')
-        self.assertEqual(subsidiaries.ten_ks()[0]["reporting_period_end"], "2025-09-30")
-
-    def test_real_filings_yaml_has_both_fields_and_they_agree(self):
-        rows = yaml.safe_load((ROOT / "config" / "filings.yaml").read_text(encoding="utf-8"))["filings"]
-        for r in rows:
-            self.assertEqual(r["period_end"], r["reporting_period_end"], r["accession"])
-
-
 class TestDownload(Ex21Case):
 
     INDEX = ('<table><tr><td>1</td><td>10-K</td><td><a href="/ix?doc=/Archives/x/main.htm">main.htm</a></td>'

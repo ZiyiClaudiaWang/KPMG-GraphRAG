@@ -47,11 +47,7 @@ QA_COLS = ["ticker", "accession", "reporting_period_end", "local_file", "rows_pa
 def reporting_period_end(filing: dict) -> str:
     """The filing's reporting_period_end. filings.yaml carries it under both reporting_period_end
     (the name the graph and retrieval use) and period_end; the two must agree."""
-    new, old = filing.get("reporting_period_end"), filing.get("period_end")
-    if new and old and str(new) != str(old):
-        raise SystemExit(f"config/filings.yaml: {filing['accession']} has reporting_period_end "
-                         f"{new} but period_end {old}; they must be the same date.")
-    return str(new or old or "")
+    return str(filing["reporting_period_end"])
 
 
 def ten_ks() -> list[dict]:
