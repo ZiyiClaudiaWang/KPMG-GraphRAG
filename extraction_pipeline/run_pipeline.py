@@ -8,6 +8,7 @@
 
 Steps, in order:
   fetch         check (or export) data/sections/*.jsonl
+  subsidiaries  subsidiaries.jsonl: Exhibit 21 of each 10-K in filings.yaml (SEC EDGAR, no LLM)
   clean         remove page headers, repair paragraphs
   filter        section_manifest.csv: which sections to extract from
   segment       sentences.jsonl: numbered sentences and list groups
@@ -15,7 +16,9 @@ Steps, in order:
   validate      errors.jsonl: every sentence has exactly one valid label
   risk_factors  risk_categories.csv: risk category and themes of each Item 1A sentence
   build_claims  claims.jsonl
-  load          Neo4j
+  load          Neo4j (Claims and subsidiaries)
+
+  python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
 """
 
 from __future__ import annotations
@@ -24,9 +27,10 @@ import argparse
 import sys
 import time
 
-from src import build_claims, clean, fetch, filter_sections, label, load, risk_factors, segment, validate
+from src import (build_claims, clean, fetch, filter_sections, label, load, risk_factors, segment,
+                 subsidiaries, validate)
 
-STEPS = ["fetch", "clean", "filter", "segment", "label", "validate", "risk_factors", "build_claims", "load"]
+STEPS = ["fetch", "subsidiaries", "clean", "filter", "segment", "label", "validate", "risk_factors", "build_claims", "load"]
 
 
 def main() -> None:
@@ -50,6 +54,7 @@ def main() -> None:
 
     actions = {
         "fetch": lambda: fetch.run(args.from_db),
+        "subsidiaries": subsidiaries.run,
         "clean": clean.run,
         "filter": filter_sections.run,
         "segment": segment.run,

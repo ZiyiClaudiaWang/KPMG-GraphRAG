@@ -90,7 +90,7 @@ schema record is explicit that we adopt their natural keys rather than hashing o
 | Whose | Where | How it decides |
 | --- | --- | --- |
 | Alison | `graphrag/entity_resolution.py` | returns `match`, `no_match` or `ambiguous`; refuses to merge without evidence. The only one measured — precision 1.000, recall 0.789 with Exhibit 21 provenance |
-| Alina | `ex21_pipeline/ex21/normalize.py` | strips legal suffixes and merges on the remaining core |
+| Alina | `extraction_pipeline/src/ex21/normalize.py` (`entity_key`) | strips legal suffixes and merges on the remaining core; stored on each Subsidiary node to spot renames across years |
 | Kelly | `extraction_pipeline/src/entity_annotation.py` | exact normalised name or alias against its own `entity_catalog.json`, scoped to `issuer_cik` + accession |
 
 All three are conservative and there are **no bad merges in the current corpus**. This is a

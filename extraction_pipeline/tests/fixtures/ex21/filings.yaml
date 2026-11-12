@@ -1,0 +1,5 @@
+# Fixture filings for tests/test_subsidiaries.py: two 10-Ks with a saved Exhibit 21, and a 10-Q.
+filings:
+  - {ticker: TBL, cik: "0000000001", form: 10-K, reporting_period_end: "2025-09-30", accession: "0000000001-25-000001"}
+  - {ticker: TBL, cik: "0000000001", form: 10-Q, reporting_period_end: "2025-12-31", accession: "0000000001-26-000002"}
+  - {ticker: DSC, cik: "2",          form: 10-K, reporting_period_end: "2026-04-30", accession: "0000000002-26-000003"}

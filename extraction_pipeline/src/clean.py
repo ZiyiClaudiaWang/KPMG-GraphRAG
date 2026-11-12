@@ -141,12 +141,13 @@ def clean_section(sec: dict, headers: set[str]) -> dict:
             continue
 
         pieces = [[s, e]]
+        starts_with_bullet = pending_bullet is not None
         if pending_bullet:
             pieces.insert(0, list(pending_bullet))
             pending_bullet = None
 
         prev = paragraphs[-1] if paragraphs else None
-        if prev and should_join(raw, prev["pieces"], text):
+        if prev and not starts_with_bullet and should_join(raw, prev["pieces"], text):
             prev["pieces"].extend(pieces)     # paragraph split by a page break
             joined += 1
         else:
