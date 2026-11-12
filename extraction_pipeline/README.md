@@ -191,9 +191,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     saved copy. Everyone downloads with their own `SEC_USER_AGENT="Name email"` (environment or
     `.env`); an accession's documents on EDGAR do not change, so nothing is stored in the repo.
     A 10-K that cannot be downloaded is a CHECK row in `subsidiary_qa.csv`, and the run goes on.
-  - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there. Each
-    row carries the same date as `period_end` and `reporting_period_end`; the step reads
-    `reporting_period_end` (the name the graph and retrieval use) and stops if the two differ.
+  - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there. Each row carries `reporting_period_end` (the Data team's and the Filing node's name); the step reads `reporting_period_end` (the name the graph and retrieval use).
   - **Code layout:** `src/subsidiaries.py` runs the step only. `src/ex21/` is a library that imports
     nothing from the pipeline: `edgar.py` downloads, `parse.py` reads an exhibit, `normalize.py`
     maps jurisdictions and builds the identity keys. A change to SEC's site touches only
