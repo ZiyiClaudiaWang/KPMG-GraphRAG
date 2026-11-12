@@ -277,12 +277,25 @@ def rank_records(records, query, filters, top_k):
         if score > 0:
             scored.append((score, r))
 
-    # Equal scores are common: the same concept reported for three fiscal
-    # years ties exactly. Newest first is the more useful answer, and the
-    # fact id after that keeps the order identical between runs.
-    scored.sort(key=lambda pair: (-pair[0],
-                                  _period_sort_key(pair[1]),
-                                  pair[1]["fact_id"]))
+    # Equal scores are common, and until now the fact id decided them, which
+    # is a hash. A statement prints the quarter and the year-to-date column
+    # together, so "revenue for the three months ended March 31" tied with the
+    # nine-month figure ending the same day and either could win.
+    #
+    # Three tie-breaks before the hash, in the order Eval asked for them:
+    #   1. the period the question named, if it named one
+    #   2. the consolidated fact over a slice of it
+    #   3. the newest period
+    asked = concept_match.asked_duration_days(query)
+    scored.sort(key=lambda pair: (
+        -pair[0],
+        0 if concept_match.duration_matches(
+            asked, concept_match.duration_days(pair[1].get("period_start"),
+                                               pair[1].get("period_end"))) else 1,
+        len(concept_match._dimension_entries(pair[1].get("dimensions"))),
+        _period_sort_key(pair[1]),
+        pair[1]["fact_id"],
+    ))
     return scored[:top_k]
 
 
