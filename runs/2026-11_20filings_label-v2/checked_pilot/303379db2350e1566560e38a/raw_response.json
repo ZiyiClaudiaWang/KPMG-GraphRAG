@@ -1,0 +1,50 @@
+{
+  "request_hash": "303379db2350e1566560e38a466f24f7dc0ee78a96fd5033044bd2019c6795d0",
+  "raw_response": {
+    "id": "chatcmpl-EgrPxFWaZl8mL5hPRmi5OvwVwGFQI",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence defines the product scope of Cardiovascular segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiovascular\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cardiovascular products include pacemakers, insertable cardiac monitors, cardiac resynchronization therapy devices, implantable cardioverter defibrillators, leads and delivery systems, products for the treatment of atrial fibrillation, information systems for the management of patients with Cardiac Rhythm & Heart Failure devices, products designed to reduce surgical site infections, coronary and peripheral stents and related delivery systems, balloons and related delivery systems, endovascular stent graft systems, heart valve replacement technologies, cardiac tissue ablation systems, open heart and coronary bypass grafting surgical products, and renal denervation systems for the treatment of hypertension.\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence adds Care Management Services and Cath Lab Managed Services as part of Cardiovascular segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiovascular\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cardiovascular also includes Care Management Services and Cath Lab Managed Services (CLMS) within the Cardiac Rhythm & Heart Failure division.\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiovascular\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cardiovascular's net sales for fiscal year 2026 were $14.0 billion, an increase of 12 percent as compared to fiscal year 2025.\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for net sales increase in Cardiovascular segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiovascular\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"The net sales increase was primarily due to growth across most businesses and the impacts of foreign currency fluctuations.\"}]},{\"id\":\"s6\",\"label\":\"not_a_claim\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"This sentence introduces charts and is not a factual claim on its own.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiac Rhythm & Heart Failure (CRHF)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cardiac Rhythm & Heart Failure (CRHF) net sales increased 17 percent in fiscal year 2026 as compared to fiscal year 2025.\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Describes growth and decline within Cardiac Ablation Solutions product portfolio.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiac Ablation Solutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Cardiac Ablation Solutions experienced strong growth in the pulsed ablation portfolio with partially offsetting declines in cryoablation.\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Details specific products driving growth in Cardiac Rhythm Management.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiac Rhythm Management\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Net sales growth was also due to increases within Cardiac Rhythm Management, driven by growth in Micra leadless pacemakers, Aurora extravascular implantable cardioverter defibrillator (EV-ICD) system, and SelectSecure 3830 lead.\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Structural Heart & Aortic (SHA)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Structural Heart & Aortic (SHA) net sales increased 7 percent in fiscal year 2026 as compared to fiscal year 2025.\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Explains drivers of net sales increase in Structural Heart and Cardiac Surgery.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Structural Heart\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The net sales increase was driven by Structural Heart and in Cardiac Surgery driven by growth in Penditure LAA exclusion system, Avalus Ultra surgical valve, and VitalFlow ECMO system.\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Coronary & Peripheral Vascular (CPV)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Coronary & Peripheral Vascular (CPV) net sales increased 5 percent in fiscal year 2026 as compared to fiscal year 2025.\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Details products driving growth in CPV segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Symplicity Spyral renal denervation system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The net sales increase was driven by growth in the Symplicity Spyral renal denervation system, guide catheters and balloons, as well as growth in Peripheral Vascular Health from Endovenous.\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Notes declines in coronary stents partially offsetting growth in CPV segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"coronary stents\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The net sales increase was partially offset by declines in coronary stents.\"}]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":\"Cardiovascular segment\",\"annotation_note\":\"This sentence explicitly states a possible future adverse effect on Cardiovascular segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiovascular\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cardiovascular could be affected by the following:\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883821,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1505,
+      "prompt_tokens": 2510,
+      "total_tokens": 4015,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_171ddf7c9246472cb2fe2cb3f565e5b3",
+  "latency_ms": 14324
+}

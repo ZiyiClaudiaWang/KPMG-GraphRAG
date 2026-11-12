@@ -1,0 +1,50 @@
+{
+  "request_hash": "e65ee5c3840c4d6d86b9e2371529fe491526b021a5547c99915c42ffd90f9928",
+  "raw_response": {
+    "id": "chatcmpl-EgrRBHoh4pZ0VxfElWpMfM4TV2IHq",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence expresses an expectation about future fiscal years regarding the impact of the Act.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global tax regulation\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Organization for Economic Co-operation and Development (OECD)\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"The Organization for Economic Co-operation and Development (OECD)\"},{\"mention_text\":\"Pillar Two Model Rules\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"Pillar Two Model Rules\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":\"global tax regulation\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OECD\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"The OECD\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\",\"s3\"],\"subject_scope\":\"countries including Ireland\",\"annotation_note\":\"States effective implementation for Medtronic in fiscal year 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Ireland\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"including Ireland\"},{\"mention_text\":\"Pillar Two Model Rules\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"Pillar Two Model Rules\"},{\"mention_text\":\"Medtronic\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"which were effective for Medtronic in fiscal year 2025\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past effective tax rates for fiscal years 2026 and 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for the increase in effective tax rate in fiscal year 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past non-GAAP nominal tax rates for fiscal years 2026 and 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for the increase in non-GAAP nominal tax rate in fiscal year 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports recognized net operational tax benefits during fiscal year 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Details components of the net operational tax benefits in fiscal year 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports that operational tax costs were immaterial during fiscal year 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a possible increase in income tax provision if non-GAAP nominal tax rate increases by one percent.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports net cost from certain tax adjustments during fiscal year 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Details a net cost associated with intercompany sale of intellectual property and deferred tax asset.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Details a net cost associated with the separation of the Diabetes Business.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883897,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 951,
+      "prompt_tokens": 2525,
+      "total_tokens": 3476,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_2cab3a19a56b4455b6abdd17adac1488",
+  "latency_ms": 7203
+}

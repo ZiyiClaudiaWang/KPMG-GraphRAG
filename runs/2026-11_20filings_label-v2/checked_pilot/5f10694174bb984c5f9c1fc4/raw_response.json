@@ -1,0 +1,50 @@
+{
+  "request_hash": "5f10694174bb984c5f9c1fc4c22348e06328199775058fdb6b24a4bf0b80d6c9",
+  "raw_response": {
+    "id": "chatcmpl-EgrFF9qJf73sKCPzk0ICE8iSA8AIG",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a risk that the complexity of software products may increase undetected errors; it does not assert that errors have occurred.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible costly and distracting consequence of producing patches for errors, not a confirmed event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence outlines possible adverse outcomes if errors are found after shipment; it does not assert these have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes potential adverse effects on product reliability, reputation, brand, and sales if errors occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists possible actions and consequences that could harm the business if defects occur; these are not asserted as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states that the company's ability to acquire and maintain licenses affects revenue and profitability, implying risk but not asserting current failure.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states that competition may increase license costs, a possible adverse outcome, not a confirmed fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K products\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"certain of our 2K products\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states that competition is intense, implying risk to license acquisition but not asserting failure.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence explicitly states a possible adverse outcome if licenses cannot be maintained or obtained on reasonable terms.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible increase in costs due to competition for licenses, not a confirmed event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states contractual obligations that may limit termination options, implying risk but not asserting current breach.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible adverse effect on profitability if licensed products do not generate sufficient revenue.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883157,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 852,
+      "prompt_tokens": 2471,
+      "total_tokens": 3323,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_f67b4f84c4364e06842dbf2e436e005e",
+  "latency_ms": 7622
+}

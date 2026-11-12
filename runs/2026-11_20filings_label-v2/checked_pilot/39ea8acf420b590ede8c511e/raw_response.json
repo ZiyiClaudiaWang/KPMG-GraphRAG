@@ -1,0 +1,50 @@
+{
+  "request_hash": "39ea8acf420b590ede8c511e7964929f20dc250fdfb9ef7b4ca44a88dbeb7571",
+  "raw_response": {
+    "id": "chatcmpl-EgrW4aBfSfoObBagELgM6v7F3iljM",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is a cross-reference to other notes in financial statements, not a statement by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions commercial paper programs and a Credit Facility as current liquidity sources.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the composition of investments as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the commercial paper program terms as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports outstanding commercial paper amounts at two dates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains effect of commercial paper issuance on credit availability as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the Credit Facility terms as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the option to extend the Credit Facility maturity date as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes permitted uses of the Credit Facility as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ability to increase borrowing capacity under the Credit Facility as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports no outstanding amounts under the Credit Facility at two dates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes how interest rates on Credit Facility advances are determined as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes how facility fees are determined as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States compliance with covenants related to the Credit Facility as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793884200,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 705,
+      "prompt_tokens": 2350,
+      "total_tokens": 3055,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_93aa2f1ab6324bb6a2ceb331cb9d1fae",
+  "latency_ms": 5274
+}

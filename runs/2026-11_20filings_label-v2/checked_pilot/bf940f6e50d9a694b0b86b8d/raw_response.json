@@ -1,0 +1,50 @@
+{
+  "request_hash": "bf940f6e50d9a694b0b86b8d5e74d7659633ca2c84147d3a65b0e0141842a944",
+  "raw_response": {
+    "id": "chatcmpl-EgqOG5xESyDcOUgXSbmhRqgUChZCv",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned initiatives and organizational changes as part of the program.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"India\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"the establishment of a new campus in India\"},{\"mention_text\":\"three geographies\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"realigning NIKE's operating model into three geographies\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Plans for future organizational structure and geographic segmentation.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"the Americas (North America and Latin America)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"the Americas (North America and Latin America)\"},{\"mention_text\":\"APGC (Asia Pacific and Greater China)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"APGC (Asia Pacific and Greater China)\"},{\"mention_text\":\"EMEA (Europe, Middle East and Africa)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"EMEA (Europe, Middle East and Africa)\"}]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expectation of future pre-tax charges and severance costs related to the program.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Details on the nature of expected costs, primarily employee severance and related costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Timing expectations for recognition of costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Estimation about cash expenditures and timing subject to local law.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Expected cumulative savings from the program through fiscal 2031.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Clarifies that savings estimate is before charges and reinvestment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\",\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Estimates are subject to assumptions and local law requirements, indicating uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Acknowledges actual results may differ materially from estimates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes use of non-GAAP financial measures in the report.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Clarifies non-GAAP measures should not be used in isolation and may not be comparable.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Management's use of non-GAAP measures for performance evaluation and decisions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Management's belief about the usefulness of non-GAAP measures for investors.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Definition of EBIT and EBIT margin as non-GAAP financial measures.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879872,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_709851ae88",
+    "usage": {
+      "completion_tokens": 945,
+      "prompt_tokens": 2533,
+      "total_tokens": 3478,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_7b1fe8528af14fd2bb5fe09260f7b55a",
+  "latency_ms": 6845
+}

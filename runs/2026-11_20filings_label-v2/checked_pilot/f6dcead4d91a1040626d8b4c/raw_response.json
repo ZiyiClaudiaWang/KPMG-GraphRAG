@@ -1,0 +1,50 @@
+{
+  "request_hash": "f6dcead4d91a1040626d8b4cc58de2678d5fa51b822600cc2c09eaa51ed9c77e",
+  "raw_response": {
+    "id": "chatcmpl-EgrBdGph3RZn14HacTBH9Xc4Aty9r",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"competitors\",\"annotation_note\":\"Mentions potential reduction in sales and pricing ability due to competitors' content including AI use; hedged risk about future adverse impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":\"competing products\",\"annotation_note\":\"Potential adverse outcome that competing products may take larger consumer spending share causing sales below expectations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"other forms of entertainment\",\"annotation_note\":\"Possible adverse impact from competition with other entertainment forms that may be less expensive or have advantages.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"software publishers who compete with us\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"technological advances including AI\",\"annotation_note\":\"Potential negative effect on platform-based software sales due to increased availability of online and mobile games.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"other large companies\",\"annotation_note\":\"Possible future development or partnership in mobile and social games by other large companies not currently focused on them.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"current and potential competitors\",\"annotation_note\":\"Possible advantages competitors may have that could impact our business.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"new game competitors\",\"annotation_note\":\"Expectation of new entrants and increased resource allocation by existing competitors in mobile or online games market.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"small companies and individuals\",\"annotation_note\":\"Potential competition from many small developers using limited resources including AI, affecting our competitive position.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"open developer channels\",\"annotation_note\":\"Possible difficulty in differentiation and increased marketing and development costs due to proliferation of titles.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible adverse impacts including loss of players, increased costs, and loss of talent due to increasing competition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"current and future competitors\",\"annotation_note\":\"Potential strategic acquisitions or cooperative relationships among competitors that could increase their competitive strength.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":\"competitors\",\"annotation_note\":\"Possible increased scale and ability of competitors to meet player needs and compete for human capital due to strategic actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible adverse impact on company's results if unable to compete effectively and cost-efficiently.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"other forms of entertainment and leisure activities\",\"annotation_note\":\"Possible adverse impact from competition with other entertainment and leisure activities.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882933,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 830,
+      "prompt_tokens": 2614,
+      "total_tokens": 3444,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_52ef17357fb448809070718f5cfd07b0",
+  "latency_ms": 12051
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "d44267e01b151f7813256890a9b8dfc66c09b782a040cad7293a185e59c227bf",
+  "raw_response": {
+    "id": "chatcmpl-EgqgaKFLBv6aAsgzyP5C2SjLR1CEi",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses possible future charges and uncertain realization of benefits from restructuring.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes past and potential future restructuring initiatives as a fact about company actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Predicts possible failure to realize savings and potential additional charges in future periods.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists possible adverse outcomes from restructuring initiatives without asserting they will occur.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible inability to protect intellectual property or retain key employees.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current controls over intellectual property as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possibility that competitors may illegally obtain or use proprietary information.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible weaker foreign IP protections and enforcement difficulties.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible risks related to AI use causing loss of IP rights or infringement issues.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes dependency on skilled employees for IP maintenance as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible negative impact if competitors hire company employees.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible material adverse effect from inability to protect IP or retain key employees.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible material adverse effects from legal and regulatory claims and investigations.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current and past legal and regulatory investigations and claims as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes types of claims and investigations as fact about company experience.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881008,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 719,
+      "prompt_tokens": 2666,
+      "total_tokens": 3385,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_037f5e43558a46f491ce1c8cae828a1f",
+  "latency_ms": 5743
+}

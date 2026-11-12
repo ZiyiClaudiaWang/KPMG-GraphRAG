@@ -1,0 +1,50 @@
+{
+  "request_hash": "8f836e04962c58db5e113ea19e78a09fa0ef8fbb71f763d39d0bcd3fbbad35db",
+  "raw_response": {
+    "id": "chatcmpl-Egqty51y8fsQcF6B3s8I70YETFZbI",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes changes in net cash related to accounts payable and inventory during the period.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Describes increase in net cash from other assets and liabilities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports cash used in investing activities for two years.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Details cash payments for acquisitions including Core Ventures and PRISM Vision.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Core Ventures\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"acquisitions, including $2.5 billion and $875 million for the acquisitions of the interests in Core Ventures and PRISM Vision, respectively\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes proceeds from sales of businesses and investments including Norway disposal group divestiture.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports capital expenditures for property, plant, equipment and capitalized software for 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports capital expenditures for property, plant, equipment and capitalized software for 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports proceeds related to investments in equity securities for 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports cash used in financing activities for two years.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Details cash paid for share repurchases and dividends in 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports cash receipts and payments related to short-term borrowings of commercial paper in 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes public debt offering completed in 2025 with details on notes and proceeds.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"States use of net proceeds and cash on hand to fund purchase of interest in Core Ventures.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Core Ventures\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"fund the purchase of our interest in Core Ventures\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports maturity and repayment of notes using cash on hand in 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Details cash paid for share repurchases and dividends in 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881838,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 843,
+      "prompt_tokens": 2710,
+      "total_tokens": 3553,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_7c843df9940b4d1984138d8c03a4dc73",
+  "latency_ms": 6980
+}

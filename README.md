@@ -142,11 +142,13 @@ the amendment replaces that same concept for that same period.
 | --- | --- |
 | [`docs/`](docs/) | **The contracts.** Canonical. [`schema-ids-operations.md`](docs/schema-ids-operations.md) is what to build against |
 | [`docs/sprints/`](docs/sprints/) | One file per week — owners, done conditions, decisions the week is waiting on |
-| `graphrag/` | The package. Evidence shape and validation, mirroring the RAG team's `rag/contract.py` |
-| `mock/` | INT-0 mocks for both tools. Standalone, standard library only |
-| `tests/` | 91 tests — 63 contract, 28 toy-graph fixture. They run against the mock now and the real tools later |
-| `toy_graph/` | A small Neo4j graph used to test the schema against a question needing several hops. It found two gaps; both are closed |
-| `extraction_prototype/` | Saved runs of LLM extraction over real filings, with validators that re-check them offline |
+| [`graphrag/`](graphrag/) | The package. Evidence shape and validation, mirroring the RAG team's `rag/contract.py` |
+| [`extraction_pipeline/`](extraction_pipeline/) | The extraction pipeline to build the graph. See its [README](extraction_pipeline/README.md) for details.|
+| [`tests/`](tests/) | 91 tests — 63 contract, 28 toy-graph fixture. They run against the mock now and the real tools later |
+| [`runs/`](runs/) | Frozen results of agreed `extraction_pipeline/` runs, one folder per run, never edited after commit. |
+| [`mock/`](mock/) | INT-0 mocks for both tools. Standalone, standard library only |
+| [`toy_graph/`](toy_graph/) | A small Neo4j graph used to test the schema against a question needing several hops. It found two gaps; both are closed |
+| [`extraction_prototype/`](extraction_prototype/) | Saved runs of LLM extraction over real filings, with validators that re-check them offline |
 
 ## Quick start
 

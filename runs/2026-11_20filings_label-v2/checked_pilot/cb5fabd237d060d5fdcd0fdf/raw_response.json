@@ -1,0 +1,50 @@
+{
+  "request_hash": "cb5fabd237d060d5fdcd0fdfdf78fc75c47d397b88db17bdf497c2f4b2bf0d90",
+  "raw_response": {
+    "id": "chatcmpl-EgqnqwbgRv7JC4PXsUNLfi70BTdvs",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"McKesson SynerGx®\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"McKesson SynerGx® – Generic pharmaceutical purchasing program and inventory management that helps pharmacies maximize their cost savings with a broad selection of generic drugs, competitive pricing, and one-stop shopping.\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains a general statement of purpose and effect, not a risk or forward-looking plan.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Describes how the company accomplishes the purpose in s4; includes current actions and support.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"not_a_claim\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Introductory fragment to a list, no standalone meaning.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Health Mart®\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Health Mart® – A national network of approximately 3,900 independently-owned pharmacies and one of the industry’s most comprehensive pharmacy franchise programs.\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Health Mart\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Health Mart provides solutions for franchisees to promote excellence in business operations, team development, patient health, marketing and merchandising, and protects financial health through proactive audit support.\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Health Mart Atlas® and Atlas Specialty\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Health Mart Atlas® and Atlas Specialty – Comprehensive managed care services that connect the continuum of care to help community pharmacies, health systems, and physician practices save time, access competitive reimbursement rates, and improve cash flow.\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"McKesson Reimbursement AdvantageSM (“MRA”)\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"McKesson Reimbursement AdvantageSM (“MRA”) – MRA is one of the industry’s most comprehensive reimbursement optimization packages, comprising financial services (automated claim resubmission), analytic services, and customer care.\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"McKesson Provider Pay®\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"McKesson Provider Pay® – An automated reconciliation and payment management solution designed to maximize third-party cash flow and pursue unpaid claims.\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"McKesson Amplify\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"McKesson Amplify – Provides resources for state pharmacy associations in all 50 states, including dedicated support funding, resources, and opportunities to participate in best practice sharing consortia.\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Explains the purpose of the funding mentioned in s12.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"McKesson OneStop Generics®\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"McKesson OneStop Generics® – Generic pharmaceutical purchasing program that helps pharmacies maximize their cost savings with a broad selection of generic drugs, competitive pricing, and one-stop shopping.\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Pinpoint Community Solutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Pinpoint Community Solutions – McKesson’s perpetual inventory management system targeted to independent pharmacy owners with five or fewer stores.\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881458,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1218,
+      "prompt_tokens": 2381,
+      "total_tokens": 3599,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_c192afd3f07543fbbff126451f7e82d4",
+  "latency_ms": 9310
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "0074af843e9ee25e138d8d7dbd2b088c5de563716034ed225830105ef72ee5fb",
+  "raw_response": {
+    "id": "chatcmpl-EgqhsWBXcPV4VALW3uyVKj2mjpQwk",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"memory industry\",\"annotation_note\":\"Describes industry landscape and customer demand, not a company event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":\"memory industry\",\"annotation_note\":\"Describes customer behavior and engagement, not a company event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Includes past and future events; primary focus is expectation of continuing agreements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Describes contract structure as current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes pricing terms as current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about future gross margins from agreements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Expresses belief about future business transformation and financial performance.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"References earlier section for factors affecting revenue.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881088,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 648,
+      "prompt_tokens": 2413,
+      "total_tokens": 3061,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_335438105e724e2baf4e3ad3dc47ca1f",
+  "latency_ms": 4859
+}

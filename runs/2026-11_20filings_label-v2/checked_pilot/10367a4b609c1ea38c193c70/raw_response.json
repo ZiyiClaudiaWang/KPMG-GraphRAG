@@ -1,0 +1,50 @@
+{
+  "request_hash": "10367a4b609c1ea38c193c7028d283d576407054ebe80a1ba506ecc400887626",
+  "raw_response": {
+    "id": "chatcmpl-Egq6GEjAp84gV253bewMPZBbevw1W",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":\"open-source products\",\"annotation_note\":\"States a possible adverse event that open-source products mimic company products, implying competitive risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects on financial condition due to competitive pressures; uses modal language indicating risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects on business and financial condition due to various evolving factors; hedged risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ongoing and past investments made by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Describes characteristics of the investments made, including scale and timing, as factual information.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"States that revenue may not be realized as expected, indicating a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Describes exposure to increased compliance risks and political challenges due to investments; possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States dependency on generating sufficient cash flows and financing; implies risk if conditions are not met.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse changes affecting capital availability and cost; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists uncertain factors affecting financial success of investments; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possible customer behavior that could reduce company revenue; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"States possible adverse outcome if adoption is slower or usage lower than expected; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States difficulty in forecasting demand; implies uncertainty and risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse outcomes from overestimation or misalignment of capacity; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse outcome from demand exceeding capacity; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793878756,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 803,
+      "prompt_tokens": 2545,
+      "total_tokens": 3348,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_299fcaeb71eb43c992f93e2214ea70ee",
+  "latency_ms": 5829
+}

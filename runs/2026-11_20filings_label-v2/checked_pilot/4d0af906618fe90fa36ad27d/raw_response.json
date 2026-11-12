@@ -1,0 +1,50 @@
+{
+  "request_hash": "4d0af906618fe90fa36ad27d9fd88ce4a9313f0a803f7c3deb26555c195cea03",
+  "raw_response": {
+    "id": "chatcmpl-EgqtBMLc0neKfkDJXNJMuPnIfucWA",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states the company's own assessment of sales and credit concentration as significant.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":\"group purchasing organizations (GPOs)\",\"annotation_note\":\"The sentence clarifies that accounts receivable balances are with individual members of GPOs, indicating no significant concentration of credit risk in GPOs themselves.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"GPOs\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"GPOs\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence describes possible adverse events that could materially impact the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the annual assessment process of reserve methodologies based on historical and market trends.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes quarterly review and update process for reserves if unusual circumstances or trends are present.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The company expresses belief that reserves and expenses recorded are appropriate and consistent with historical methodologies and current trends.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports specific financial amounts for trade and notes receivables and allowances at a point in time.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports provision for bad debts charges and credits for fiscal years 2024, 2025, and 2026.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports allowance as a percentage of trade and notes receivables at two points in time.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"North American Pharmaceutical segment\",\"annotation_note\":\"Reports a specific charge related to bankruptcy of a customer, with reference to financial notes.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"North American Pharmaceutical segment\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Explains the amount represented by the uncollected trade accounts receivable balance due from Rite Aid prior to bankruptcy filing.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rite Aid\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rite Aid\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":\"North American Pharmaceutical segment\",\"annotation_note\":\"Describes reassessment and reversal of previously reserved prepetition balances including cash received.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"North American Pharmaceutical segment\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Reports amounts released of uncollectible receivables related to the Rite Aid provision in two fiscal years.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rite Aid\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rite Aid\"}]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a hypothetical increase or decrease in allowance percentage and its impact on provision for bad debts, indicating potential financial impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881789,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 967,
+      "prompt_tokens": 2592,
+      "total_tokens": 3559,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_1d7340843f094d2fb9457436422c8a0f",
+  "latency_ms": 7549
+}

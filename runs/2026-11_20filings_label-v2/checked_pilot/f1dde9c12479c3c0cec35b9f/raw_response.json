@@ -1,0 +1,50 @@
+{
+  "request_hash": "f1dde9c12479c3c0cec35b9f0d1c129411a6a429f71976ed817ab45023cf750b",
+  "raw_response": {
+    "id": "chatcmpl-Egq7Zlui0qXTTaXuiJK4c4XWAW9mh",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible constraints and regulatory approvals that may affect capacity development; does not assert these have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Lists potential changes beyond company control that may cause delays, restrictions, or increased costs; stated as possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible opposition and challenges that may affect infrastructure development; does not assert these have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"States possible negative consequences if challenges are not navigated successfully; conditional and prospective.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current requirement for skilled personnel for datacenter construction and operation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Lists possible labor-related issues that could increase costs and delay projects; stated as potential risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Very brief statement indicating possible supply problems; hedged risk due to lack of detail.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"States current limited suppliers and short supply of critical components.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States ongoing efforts to expand datacenter locations and capacity to meet customer needs, especially for AI products.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"competitors\",\"annotation_note\":\"States competitors are scaling infrastructure and competing for suppliers, impacting price and availability; implies possible adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States dependency on timely availability of critical hardware and components for datacenters.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"States past and possible continuing supply constraints including shortages of key components.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that expanding manufacturing or supply capacity may require significant investments and long lead times.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes multiple possible causes for delays or unavailability of components and potential need for less favorable supply arrangements; stated as possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"States possible negative consequences of delays or inability to obtain necessary equipment on acceptable terms; conditional and prospective.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793878837,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 847,
+      "prompt_tokens": 2554,
+      "total_tokens": 3401,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_bea84fba677a41f0829936bfb21a6aad",
+  "latency_ms": 6134
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "8a7d884be359683ee57d48f81f9f7fefe16c1f22e1f04decf733b9fd7546e2d0",
+  "raw_response": {
+    "id": "chatcmpl-EgqKmNGAK1WrCEMe96r1EQQ3P7rZe",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes a possible adverse event (default or failure of counterparties) and its potential negative impact; does not assert it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Includes a cross-reference to Item 1 Business section.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse events (supplier severing relationship, trade policy changes, inability to perform) and their potential material adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse events (manufacturers failing shipments or quality) and potential material adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"contract manufacturers\",\"annotation_note\":\"Describes a possible adverse event (contract manufacturers going out of business) due to changes in consumer preferences or market conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"contract manufacturers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Such contract manufacturers\"}]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Describes a possible future adverse event (inability to locate replacement facilities) and its potential material adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current dependencies on employees and workplace culture.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse events (loss of key individuals or negative perception) and potential harm to business.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current dependencies on recruiting and retaining personnel.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"industry\",\"annotation_note\":\"Describes a possible adverse event (not successful in attracting and retaining personnel) in the industry context.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects of changes to work models or strategic priorities on employee attraction and retention.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879656,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 778,
+      "prompt_tokens": 2523,
+      "total_tokens": 3301,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_224b9f36eaea4f56ac1af5e2edd7a44e",
+  "latency_ms": 5713
+}

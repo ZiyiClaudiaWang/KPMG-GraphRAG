@@ -1,0 +1,50 @@
+{
+  "request_hash": "ed1e1c30062b354b2433631c8ae9df17363d4260544dd246bedd4a18c4e627ae",
+  "raw_response": {
+    "id": "chatcmpl-EgqT9ANMDruws8ixFU8C41XDoXlgc",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible effect on net sales when consumers and distributors anticipate a product introduction, without asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"macroeconomic conditions\",\"annotation_note\":\"The sentence states past and possible future impacts of macroeconomic conditions on the Company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current supply constraints and increasing costs for components.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence expresses expectations about intensifying trends and possible adverse effects on demand and financial results.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports new tariffs announced starting in second quarter 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Reports reciprocal tariffs and retaliatory measures imposed or threatened by several countries.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports publication of initial results of a U.S. Department of Commerce investigation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"States that the investigation results did not impose additional tariffs affecting the Company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports a U.S. Supreme Court ruling striking down certain tariffs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"States the Company is applying for a refund of tariffs paid.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes announced and possible future modifications to U.S. tariffs that could affect the Company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that tariffs and other measures can have a material adverse impact on the Company’s business and financial condition, without asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"States uncertainty about the ultimate impact of tariffs and other measures, depending on various factors.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"trade and other international disputes\",\"annotation_note\":\"States possible adverse impacts of trade and international disputes on macroeconomic environment and consumer behavior affecting the Company.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880175,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 782,
+      "prompt_tokens": 2643,
+      "total_tokens": 3425,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_135ebd74359b4ff59387ccc667c1df1c",
+  "latency_ms": 6005
+}

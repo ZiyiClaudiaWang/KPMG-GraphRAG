@@ -1,0 +1,50 @@
+{
+  "request_hash": "885ad400c7db762c8dfbf21332cc0c56dd37ba1846e9c8c7ed0a8a73b35e0b58",
+  "raw_response": {
+    "id": "chatcmpl-EgqLMKl7GFwy9EeHRO9qVtubnCbQn",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible disagreement by legislators, regulators, and courts about the company's legal conclusions, indicating a risk without asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible adverse effect of legal or regulatory proceedings on management attention and legal fees, without asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse effect on business if intellectual property rights are not adequately protected, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes possible adverse effects if enforcement of intellectual property rights is unsuccessful, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible inadequacy of actions to prevent imitation, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible inability to prevent others from blocking sales, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible liability if third parties claim infringement, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes possible consequences of defending claims, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states possible significant damages or injunctions, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states that controls might not always be effective, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes possible adverse consequences of unauthorized disclosure, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states possible novel intellectual property considerations related to virtual goods, indicating risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879692,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 764,
+      "prompt_tokens": 2545,
+      "total_tokens": 3309,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d5817a28360a457d9a21ca69c1813961",
+  "latency_ms": 5736
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "c3127a14ee4d07d88bfc74d6ba11569d327125c139e1ac09e2b57d65d6fb060b",
+  "raw_response": {
+    "id": "chatcmpl-Egr5yS19hj1faE2RwSbWzaLF5HkEF",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence expresses a possible adverse event (claims of non-compliance) without asserting it has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"s1\"],\"subject_scope\":null,\"annotation_note\":\"The sentence predicts potential material adverse effects on the company in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"U.S. government security requirements\",\"annotation_note\":\"The sentence states possible future impacts (may impose, may impact) without asserting they have occurred yet.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse consequence (delays or inability to sell) if requirements are not met.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"customers, resellers and distributors\",\"annotation_note\":\"The sentence states a possible adverse event (credit and non-payment risk) that could result in losses.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"customers\",\"annotation_note\":\"The sentence states a possible adverse event (increased losses) during economic uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"credit risks from customers\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":\"customers or their customers\",\"annotation_note\":\"The sentence states a possible increase in risk if global economic conditions adversely affect customers.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse event (disruption to supply chain) that could materially harm the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"The sentence introduces significant risks due to lack of control and geographic diversity of suppliers.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"not_a_claim\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"This is a fragment listing a risk factor, not a complete claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"not_a_claim\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"This is a fragment listing a risk factor, not a complete claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"not_a_claim\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"This is a fragment listing a risk factor, not a complete claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882582,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 787,
+      "prompt_tokens": 2453,
+      "total_tokens": 3240,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_65fa44a5228845fa9cb709ab2ff0e104",
+  "latency_ms": 9150
+}

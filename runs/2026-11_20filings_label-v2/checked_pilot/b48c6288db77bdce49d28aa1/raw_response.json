@@ -1,0 +1,50 @@
+{
+  "request_hash": "b48c6288db77bdce49d28aa1d6d370ae94a595ae9dccb719b2a6766e8d95ca66",
+  "raw_response": {
+    "id": "chatcmpl-EgrABhM8Cj3MWFFJP9kqfTMLULUOl",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rockstar Games' titles\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K label\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our 2K label\"}]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains explicit expectation about future offerings.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K has expanded its offerings to include several new franchises that are expected to enhance and diversify its slate of games\"}]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explicit expectation about future development of franchises.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"We expect 2K to continue to develop new, successful franchises in the future\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K's internally owned and developed franchises\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K's internally owned and developed franchises include the critically acclaimed, multi-million unit selling BioShock, Borderlands, Mafia, Sid Meier's Civilization, Tiny Tina's Wonderlands, and XCOM franchises\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K's sports simulation titles\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K's sports simulation titles include our flagship NBA 2K series, which continues to be the top-ranked NBA basketball video game, the WWE 2K professional wrestling series, PGA TOUR 2K, and TopSpin 2K\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K also publishes mobile titles, including WWE SuperCard and NBA 2K All-Stars\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Zynga label\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our Zynga label publishes popular free-to-play mobile games\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Zynga's strategy as stated by the company, not a prediction or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Zynga's strategy\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Zynga's strategy is to have numerous games in concept development and to determine which titles are best suited for soft and worldwide launch based on the achievement of various milestones and key performance indicator (KPI) thresholds\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Sentence split across s10 and s11; treated as two sentences for labeling.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Zynga's diverse portfolio of popular game franchises\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Zynga's diverse portfolio of popular game franchises has been downloaded more than 10 billion times\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Continuation of s10 listing franchises.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Color Block Jam, CSR2, Empires & Puzzles, Game of Thrones: Legends, Game of Thrones Slots Casino, Golf Rival, Harry Potter: Puzzles & Spells, Hit it Rich! Casino, Match Factory!, Merge Dragons!, Toon Blast, Toy Blast, Wizard of Oz Slots Casino, Words With Friends, and Zynga Poker\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Color Block Jam, CSR2, Empires & Puzzles, Game of Thrones: Legends, Game of Thrones Slots Casino, Golf Rival, Harry Potter: Puzzles & Spells, Hit it Rich! Casino, Match Factory!, Merge Dragons!, Toon Blast, Toy Blast, Wizard of Oz Slots Casino, Words With Friends, and Zynga Poker\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists types of content license agreements as current practice.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882843,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1244,
+      "prompt_tokens": 2431,
+      "total_tokens": 3675,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d5e2b6d6add64a7eb1f1b0c1934f9fc8",
+  "latency_ms": 11598
+}
