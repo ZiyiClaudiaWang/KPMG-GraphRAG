@@ -414,9 +414,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     `risk_id`.
   - Entity mentions and review fields stay in `claims.jsonl`; they are not loaded into the graph.
   - Subsidiaries (step 1b): one `Subsidiary` node per `sub_id` (with `entity_key`), and one
-    `Company -[:OWNS]-> Subsidiary` edge per listing, keyed by the 10-K's `accession_number` and the
-    row's position. The edge holds what that exhibit says (name as filed, jurisdiction, nesting) and
-    the filing's `reporting_period_end`, the same name as on the Filing node.
+    `Company -[:OWNS]-> Subsidiary` edge per subsidiary per 10-K, keyed by the 10-K’s `accession_number` (`row_order` is stored on the edge, not used as a key). The edge holds what that exhibit says (name as filed, jurisdiction, nesting) and the filing's `reporting_period_end`, the same name as on the Filing node.
   - **How OWNS is cited:** it has no `section_id`, since Exhibit 21 is a separate document of the
     filing, not a section of the Data team's export. It cites its source by `accession_number` +
     `source_url` (the Exhibit 21 document on EDGAR) + `evidence = 'Exhibit 21'`.

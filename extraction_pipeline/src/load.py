@@ -19,8 +19,9 @@ Graph (names from the ontology):
 
 Subsidiary nodes are keyed by sub_id (parent CIK + normalised name), so one subsidiary listed
 in several 10-Ks is one node; each also stores entity_key (legal form removed), for spotting
-renames across years. Each listing is its own OWNS edge, keyed by the 10-K's accession_number
-and the row's position in the exhibit, and carries what that exhibit says (name as filed,
+renames across years. Each 10-K that lists a subsidiary gives one OWNS edge, keyed by the
+10-K's accession_number and the edge's two ends (Company, Subsidiary); row_order is kept on
+the edge but is not part of the key. The edge carries what that exhibit says (name as filed,
 jurisdiction, nesting) and the filing's reporting_period_end, the name the Filing node uses.
 OWNS has no section_id: Exhibit 21 is a separate document of the filing, not a section of the
 Data team's export. It cites its source by accession_number + source_url (the Exhibit 21
@@ -112,9 +113,9 @@ SET s.name = r.name, s.normalised_name = r.normalised_name, s.entity_key = r.ent
 WITH s, r
 MERGE (c:Company {cik: r.parent_cik, pipeline_scope: $scope})
 SET c.ticker = r.parent_ticker
-MERGE (c)-[o:OWNS {accession_number: r.accession_number, row_order: r.row_order, pipeline_scope: $scope}]->(s)
+MERGE (c)-[o:OWNS {accession_number: r.accession_number, pipeline_scope: $scope}]->(s)
 SET o.reporting_period_end = r.reporting_period_end, o.name_as_filed = r.name,
-    o.jurisdiction_raw = r.jurisdiction_raw, o.country = r.country,
+    o.jurisdiction_raw = r.jurisdiction_raw, o.row_order = r.row_order, o.country = r.country,
     o.state_or_region = r.state_or_region, o.ownership_pct = r.ownership_pct, o.level = r.level,
     o.immediate_parent = r.immediate_parent, o.relationship = r.relationship,
     o.parse_method = r.parse_method, o.flags = r.flags, o.source_url = r.source_url,
