@@ -1,0 +1,50 @@
+{
+  "request_hash": "192729c061c1ca26715752c12454eecef2be3470e630a86ca405a8215cc91b5a",
+  "raw_response": {
+    "id": "chatcmpl-EgqMW2Dc4LqGN6qYdYLZ37z1vfLvY",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand wholesale revenues\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE Brand wholesale revenues\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":\"North America; Greater China\",\"annotation_note\":\"Describes revenue changes by geographic regions, not the company as a whole.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Direct revenues\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE Direct revenues\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Breaks down revenue decline by sales channels within NIKE Direct.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand Digital sales\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"declines in NIKE Brand Digital sales\"},{\"mention_text\":\"NIKE store sales\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"declines in NIKE store sales\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Decline attributed primarily to reduced traffic.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand Digital sales\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE Brand Digital sales\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE store sales\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE store sales\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to additional information, not a company statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Details factors contributing to gross margin increase with approximate basis points.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Details factors partially offsetting gross margin increase with approximate basis points.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Converse\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Lower gross margin from Converse\"}]},{\"id\":\"s12\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Definition of demand creation expense, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"not_a_claim\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Explanation of brand marketing expense components, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"not_a_claim\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Explanation of sports marketing expense components, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"not_a_claim\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Explanation of operating overhead expense components, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879764,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 917,
+      "prompt_tokens": 2600,
+      "total_tokens": 3517,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_555e7fc2a47a45658099a4c09e7f6af8",
+  "latency_ms": 6426
+}

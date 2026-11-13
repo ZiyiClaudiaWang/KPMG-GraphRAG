@@ -135,15 +135,27 @@ def test_supported_filters_become_cypher_and_parameters():
     assert params == {"ticker": "MSFT", "form": "10-K"}
 
 
-@pytest.mark.parametrize("key", ["fiscal_year", "fiscal_period", "is_table"])
+@pytest.mark.parametrize("key", ["is_table"])
 def test_a_filter_the_graph_cannot_serve_is_refused_by_name(key):
     with pytest.raises(contract.FilterNotSupportedError, match=key):
         graph_backend._check_filters({key: "anything"})
 
 
 def test_refusing_a_filter_says_why():
-    with pytest.raises(contract.FilterNotSupportedError, match="reporting_period_end instead"):
-        graph_backend._check_filters({"fiscal_year": 2026})
+    with pytest.raises(contract.FilterNotSupportedError, match="prose only"):
+        graph_backend._check_filters({"is_table": True})
+
+
+@pytest.mark.parametrize("key", ["fiscal_year", "fiscal_period"])
+def test_the_fiscal_filters_are_accepted_and_ignored_like_the_structured_arm(key):
+    """Both arms are offered these keys by the contract. Refusing here while
+    the structured arm ignored them meant one filter dict worked on one arm
+    and raised on the other, and 129 of Eval's 155 questions carry one."""
+    graph_backend._check_filters({key: "anything"})
+
+    where, params = graph_backend._where_clause({"ticker": "MSFT", key: "anything"})
+    assert where == "co.ticker = $ticker"
+    assert params == {"ticker": "MSFT"}
 
 
 def test_max_hops_below_the_traversal_is_refused():

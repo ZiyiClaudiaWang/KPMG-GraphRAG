@@ -220,3 +220,62 @@ def score_fact(terms: list[str], concept: object, dimensions: object,
 
     score = base + DIMENSION_BONUS * matched - DIMENSION_PENALTY * unasked
     return round(max(score, 0.0), 6)
+
+
+# How long a period the question asks about, in days. A statement prints the
+# quarter and the year-to-date column side by side, so two facts for the same
+# concept end on the same date and differ only in how far back they start.
+# Without this the ranker cannot tell them apart and the fact id decides.
+_DURATIONS = {
+    "three": 91, "quarterly": 91, "quarter": 91,
+    "six": 182,
+    "nine": 273,
+    "twelve": 365, "annual": 365, "year": 365, "yearly": 365,
+}
+
+# A filing's quarter is never exactly 91 days, and a 52/53-week year moves by
+# a week. Match on the nearest named duration instead of an exact count.
+_DURATION_TOLERANCE = 20
+
+
+def asked_duration_days(question: str) -> int | None:
+    """The period length the question names, or None if it names none.
+
+    "the three months ended March 31" is 91 days; "fiscal year 2026" is 365.
+    A question that names no period returns None, and the ranker then leaves
+    the order alone rather than guessing one.
+    """
+    words = [w for w in _TOKEN.findall(str(question).lower())]
+    for i, word in enumerate(words):
+        if word not in _DURATIONS:
+            continue
+        # "three months" and "nine-month" count; "three segments" does not.
+        nxt = words[i + 1] if i + 1 < len(words) else ""
+        if word in ("three", "six", "nine", "twelve") and not nxt.startswith("month"):
+            continue
+        return _DURATIONS[word]
+    return None
+
+
+def duration_days(period_start: object, period_end: object) -> int | None:
+    """How long a fact covers, or None for a balance-sheet instant."""
+    from datetime import date
+
+    def parsed(value):
+        text = str(value or "")[:10]
+        try:
+            return date(*(int(p) for p in text.split("-")))
+        except (TypeError, ValueError):
+            return None
+
+    start, end = parsed(period_start), parsed(period_end)
+    if start is None or end is None or start == end:
+        return None
+    return (end - start).days
+
+
+def duration_matches(asked: int | None, actual: int | None) -> bool:
+    """Whether a fact covers the period the question asked for."""
+    if asked is None or actual is None:
+        return False
+    return abs(asked - actual) <= _DURATION_TOLERANCE

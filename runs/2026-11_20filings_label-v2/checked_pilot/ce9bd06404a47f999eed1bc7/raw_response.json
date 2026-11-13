@@ -1,0 +1,50 @@
+{
+  "request_hash": "ce9bd06404a47f999eed1bc74088eb04d431a0d08b090cbb8d8c3209e057811d",
+  "raw_response": {
+    "id": "chatcmpl-EgqTr8H4C6LA4BO93OTQMeuoQzwih",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":\"cybersecurity threats related to artificial intelligence technologies\",\"annotation_note\":\"Describes possible malicious uses of AI technologies that could increase cyberattack risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":\"cybersecurity threats related to artificial intelligence technologies\",\"annotation_note\":\"Expresses an expectation that risks will intensify as AI models become more sophisticated.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"systemic risks from cyberattacks\",\"annotation_note\":\"Describes potential systemic risks and disruptions that could result from cyberattacks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"security threats to artificial intelligence technologies\",\"annotation_note\":\"States that AI technologies and their deployment may expose the Company to vulnerabilities and attacks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States the Company is at relatively greater risk of being targeted due to its profile and data value.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that the Company's security measures may not be sufficient and are vulnerable to various threats.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a possible method of unauthorized access via fraudulent inducement of employees or customers.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current security measures the Company deploys to protect customers and itself.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that insurance coverage may be insufficient to cover all losses or claims.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"technology industry\",\"annotation_note\":\"States that the industry and sometimes the Company face intense scrutiny leading to risks of regulation and penalties.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that the Company has made business changes in response to various factors in the past.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of making further business changes in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Gives an example of a past business change implemented by the Company in the U.S.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States the Company is currently subject to a court order preventing certain fees.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"States a court instruction to amend or modify an injunction related to commissions.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880219,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 798,
+      "prompt_tokens": 2516,
+      "total_tokens": 3314,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3659a9a45fa54eeeb76b982446d05440",
+  "latency_ms": 6397
+}

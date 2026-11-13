@@ -1,0 +1,50 @@
+{
+  "request_hash": "b4446f774c39441b3dc34bdf4121d6a049b0ceda748ad693cee719ba42d5ca82",
+  "raw_response": {
+    "id": "chatcmpl-Egr7oSx46DaMYEKGQOJVmi4MjG98S",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"States a possible adverse effect on the company's effective tax rate due to changes or reinterpretations of tax laws; hedged risk about future tax liabilities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Possible exposure to additional tax obligations due to changes in business management and structure; hedged risk about future tax obligations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\",\"s2\"],\"subject_scope\":null,\"annotation_note\":\"Potential harm to operating results and financial condition as a consequence of prior hedged risks; hedged risk about adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ongoing evaluation activity by the company; stated fact about current actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global corporate tax policy\",\"annotation_note\":\"Describes global legislative actions by many countries; stated fact about external environment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"global corporate tax policy\",\"annotation_note\":\"Describes jurisdictions participating in BEPS inclusive framework and measures implemented; stated fact about external environment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Possible increase in worldwide effective tax rate and adverse effects on financials due to rules and framework changes; hedged risk about future adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States routine subject to income tax audits; stated fact about current condition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Possible adverse effects if tax audits result in amounts exceeding recorded provisions; hedged risk about future adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible failure to maintain internal controls; hedged risk about future adverse event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Possible consequences of failure to maintain or implement controls, including deficiencies and misstatements; hedged risk about future adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Possible adverse effects on management evaluations and auditor reports due to control failures; hedged risk about future adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Possible consequences of material weakness including errors, restatements, loss of investor confidence, and regulatory sanctions; hedged risk about future adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cannot assure absence of future fraudulent financial reporting; hedged risk about future adverse event.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882696,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 838,
+      "prompt_tokens": 2550,
+      "total_tokens": 3388,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_93f894e763a34f19b6bea3ba0e8f0936",
+  "latency_ms": 7753
+}

@@ -105,6 +105,12 @@ def _run(
         # Unsupported capability is not a store outage and should not be retried
         # as infrastructure noise.
         raise
+    except ValueError:
+        # Nor is a filter value the arm cannot use. The contract already raises
+        # ValueError for an unknown filter key before a backend is called, so a
+        # bad value for a known key should land the same way. Wrapping it said
+        # the store was down and sent callers to retry a call that could not work.
+        raise
     except Exception as exc:  # backend failures are not abstention
         raise contract.RetrievalUnavailableError(
             f"{backend_name} retrieval backend failed: {exc}"

@@ -3,6 +3,7 @@ import duckdb
 import json
 
 import concept_match
+import segments
 
 # Set once per connection from the store itself, so the envelope describes
 # what is actually loaded instead of what someone typed.
@@ -99,6 +100,32 @@ SUPPORTED_FILTERS = {
 # whenever it changes.
 IGNORED_FILTERS = {"fiscal_year", "fiscal_period", "section", "is_table"}
 
+# Filters that take one value only. Everything else may be given a list, which
+# becomes an IN. `segment` and `basis` are looked up in a table of known names
+# rather than compared, so a list has nowhere to go.
+SINGLE_VALUE_FILTERS = {"segment", "basis"}
+
+
+def _match_one_or_many(key, column, value):
+    """`column = ?` for one value, `column IN (?, ?)` for several.
+
+    A list used to reach DuckDB as a single parameter and fail as a cast error,
+    which the wrapper then reported as RetrievalUnavailableError -- an outage,
+    telling the caller to retry something that could never work.
+    """
+    if not isinstance(value, (list, tuple, set)):
+        return f" AND {column} = ?", [value]
+
+    values = list(value)
+    if not values:
+        raise ValueError(f"{key} is an empty list; give at least one value or drop the filter")
+    for item in values:
+        if isinstance(item, (list, tuple, set, dict)):
+            raise ValueError(f"{key} may be a list of values, but not a list of lists")
+
+    placeholders = ", ".join("?" for _ in values)
+    return f" AND {column} IN ({placeholders})", values
+
 # Old names that turned up in earlier drafts. Hint rather than guess.
 RENAMED_FILTERS = {
     "form_type": "form",
@@ -136,13 +163,15 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         raise ValueError("filters must be a dict or None")
 
     filters = filters or {}
-    for key in filters:
+    for key, value in filters.items():
         if key not in SUPPORTED_FILTERS:
             hint = RENAMED_FILTERS.get(key)
             message = f"unsupported filter: {key}"
             if hint:
                 message += f" (use '{hint}')"
             raise ValueError(message)
+        if key in SINGLE_VALUE_FILTERS and isinstance(value, (list, tuple, set)):
+            raise ValueError(f"{key} takes one value, not a list")
 
     sql = "SELECT * FROM financial_facts_v1 WHERE 1=1"
     params = []
@@ -156,8 +185,9 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
         "filing_date": "filing_date"
     }.items():
         if key in filters:
-            sql += f" AND {column} = ?"
-            params.append(filters[key])
+            clause, values = _match_one_or_many(key, column, filters[key])
+            sql += clause
+            params.extend(values)
 
     if "form" in filters:
         # form lives on the filing, not the fact. filings_v1 is required for a
@@ -167,27 +197,11 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
                 f"{_store_path()} has no filings_v1 table, so the form filter "
                 "cannot be applied. Rebuild it with structured/fact_loader_v1.py."
             )
-        sql += """ AND accession_number IN (
-            SELECT accession_number FROM filings_v1 WHERE form = ?
+        clause, values = _match_one_or_many("form", "form", filters["form"])
+        sql += f""" AND accession_number IN (
+            SELECT accession_number FROM filings_v1 WHERE 1=1{clause}
         )"""
-        params.append(filters["form"])
-
-    if "segment" in filters:
-        segments = {
-            "Intelligent Cloud": "msft:IntelligentCloudMember",
-            "More Personal Computing": "msft:MorePersonalComputingMember",
-            "Productivity and Business Processes":
-                "msft:ProductivityAndBusinessProcessesMember"
-        }
-        member = segments.get(filters["segment"])
-        if member is None:
-            raise ValueError("Unknown segment: " + str(filters["segment"]))
-        sql += """ AND EXISTS (
-            SELECT 1 FROM json_each(financial_facts_v1.dimensions) AS d
-            WHERE d.value ->> 'axis' = 'us-gaap:StatementBusinessSegmentsAxis'
-              AND (d.value ->> 'member') = ?
-        )"""
-        params.append(member)
+        params.extend(values)
 
     if "basis" in filters:
         if filters["basis"] != "as_filed":
@@ -195,16 +209,26 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
                 "Only as_filed is available; no restated filing is loaded"
             )
 
-    # fact_id is a hash, so this orders nothing. It is here to make the result
-    # set stable between runs; the ranking happens in rank_records() below,
-    # after the question has been read.
-    sql += " ORDER BY fact_id"
-
-    conn = duckdb.connect(
-        _store_path(),
-        read_only=True
-    )
+    path = _store_path()
+    conn = duckdb.connect(path, read_only=True)
     try:
+        # The segment members come from the store, so this needs the
+        # connection open before the SQL is finished.
+        if "segment" in filters:
+            members = segments.resolve(conn, filters["segment"], path)
+            placeholders = ", ".join("?" for _ in members)
+            sql += f""" AND EXISTS (
+                SELECT 1 FROM json_each(financial_facts_v1.dimensions) AS d
+                WHERE d.value ->> 'axis' = '{segments.SEGMENT_AXIS}'
+                  AND (d.value ->> 'member') IN ({placeholders})
+            )"""
+            params.extend(members)
+
+        # fact_id is a hash, so this orders nothing. It is here to make the
+        # result set stable between runs; the ranking happens in
+        # rank_records() below, after the question has been read.
+        sql += " ORDER BY fact_id"
+
         return conn.execute(sql, params).df().to_dict("records")
     finally:
         conn.close()
@@ -247,12 +271,25 @@ def rank_records(records, query, filters, top_k):
         if score > 0:
             scored.append((score, r))
 
-    # Equal scores are common: the same concept reported for three fiscal
-    # years ties exactly. Newest first is the more useful answer, and the
-    # fact id after that keeps the order identical between runs.
-    scored.sort(key=lambda pair: (-pair[0],
-                                  _period_sort_key(pair[1]),
-                                  pair[1]["fact_id"]))
+    # Equal scores are common, and until now the fact id decided them, which
+    # is a hash. A statement prints the quarter and the year-to-date column
+    # together, so "revenue for the three months ended March 31" tied with the
+    # nine-month figure ending the same day and either could win.
+    #
+    # Three tie-breaks before the hash, in the order Eval asked for them:
+    #   1. the period the question named, if it named one
+    #   2. the consolidated fact over a slice of it
+    #   3. the newest period
+    asked = concept_match.asked_duration_days(query)
+    scored.sort(key=lambda pair: (
+        -pair[0],
+        0 if concept_match.duration_matches(
+            asked, concept_match.duration_days(pair[1].get("period_start"),
+                                               pair[1].get("period_end"))) else 1,
+        len(concept_match._dimension_entries(pair[1].get("dimensions"))),
+        _period_sort_key(pair[1]),
+        pair[1]["fact_id"],
+    ))
     return scored[:top_k]
 
 

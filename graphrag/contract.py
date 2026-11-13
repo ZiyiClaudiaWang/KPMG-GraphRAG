@@ -244,15 +244,20 @@ def validate_results(results: object, top_k: int) -> None:
 
 
 def sort_key(item: dict) -> tuple:
-    """Deterministic ordering: score descending, then the provenance key.
+    """Score descending, and nothing else.
 
-    RAG ties on chunk_id. Our arms have none, so we fall through to
-    section_id and then fact_id.
+    Equal scores keep the order the backend returned them in. Python's sort is
+    stable, so this preserves it rather than imposing an order of our own.
+
+    This used to tie on the provenance key, which is a hash, and that quietly
+    threw away everything the backend knew. A statement prints the quarter and
+    the year-to-date column together, so "revenue for the three months ended
+    March 31" matches two facts with the same score; the arm can tell which
+    one the question asked for, and the contract cannot. Ordering by fact id
+    meant the arm's answer was discarded and a hash decided.
+
+    So the rule is: a backend owns the order of its own ties, and must return
+    them in a deterministic order. Both of ours sort explicitly before they
+    return.
     """
-    tiebreak = (
-        item.get("chunk_id")
-        or item.get("section_id")
-        or item.get("metadata", {}).get("fact_id")
-        or ""
-    )
-    return (-item["score"], tiebreak)
+    return (-item["score"],)

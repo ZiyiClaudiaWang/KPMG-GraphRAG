@@ -41,7 +41,7 @@ def export_from_db(tool_folder: Path) -> None:
 
 def check_exports() -> bool:
     """Report each export; return False if any is missing or looks wrong."""
-    ok = True
+    ok = Truef
     for f in filings():
         path = Paths.sections(f)
         if not path.exists():
@@ -59,8 +59,43 @@ def check_exports() -> bool:
             ok = False
         log(STEP, f"{path.name}: {len(rows)} sections, processing_set_id={next(iter(sets))}")
     if not ok:
-        accessions = " ".join(f["accession"] for f in filings())
-        log(STEP, "Export missing filings with:  uv run graphrag_data.py fetch --accessions " + accessions)
+        log(STEP, "Export them with:  python run_pipeline.py --steps fetch --from-db <folder holding graphrag_data.py and .env.aws>")
+    return ok
+
+def check_exports() -> bool:
+    """Report each export; return False if any is missing or looks wrong."""
+    ok = True
+    for f in filings():
+        path = Paths.sections(f)
+        if not path.exists():
+            log(STEP, f"MISSING {path}")
+            ok = False
+            continue
+        rows = list(read_jsonl(path))
+        if not rows:                                                    
+            log(STEP, f"WARNING {path.name}: no sections")              
+            ok = False                                                  
+            continue                                                    
+        sets = {r.get("processing_set_id") for r in rows}
+        forms = {r.get("form") for r in rows}
+        if forms != {f["form"]}:
+            log(STEP, f"WARNING {path.name}: form {forms} does not match config {f['form']}")
+            ok = False
+        if len(sets) != 1:
+            log(STEP, f"WARNING {path.name}: more than one processing_set_id {sets}")
+            ok = False
+        statuses = {}                                                  
+        for r in rows:                                                  
+            statuses.setdefault(r.get("section_validation_status"), []).append(r["section_key"]) 
+        unknown = set(statuses) - {"detected", "unverified"}           
+        if unknown:                                                   
+            log(STEP, f"WARNING {path.name}: unknown section_validation_status {sorted(unknown, key=str)}") 
+            ok = False                                                 
+        if "unverified" in statuses:                                   
+            log(STEP, f"NOTE {path.name}: unverified sections: {', '.join(statuses['unverified'])}") 
+        log(STEP, f"{path.name}: {len(rows)} sections, processing_set_id={next(iter(sets))}")
+    if not ok:
+        log(STEP, "Export them with:  python run_pipeline.py --steps fetch --from-db <folder holding graphrag_data.py and .env.aws>")  
     return ok
 
 

@@ -1,0 +1,50 @@
+{
+  "request_hash": "b753f262cba8b2140678e1ade88f6d1595ee5faa4c876b3d02e20b2caeaa84e6",
+  "raw_response": {
+    "id": "chatcmpl-EgqpBfScuz9R3D2jnXg3syCmySAf6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence expresses uncertainty and inability to predict future effects of climate-related policies, indicating a forward-looking statement with hedged risk elements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"competition laws\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"enforcement of competition laws in the healthcare industry\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"strategic transactions\",\"annotation_note\":\"The sentence states a possible adverse event (review by competition regulators causing delays or unfavorable outcomes) without asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"violations of competition laws\",\"annotation_note\":\"The sentence describes possible adverse consequences of violations without asserting they have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"civil lawsuits for alleged violations of competition laws\",\"annotation_note\":\"The sentence describes a possible adverse event without asserting it has occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"proposed laws restricting healthcare ownership structures\",\"annotation_note\":\"The sentence discusses possible future laws and their potential impact without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"enforcement, enactment, expansion, or application of competition and related laws\",\"annotation_note\":\"The sentence states that these laws might materially adversely affect operations and growth strategy, indicating a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CVS Health Corporation\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"CVS Health Corporation (“CVS”)\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CVS\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"pharmaceutical distribution partnership with CVS\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CVS\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"CVS was approximately 21% of our total trade accounts receivable\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions agreements with GPOs and government entities but does not assert a risk or future event.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881541,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_709851ae88",
+    "usage": {
+      "completion_tokens": 821,
+      "prompt_tokens": 2408,
+      "total_tokens": 3229,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 1280,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_4f78694563ed4eeaa15a51eb12fbbce7",
+  "latency_ms": 6173
+}

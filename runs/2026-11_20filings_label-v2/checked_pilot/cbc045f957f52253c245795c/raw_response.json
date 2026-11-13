@@ -1,0 +1,50 @@
+{
+  "request_hash": "cbc045f957f52253c245795c878f3c408619366986001abc3cb70450bd41a64f",
+  "raw_response": {
+    "id": "chatcmpl-EgrOcfjRJMursAP97y8qXm1GRkej4",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to local product preferences and requirements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to longer-term receivables outside the U.S.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to less intellectual property protection outside the U.S.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to labor regulations and workforce instability.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to political and economic instability including armed conflicts and insurrections.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to restrictions on local currency conversion or cash extraction.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to changes or interpretations of tax laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\"],\"subject_scope\":\"operations in different countries, including emerging markets\",\"annotation_note\":\"This is a possible adverse event related to economic instability, inflation, recession or interest rate fluctuations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"international trade policy of the U.S. and other countries\",\"annotation_note\":\"This is a possible adverse event that changes in trade policy could adversely impact Medtronic.\",\"is_risk_heading\":true,\"entity_mentions\":[{\"mention_text\":\"Medtronic\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Changes in the international trade policy of the U.S. and other countries, including increased trade restrictions or tariffs, have the potential to adversely impact Medtronic.\"}]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"global economic competition and trade tensions between the U.S. and China and other trading partners\",\"annotation_note\":\"This is a possible adverse event presenting significant costs and risk to Medtronic.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medtronic\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"...impose significant costs and present a risk to Medtronic.\"}]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"China and the U.S. government restrictions\",\"annotation_note\":\"This is a possible adverse event that restrictions could affect Medtronic's market access.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"China\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"China, which comprises approximately six percent of our total revenue, and the U.S., could impose other types of restrictions such as limitations on government procurement or technology export restrictions, which could affect Medtronic’s access to significant markets.\"},{\"mention_text\":\"Medtronic\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"...which could affect Medtronic’s access to significant markets.\"}]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Trade, export control, and other regulatory measures targeting specific technologies and capabilities\",\"annotation_note\":\"This is a possible adverse event that such measures could restrict the company's ability in certain markets including China.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"China\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"...which could restrict our ability to develop, manufacture, deploy, service, or support certain products or operations in particular markets, including China.\"}]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Geopolitical tensions and conflicts\",\"annotation_note\":\"This is a possible adverse event that geopolitical tensions could adversely impact the business.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"Russia-Ukraine conflict and resulting sanctions and export restrictions\",\"annotation_note\":\"This is a possible adverse event creating barriers and impacting global supply chains.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states current monitoring activities and existing supplier dependencies; no explicit future risk asserted.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883738,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1166,
+      "prompt_tokens": 2346,
+      "total_tokens": 3512,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_0749f443a77b4d54ac3647fa5ac5fc4d",
+  "latency_ms": 10576
+}

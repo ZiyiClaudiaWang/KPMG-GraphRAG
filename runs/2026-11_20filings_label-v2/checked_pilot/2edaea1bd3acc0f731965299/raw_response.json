@@ -1,0 +1,50 @@
+{
+  "request_hash": "2edaea1bd3acc0f73196529977ca7a9e07954bcd8332113cbc228448d83359dc",
+  "raw_response": {
+    "id": "chatcmpl-EgrJZUqYwzqnKgWgEGdrxbXNUYXBB",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains a historical reference and a mission statement as stated by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mission statement of the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Statement about company values.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current business strategy focus areas.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains explicit expectation about future revenue growth.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses company aims and future plans regarding technology and patient needs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses company intention to increase product adoption globally.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current company practices and approach to customers and patients.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current company activities and approach to partnerships and customer experience.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses confidence and plans regarding use of technology, AI, and data in future care delivery.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Defines the company's three reportable segments.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cardiovascular Portfolio\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"the Cardiovascular Portfolio\"},{\"mention_text\":\"Neuroscience Portfolio\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"the Neuroscience Portfolio\"},{\"mention_text\":\"Medical Surgical Portfolio\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"the Medical Surgical Portfolio\"}]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Announces intent and plan to separate a business segment in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Diabetes Business\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"the Diabetes Business\"},{\"mention_text\":\"MiniMed Group, Inc. (MiniMed)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"MiniMed Group, Inc. (MiniMed)\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Reports a completed event following the intent announced in s14.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"MiniMed\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"MiniMed\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883425,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 836,
+      "prompt_tokens": 2209,
+      "total_tokens": 3045,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_447ded3da3ad466b96bf4f726b150964",
+  "latency_ms": 6780
+}

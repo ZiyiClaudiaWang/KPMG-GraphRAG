@@ -1,0 +1,50 @@
+{
+  "request_hash": "cd2f1018ed418c72be78f79fbb1916c0508835c5af9625bd93e1cff8a9dc662a",
+  "raw_response": {
+    "id": "chatcmpl-EgqQhyGR5JTU5AhVZlHCwqY8TRmAD",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes a possible future constraint on suppliers' capacity; hedged risk about supply chain issues.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Possible failure to renew supply agreements or obtain components timely; hedged risk about supply chain.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Possible supplier failure, consolidation, or shift in production focus limiting component availability; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Explicit statement of significant risks of supply shortages and price increases; hedged risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Possible design and manufacturing defects affecting business and reputation; hedged risk.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"States that products can be affected by defects; factual statement about product complexity.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"States that sophisticated software often has issues; factual statement about software complexity.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"States defects can exist in third-party components; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Possible safety risks and damages from component defects; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Possible increased risks as products enter specialized applications; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"States service offerings can have quality issues and outages; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"States services have not always performed as anticipated; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Possible increased safety risks from new technologies like AI; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Possible inability to detect and fix all issues causing widespread problems; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Possible exploitation of errors and vulnerabilities compromising security; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880023,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 836,
+      "prompt_tokens": 2412,
+      "total_tokens": 3248,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_6e7e41cc14cc493dae13db167580a3d6",
+  "latency_ms": 6553
+}
