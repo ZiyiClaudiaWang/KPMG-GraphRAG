@@ -5,3 +5,8 @@ pytest>=8.0
 # The structured arm. Without this the whole tests/ run fails at collection,
 # so nothing in structured/ was covered by CI at all.
 duckdb>=1.0
+
+# The dashboard only. Imported in tools/dashboard/app.py and nowhere else, so
+# the report stays importable from CI and the deck builder without them.
+streamlit>=1.40
+pandas>=2.0
