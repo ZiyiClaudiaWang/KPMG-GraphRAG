@@ -18,9 +18,11 @@ Two sources, because they are not the same thing:
                    one processing set and one extraction version, so reading it
                    directly does not mix runs.
 
-Default is `ready`. Ask for `raw` deliberately and the store records which was
-used, because a number from an unvalidated set should not be quoted as if the
-Data team had signed it off.
+`--source` is required and has no default. `ready` is validated and covers one
+filing of our twenty; `raw` covers all twenty and is unvalidated. Neither is
+safe to assume, so the caller says which, and the store records the answer --
+a number from an unvalidated set should not be quoted as if the Data team had
+signed it off.
 
 Run:
     python3 structured/fact_loader_data_api.py --env ~/db-test/.env.aws \
@@ -319,7 +321,14 @@ def main():
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--env", default="~/db-test/.env.aws", help="dotenv holding PGHOST, PGUSER and the rest")
     p.add_argument("--output", required=True)
-    p.add_argument("--source", choices=("ready", "raw"), default="ready")
+    # No default. `ready` used to be one, and it covers a single filing of our
+    # twenty -- so the command you would reach for first built a store that
+    # looked fine and held almost nothing. Neither source is the safe choice to
+    # assume: `ready` is validated and nearly empty, `raw` is complete and
+    # unvalidated. Make the caller say which.
+    p.add_argument("--source", choices=("ready", "raw"), required=True,
+                   help="ready: Data's validated view, 7 filings, 1 of ours. "
+                        "raw: all 20 of ours, their unvalidated sets v1-v3")
     p.add_argument("--accessions", nargs="+", help="accession numbers to load")
     p.add_argument("--all-of", metavar="FILINGS_YAML",
                    help="load every accession in a filing list, e.g. config/filings.yaml")

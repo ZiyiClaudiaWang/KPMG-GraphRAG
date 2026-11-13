@@ -279,3 +279,49 @@ def duration_matches(asked: int | None, actual: int | None) -> bool:
     if asked is None or actual is None:
         return False
     return abs(asked - actual) <= _DURATION_TOLERANCE
+
+
+# Words that say the answer is negative. A single XBRL concept covers both
+# directions -- NetIncomeLoss is the figure whether the company made money or
+# lost it -- so "which company reported a net loss" matches every filer's
+# profit just as well as the one loss. Nothing in the concept name can tell
+# them apart; only the value can.
+_NEGATIVE_WORDS = frozenset({
+    "loss", "losses", "lost", "negative", "deficit", "shortfall",
+    "decline", "declined", "decrease", "decreased", "fell", "drop", "dropped",
+})
+
+# And the other way, so "which companies were profitable" does not rank a loss
+# first for the same reason.
+_POSITIVE_WORDS = frozenset({
+    "profit", "profitable", "gain", "gains", "income", "earnings",
+    "growth", "grew", "increase", "increased", "rose",
+})
+
+
+def asked_sign(question: str) -> int | None:
+    """-1 if the question asks about a negative figure, 1 positive, None neither.
+
+    `income` and `loss` both appear in plenty of neutral questions, so a word
+    on its own is weak evidence. This only commits when the question leans one
+    way and not the other.
+    """
+    words = {w for w in _TOKEN.findall(str(question).lower())}
+    negative = bool(words & _NEGATIVE_WORDS)
+    positive = bool(words & _POSITIVE_WORDS)
+    if negative == positive:
+        return None
+    return -1 if negative else 1
+
+
+def sign_matches(asked: int | None, value: object) -> bool:
+    """Whether a fact's value points the way the question asked."""
+    if asked is None or value is None:
+        return False
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return False
+    if number == 0:
+        return False
+    return (number < 0) == (asked < 0)

@@ -281,11 +281,17 @@ def rank_records(records, query, filters, top_k):
     #   2. the consolidated fact over a slice of it
     #   3. the newest period
     asked = concept_match.asked_duration_days(query)
+    # One XBRL concept covers both directions: NetIncomeLoss is the figure
+    # whether the company made money or lost it. So "which company reported a
+    # net loss" matches every filer's profit exactly as well as the one loss,
+    # and the concept name cannot separate them. The value can.
+    wanted_sign = concept_match.asked_sign(query)
     scored.sort(key=lambda pair: (
         -pair[0],
         0 if concept_match.duration_matches(
             asked, concept_match.duration_days(pair[1].get("period_start"),
                                                pair[1].get("period_end"))) else 1,
+        0 if concept_match.sign_matches(wanted_sign, pair[1].get("numeric_value")) else 1,
         len(concept_match._dimension_entries(pair[1].get("dimensions"))),
         _period_sort_key(pair[1]),
         pair[1]["fact_id"],
