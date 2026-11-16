@@ -6,6 +6,8 @@ venv/
 .env
 .DS_Store
 .env.aws
+.env.*
+!.env.example
 *.pem
 data/
 /runs/*/output/load_preview.cypher
