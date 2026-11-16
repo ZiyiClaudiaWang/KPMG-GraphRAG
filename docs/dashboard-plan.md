@@ -1,6 +1,8 @@
 # Corpus dashboard — plan
 
-Status: proposal, not built. Written 13 Nov 2026 for review before we start.
+Status: built, in review on #77. Written 13 Nov 2026 as a proposal; the problems
+below are kept as written because they are what it was built to catch, with one
+correction from 16 Nov marked inline.
 Owner: Adeline. Reviewer: Kelly.
 
 ## The problem 
@@ -13,6 +15,16 @@ nobody being able to see what is loaded.
   repo's `.env` points at. Checked by hand today: five labels, `Subsidiary`
   absent, counts byte-identical to 11 Nov. Nine Exhibit 21 questions sit behind
   that one run, and the only place it was written down was a handover note.
+
+  **Corrected 16 Nov, by the tool this document proposed.** The load has since
+  run — on `internal`, which now has 752 `Subsidiary` nodes, 752 `OWNS` edges
+  and all ten 10-K parents covered. `canonical`, the instance Eval and Agents
+  are given, still has no `Subsidiary` label at all, so the nine questions fail
+  for them exactly as described. The claim was never wrong about one graph and
+  never right about both, which is the point: "the live graph" was not a thing
+  that existed, and a sentence that cannot name its instance cannot be checked.
+  Run `tools/corpus_report.py` once per `--instance` to see the difference; the
+  dashboard's sidebar radio does the same thing without a second run.
 - Two fact stores on one laptop hold **21,505** and **24,533** facts, and you
   told them apart by the *absence* of a key in `store_meta_v1`. The EDGAR store
   is deprecated as of 13 Nov and the data-API store is what we build on, which

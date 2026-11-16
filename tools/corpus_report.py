@@ -9,7 +9,10 @@ numbers that would have.
     python3 tools/corpus_report.py                         the internal graph
     python3 tools/corpus_report.py --instance canonical     what Eval is given
     python3 tools/corpus_report.py --json report.json       machine readable
-    python3 tools/corpus_report.py --compare canonical      diff two instances
+
+Run it once per instance to compare the two. This docstring advertised a
+--compare flag before anyone wrote one, which is the same shape of
+plausible-but-untrue line the report exists to catch.
 
 Two rules this file follows, because they are the ones that bite:
 
