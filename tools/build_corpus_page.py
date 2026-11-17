@@ -196,15 +196,38 @@ def build(report: dict, generated_on: str) -> str:
             f"{totals['companies']:,} companies · {totals['facts']:,} facts · "
             f"{totals['concepts']:,} concepts</div>")
 
+        dups = store["duplicates"]
+        parts.append("<h2>Duplicates</h2>")
+        parts.append(table(
+            ["field", "count", "what it means"],
+            [["repeated fact_id", f"{dups['repeated_fact_id']:,}",
+              "The same identity twice. A loader bug. Should be 0."],
+             ["statement duplicates", f"{dups['statement_duplicates']:,}",
+              "One fact under more than one context in a single filing."],
+             ["comparative groups", f"{dups['comparative_groups']:,}",
+              "Last year's figure inside this year's filing. Expected, and must "
+              "not be deduped away."],
+             ["restated groups", f"{dups['restated_groups']:,}",
+              "The same fact with a different value across filings. Mostly "
+              "acquisition accounting revised in a later filing."]],
+            numeric={1}))
+
         parts.append("<h2>Per filing</h2>")
-        parts.append("<p class=note>Totals hide a filing that loaded thin or broke.</p>")
+        parts.append(
+            "<p class=note>Totals hide a filing that loaded thin or broke. The four "
+            "duplicate counts repeat here, so a corpus number can be traced to where "
+            "it comes from. A comparative or restated group spans two filings by "
+            "definition, so it counts against both.</p>")
         parts.append(table(
             ["ticker", "form", "filing date", "facts", "concepts", "periods",
-             "dimensioned", "dimensioned share"],
+             "dimensioned", "repeated fact_id", "statement dups",
+             "comparative", "restated"],
             [[r["ticker"], r["form"], r["filing_date"], f"{r['facts']:,}",
               f"{r['concepts']:,}", r["periods"], f"{r['dimensioned']:,}",
-              r["dimensioned_share"]] for r in store["per_filing"]],
-            numeric={3, 4, 5, 6, 7}))
+              r["repeated_fact_id"], r["statement_duplicates"],
+              f"{r['comparative_groups']:,}", r["restated_groups"]]
+             for r in store["per_filing"]],
+            numeric={3, 4, 5, 6, 7, 8, 9, 10}))
 
         parts.append("<h2>Key concepts</h2>")
         parts.append(

@@ -202,7 +202,25 @@ with corpus_tab:
             c.metric("Facts", f"{totals['facts']:,}")
             d.metric("Concepts", f"{totals['concepts']:,}")
 
-            st.caption("Per filing. Totals hide a filing that loaded thin or broke.")
+            dups = store["duplicates"]
+            st.caption("Duplicates")
+            e, f, g, h = st.columns(4)
+            e.metric("Repeated fact_id", f"{dups['repeated_fact_id']:,}",
+                     help="The same identity twice. A loader bug. Should be 0.")
+            f.metric("Statement duplicates", f"{dups['statement_duplicates']:,}",
+                     help="One fact under more than one context in a filing.")
+            g.metric("Comparative groups", f"{dups['comparative_groups']:,}",
+                     help="Last year's figure inside this year's filing. Expected, "
+                          "and must not be deduped away.")
+            h.metric("Restated groups", f"{dups['restated_groups']:,}",
+                     help="The same fact with a different value across filings. "
+                          "Mostly acquisition accounting revised in a later filing.")
+
+            st.caption(
+                "Per filing. Totals hide a filing that loaded thin or broke. The "
+                "four duplicate counts are repeated per filing, so a corpus number "
+                "can be traced to where it comes from. A comparative or restated "
+                "group spans two filings, so it counts against both.")
             st.dataframe(pd.DataFrame(store["per_filing"]), hide_index=True,
                          use_container_width=True)
         else:
