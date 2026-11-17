@@ -346,13 +346,21 @@ def store_per_filing(con) -> list[dict]:
         "  ON x.accession_number = f.accession_number "
         "GROUP BY 1, 2, 3, 4 ORDER BY f.ticker"
     ).fetchall()
+    duplicates = store_duplicates_per_filing(con)
     out = []
     for accession, ticker, form, filing_date, facts, concepts, periods, dimensioned in rows:
+        found = duplicates.get(accession, {})
         out.append({
             "accession": accession, "ticker": ticker, "form": form,
             "filing_date": filing_date, "facts": facts, "concepts": concepts,
             "periods": periods, "dimensioned": dimensioned,
             "dimensioned_share": round(dimensioned / facts, 3) if facts else None,
+            # The same four counts the corpus totals carry, so a reader can go
+            # from "32 restated" to which filings they are in without a query.
+            "repeated_fact_id": found.get("repeated_fact_id", 0),
+            "statement_duplicates": found.get("statement_duplicates", 0),
+            "comparative_groups": found.get("comparative_groups", 0),
+            "restated_groups": found.get("restated_groups", 0),
         })
     return out
 
@@ -489,6 +497,46 @@ def store_duplicates(con) -> dict:
     }
 
 
+def store_duplicates_per_filing(con) -> dict[str, dict]:
+    """The four duplicate counts again, attributed to each filing.
+
+    The corpus totals say whether we have a problem. These say where it is,
+    which is the question anyone asks next. A comparative or restated group
+    spans two filings by definition, so it counts against both: the pair is
+    what is interesting, and dropping either side hides half of it.
+    """
+    counts: dict[str, dict] = {}
+
+    def fill(key: str, sql: str) -> None:
+        for accession, count in con.execute(sql).fetchall():
+            counts.setdefault(accession, {})[key] = count
+
+    fill("repeated_fact_id",
+         "SELECT accession_number, count(*) FROM financial_facts_v1 "
+         "WHERE fact_id IN (SELECT fact_id FROM financial_facts_v1 "
+         "                  GROUP BY 1 HAVING count(*) > 1) "
+         "GROUP BY 1")
+    fill("statement_duplicates",
+         "SELECT accession_number, count(*) FROM ("
+         "  SELECT accession_number FROM financial_facts_v1 "
+         "  GROUP BY accession_number, concept_name, period_start, period_end, dimensions "
+         "  HAVING count(DISTINCT context_ref) > 1) GROUP BY 1")
+    fill("comparative_groups",
+         "SELECT accession_number, count(*) FROM ("
+         "  SELECT unnest(list(DISTINCT accession_number)) AS accession_number "
+         "  FROM financial_facts_v1 "
+         "  GROUP BY cik, concept_name, period_start, period_end, period_type, dimensions "
+         "  HAVING count(DISTINCT accession_number) > 1) GROUP BY 1")
+    fill("restated_groups",
+         "SELECT accession_number, count(*) FROM ("
+         "  SELECT unnest(list(DISTINCT accession_number)) AS accession_number "
+         "  FROM financial_facts_v1 WHERE numeric_value IS NOT NULL "
+         "  GROUP BY cik, concept_name, period_start, period_end, period_type, dimensions "
+         "  HAVING count(DISTINCT accession_number) > 1 "
+         "     AND count(DISTINCT numeric_value) > 1) GROUP BY 1")
+    return counts
+
+
 def store_date_checks(con) -> dict:
     """Four cheap date checks. The last one bears on the period ranking bug."""
     def count(where: str) -> int:
@@ -618,10 +666,14 @@ def render(report: dict) -> str:
             add("  every filing has all five key concepts")
 
         dups = store["duplicates"]
-        add(f"  repeated fact_id {dups['repeated_fact_id']} (should be 0) · "
-            f"statement duplicates {dups['statement_duplicates']:,} · "
-            f"comparative groups {dups['comparative_groups']:,} · "
-            f"restated {dups['restated_groups']:,}")
+        add("  duplicates")
+        for field, note in (
+            ("repeated_fact_id", "a loader bug. Should be 0"),
+            ("statement_duplicates", "one fact under more than one context in a filing"),
+            ("comparative_groups", "last year's figure inside this year's filing. Expected"),
+            ("restated_groups", "same fact, different value across filings"),
+        ):
+            add(f"    {field:<22}{dups[field]:>7,}   {note}")
         dates = store["dates"]
         add("  dates: " + " · ".join(f"{k} {v:,}" for k, v in dates.items()))
         add("")
