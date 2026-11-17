@@ -20,6 +20,63 @@ streamlit run tools/dashboard/app.py
 Run the report before the dashboard. If credentials are wrong you get one legible
 error on the terminal instead of a stack trace inside a web page.
 
+## Commands
+
+Every one of these runs from the repository root.
+
+**The report.** Prints both arms and the provenance of where the numbers came from.
+
+```bash
+python3 tools/corpus_report.py                          # internal graph, the default
+python3 tools/corpus_report.py --instance canonical     # what Eval and Agents are given
+python3 tools/corpus_report.py --json report.json       # machine readable, same figures
+python3 tools/corpus_report.py --no-graph               # store only, never touches Aura
+python3 tools/corpus_report.py --no-store               # graph only
+python3 tools/corpus_report.py --scope some-run-v2      # pick a run when there is more than one
+python3 tools/corpus_report.py --env-file ~/elsewhere/.env.internal
+```
+
+There is no `--compare`. Run it once per instance and diff the two JSON files, or use
+the sidebar radio, which switches without a second run.
+
+`--env-file` is the one to reach for from a git worktree, where `.env.internal` may not
+exist beside the code. It takes an absolute path and overrides `--instance`.
+
+**The dashboard.**
+
+```bash
+streamlit run tools/dashboard/app.py --server.address 127.0.0.1
+```
+
+Keep `--server.address 127.0.0.1`. Without it Streamlit also binds a public address and
+prints it in the startup banner, and this app reads a live graph with no authentication
+in front of it. Add `--server.port 8520` if the default is taken. Stop it with `Ctrl-C`,
+or `pkill -f "streamlit run"` if it is running detached.
+
+**The static page.** For sharing outside the team: no credentials, no server, nothing
+live. Netlify, GitHub Pages and the website are all static hosting and none of them can
+run Streamlit, so this is what gets hosted.
+
+```bash
+python3 tools/corpus_report.py --json /tmp/corpus.json
+python3 tools/build_corpus_page.py \
+    --report /tmp/corpus.json \
+    --dated 2026-11-16 \
+    --output ~/linlinlin.online/kpmg/corpus-2026-11-16.html
+```
+
+`--dated` is required rather than read from the clock, so rebuilding an old report does
+not relabel it as today. Put the same date in the filename: an older page stays readable
+instead of being overwritten, which is what makes it citable in a deck.
+
+**The tests.** No network, no Aura, no built store — they run against a fake query
+runner and an in-memory DuckDB.
+
+```bash
+python3 -m pytest tests/test_corpus_report.py -q      # just this tool
+python3 -m pytest tests/ -q                           # everything, 243 pass / 2 skip
+```
+
 ## Credentials
 
 Nothing here is in the repo and nothing here should ever be pasted into a commit, a
@@ -83,9 +140,14 @@ listing them.
 Edges: `SUPPORTS` 10,774 · `CONCERNS_RISK` 6,198 · `OWNS` 752 · `CONTAINS` 48 ·
 `FILES` 20. Subsidiary coverage 10 of 10 10-Ks. No orphans.
 
-**Graph, `canonical`** — the same, minus `Subsidiary` and `OWNS` entirely. Coverage
-reads 0 of 10 and the driver warns that the label does not exist. That is the
-difference between the two instances, not a broken setup.
+**Graph, `canonical`** — as of 16 Nov, identical to the table above: 752 `Subsidiary`,
+752 `OWNS`, coverage 10 of 10, no orphans. The Exhibit 21 load has now run on both
+instances, so the nine subsidiary questions are answerable through the instance Eval
+and Agents are given.
+
+This line said the opposite three days ago, and the change was found by running the
+report rather than by being told. Treat the two instances as able to differ at any
+time and read the provenance block rather than this file.
 
 **Structured arm** — 20 filings · 10 companies · 24,533 facts · 2,063 concepts.
 
