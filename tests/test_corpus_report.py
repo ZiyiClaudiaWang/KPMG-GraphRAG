@@ -330,3 +330,47 @@ def test_a_store_with_no_meta_table_says_so():
     con.execute("CREATE TABLE financial_facts_v1 (fact_id VARCHAR)")
     assert "__missing__" in cr.store_meta(con)
     con.close()
+
+
+# --------------------------------------------------------------------------
+# waking a cold instance
+
+
+class _Factory:
+    """A driver factory that fails a given number of times before connecting."""
+
+    def __init__(self, failures: int):
+        self.failures = failures
+        self.calls = 0
+
+    def driver(self, uri, auth=None):
+        self.calls += 1
+        factory = self
+
+        class _Driver:
+            def verify_connectivity(self):
+                if factory.calls <= factory.failures:
+                    raise RuntimeError("SessionExpired")
+
+        return _Driver()
+
+
+def test_a_cold_instance_is_woken_rather_than_reported_as_down():
+    """Measured against a sleeping instance: verify_connectivity raised twice and
+    connected on the third attempt. One call meant the first run of the morning
+    failed for everyone."""
+    factory = _Factory(failures=2)
+    slept = []
+    driver = cr._connect_with_retry(factory, "neo4j+s://x", ("u", "p"),
+                                    sleep=slept.append)
+    assert driver is not None
+    assert factory.calls == 3
+    assert slept == [8.0, 8.0]
+
+
+def test_a_graph_that_never_answers_fails_loudly():
+    """Wrong credentials must not look like a slow wake-up."""
+    factory = _Factory(failures=99)
+    with pytest.raises(SystemExit) as caught:
+        cr._connect_with_retry(factory, "neo4j+s://x", ("u", "p"), sleep=lambda _: None)
+    assert "paused" in str(caught.value)

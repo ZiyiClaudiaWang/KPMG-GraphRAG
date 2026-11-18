@@ -71,6 +71,16 @@ KEY_CONCEPTS: dict[str, tuple[str, ...]] = {
 # these as entirely NULL, which is how we found that it does.
 WATCHED_COLUMNS = ("numeric_value", "unit", "scale", "sign", "format", "decimals")
 
+# What canonical's fulltext index was built with. Recorded here because nothing
+# in this repository creates the index, so this constant is the only written
+# record of how the graph arm's matching is configured.
+EXPECTED_FULLTEXT_ANALYZER = "standard-no-stop-words"
+FULLTEXT_CREATE_STATEMENT = (
+    "CREATE FULLTEXT INDEX `claim_quote_fulltext` FOR (n:`Claim`) ON EACH [n.`quote`] "
+    "OPTIONS {indexConfig: {`fulltext.analyzer`: 'standard-no-stop-words', "
+    "`fulltext.eventually_consistent`: false}}"
+)
+
 
 # --------------------------------------------------------------------------
 # environment
@@ -106,6 +116,40 @@ def resolve_env(instance: str, env_file: str | None) -> dict[str, str]:
 
 # --------------------------------------------------------------------------
 # graph arm
+
+
+def _connect_with_retry(driver_factory, uri: str, auth, attempts: int = 4,
+                        wait: float = 8.0, sleep=None):
+    """Open a driver, waking the instance if it is cold.
+
+    One verify_connectivity() does not reliably wake a sleeping Aura instance -
+    measured, it raised SessionExpired twice and connected on the third attempt
+    about sixteen seconds in. A single call was what this did before, and it
+    meant the first run of the morning could simply fail for everyone, with an
+    error that reads like the instance is gone rather than asleep.
+
+    The last failure is re-raised rather than swallowed, so wrong credentials
+    still fail loudly instead of looking like a slow wake-up.
+    """
+    import time
+
+    sleep = sleep or time.sleep
+    last = None
+    for attempt in range(1, attempts + 1):
+        try:
+            driver = driver_factory.driver(uri, auth=auth)
+            driver.verify_connectivity()
+            return driver
+        except Exception as exc:
+            last = exc
+            if attempt < attempts:
+                sleep(wait)
+    raise SystemExit(
+        f"Could not reach the graph after {attempts} attempts: "
+        f"{type(last).__name__}: {last}\n"
+        "A cold Aura instance usually answers by the third try. If this keeps "
+        "failing the instance may be paused, which only a console resume fixes."
+    )
 
 
 def graph_scopes(run: Callable) -> list[dict]:
@@ -284,6 +328,46 @@ def graph_status(run: Callable, scope: str) -> dict:
     return out
 
 
+def graph_indexes(run: Callable) -> dict:
+    """The indexes the graph arm needs, and whether they are there.
+
+    `graph_backend.search` is one fulltext query against `claim_quote_fulltext`.
+    Nothing in this repository creates that index - the name appears once, as a
+    constant in the backend - so an instance loaded by the pipeline has every
+    node and edge and still cannot answer a single question. It fails at query
+    time with a procedure error that names Lucene rather than the setup step
+    nobody wrote down, which is a long way from the cause.
+
+    Counts cannot catch this: the graph looks complete either way.
+    """
+    rows = run("SHOW INDEXES YIELD name, type, labelsOrTypes, properties, options, state "
+               "RETURN name, type, labelsOrTypes, properties, options, state")
+    fulltext = [r for r in rows if r.get("type") == "FULLTEXT"]
+    wanted = next((r for r in fulltext if r["name"] == "claim_quote_fulltext"), None)
+
+    analyzer = None
+    if wanted:
+        analyzer = ((wanted.get("options") or {}).get("indexConfig") or {}).get(
+            "fulltext.analyzer")
+
+    return {
+        "all": [{k: r.get(k) for k in ("name", "type", "labelsOrTypes", "properties", "state")}
+                for r in rows],
+        "fulltext": [r["name"] for r in fulltext],
+        # The backend's constant. Kept as a literal rather than imported so the
+        # report does not depend on the arm it is reporting on.
+        "claim_quote_fulltext": wanted is not None,
+        "state": wanted.get("state") if wanted else None,
+        "analyzer": analyzer,
+        # The analyzer is part of retrieval configuration, not a detail of
+        # storage: this one drops stop words and the default does not, so the
+        # same question matches different claims under each. It lives only in
+        # the database, so two instances can both "have the index" and rank
+        # differently with nothing in the repository to compare.
+        "analyzer_matches_expected": analyzer == EXPECTED_FULLTEXT_ANALYZER,
+    }
+
+
 def graph_report(run: Callable, requested_scope: str | None) -> dict:
     scopes = graph_scopes(run)
     scope, warnings = pick_scope(scopes, requested_scope)
@@ -300,6 +384,7 @@ def graph_report(run: Callable, requested_scope: str | None) -> dict:
     report["subsidiaries"] = subsidiary_coverage(run, scope)
     report["identity"] = graph_identity(run, scope)
     report["extraction_status"] = graph_status(run, scope)
+    report["indexes"] = graph_indexes(run)
     return report
 
 
@@ -634,6 +719,14 @@ def render(report: dict) -> str:
         if spread.get("n"):
             add(f"  claims per section: min {spread['min']} · median {spread['median']} "
                 f"· max {spread['max']} over {spread['n']} sections")
+        indexes = graph.get("indexes") or {}
+        if indexes and not indexes.get("claim_quote_fulltext"):
+            add("  !! no claim_quote_fulltext index - the graph arm cannot answer "
+                "anything on this instance. Create it with:")
+            add(f"     {FULLTEXT_CREATE_STATEMENT}")
+        elif indexes and not indexes.get("analyzer_matches_expected"):
+            add(f"  !! fulltext analyzer is {indexes.get('analyzer')!r}, expected "
+                f"{EXPECTED_FULLTEXT_ANALYZER!r} - the arm will rank differently here")
         identity = graph["identity"]
         add(f"  companies {identity['total']} · no ticker {identity['no_ticker']} "
             f"· no name {identity['no_name']} "
@@ -728,11 +821,9 @@ def build(instance: str, env_file: str | None, scope: str | None,
     if not skip_graph:
         from neo4j import GraphDatabase
 
-        driver = GraphDatabase.driver(
-            env["NEO4J_URI"], auth=(env["NEO4J_USERNAME"], env["NEO4J_PASSWORD"]))
-        # Aura cold-starts. The first call after idle raises, so wake it before
-        # asking it anything or the report reads as an outage.
-        driver.verify_connectivity()
+        driver = _connect_with_retry(
+            GraphDatabase, env["NEO4J_URI"],
+            (env["NEO4J_USERNAME"], env["NEO4J_PASSWORD"]))
         try:
             with driver.session(database=env.get("NEO4J_DATABASE")) as session:
                 def run(cypher: str, **params):
