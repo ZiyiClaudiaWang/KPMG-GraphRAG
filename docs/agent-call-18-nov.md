@@ -1,17 +1,19 @@
 # Agent team call — 18 November 2026
 
-7 things we want to align and free on:
+8 things we want to align and free on:
 
-Three of the seven are changes to how our tools fail. They matter now because
+Three of the eight are changes to how our tools fail. They matter now because
 you are about to write the code that reacts to those failures, and two of the
 four cases are indistinguishable today.
 
-Two are new since this page was first drafted. **Section 6**: there is no way
-for you to traverse the graph through anything we have given you, and the
-answer to that is an operation catalogue we already agreed, not the new arm.
-**Section 7**: your parser and our corpus recognise two companies in common,
-and the two period filters you send are silently dropped by both our arms. If
-time runs short, start at 7 — it is the one that is costing you calls today.
+Three are new since this page was first drafted, and **section 8 is where to
+start** — neither of our arms is wired into your workflow, so there is one
+retriever and nothing to route between. That is ours to fix and the fix is
+small; section 8 carries it written out. **Section 7**: your parser and our
+corpus recognise two companies in common, and the two period filters you send
+are silently dropped by both our arms. **Section 6**: once the arms are in,
+there is still no way to traverse the graph, and the answer to that is an
+operation catalogue we already agreed rather than the new arm.
 
 ---
 
@@ -302,6 +304,103 @@ tell us whether the period keys should be applied or refused.**
 
 ---
 
+## 8 · Our arms are not wired into your workflow, and that is ours to fix first
+
+Read from `agent/integration.py` and `agent/tools/` this morning.
+`retriever=retrieve_evidence` comes from `rag_tool.py`, and `agent/tools/`
+holds that file and a mock. **Neither of our arms is connected.** With one
+retriever there is nothing to route between, so every item below section 4 is
+downstream of this one.
+
+**The reason is ours, not yours.** Both arms only started working on 10
+November, which is the day of your last commit, and two things we owe you have
+not arrived: the import guidance in our PR #32, and Neo4j credentials, which
+have to come out of band rather than through a repo or a chat. We will send
+both today.
+
+### The two files
+
+`agent/tools/graph_tool.py`:
+
+```python
+"""The GraphRAG team's graph arm, in the workflow's retriever slot."""
+
+from graphrag.backends import graph_search
+
+
+def retrieve_evidence(query, filters=None, top_k=8, trace_id=None):
+    """Claims from Neo4j, in the evidence shape you already handle."""
+    return graph_search(query, filters or {}, top_k, trace_id)
+```
+
+`agent/tools/structured_tool.py`:
+
+```python
+"""The GraphRAG team's structured arm, in the workflow's retriever slot."""
+
+from graphrag.backends import structured_search
+
+
+def retrieve_evidence(query, filters=None, top_k=8, trace_id=None):
+    """XBRL facts from the DuckDB store, same evidence shape."""
+    return structured_search(query, filters or {}, top_k, trace_id)
+```
+
+That is the whole adapter. Same four arguments your `retrieval_node` already
+passes, same list of evidence dicts back.
+
+Three practical notes:
+
+- **Import `graphrag.backends`, never `graphrag.retrieve`.** The second hands
+  you a function that raises on every call.
+- **Our repo has no `pyproject.toml`, so you cannot `pip install` it.** Put
+  the checkout on `PYTHONPATH`, or add it as a submodule. We should fix that
+  and will.
+- **Environment.** Graph needs `NEO4J_URI`, `NEO4J_USERNAME`,
+  `NEO4J_PASSWORD`, `NEO4J_DATABASE`. Structured needs `MSFT_FACT_DB_PATH`.
+  `backends.status` names which arms came up and why any did not — call it
+  once at startup and log it.
+
+### Then a node that chooses, before the one that retrieves
+
+Your `routing_node` runs after retrieval and classifies the outcome. Choosing
+a tool is a different node and it goes earlier. Layer 3's table is the spec,
+and it can be rules — there is no model in your loop and this does not need
+one:
+
+```python
+def choose_tool(query: str) -> str:
+    """Which arm answers this. A starting point to measure, not a finished rule."""
+    q = query.lower()
+    if any(w in q for w in ("subsidiary", "subsidiaries", "owns", "acquired")):
+        return "graph"
+    if any(w in q for w in ("revenue", "income", "assets", "margin", "eps",
+                            "cash flow", "how much")):
+        return "structured"
+    return "vector"
+```
+
+Measure it before trusting it. The share of questions reaching the right arm,
+before and after, is the number that makes INT-3 real.
+
+### One question needs more than one call
+
+Your graph is linear — parse, retrieve once, classify. The ten multi-concept
+questions in section 4 need two retrievals and a combine, and
+`AgentGraphState` holds a single `evidence` field, so a second call overwrites
+the first.
+
+That is a state-shape change rather than a node change, which is why it is
+worth deciding now rather than in December. A conditional edge back to
+retrieval and an evidence list that accumulates is the shape most of these
+take.
+
+**Decision: we send credentials and import guidance today. You tell us whether
+the two shims above are the right seam, or whether you would rather we publish
+something else.**
+
+---
+
 ## Three things that will read as a bug
 
 Each of these is working as designed and looks broken the first time.
@@ -360,7 +459,12 @@ fix them; flagging so nobody builds on them this week.
 | Yours | Confirm abstention is composed on your side | | today |
 | Yours | **Which Layer 2 operations you would actually call, in your order** | | today |
 | Both | **Who owns the arithmetic on multi-concept questions** | | today |
+| Ours | **Neo4j credentials, out of band** | Adeline | today |
+| Ours | **The two tool shims and the import guidance in PR #32** | Adeline | today |
+| Ours | A `pyproject.toml`, so our package can be installed rather than path-hacked | Adeline | this week |
 | Ours | The ten tickers and the list of filters we actually apply | Adeline | today |
 | Ours | `fiscal_year` and `fiscal_period` applied or refused, never ignored | Adeline | this week |
 | Yours | Ticker map widened to the ten, period keys swapped | | this week |
 | Yours | Split the retry case out of `ERROR` in `determine_status` | | this week |
+| Yours | **Confirm the shims are the right seam, then wire both arms in** | | this week |
+| Yours | Decide whether `AgentGraphState` accumulates evidence across calls | | this week |
