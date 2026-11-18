@@ -1,12 +1,10 @@
 """What each arm does with a filter, reported rather than remembered.
 
-These run on a bare checkout. The ticker test needs a fact store and skips
-without one.
+These run on a bare checkout. None of them need a database.
 """
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -54,21 +52,6 @@ def test_the_two_period_filters_are_still_ignored_by_both_arms():
 def test_an_unknown_arm_is_refused_by_name():
     with pytest.raises(ValueError, match="no such arm"):
         vocabulary.filters("vector")
-
-
-def test_no_store_says_so_rather_than_reporting_an_empty_corpus(monkeypatch):
-    """An empty list would read as "we hold no companies" and be acted on."""
-    monkeypatch.delenv("MSFT_FACT_DB_PATH", raising=False)
-    with pytest.raises(RuntimeError, match="MSFT_FACT_DB_PATH"):
-        vocabulary.tickers()
-
-
-@pytest.mark.skipif(not os.environ.get("MSFT_FACT_DB_PATH"),
-                    reason="needs a DuckDB fact store")
-def test_the_ticker_list_comes_from_the_store():
-    held = vocabulary.tickers()
-    assert held == sorted(held)
-    assert all(t and t.isupper() for t in held)
 
 
 def test_the_summary_names_both_arms():

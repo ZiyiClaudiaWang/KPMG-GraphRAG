@@ -1,31 +1,26 @@
-"""What each arm will actually do with a filter, and what is in the corpus.
+"""What each arm will actually do with a filter it is offered.
 
-Two questions kept costing other teams real time, and neither had an answer
-in code:
+The contract offers every arm the same keys, but an arm may apply a key,
+accept it and ignore it, or refuse it by name. Only the first does what the
+caller expects, and nothing said which was which.
 
-1. **Which filters work?** The contract offers every arm the same keys. An arm
-   may apply a key, accept it and ignore it, or refuse it by name. Only the
-   first does what the caller expects, and nothing said which was which. The
-   Agent team sent `fiscal_year` and `fiscal_period` on every call; both arms
-   ignore both, so their questions came back unfiltered and nothing raised.
+That gap cost the Agent team a week. Their parser sends `fiscal_year` and
+`fiscal_period` on every call and both arms ignore both, so their questions
+came back unfiltered with nothing raised. The structured arm ignores two more.
+`structured_query_v1` records that 148 of Eval's 155 questions carry `form`,
+`fiscal_year` or `fiscal_period`, so this is not a corner.
 
-2. **Which companies are in the corpus?** The Agent team's parser recognised
-   seven companies, two of which we hold. For the other eight it set no ticker
-   at all, so a question about one company was answered from another.
-
-Both answers are derived here rather than written down. A list in a document
-drifts from the code the first time the code changes; this cannot, because it
-reads the same declarations the arms filter on.
+The report is derived from the arms rather than written down. A list in a
+document drifts from the code the first time the code changes; this cannot,
+because it reads the same declarations the arms filter on.
 
     from graphrag import vocabulary
     vocabulary.filters()["graph"]["ignored"]   # -> ['fiscal_period', 'fiscal_year']
-    vocabulary.tickers()                       # -> ['AAPL', 'CASY', ...]
 """
 
 from __future__ import annotations
 
 import importlib
-import os
 import sys
 from pathlib import Path
 
@@ -94,35 +89,10 @@ def filters(arm: str | None = None) -> dict:
     return report
 
 
-def tickers() -> list[str]:
-    """Every ticker the corpus holds.
-
-    Read from the fact store, which is the arm that can answer without waking
-    a remote database. Raises if no store is configured rather than returning
-    an empty list, because an empty list reads as "the corpus is empty" and
-    would be acted on.
-    """
-    store = os.environ.get("MSFT_FACT_DB_PATH")
-    if not store:
-        raise RuntimeError(
-            "set MSFT_FACT_DB_PATH to a DuckDB fact store to read the ticker list"
-        )
-
-    import duckdb
-
-    conn = duckdb.connect(store, read_only=True)
-    try:
-        rows = conn.execute(
-            "SELECT DISTINCT ticker FROM financial_facts_v1 "
-            "WHERE ticker IS NOT NULL ORDER BY ticker"
-        ).fetchall()
-    finally:
-        conn.close()
-    return [r[0] for r in rows]
 
 
 def summary() -> str:
-    """The same two answers as text, for pasting into a reply to another team."""
+    """The same report as text, for pasting into a reply to another team."""
     lines = ["Filters, by arm:"]
     for arm, detail in filters().items():
         if "unavailable" in detail:
@@ -131,16 +101,10 @@ def summary() -> str:
         lines.append(f"  {arm}:")
         for state in (APPLIED, IGNORED, REFUSED):
             lines.append(f"    {state:<8} {', '.join(detail[state]) or '(none)'}")
-
-    try:
-        held = tickers()
-        lines.append(f"\nTickers in the corpus ({len(held)}): {', '.join(held)}")
-    except RuntimeError as exc:
-        lines.append(f"\nTickers: {exc}")
     return "\n".join(lines)
 
 
 if __name__ == "__main__":
     # So another team can read this without writing Python:
-    #   MSFT_FACT_DB_PATH=... python3 -m graphrag.vocabulary
+    #   python3 -m graphrag.vocabulary
     print(summary())
