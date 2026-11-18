@@ -201,7 +201,15 @@ def score_fact(terms: list[str], concept: object, dimensions: object,
         base = min(coverage * brevity + lead, MAX_GUESS_SCORE)
 
     # The filer's own name describes the company, not one of its segments.
-    asked = [t for t in terms if t not in filer]
+    #
+    # Nor is a word the concept already accounts for asking for a dimension.
+    # "Cash and cash equivalents as of June 30" names the concept; the word
+    # cash in it was not a request for the CashMember slice of that concept.
+    # Without this the slice collects a dimension bonus for a word the
+    # question spent on the concept, and outranks the consolidated figure.
+    concept_vocab = sorted(set(words))
+    asked = [t for t in terms
+             if t not in filer and not _matches(t, concept_vocab)]
 
     matched = 0
     unasked = 0
