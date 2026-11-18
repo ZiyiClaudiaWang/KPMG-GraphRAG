@@ -1,10 +1,14 @@
 # Agent team call — 18 November 2026
 
-5 things we want to align and free on:
+6 things we want to align and free on:
 
-Three of the five are changes to how our tools fail. They matter now because
+Three of the six are changes to how our tools fail. They matter now because
 you are about to write the code that reacts to those failures, and two of the
 four cases are indistinguishable today.
+
+The sixth is the one to spend time on if time runs short: there is no way for
+you to traverse the graph through anything we have given you, and the answer
+to that is an operation catalogue we already agreed, not the new arm.
 
 ---
 
@@ -26,8 +30,8 @@ measure the wrong system, with nothing raising.
 The wrapper now rejects a row whose label belongs to another arm, and a row
 with no label at all. That is on PR #67, green, not yet merged.
 
-**Decision: you key on these three strings, and tell us if you are keying on
-anything else.**
+**Decision: you key on these three strings. Let us know if you are keying on
+anything else?**
 
 ---
 
@@ -125,10 +129,10 @@ Three rows do not survive contact with what we built:
   one full-text match on Claims over a fixed three-hop path to fill the
   envelope. It cannot follow a relationship the question names.
 - **The subsidiary example.** The data is there — measured this morning, both
-  our Aura instances hold 752 `Subsidiary` nodes. What is missing is a way to
-  reach them: `graph_search` matches claim text and never walks an `OWNS`
-  edge, so the example returns risk prose rather than a list of subsidiaries.
-  A sentence that happens to name one is not the same as the relationship.
+  our Aura instances hold 752 `Subsidiary` nodes and 752 `OWNS` edges. What is
+  missing is a way to reach them. The arm matches claim text and never walks
+  an `OWNS` edge, so the question returns a sentence that mentions a
+  subsidiary, which is not the relationship. See section 6.
 - **Global synthesis → Community summaries.** We have not built community
   summaries. That row routes to something that does not exist.
 
@@ -148,6 +152,71 @@ anything before the next call.
 
 **Decision: nothing to decide. Noted so it does not appear in your tool list
 unannounced.**
+
+---
+
+## 6 · You cannot traverse the graph yet, and the fix is not the new arm
+
+This is the longest item and the one worth the most time, because it is a
+contract we already agreed and did not finish.
+
+**Layer 2 of `schema-ids-operations.md` is an operation catalogue, agreed with
+you in W4–W6.** Eleven operations. This is what is actually built:
+
+| Operation | Arm | Built |
+| --- | --- | --- |
+| `lookup_fact(cik, concept, period, basis)` | Structured | roughly, as `structured_search` |
+| `compare_periods`, `compare_entities`, `trend`, `ratio` | Structured | no |
+| `segment_breakdown(cik, concept, period)` | Structured | no |
+| `neighbours(entity, relation_types, depth)` | Graph | **no** |
+| `find_path(a, b, max_hops)` | Graph | **no** |
+| `events_between(cik, date_a, date_b)` | Graph | **no** |
+| `community_summary(level, topic)` | Graph | no, and nothing to build it from |
+| `search_text(query, filters)` | Vector | yes, RAG's |
+
+So the graph arm exposes one operation out of four, and the one it exposes is
+lexical search. **There is no traversal available to you through any contract
+we have given you.** The 752 `Subsidiary` nodes and their `OWNS` edges are
+loaded and unreachable.
+
+What you can do today is two filtered calls and an intersection on your side —
+that is how "which risk factor do Microsoft and Apple both disclose" is
+answerable. It works, and it puts the graph logic in your code rather than
+ours.
+
+### What we think should be added, and in what order
+
+1. **`neighbours(entity, relation_types, depth)`.** One parameterised Cypher
+   behind the envelope you already consume. No model, no prompt, no guard, no
+   token cost. It walks `OWNS`, which answers the Exhibit 21 questions
+   directly, and it walks `CONCERNS_RISK`, which gets the shared-risk question
+   down to one intersection. **This is the thing that makes "the Agent
+   traverses the graph" true**, and it is days of work.
+2. **A company lookup.** You have the string "Apple" and every filter wants a
+   ticker or a cik. The matching logic exists in
+   `graphrag/entity_resolution.py` and is not exported, so today you have to
+   hardcode tickers. That is our gap, not yours.
+3. **A way to list valid filter values** — which tickers, forms, sections and
+   risk themes exist. A wrong filter value returns empty, which you cannot
+   tell apart from a fact that is not there.
+4. **`trend` and `segment_breakdown`.** These are the ten multi-concept misses
+   from section 4. `trend` is most of PR #74, already open.
+5. **`max_hops` is accepted and never applied.** Set it today and you get
+   unbounded results and no error. Until `neighbours` exists to honour it, it
+   should be refused rather than ignored.
+
+### The part that changes our plan, not yours
+
+Text2Cypher writes a query per question. `neighbours` and `find_path` cover
+the traversals we can name in advance, at a fraction of the cost and with
+nothing to guard. The generated arm is for the shapes nobody enumerated.
+
+Read honestly: **1 and 2 unblock you this week; the generated arm is a W10
+bet.** We would rather hear from you which of the eleven you would actually
+call than build the general case first.
+
+**Decision: tell us which operations you need, in your order, not ours. That
+list is what we build next.**
 
 ---
 
@@ -202,6 +271,9 @@ fix them; flagging so nobody builds on them this week.
 | Ours | PR #67 merged, so the error taxonomy is real and not a promise | Adeline, Kelly reviews | this week |
 | Ours | Layer 3 revised with today's decisions | Adeline | this week |
 | Ours | `agent-notes.md` corrected | Adeline | this week |
+| Ours | `neighbours`, if you say it is the one you need | Adeline with Alison | next week |
+| Ours | `max_hops` refused rather than silently ignored | Adeline | this week |
 | Yours | Confirm you key on the three `retrieval_method` strings | | today |
 | Yours | Confirm retry applies only to `RetrievalUnavailableError` | | today |
 | Yours | Confirm abstention is composed on your side | | today |
+| Yours | **Which Layer 2 operations you would actually call, in your order** | | today |
