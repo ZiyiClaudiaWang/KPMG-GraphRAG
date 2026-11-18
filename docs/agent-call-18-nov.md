@@ -2,58 +2,57 @@
 
 Eight things to agree. Each ends in a decision.
 
-**Start at section 1.** Neither of our arms is wired into your workflow, so you
-have one retriever and nothing to route between. That is ours to fix, the fix
-is small, and it is written out below. Most of this page depends on it.
+**Start at section 1.** Your GraphRAG adapter is written but imports the wrong
+module and is not in the workflow path, so you have one retriever and nothing
+to route between. One line and a file move. Most of this page depends on it.
 
 ---
 
 ## 1 · Our arms are not connected to your workflow
 
-`integration.py` passes `retriever=retrieve_evidence` from `rag_tool.py`, and
-`agent/tools/` holds that file and a mock. Neither of our arms is there.
+You already wrote the adapter. `demo/03_GraphRAG_graphrag_adapter.py` calls
+both our arms, passes the arguments correctly, and keeps our provenance when
+it normalises. Two things stop it working, and one of them is one line.
 
-This is ours. Both arms only started working on 10 November, which is the day
-of your last commit, and we never sent you the two things you needed: the
-import guidance in our PR #32, and Neo4j credentials, which have to go out of
-band rather than through a repo or a chat. Both go out today.
-
-The adapter is one file per arm:
+**It imports the wrong module.**
 
 ```python
-# agent/tools/graph_tool.py
-from graphrag.backends import graph_search
-
-def retrieve_evidence(query, filters=None, top_k=8, trace_id=None):
-    """Claims from Neo4j, in the evidence shape you already handle."""
-    return graph_search(query, filters or {}, top_k, trace_id)
+# demo/03_GraphRAG_graphrag_adapter.py, in real mode
+importlib.import_module("graphrag.retrieve")   # raises on every call
+importlib.import_module("graphrag.backends")   # this one
 ```
 
-```python
-# agent/tools/structured_tool.py
-from graphrag.backends import structured_search
+`retrieve` holds the contract and waits for something to register a backend.
+`backends` registers both arms from the environment as it loads. Import the
+first and you get a working function that raises every time, which is what
+real mode has been doing.
 
-def retrieve_evidence(query, filters=None, top_k=8, trace_id=None):
-    """XBRL facts from DuckDB, same evidence shape."""
-    return structured_search(query, filters or {}, top_k, trace_id)
-```
+**Nothing calls it.** It lives in `demo/` and `integration.py` wires
+`retriever=retrieve_evidence` from `rag_tool.py`. Moving it into
+`agent/tools/` and passing it as the retriever is the rest of the work.
 
-Same four arguments your `retrieval_node` already passes. Same list of
-evidence dicts back.
+You do not need to translate anything else for us. Your `retrieval_node`
+already calls `retriever(query=…, filters=…, top_k=…)`, which is our signature
+with `trace_id` left at its default, and our arms already return the agreed
+envelope. Keep `_to_evidence` only while RAG's shape differs from it — that is
+a RAG question, not ours.
 
-Three things that bite on first import:
+Two more things to know:
 
-- Import `graphrag.backends`, never `graphrag.retrieve`. The second returns a
-  function that raises on every call.
 - We have no `pyproject.toml`, so you cannot pip install us. Put the checkout
-  on `PYTHONPATH` or add a submodule. We will fix this.
+  on `PYTHONPATH` or add a submodule. Ours to fix, this week.
 - Graph needs `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`,
   `NEO4J_DATABASE`. Structured needs `MSFT_FACT_DB_PATH`. Call
-  `backends.status` at startup and log it — it names every arm and why any
-  one did not start.
+  `backends.status` at startup and log it — it names every arm and why any one
+  did not start.
 
-**Decision: credentials and guidance from us today. Tell us if these shims are
-the right seam.**
+**This gap is ours, not yours.** Both arms only started working on 10
+November, the day of your last commit, and until today you had no credentials
+and no import guidance. You wrote an adapter against a contract you could not
+run.
+
+**Decision: change the import, move the file, wire it in. Tell us if anything
+in the envelope does not fit once it runs.**
 
 ---
 
@@ -315,15 +314,16 @@ Dated 13 October. Two things in it are now wrong, and we will fix both.
 
 | | What | When |
 |---|---|---|
-| Ours | Neo4j credentials, out of band | today |
-| Ours | The two shims and PR #32's import guidance | today |
-| Ours | The ten tickers, and the list of filters we actually apply | today |
+| Ours | ~~Neo4j credentials, out of band~~ | **sent** |
+| Ours | ~~The ten tickers~~ | **sent** |
+| Ours | Which filters we apply, ignore and refuse — `python3 -m graphrag.vocabulary` | today |
+| Ours | PR #32's import guidance, pointing at `backends` not `retrieve` | today |
 | Ours | `fiscal_year` and `fiscal_period` applied or refused, never ignored | this week |
 | Ours | PR #67 merged, so the error taxonomy is real | this week |
 | Ours | A `pyproject.toml`, so we can be installed rather than path-hacked | this week |
 | Ours | Layer 3 revised, `agent-notes.md` corrected | this week |
 | Ours | `neighbours`, if you say it is the one you need | next week |
-| Yours | Confirm the shims are the right seam, then wire both arms in | this week |
+| Yours | Change the import, move the adapter into `agent/tools/`, wire it in | this week |
 | Yours | Widen the ticker map, swap the period keys | this week |
 | Yours | Split the retry case out of `ERROR` | this week |
 | Yours | Which Layer 2 operations you would actually call, in your order | today |
