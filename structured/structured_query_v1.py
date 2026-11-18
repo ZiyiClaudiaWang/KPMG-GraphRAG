@@ -286,7 +286,19 @@ def rank_records(records, query, filters, top_k):
     # net loss" matches every filer's profit exactly as well as the one loss,
     # and the concept name cannot separate them. The value can.
     wanted_sign = concept_match.asked_sign(query)
+    #
+    # Above all of them: a fact that has a number outranks one that does not.
+    # This arm answers value questions out of a fact table, and 13% of the
+    # rows in a Postgres-sourced store have no numeric value — a trading
+    # symbol, a flag, a street address. Asking for Microsoft's top line used
+    # to return EntityAddressAddressLine1 at rank 1, because "line" is a word
+    # in both and nothing else about the row was being read.
+    #
+    # They sort last rather than being dropped. If a question matches nothing
+    # else they are still the best evidence available, and deleting evidence
+    # to fix a ranking fault is the wrong repair.
     scored.sort(key=lambda pair: (
+        0 if pair[1].get("numeric_value") is not None else 1,
         -pair[0],
         0 if concept_match.duration_matches(
             asked, concept_match.duration_days(pair[1].get("period_start"),
