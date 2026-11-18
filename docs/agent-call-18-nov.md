@@ -8,7 +8,7 @@ to route between. One line and a file move. Most of this page depends on it.
 
 ---
 
-## 1 · Our arms are not connected to your workflow
+## 1 · Your adapter imports the wrong module, and nothing calls it
 
 You already wrote the adapter. `demo/03_GraphRAG_graphrag_adapter.py` calls
 both our arms, passes the arguments correctly, and keeps our provenance when
@@ -152,8 +152,9 @@ them or refuse them by name. Until then send `reporting_period_end` or `form`.
 Smaller: `query_parser.py` special-cases `MSFT + "March 31, 2026" → Q3
 FY2026`. That is fitted to the mock's single filing.
 
-**Decision: we send the ticker list and the applied-filter list today. You
-tell us whether the period keys should be applied or refused.**
+**Decision: the ticker list is sent. Run `python3 -m graphrag.vocabulary` for
+the filter list. You tell us whether the period keys should be applied or
+refused.**
 
 ---
 
