@@ -104,10 +104,31 @@ the one fixed graph query cannot express — "which risk factor do Microsoft and
 Apple both disclose" — not a fallback for numbers that came back wrong. If your
 routing plan sends numeric misses to it, that is the thing to catch today.
 
-The ten multi-concept misses are worth a minute on their own: they are
-questions needing two retrieval calls and an arithmetic step. That is an Agent
-composition problem, not a retrieval one, and it is the largest single bucket
-we are not addressing.
+### The ten multi-concept misses, and who owns them
+
+This is the largest single bucket and nobody currently owns it. Each of these
+questions needs two retrieval calls and an arithmetic step, and the two
+documents we have disagree about whose step it is.
+
+**Layer 2 says ours.** `compare_periods`, `ratio` and `trend` are listed as
+Structured operations, under an explicit rule: *compute at query time, return
+the derived number and both inputs, cite the inputs.* Never store a computed
+value as a fact, because a stored growth rate has no XBRL provenance and goes
+silently stale when a 10-K/A restates one of its inputs.
+
+**The arm as built says yours.** It returns facts. Any question needing two of
+them and a subtraction is composed on your side today, by default rather than
+by decision.
+
+Neither is obviously right. Ours keeps the arithmetic next to the provenance
+and gives you one call instead of two. Yours keeps retrieval returning
+evidence and nothing else, which is the rule the rest of the contract follows.
+
+**Decision: pick one, today.** If it is ours, we build those three operations
+and Layer 2 stands. If it is yours, we delete those rows from Layer 2 so the
+catalogue stops promising something no one is building. What we should not do
+is leave it as it is, where the document says one thing and the code does
+another and ten questions fall through the gap.
 
 ### The routing table, for revision on the call
 
@@ -277,3 +298,4 @@ fix them; flagging so nobody builds on them this week.
 | Yours | Confirm retry applies only to `RetrievalUnavailableError` | | today |
 | Yours | Confirm abstention is composed on your side | | today |
 | Yours | **Which Layer 2 operations you would actually call, in your order** | | today |
+| Both | **Who owns the arithmetic on multi-concept questions** | | today |
