@@ -136,7 +136,7 @@ def test_search_envelope_empty_results_are_missing_fact_not_backend_failure():
     }
 
 
-@pytest.mark.parametrize("reason", ["out_of_scope", "false_premise", "fabricated_relationship"])
+@pytest.mark.parametrize("reason", ["out_of_scope", "fabricated_relationship"])
 def test_search_envelope_can_report_abstention_reasons(reason):
     def backend(query, filters, top_k, trace_id):
         return {"status": "abstain", "reason": reason, "results": []}
@@ -153,19 +153,69 @@ def test_search_envelope_can_report_abstention_reasons(reason):
     assert out["results"] == []
 
 
-def test_search_envelope_can_report_ambiguous_candidates():
-    def backend(query, filters, top_k, trace_id):
-        return {"status": "clarify", "reason": "ambiguous", "results": []}
+def _ambiguous_graph_backend(query, filters, top_k, trace_id):
+    rows = _mock_backend(mock_graph_search)("revenue", {}, 2, trace_id)
+    assert len(rows) == 2 and rows[0]["score"] == rows[1]["score"]
+    return {"status": "clarify", "reason": "ambiguous", "results": rows}
 
-    retrieve.configure_graph_backend(backend)
+
+def test_search_envelope_can_report_ambiguous_candidates():
+    retrieve.configure_graph_backend(_ambiguous_graph_backend)
     out = retrieve.search(
-        "J.P. Morgan Securities",
+        "revenue",
         tool="graph",
+        top_k=2,
         trace_id="tie-1",
         request_id="req-tie",
     )
     assert out["status"] == "clarify"
     assert out["reason"] == "ambiguous"
+    assert len(out["results"]) == 2
+    assert all(row["metadata"]["trace_id"] == "tie-1" for row in out["results"])
+
+
+def test_legacy_graph_search_suppresses_ambiguous_candidates():
+    retrieve.configure_graph_backend(_ambiguous_graph_backend)
+    assert retrieve.graph_search("revenue", top_k=2, trace_id="tie-legacy") == []
+
+
+def test_legacy_structured_search_suppresses_ambiguous_candidates():
+    def backend(query, filters, top_k, trace_id):
+        rows = _mock_backend(mock_structured_search)("revenue", {}, 2, trace_id)
+        return {"status": "clarify", "reason": "ambiguous", "results": rows}
+
+    retrieve.configure_structured_backend(backend)
+    assert retrieve.structured_search("revenue", top_k=2, trace_id="tie-legacy") == []
+
+
+def test_search_envelope_false_premise_is_answer_with_correction_evidence():
+    def backend(query, filters, top_k, trace_id):
+        rows = _mock_backend(mock_graph_search)("revenue", {}, 1, trace_id)
+        return {"status": "answer", "reason": "false_premise", "results": rows}
+
+    retrieve.configure_graph_backend(backend)
+    out = retrieve.search(
+        "question with a correctable false premise",
+        tool="graph",
+        request_id="req-false-premise",
+    )
+    assert out["status"] == "answer"
+    assert out["reason"] == "false_premise"
+    assert out["results"]
+
+
+def test_search_envelope_can_report_off_topic():
+    def backend(query, filters, top_k, trace_id):
+        return {"status": "off_topic", "reason": None, "results": []}
+
+    retrieve.configure_graph_backend(backend)
+    out = retrieve.search(
+        "not about SEC filings",
+        tool="graph",
+        request_id="req-off-topic",
+    )
+    assert out["status"] == "off_topic"
+    assert out["reason"] is None
     assert out["results"] == []
 
 
@@ -207,3 +257,24 @@ def test_search_decision_validation_rejects_invalid_combinations():
         contract.validate_search_decision("clarify", "missing_fact")
     with pytest.raises(ValueError, match="abstain status"):
         contract.validate_search_decision("abstain", "ambiguous")
+    with pytest.raises(ValueError, match="abstain status"):
+        contract.validate_search_decision("abstain", "false_premise")
+    with pytest.raises(ValueError, match="off_topic status"):
+        contract.validate_search_decision("off_topic", "missing_fact")
+
+
+def test_non_answer_decisions_reject_evidence_except_clarify():
+    row_backend = _mock_backend(mock_graph_search)
+
+    for status, reason in [
+        ("abstain", "missing_fact"),
+        ("off_topic", None),
+        ("block", None),
+    ]:
+        def backend(query, filters, top_k, trace_id, status=status, reason=reason):
+            rows = row_backend("revenue", {}, 1, trace_id)
+            return {"status": status, "reason": reason, "results": rows}
+
+        retrieve.configure_graph_backend(backend)
+        with pytest.raises(ValueError, match="must have empty results"):
+            retrieve.search("revenue", tool="graph")

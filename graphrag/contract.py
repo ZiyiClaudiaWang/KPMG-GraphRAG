@@ -82,7 +82,7 @@ MAX_TOP_K = 50
 
 # Retrieval-level decision taxonomy for the Eval/CLI search envelope.
 # The Agent-facing evidence-list contract remains unchanged.
-SEARCH_STATUSES = frozenset({"answer", "clarify", "abstain", "block"})
+SEARCH_STATUSES = frozenset({"answer", "clarify", "abstain", "off_topic", "block"})
 SEARCH_REASONS = frozenset({
     "out_of_scope",
     "false_premise",
@@ -103,20 +103,20 @@ def validate_search_decision(status: object, reason: object) -> tuple[str, str |
             "reason must be None or one of: " + ", ".join(sorted(SEARCH_REASONS))
         )
 
-    if status == "answer" and reason is not None:
-        raise ValueError("answer status must have reason=None")
+    if status == "answer" and reason not in {None, "false_premise"}:
+        raise ValueError("answer status requires reason=None or false_premise")
     if status == "clarify" and reason != "ambiguous":
         raise ValueError("clarify status currently requires reason='ambiguous'")
     if status == "abstain" and reason not in {
         "out_of_scope",
-        "false_premise",
         "fabricated_relationship",
         "missing_fact",
     }:
         raise ValueError(
-            "abstain status requires out_of_scope, false_premise, "
-            "fabricated_relationship, or missing_fact"
+            "abstain status requires out_of_scope, fabricated_relationship, or missing_fact"
         )
+    if status == "off_topic" and reason is not None:
+        raise ValueError("off_topic status must have reason=None")
     if status == "block" and reason is not None:
         raise ValueError("block status currently has reason=None")
     return status, reason
