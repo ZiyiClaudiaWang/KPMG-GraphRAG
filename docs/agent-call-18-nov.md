@@ -1,14 +1,17 @@
 # Agent team call — 18 November 2026
 
-6 things we want to align and free on:
+7 things we want to align and free on:
 
-Three of the six are changes to how our tools fail. They matter now because
+Three of the seven are changes to how our tools fail. They matter now because
 you are about to write the code that reacts to those failures, and two of the
 four cases are indistinguishable today.
 
-The sixth is the one to spend time on if time runs short: there is no way for
-you to traverse the graph through anything we have given you, and the answer
-to that is an operation catalogue we already agreed, not the new arm.
+Two are new since this page was first drafted. **Section 6**: there is no way
+for you to traverse the graph through anything we have given you, and the
+answer to that is an operation catalogue we already agreed, not the new arm.
+**Section 7**: your parser and our corpus recognise two companies in common,
+and the two period filters you send are silently dropped by both our arms. If
+time runs short, start at 7 — it is the one that is costing you calls today.
 
 ---
 
@@ -241,6 +244,64 @@ list is what we build next.**
 
 ---
 
+## 7 · Your parser and our corpus do not know the same companies
+
+Read from `agent/query_parser.py` on `main` this morning, so correct us if it
+has moved. Three things, and the first costs you most of a routing test.
+
+### The ticker lists barely overlap
+
+`COMPANY_TICKERS` holds microsoft, apple, google, alphabet, amazon, meta,
+nvidia, tesla. **Our corpus is these ten and only these ten:**
+
+```python
+COMPANY_TICKERS = {
+    "apple": "AAPL",            "casey's": "CASY",
+    "mckesson": "MCK",          "medtronic": "MDT",
+    "microsoft": "MSFT",        "micron": "MU",
+    "nike": "NKE",              "netapp": "NTAP",
+    "parker hannifin": "PH",    "take-two": "TTWO",
+}
+```
+
+The overlap today is **MSFT and AAPL**. Five of your seven have no filings in
+our corpus at all, and eight of our ten are invisible to your parser:
+`_extract_ticker` returns `None`, no filter is set, and the search runs across
+every company. Ask about Medtronic and you can get Microsoft back.
+
+Your comment says to keep the list in sync with what the RAG team retrieves.
+It is in sync with them and not with us, which is nobody's mistake — it is
+just not written down anywhere. We will publish the list; see section 6 item 3.
+
+### Both period filters you emit are silently dropped
+
+`understand_query` returns `ticker`, `fiscal_year`, `fiscal_period`. Our
+contract accepts the last two and **neither arm applies them**. They are in
+`_IGNORED_FILTERS`: they pass validation, never reach the query, and nothing
+raises. A question about FY2023 gets claims from any year that look filtered
+and are not.
+
+**That one is ours, not yours.** We publish a filter we do not honour, which
+is the exact hazard our own code comment warns about three lines above the set
+that does it. We will either apply them or refuse them by name. Until then,
+send `reporting_period_end` or `form` — those are applied.
+
+### Your router has one error bucket
+
+`determine_status` returns `SUCCESS`, `NO_EVIDENCE` or `ERROR`, so all four
+failures in section 2 arrive as `ERROR`. Splitting the retry case from the
+other three is a small change in that one function, and it is the whole of
+what section 2 asks for.
+
+Smaller, and only worth a sentence: `query_parser.py` special-cases
+`MSFT + "March 31, 2026" → Q3 FY2026`. That is fitted to the mock's single
+filing and will not survive the real corpus.
+
+**Decision: we send you the ticker list and the applied-filter list today. You
+tell us whether the period keys should be applied or refused.**
+
+---
+
 ## Three things that will read as a bug
 
 Each of these is working as designed and looks broken the first time.
@@ -299,3 +360,7 @@ fix them; flagging so nobody builds on them this week.
 | Yours | Confirm abstention is composed on your side | | today |
 | Yours | **Which Layer 2 operations you would actually call, in your order** | | today |
 | Both | **Who owns the arithmetic on multi-concept questions** | | today |
+| Ours | The ten tickers and the list of filters we actually apply | Adeline | today |
+| Ours | `fiscal_year` and `fiscal_period` applied or refused, never ignored | Adeline | this week |
+| Yours | Ticker map widened to the ten, period keys swapped | | this week |
+| Yours | Split the retry case out of `ERROR` in `determine_status` | | this week |
