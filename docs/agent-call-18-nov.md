@@ -152,9 +152,21 @@ them or refuse them by name. Until then send `reporting_period_end` or `form`.
 Smaller: `query_parser.py` special-cases `MSFT + "March 31, 2026" → Q3
 FY2026`. That is fitted to the mock's single filing.
 
+**The advice we gave Eval does not work for you.** We told them callers,
+Agents included, should send `{ticker, accession_number}`. Eval can do that
+because the gold set tells them which filing holds the answer. **You do not
+know the accession number until after retrieval**, so that advice was only
+followable by someone who already has the answer.
+
+Nor does anyone hold a fiscal calendar. Eval's harness does not convert
+"FY2023 Q3" into dates — it substitutes the gold accession instead. So for
+your path, period filtering either works through these two keys or it does not
+exist, and building it is ours.
+
 **Decision: the ticker list is sent. Run `python3 -m graphrag.vocabulary` for
-the filter list. You tell us whether the period keys should be applied or
-refused.**
+what each arm applies, ignores and refuses. We will make the period keys work
+rather than refuse them, unless you tell us you would rather filter on
+`reporting_period_end` yourselves.**
 
 ---
 
