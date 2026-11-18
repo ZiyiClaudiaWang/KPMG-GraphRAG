@@ -72,7 +72,21 @@ STRUCTURED_FILTERS = SHARED_FILTERS | {"concept", "segment", "basis"}
 # separate name because the two arms answer differently, not because they are
 # filtered differently, and a caller should not have to know which is which to
 # write a filter.
+#
+# Taking a key is not the same as applying it. The adapter must raise
+# FilterNotSupportedError for any key it cannot put into the generated query,
+# the way the graph arm refuses fiscal_year and fiscal_period. Ignoring one
+# returns unfiltered rows that still pass validation, which is worse than an
+# error because nothing says it happened.
 CYPHER_FILTERS = GRAPH_FILTERS
+
+# The value each arm writes to metadata.retrieval_method. The wrapper checks it,
+# so a row can never claim to come from an arm that did not produce it.
+RETRIEVAL_METHODS = {
+    "graph": "neo4j_fulltext_claim",
+    "structured": "duckdb_concept_match",
+    "cypher": "neo4j_text2cypher",
+}
 
 # Old names that turned up in earlier drafts. Hint rather than guess.
 RENAMED_FILTERS = {
@@ -142,6 +156,14 @@ class FilterNotSupportedError(ValueError):
     different handling. An outage is worth retrying and scores as
     infrastructure noise. A filter an arm does not hold never becomes
     serveable, so retrying it only hides the gap.
+    """
+
+
+class QueryGenerationError(RuntimeError):
+    """The model wrote a query that cannot run (bad syntax, unknown label...).
+
+    Not an outage: retrying the same question will usually fail the same way,
+    and Eval counts it against the generator, not against the infrastructure.
     """
 
 

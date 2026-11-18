@@ -99,6 +99,10 @@ def _register_structured() -> str:
 
 def _register_cypher() -> str:
     """Register the generated-Cypher arm, or say why it did not."""
+    # Off unless asked for. The Aura credential can write, so a query the model
+    # writes must not reach the shared instance just because the file landed.
+    if os.environ.get("CYPHER_ARM_ENABLED") != "1":
+        return "skipped: CYPHER_ARM_ENABLED is not set to 1"
     if not os.environ.get("NEO4J_URI"):
         return "skipped: NEO4J_URI is not set"
     try:

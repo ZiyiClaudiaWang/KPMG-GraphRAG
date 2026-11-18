@@ -100,7 +100,10 @@ def test_a_non_callable_backend_is_refused():
 def test_env_without_the_module_skips_and_says_so(monkeypatch):
     """Until `cypher_backend.py` exists, the other two arms carry on."""
     monkeypatch.setenv("NEO4J_URI", "neo4j+s://example")
-    monkeypatch.delitem(sys.modules, "graphrag.cypher_backend", raising=False)
+    monkeypatch.setenv("CYPHER_ARM_ENABLED", "1")
+    # None makes the import fail whether or not the file exists on disk, the
+    # same way test_backends.py handles graph_backend.
+    monkeypatch.setitem(sys.modules, "graphrag.cypher_backend", None)
 
     reason = backends._register_cypher()
     assert reason.startswith("skipped:")
@@ -109,6 +112,7 @@ def test_env_without_the_module_skips_and_says_so(monkeypatch):
 
 def test_env_with_the_module_registers_it(monkeypatch):
     monkeypatch.setenv("NEO4J_URI", "neo4j+s://example")
+    monkeypatch.setenv("CYPHER_ARM_ENABLED", "1")
     stub = types.ModuleType("graphrag.cypher_backend")
     stub.search = lambda q, f, k, t: [_row("neo4j_text2cypher")]
     monkeypatch.setitem(sys.modules, "graphrag.cypher_backend", stub)
@@ -118,5 +122,58 @@ def test_env_with_the_module_registers_it(monkeypatch):
 
 
 def test_no_uri_skips_without_importing_anything(monkeypatch):
+    monkeypatch.setenv("CYPHER_ARM_ENABLED", "1")
     monkeypatch.delenv("NEO4J_URI", raising=False)
     assert backends._register_cypher() == "skipped: NEO4J_URI is not set"
+
+
+def test_off_by_default_even_with_the_module_and_uri(monkeypatch):
+    monkeypatch.setenv("NEO4J_URI", "neo4j+s://example")
+    monkeypatch.delenv("CYPHER_ARM_ENABLED", raising=False)
+    stub = types.ModuleType("graphrag.cypher_backend")
+    stub.search = lambda q, f, k, t: [_row("neo4j_text2cypher")]
+    monkeypatch.setitem(sys.modules, "graphrag.cypher_backend", stub)
+
+    assert backends._register_cypher().startswith("skipped: CYPHER_ARM_ENABLED")
+    with pytest.raises(contract.RetrievalUnavailableError):
+        retrieve.cypher_search("anything")
+
+
+def test_a_row_labelled_as_another_arm_is_rejected():
+    retrieve.configure_cypher_backend(lambda q, f, k, t: [_row("neo4j_fulltext_claim")])
+    with pytest.raises(ValueError, match="retrieval_method"):
+        retrieve.cypher_search("anything")
+
+
+def test_a_bad_generated_query_is_not_an_outage():
+    def backend(q, f, k, t):
+        raise contract.QueryGenerationError("Invalid input 'MATC'")
+    retrieve.configure_cypher_backend(backend)
+    with pytest.raises(contract.QueryGenerationError):
+        retrieve.cypher_search("anything")
+
+
+def test_a_row_with_no_retrieval_method_is_rejected():
+    row = _row("neo4j_text2cypher")
+    row["metadata"] = {}
+    retrieve.configure_cypher_backend(lambda q, f, k, t: [row])
+    with pytest.raises(ValueError, match="retrieval_method"):
+        retrieve.cypher_search("anything")
+
+
+def test_the_tool_is_known_even_while_the_arm_is_off(monkeypatch):
+    """Eval can ask for the cypher tool before the adapter exists.
+
+    The envelope's statuses describe the question, not whether an arm is
+    running, so an arm that is off must not come back as `abstain` — that
+    would tell Eval the question was out of scope. It reports unavailable,
+    the same as the other two arms do when nothing has registered them, and
+    `backends.status` carries the reason.
+    """
+    monkeypatch.setenv("NEO4J_URI", "neo4j+s://example")
+    monkeypatch.delenv("CYPHER_ARM_ENABLED", raising=False)
+    backends.configure_from_env()
+
+    assert backends.status["cypher"].startswith("skipped: CYPHER_ARM_ENABLED")
+    with pytest.raises(contract.RetrievalUnavailableError):
+        retrieve.search("anything", tool="cypher")

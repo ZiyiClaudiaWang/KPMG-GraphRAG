@@ -110,6 +110,11 @@ def _run(
         raw = backend(clean_query, clean_filters, clean_top_k, clean_trace_id)
     except contract.RetrievalUnavailableError:
         raise
+    except contract.QueryGenerationError:
+        # The generated query was wrong, not the store. Retrying the question
+        # would fail the same way, and Eval counts this against the generator
+        # rather than the infrastructure.
+        raise
     except contract.FilterNotSupportedError:
         # Unsupported capability is not a store outage and should not be retried
         # as infrastructure noise.
@@ -143,6 +148,21 @@ def _run(
         item["rank"] = rank
 
     contract.validate_results(normalized, clean_top_k)
+
+    # Eval groups rows by this key, so a row must say which arm produced it and
+    # must not claim to be another arm's. Checked here so no adapter can forget.
+    owner = {v: k for k, v in contract.RETRIEVAL_METHODS.items()}
+    for item in normalized:
+        method = item["metadata"].get("retrieval_method")
+        if not method:
+            raise ValueError(
+                f"{backend_name} backend returned a row with no retrieval_method"
+            )
+        if owner.get(method, backend_name) != backend_name:
+            raise ValueError(
+                f"{backend_name} backend returned retrieval_method={method!r}, "
+                f"which belongs to the {owner[method]} arm"
+            )
     return status, reason, normalized
 
 
