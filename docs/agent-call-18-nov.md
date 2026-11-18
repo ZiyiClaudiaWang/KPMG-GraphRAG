@@ -1,8 +1,6 @@
 # Agent team call — 18 November 2026
 
-What we want to leave this call with: five things agreed, not five things
-discussed. Each one below has a decision line in bold. Everything else on the
-page is the evidence behind it.
+5 things we want to align and free on:
 
 Three of the five are changes to how our tools fail. They matter now because
 you are about to write the code that reacts to those failures, and two of the
@@ -12,8 +10,7 @@ four cases are indistinguishable today.
 
 ## 1 · Every row says which arm produced it
 
-Our evidence rows carry `metadata.retrieval_method`. There are three values and
-no others:
+Our evidence rows carry `metadata.retrieval_method`. There are three arms and three values:
 
 | Arm | Value |
 |---|---|
@@ -34,7 +31,7 @@ anything else.**
 
 ---
 
-## 2 · Four failures, four different moves
+## 2 · Four failures 
 
 Right now two of these are the same exception, so you cannot tell them apart.
 
@@ -81,7 +78,7 @@ questions in their set. We can tell you a fact is missing. We cannot tell you a
 question is unanswerable.
 
 **Decision: the final "I don't know" comes from your evidence check, not from
-us. Say it out loud so nobody is waiting on us to build it.**
+us. Confirming you are building it.**
 
 ---
 
@@ -127,9 +124,11 @@ Three rows do not survive contact with what we built:
 - **Relational / multi-hop → Graph.** `graph_search` does no traversal. It is
   one full-text match on Claims over a fixed three-hop path to fill the
   envelope. It cannot follow a relationship the question names.
-- **The subsidiary example.** `Subsidiary` nodes exist on our internal
-  instance only. The instance you and Eval are given has none, so that example
-  returns nothing for you today.
+- **The subsidiary example.** The data is there — measured this morning, both
+  our Aura instances hold 752 `Subsidiary` nodes. What is missing is a way to
+  reach them: `graph_search` matches claim text and never walks an `OWNS`
+  edge, so the example returns risk prose rather than a list of subsidiaries.
+  A sentence that happens to name one is not the same as the relationship.
 - **Global synthesis → Community summaries.** We have not built community
   summaries. That row routes to something that does not exist.
 
