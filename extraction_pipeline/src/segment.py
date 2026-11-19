@@ -50,9 +50,11 @@ import re
 # v3: bullets, list rule, abbreviation splits, headings with a period.
 # v4 (4 Nov 2026): unit_id (#45); page breaks before an amount or parenthesis; "U.S. Cultural";
 #     headings ending in ":"; table cells and footnote markers; Microsoft item links (step 2).
-SEGMENTATION_VERSION = "kelly_sentence_v4"
+# v5 (18 Nov 2026): any table row is table_residue, two-column rows ("Acquisitions | 47") too;
+#     table rows are never joined across a page break (step 2).
+SEGMENTATION_VERSION = "kelly_sentence_v5"
 
-from .clean import DANGLING_WORDS, raw_spans
+from .clean import DANGLING_WORDS, has_table_cells, raw_spans
 from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_jsonl
 from .filter_sections import kept_section_keys
 
@@ -282,7 +284,7 @@ def section_label(sec: dict) -> str:
 
 def prefilter(text: str, min_words: int) -> str | None:
     """Rule-based not_a_claim, applied before the LLM."""
-    if text.count("|") >= 2 or note_key(text) in TABLE_NOTE_KEYS or FOOTNOTE_MARKER.match(text):
+    if has_table_cells(text) or note_key(text) in TABLE_NOTE_KEYS or FOOTNOTE_MARKER.match(text):
         return "table_residue"
     if CROSS_REFERENCE.search(text) and not re.search(
             r"\b(?:there have been (?:no )?material changes|have not materially changed)\b", text, re.I):

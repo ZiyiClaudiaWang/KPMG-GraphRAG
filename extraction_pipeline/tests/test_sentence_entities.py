@@ -2,7 +2,7 @@ import unittest
 from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like,
                          is_category, is_colon_heading, mark_risk_summary, segment_section)
 from src.entity_annotation import annotate_mentions
-from src.clean import drop_rule, should_join
+from src.clean import drop_rule, has_table_cells, should_join
 from src.risk_factors import assign, category_key, is_lead_sentence
 from src.common import source_text, unit_id
 
@@ -204,6 +204,36 @@ class PageBreaks(unittest.TestCase):
         # a table caption after a heading-like line stays its own paragraph
         self.assertFalse(self.join("Three Months Ended July 31, 2026 Compared to Three Months Ended July 31, 2025",
                                    "(Dollars and Amounts in Thousands)"))
+
+    def test_table_rows_are_not_joined(self):
+        # Apple 10-Q MD&A: the next row starts in lower case only because of the product name
+        self.assertFalse(self.join("Mac (1) | 8,675 | 7,160 | 21 | %", "iPad (1) | 8,435 | 5,977 | 41 | %"))
+        self.assertFalse(self.join("Total net sales | $ | 143,756 | $ | 124,300 | 16 | %", "iPhone"))
+        self.assertFalse(self.join("Revenue grew in every region, and the largest increases came from the",
+                                   "Americas | 12,345"))
+
+    def test_two_column_rows_are_table_residue(self):
+        # Diagnostics on 233 filings: 3,380 two-column rows went to the LLM with the old 2+ "|" rule
+        for text in ("Foreign Operations | 45", "Three Months Ended | Six Months Ended", "Acquisitions | 47",
+                     "3.72% Senior notes (Series D) due in 7 installments beginning October 28, 2025 | 50,000",
+                     "Chief Executive Officer |", "|"):
+            self.assertTrue(has_table_cells(text), text)
+            self.assertEqual(prefilter(text, 4), "table_residue", text)
+
+    def test_sentence_with_a_stray_pipe_is_not_a_table(self):
+        # Microsoft risk factors: a "|" before the text; an executive bio ending in "|"
+        for text in ("| We derive substantial revenue from licenses of Windows operating systems on PCs.",
+                     "| Surface revenue decreased $105 million or 3% on a strong prior year comparable.",
+                     "Mr. Cordano holds a BS from the University of Colorado, Boulder. |",
+                     "Revenue increased 5%, driven by growth in services."):
+            self.assertFalse(has_table_cells(text), text)
+            self.assertIsNone(prefilter(text, 4), text)
+
+    def test_page_footer_with_pipes_is_still_a_header_row(self):
+        # repeated_headers() keeps using is_table_row(): "Apple Inc. | 2025 Form 10-K | 5" must
+        # still be removable as a repeated page footer
+        from src.clean import is_table_row
+        self.assertFalse(is_table_row("Apple Inc. | 2025 Form 10-K | 5"))
 
     def test_list_item_ending_in_semicolon_and_is_not_joined(self):
         self.assertFalse(self.join("lower warehousing and logistics costs, primarily due to channel mix; and",

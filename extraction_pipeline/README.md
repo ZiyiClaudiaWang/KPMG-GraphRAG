@@ -226,7 +226,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       the sentence goes on after ('("Information Technology Systems"), may'). A table caption
       such as "(In millions)" ends its paragraph and is not joined.
 
-  - A list item ending "; and" is not joined, and neither is a short heading.
+  - A list item ending "; and" is not joined, and neither is a short heading or a table row
+    (cells joined by " | ", `has_table_cells()`).
 - <a id="step-3-filter"></a>**[3] Filter** keeps Item 1A, MD&A and Business (`config/sections.yaml`). Everything else is
   dropped with a reason, or marked `review` for a person to decide.
 - <a id="step-4-segment"></a>**[4] Segment** splits kept sections into units, written in source order:
@@ -266,16 +267,18 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       `risk_summary = true`. The summary ends where a category it listed appears again.
   - **Prefilter** ([diagram](#a-unit_id-and-claim_id)). Units marked `not_a_claim` here are not sent to the LLM:
     - `section_title`, `heading`
-    - `table_residue`: two or more "|", over 30% digits, a footnote marker on its own line, or a
-      table note or table cell listed in `TABLE_NOTES` (e.g. "NM - Not Meaningful",
-      "Chief Executive Officer |")
+    - `table_residue`: a table row or cell (`has_table_cells()`: cells joined by " | ", two-column
+      rows such as "Acquisitions | 47" included, or one cell ending in "|"), over 30% digits, a
+      footnote marker on its own line, or a table note listed in `TABLE_NOTES` (e.g.
+      "NM - Not Meaningful"). A sentence with a stray "|" at one end ("| We derive substantial
+      revenue ...") is not a table row and goes to the LLM.
     - `cross_reference`: "See …", "Refer to …"
     - `too_short`: under 4 words; never for a split list item, whose meaning comes from its intro
   - **Ids and versions.**
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
       graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v4`) records which splitting rules made the units.
+    - `segmentation_version` (`kelly_sentence_v5`) records which splitting rules made the units.
       It is a label only: it is not in the request hash, so changing it alone costs nothing; a
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
@@ -682,7 +685,7 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
 | `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
 | `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v4`) |
+| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v5`) |
 
 ### `risk_categories.csv` (step 7a)
 

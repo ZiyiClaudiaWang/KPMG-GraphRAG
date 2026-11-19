@@ -78,7 +78,28 @@ def header_key(text: str) -> str:
 
 
 def is_table_row(text: str) -> bool:
+    """A row with a "|" at one end. Used for page headers ("Apple Inc. | 2025 Form 10-K | 5" is
+    one); for tables in the text use has_table_cells()."""
     return text.startswith("|") or text.endswith("|")
+
+
+# A sentence ends in . ? or !, perhaps followed by a closing quote or parenthesis.
+SENTENCE_END = re.compile(r"[.?!][\"”’)]*$")
+
+
+def has_table_cells(text: str) -> bool:
+    """A table row or cell as the Data team exports tables: cells joined by " | "
+    ("Foreign Operations | 45", "Three Months Ended | Six Months Ended"), or one cell with a
+    "|" at an end ("Chief Executive Officer |").
+
+    A sentence with a stray "|" at one end is not a table: Microsoft's risk factors put one
+    before the text ("| We derive substantial revenue ..."), and an executive bio can end
+    "... Boulder. |". So a "|" at either end is ignored when what is left is a sentence.
+    """
+    if "|" not in text:
+        return False
+    core = text.strip().strip("|").strip()
+    return "|" in core or not SENTENCE_END.search(core)
 
 
 def repeated_headers(sections: list[dict], cfg: dict) -> set[str]:
@@ -186,13 +207,15 @@ def should_join(raw: str, prev_pieces: list[list[int]], next_text: str) -> bool:
     It also continues it when it starts with an amount ("$19.7 billion", "€500 million") or
     with a parenthesis that the sentence goes on after ('("Information Technology Systems"),
     may'); a table caption such as "(In millions)" ends its paragraph, so it is not joined.
+    Table rows are never joined ("Mac | 8,675 | 7,160" / "iPad | 8,435 | 5,977": the second
+    starts in lower case only because of the product name).
     The previous paragraph must be a run of text, not a short heading: Apple's
     product headings ("iPhone") are followed by paragraphs that also start in
     lower case.
     """
     s, e = prev_pieces[-1][:2]
     prev_text = raw[s:e]
-    if is_table_row(prev_text) or is_table_row(next_text):
+    if has_table_cells(prev_text) or has_table_cells(next_text):
         return False
     if len(prev_text.split()) < MIN_WORDS_TO_JOIN or TERMINAL.search(prev_text):
         return False
