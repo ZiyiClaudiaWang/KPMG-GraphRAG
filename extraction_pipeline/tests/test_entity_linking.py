@@ -127,7 +127,22 @@ class DictionaryPass(unittest.TestCase):
     def test_no_duplicate_when_the_model_tagged_it(self):
         text = "LinkedIn revenue increased."
         out = annotate(text, [model(text, "LinkedIn", "subsidiary")])
-        self.assertEqual([m["origin"] for m in out["entity_mentions"]], ["model"])
+        self.assertEqual([(m["origin"], m["found_by"]) for m in out["entity_mentions"]],
+                         [("model", ["dictionary", "model"])])
+        self.assertEqual(out["related_subsidiary_ids"], ["linkedin"])
+
+    def test_model_only_mentions_are_kept(self):
+        # counterparties and generic references stay, for later use
+        text = "OpenAI and our international subsidiaries were mentioned."
+        out = annotate(text, [model(text, "OpenAI"), model(text, "international subsidiaries", "subsidiary", "generic")])
+        self.assertEqual([(m["match_status"], m["found_by"]) for m in out["entity_mentions"]],
+                         [("needs_review", ["model"]), ("generic_reference", ["model"])])
+
+    def test_short_name_on_the_list_is_searched(self):
+        cat = CATALOG + [entry("2k", "2K, Inc.")]
+        text = "We publish through Rockstar Games, 2K, and Zynga."
+        self.assertIn("2k", annotate(text, catalog=cat)["related_subsidiary_ids"])
+        self.assertEqual(annotate("Sales of NBA 2K and WWE 2K grew.", catalog=cat)["entity_mentions"], [])
 
     def test_lower_case_words_are_not_names(self):
         cat = CATALOG + [entry("pc", "Public Cloud", kind="segment", source="xbrl")]
@@ -232,3 +247,24 @@ class CatalogStep(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LoadMentions(unittest.TestCase):
+    """Step 8 (#91 P3): one MENTIONS edge per Claim and linked entity."""
+
+    def test_one_edge_per_claim_and_entity(self):
+        from src.load import mention_rows
+        text = "Converse revenues fell; Converse is a reset brand. LinkedIn grew."
+        out = annotate(text)
+        occ = {"claim_id": "c1", "entity_annotation_version": out["entity_annotation_version"], **out}
+        rows = mention_rows([occ, dict(occ)])               # a repeated occurrence adds nothing
+        self.assertEqual(sorted(r["entity_id"] for r in rows["subsidiary"]), ["converse-sub", "linkedin"])
+        self.assertEqual([r["entity_id"] for r in rows["segment"]], ["converse-seg"])
+        props = rows["subsidiary"][0]["props"]
+        self.assertEqual((props["match_status"], props["found_by"]), ("matched_auto", ["dictionary"]))
+
+    def test_candidates_are_not_loaded(self):
+        from src.load import mention_rows
+        text = "Rockstar Games released a new title."
+        out = annotate(text, accession=PRIOR_ACC)            # prior-year-only: a candidate
+        self.assertEqual(mention_rows([{"claim_id": "c1", **out}]), {"subsidiary": [], "segment": []})

@@ -16,8 +16,9 @@ Matching (docs/claim-entity-linking.md, P1):
     hit, and to guarded segment names that are also places or common words
     (config/entity_linking.yaml guard_terms: "Europe", "Services").
   - The registrant's own name is never an entity (registrant_reference).
-  - Dictionary pass: every catalog name of the filing found in the sentence that the model
-    did not tag becomes a mention with origin "dictionary" (LinkedIn in Microsoft's Claims).
+  - Catalog first: a dictionary pass finds every catalog name of the filing in the sentence;
+    then the model's mentions are matched and merged with it (annotate_mentions). The model's
+    own mentions (generic references, counterparties) are kept whatever the catalog says.
     Word boundaries are required, so "Lord" never matches inside "landlord", and a name must
     start with a capital or a digit, so "public cloud providers" is not NetApp's Public Cloud.
 
@@ -91,6 +92,7 @@ def settings() -> dict:
     return {"guard": frozenset(match_key(t) for t in cfg.get("guard_terms") or []),
             "min_key": int(cfg.get("dictionary_min_key_length") or 4),
             "skip": frozenset(match_key(t) for t in cfg.get("dictionary_skip") or []),
+            "short_ok": frozenset(match_key(t) for t in cfg.get("dictionary_short_names") or []),
             "registrant_names": cfg.get("registrant_names") or {},
             "context_after": re.compile(r"^(?:['\u2019]s)?\s+(?:" + "|".join(
                 cfg.get("guard_context_after") or ["segments?"]) + r")\b", re.I)}
@@ -130,6 +132,7 @@ class _Scope:
 
     def __init__(self, catalog, issuer_cik, accession):
         self.by_key: dict[str, list[dict]] = {}
+        self.by_id: dict[str, list[dict]] = {}
         self.registrant: set[str] = set()
         for row in catalog:
             if row["issuer_cik"] != issuer_cik or accession not in row["accessions"]:
@@ -140,6 +143,7 @@ class _Scope:
                 continue
             for k in keys:
                 self.by_key.setdefault(k, []).append(row)
+            self.by_id.setdefault(row["entity_id"], []).append(row)
         for k in self.registrant:           # the company itself is never one of its entities
             self.by_key.pop(k, None)
         self.types = {row["entity_type"] for rows in self.by_key.values() for row in rows}
@@ -274,12 +278,17 @@ def dictionary_hits(text: str, sc: _Scope) -> list[tuple[int, int, str]]:
     cfg = settings()
     found = []
     for key in sc.by_key:
-        if len(key) < cfg["min_key"] or key in cfg["skip"]:
+        if (len(key) < cfg["min_key"] and key not in cfg["short_ok"]) or key in cfg["skip"]:
             continue
         # cheap prefilter on the first word before running the regex
         if key.split()[0] not in text.lower():
             continue
+        short = len(key) < cfg["min_key"]
         for hit in _key_pattern(key).finditer(text):
+            # A short name right after a capitalised word is part of a longer name:
+            # "NBA 2K" and "WWE 2K" are game series, not Take-Two's 2K label.
+            if short and re.search(r"[A-Z][A-Za-z]*\s+$", text[:hit.start()]):
+                continue
             if _named(hit.group()):
                 found.append((hit.start(), hit.end(), key))
     found.sort(key=lambda h: (-(h[1] - h[0]), h[0]))
@@ -291,23 +300,48 @@ def dictionary_hits(text: str, sc: _Scope) -> list[tuple[int, int, str]]:
 
 
 def annotate_mentions(text, mentions, *, issuer_cik, accession, catalog, dictionary=True):
+    """Catalog first, then the model's mentions.
+
+    1. Dictionary pass: every catalog name of this filing found in the text (code only).
+    2. The model's mentions are checked and matched as before. One that names an entity the
+       dictionary already found replaces that dictionary mention (the model's type, kind and
+       evidence are kept) and is marked found_by ["dictionary", "model"]. The rest stay as the
+       model gave them, generic references and counterparties included (found_by ["model"]).
+    3. Dictionary hits no model mention covers are added (found_by ["dictionary"]).
+    origin is "model" or "dictionary": who produced the mention record.
+    """
     sc = scope(catalog, issuer_cik, accession)
-    output, flags, related = [], [], {"segment": [], "subsidiary": []}
-    for mention in mentions:
-        output.append(_model_mention(mention, text, sc, accession, related, flags))
+    flags, related = [], {"segment": [], "subsidiary": []}
+    found = []                                  # dictionary mentions, before the model's
     if dictionary and sc.by_key:
-        covered = {i for m in output for i in m["candidate_entity_ids"]}
+        scratch = {"segment": [], "subsidiary": []}
         for start, end, key in dictionary_hits(text, sc):
             rows = sc.by_key[key]
-            if any(r["entity_id"] in covered for r in rows):
-                continue                        # the model already tagged this entity
             m = {"mention_text": text[start:end], "entity_type": rows[0]["entity_type"],
                  "reference_kind": "named", "evidence_quote": text, "origin": "dictionary",
                  "char_start": start, "char_end": end, "matched_entity_id": None}
-            _link(m, rows, text, accession, related)
+            _link(m, rows, text, accession, scratch)
             m["model_entity_type"] = None
-            covered |= set(m["candidate_entity_ids"])
-            output.append(m)
+            found.append(m)
+    output = []
+    for mention in mentions:
+        m = _model_mention(mention, text, sc, accession, related, flags)
+        ids = set(m["candidate_entity_ids"])
+        also = [d for d in found if ids and ids & set(d["candidate_entity_ids"])]
+        m["found_by"] = ["dictionary", "model"] if also else ["model"]
+        for d in also:
+            found.remove(d)
+            m.setdefault("char_start", d["char_start"])
+            m.setdefault("char_end", d["char_end"])
+        output.append(m)
+    for d in found:
+        d["found_by"] = ["dictionary"]
+        if d["match_status"] in LINKED:
+            rows = [r for i in d["candidate_entity_ids"] for r in sc.by_id.get(i, [])]
+            for r in rows:
+                if _status(r, accession) in LINKED and r["entity_id"] not in related[r["entity_type"]]:
+                    related[r["entity_type"]].append(r["entity_id"])
+        output.append(d)
     return {"entity_mentions": output, "related_segment_ids": related["segment"],
             "related_subsidiary_ids": related["subsidiary"], "entity_review_flags": flags,
             "entity_annotation_version": VERSION, "graph_relations_created": 0}

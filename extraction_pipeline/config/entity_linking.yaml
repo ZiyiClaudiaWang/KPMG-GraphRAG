@@ -71,3 +71,6 @@ segment_member_skip:
 # shorter than this, and the keys listed under dictionary_skip (too common as words).
 dictionary_min_key_length: 4
 dictionary_skip: []
+# Short names searched all the same (whole word, capital or digit first, and not right after
+# a capitalised word: "NBA 2K" is a game series).
+dictionary_short_names: [2K]   # Take-Two's 2K label (2K, Inc.)
