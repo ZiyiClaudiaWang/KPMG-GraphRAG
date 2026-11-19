@@ -112,7 +112,14 @@ def repeated_headers(sections: list[dict], cfg: dict) -> set[str]:
 
     Requiring several sections keeps repeated sub-headings inside one section
     (e.g. "Fiscal Year 2026 Compared with Fiscal Year 2025" in MD&A).
+
+    A line of words only (no digit, no "|") must also name the company ("McKESSON
+    CORPORATION", "Medtronic plc", "PARKER-HANNIFIN CORPORATION") or be a "Table of Contents"
+    link: Microsoft's segment headings "More Personal Computing", "Intelligent Cloud" repeat
+    in Items 1, 7 and 8 too, and are not page headers. Running headers with a page or form
+    number ("Apple Inc. | 2025 Form 10-K | 5", "- 12 -") are not affected.
     """
+    name_words = company_words(sections[0].get("company_name") if sections else None)
     counts: Counter[str] = Counter()
     where: dict[str, set[int]] = {}
     for i, sec in enumerate(sections):
@@ -130,7 +137,24 @@ def repeated_headers(sections: list[dict], cfg: dict) -> set[str]:
         and not BULLET_ONLY.match(key)
         and not is_table_row(key)
         and not TERMINAL.search(key)       # real sentences ("None.") are not headers
+        and (not WORDS_ONLY.match(key) or names_company(key, name_words) or TOC_WORDS.search(key))
     }
+
+
+# A repeated line of words only: a heading candidate, not a page or form number.
+WORDS_ONLY = re.compile(r"^[^\d|#]+$")
+TOC_WORDS = re.compile(r"table of contents?", re.IGNORECASE)
+COMPANY_SUFFIXES = {"inc", "corp", "corporation", "co", "company", "plc", "ltd", "llc", "the"}
+
+
+def company_words(name: str | None) -> set[str]:
+    """Distinctive words of the company name: "PARKER-HANNIFIN CORPORATION" -> {parker, hannifin}."""
+    words = re.findall(r"[a-z]+", (name or "").lower().replace("’", "").replace("'", ""))
+    return {w for w in words if len(w) >= 3 and w not in COMPANY_SUFFIXES}
+
+
+def names_company(text: str, name_words: set[str]) -> bool:
+    return bool(name_words & set(re.findall(r"[a-z]+", text.lower().replace("’", "").replace("'", ""))))
 
 
 def drop_rule(text: str, headers: set[str]) -> str | None:

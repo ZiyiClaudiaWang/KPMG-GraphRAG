@@ -213,7 +213,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   quote can be found in the source.
   - Removed:
     - page numbers and page labels ("Part II", "Item 7")
-    - short paragraphs repeated across sections of a filing (page headers)
+    - short paragraphs repeated across sections of a filing (page headers); a line of words
+      only must name the company or be a "Table of Contents" link, so Microsoft's segment
+      headings ("More Personal Computing" in Items 1, 7 and 8) are kept
     - "Table of Contents" lines, including navigation lines such as "Table of Contents | MD&A Index |",
       and Microsoft's page-footer links to the next items ("Item 1B, 1C", "Item 9B, 9C, 10, 11")
     - running headers ending "(Continued)" or "(Concluded)" (McKesson's "FINANCIAL REVIEW (Continued)"), which repeat in one section only
@@ -319,8 +321,11 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
 - <a id="step-4b-heading-levels"></a>**[4b] Heading levels** (`src/heading_levels.py`, optional,
   OpenAI) sends the sub-headings of each kept section, in order, with their typography (capitals,
   title case, numbering, a trailing ":" or ".") and the first words below each, and the model gives
-  each a level (1-4, or 0 for a table title). A level more than one deeper than the heading before
-  it is cut back. One request per section: 316 sections, 12,051 headings, at most $1.76 for the
+  each a level (1-4, 0 for a table title, -1 for a sentence of the text that the rules read as a
+  heading, such as a risk factor whose period was lost: CASY "We may be adversely impacted by
+  increases in the cost of food ingredients ...", TTWO "We may be adversely affected by the effects
+  of inflation"; step 4 then labels it like any sentence). A level more than one deeper than the
+  heading before it is cut back. One request per section: 316 sections, 12,051 headings, at most $1.76 for the
   233 filings. Not needed if the Data team can export heading levels from the HTML: they would
   write the same file (`heading_id`, `level`, `text`, `source`).
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:

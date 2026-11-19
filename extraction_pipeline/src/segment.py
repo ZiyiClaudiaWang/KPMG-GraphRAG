@@ -280,6 +280,8 @@ def is_period_heading(text: str) -> bool:
     return bool(words) and words[0][0].isupper() and all(w[0].isupper() for w in words if len(w) >= 4)
 
 
+SENTENCE_LEVEL = -1        # heading_levels.jsonl: "a sentence, not a heading"
+
 RISK_CATEGORY_START = re.compile(r"^risks?\s+(?:related|relating)\s+to\b", re.IGNORECASE)
 RISK_SUMMARY = re.compile(r"^(?:risk factors? summary|summary of risk factors?)$", re.IGNORECASE)
 
@@ -365,8 +367,11 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     """Units of one cleaned section. levels: heading id -> level (heading_levels.py, or the Data
     team's HTML when it comes), 1 = top. With levels, a heading keeps the headings above it in
     section_path ("Part II Item 7 > Results of Operations > Segment Results > Intelligent Cloud");
-    level 0 means "not a heading" (a table title or column header) and changes no path. Without
-    levels every heading is level 1, so a heading replaces the one before it, as before.
+    level 0 means "not a heading" (a table title or column header) and changes no path; level -1
+    means the line is a sentence of the text (CASY "We may be adversely impacted by increases in
+    the cost of food ingredients and other related costs", a risk heading without its period):
+    it is split and labelled like any paragraph. Without levels every heading is level 1, so a
+    heading replaces the one before it, as before.
     """
     paragraphs = sec["paragraphs"]
     is_risk = sec["section_type"] == "risk_factors"
@@ -374,6 +379,10 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     units: list[dict] = []
     category = subheading = None
     stack: list[tuple[int, str]] = []          # (level, heading text) above the current unit
+
+    def is_sentence(p_index: int, start: int) -> bool:
+        """Step 4b said this heading-like line is a sentence of the text (level -1)."""
+        return (levels or {}).get(heading_id(sec, paragraphs[p_index], start)) == SENTENCE_LEVEL
 
     def open_heading(name: str, p_index: int, start: int) -> int:
         """Put a sub-heading on the stack by its level; return the level (0: not a heading)."""
@@ -437,7 +446,7 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
 
         colon = text.endswith(":")
         list_follows = starts_list(paragraphs, i + 1, colon)
-        if is_heading_like(text) or (is_colon_heading(text) and not list_follows):
+        if (is_heading_like(text) or (is_colon_heading(text) and not list_follows)) and not is_sentence(i, p0):
             name = text.rstrip(":").rstrip()      # "Executive Summary:" is shown as "Executive Summary"
             if is_risk and is_category(name):
                 category, subheading = name, None
@@ -501,7 +510,7 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
         if not is_bullet(text):
             sentences = split_sentences(text)
             s, e = sentences[0]
-            if is_period_heading(text[s:e]):
+            if is_period_heading(text[s:e]) and not is_sentence(i, p0 + s):
                 level = open_heading(text[s:e], i, p0 + s)
                 add("heading", i, p0 + s, p0 + e, "heading")["heading_level"] = level
                 for s, e in sentences[1:]:

@@ -11,7 +11,9 @@ Where the levels come from:
      write the same file, one row per heading, and this step is not run;
   2. otherwise this step: the model sees the list of sub-headings of a section, in order, and
      gives each a level (1 = top). Level 0 = not a heading (a table title or column header such
-     as "Fiscal Year" or "(In millions)"), which then changes no path.
+     as "Fiscal Year" or "(In millions)"), which then changes no path. Level -1 = a sentence of
+     the text read as a heading by the rules (a risk factor whose period was lost): step 4 then
+     splits and labels it like any paragraph, so it can become a Claim.
 
 The file: one row per heading, {"heading_id", "level", "text", "source"}; heading_id is
 accession|section_key|start of the heading in the Data-team content (segment.heading_id), so a
@@ -36,7 +38,7 @@ from .common import Paths, data_dir, filings, log, read_jsonl, settings, write_j
 from .filter_sections import kept_section_keys
 
 STEP = "heading_levels"
-RUNNER_VERSION = "kelly_heading_levels_v1"
+RUNNER_VERSION = "kelly_heading_levels_v2"
 MAX_HEADINGS = 120             # headings per request; a longer section is sent in parts
 MIN_HEADINGS = 2               # a section with fewer headings has nothing to nest
 
@@ -47,6 +49,10 @@ level-1 heading above it, 3 under the nearest level 2, and so on (at most 4). A 
 can be at most one more than the level of the heading before it.
 Give level 0 to lines that are not section headings: table titles, column or row headers
 ("Fiscal Year", "(In millions)", "Three Months Ended March 31,"), units, and footnote labels.
+Give level -1 to a line that is a sentence of the text, not a heading: it states something
+about the company, usually with a verb ("We may be adversely affected by the effects of
+inflation", a risk factor whose period was lost). A heading names a topic ("Security of our
+products, services, devices, and customers' data") and is not a sentence.
 Use the wording and the typography the text still shows: capitals, title case, numbering
 ("Note 7", "(a)"), a trailing ":" or ".", and repeated patterns (the same kind of heading is
 usually the same level). Return one result per heading id."""
@@ -112,7 +118,7 @@ def section_headings() -> list[dict]:
 
 def schema() -> dict:
     row = {"type": "object", "additionalProperties": False, "required": ["id", "level"],
-           "properties": {"id": {"type": "string"}, "level": {"type": "integer", "minimum": 0, "maximum": 4}}}
+           "properties": {"id": {"type": "string"}, "level": {"type": "integer", "minimum": -1, "maximum": 4}}}
     return {"name": "heading_levels", "strict": True,
             "schema": {"type": "object", "additionalProperties": False, "required": ["results"],
                        "properties": {"results": {"type": "array", "items": row}}}}
@@ -168,7 +174,8 @@ def answers(plan: dict, record: dict) -> tuple[list[str], dict[str, int]]:
         if level > last + 1:
             level = last + 1
         out[hid] = level
-        last = level or last
+        if level > 0:
+            last = level
     return problems, out
 
 

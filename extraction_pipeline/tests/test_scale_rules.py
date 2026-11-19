@@ -251,3 +251,36 @@ class TableNotes(unittest.TestCase):
     def test_basis_points_legend_singular_and_plural(self):
         for text in ["bp - basis point", "bp - basis points"]:
             self.assertEqual(segment.prefilter(text, 4), "table_residue", text)
+
+
+class PageHeaders(unittest.TestCase):
+    def sections(self, line: str, company: str) -> list[dict]:
+        out = []
+        for k in range(3):
+            sec = section([line, f"Revenue in part {k} increased.", line, "Costs fell.", "Margins rose."],
+                          section_key=f"s{k}")
+            sec["company_name"] = company
+            out.append(sec)
+        return out
+
+    def test_segment_heading_repeated_across_items_is_kept(self):
+        # Microsoft: "More Personal Computing" in Items 1, 7 and 8 is a heading, not a page header.
+        secs = self.sections("More Personal Computing", "Microsoft Corporation")
+        self.assertEqual(clean.repeated_headers(secs, settings()["clean"]), set())
+
+    def test_company_name_header_is_removed(self):
+        secs = self.sections("McKESSON CORPORATION", "McKESSON CORPORATION")
+        self.assertEqual(clean.repeated_headers(secs, settings()["clean"]), {"McKESSON CORPORATION"})
+
+
+class SentenceLevel(unittest.TestCase):
+    def test_level_minus_one_makes_a_heading_a_sentence(self):
+        line = "We may be adversely affected by the effects of inflation"
+        paras = ["General Risk Factors", line, "Inflation raised our costs in fiscal 2023."]
+        cleaned = clean.clean_section(section(paras, section_type="risk_factors", section_key="part-i-item-1a"), set())
+        p = cleaned["paragraphs"][1]
+        before = by_text(segment.segment_section(cleaned, settings()["segment"]))
+        self.assertEqual(before[line]["role"], "heading")
+        lv = {segment.heading_id(cleaned, p, p["start"]): segment.SENTENCE_LEVEL}
+        after = by_text(segment.segment_section(cleaned, settings()["segment"], lv))
+        self.assertEqual((after[line]["role"], after[line]["prefilter"]), ("body", None))
