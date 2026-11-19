@@ -22,6 +22,8 @@ label:
   context_sentences: 4               # read-only units shown before each batch
   reuse_repeats: path                # copy the label of the same sentence, 4 units before and
                                      # section_path in an earlier filing of the company; null = send all
+  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  rate_limit_retries: 6              # waits after a 429 rate-limit reply (not billed) before stopping
   max_request_bytes: 35000           # a larger batch is halved until it fits
   max_completion_tokens: 4000        # output limit per request
   max_retries: 0                     # per batch, when the reply fails validation

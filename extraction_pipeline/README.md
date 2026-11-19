@@ -599,6 +599,12 @@ python -m unittest discover tests
 - `label.budget_usd` (default 3.0) stops the step-5 run before a request could take total estimated spend
   past it. With no token prices set, costs are not estimated and the budget is not enforced;
   step 5 logs a warning.
+- `label.concurrency` (or `python -m src.label --workers 8`) sends that many requests at once
+  (default 1). Requests in flight count at their worst-case cost against `budget_usd` until
+  their reply is in; two batches with the same request are never in flight together. A 429
+  rate-limit reply is not billed, so it is sent again after a wait (`label.rate_limit_retries`,
+  default 6); "insufficient_quota" and every other error still stop the run. Progress is logged
+  once a minute.
 - Each request is saved in `data/checked_pilot/<first 24 characters of request_hash>/`:
   `request.json`, `attempt.json`, `raw_response.json`, `usage.json`, and
   `validation_errors.json` for a rejected reply. The repair request is saved the same way in
