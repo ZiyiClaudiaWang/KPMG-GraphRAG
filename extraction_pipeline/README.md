@@ -234,12 +234,20 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - Step 7b matches on `match_key()` (accents, case, punctuation, dashes, legal form and a trailing
     "segment" ignored); a catalog hit decides the type; a dictionary pass adds catalog names the
     model did not tag (`origin: dictionary`). A one-entry exact hit on an Exhibit 21 or XBRL entry
+  - Step 7b runs the catalog first: a dictionary pass finds every catalog name in the Claim,
+    then the model's `entity_mentions` (unchanged, prompt `label_v2`) are matched and merged
+    with it (`found_by`: dictionary, model or both); the model's generic references and
+    counterparties are kept as they are. Matching is on `match_key()` (accents, case, punctuation, dashes, legal form and a trailing
+    "segment" ignored); a catalog hit decides the type; a dictionary pass adds catalog names the
+    model did not tag. A one-entry exact hit on an Exhibit 21 or XBRL entry
     is `matched_auto` and goes into `related_*_ids`; a subsidiary listed only in the prior year's
     10-K, or a key shared by several entries (Covidien, CathWorks), stays a candidate. Segment
     names that are also places or words (`guard_terms`: "Europe", "Japan", "Cardiovascular") need
     "segment" in the sentence or a word such as "net sales" right after them. Lower-case words
     never match ("public cloud providers"). Details: `src/entity_annotation.py`.
   - Measure on a run without relabelling: `python -m src.report_entity_links --run ../runs/<run>`.
+  - Measure on a run without relabelling: `python -m src.report_entity_links --run ../runs/<run>`;
+    `entity_link_review.csv` lists the hits code left undecided, with their candidates.
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's
@@ -507,7 +515,14 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - A Claim gets one `CONCERNS_RISK` edge per risk theme of its category.
     RiskFactor nodes are the themes of `config/risk_themes.csv` that some Claim uses, keyed by
     `risk_id`.
-  - Entity mentions and review fields stay in `claims.jsonl`; they are not loaded into the graph.
+  - Segments (step 1c): one `Segment` node per `segment_id` (XBRL members in
+    `entity_catalog.json`), and one `Company -[:HAS_SEGMENT]-> Segment` edge per filing whose
+    facts report it, keyed by `accession_number`.
+  - `Claim -[:MENTIONS]-> Subsidiary | Segment` (#91 P3): one edge per Claim and entity in its
+    `related_subsidiary_ids` / `related_segment_ids` (only `matched` / `matched_auto`), with
+    `mention_text`, `match_status`, `found_by` and `entity_annotation_version`. Candidates and
+    the model's other mentions (generic references, counterparties) stay in `claims.jsonl`.
+    A link whose Subsidiary or Segment is not loaded is skipped; the log says how many.
   - Subsidiaries (step 1b): one `Subsidiary` node per `sub_id` (with `entity_key`), and one
     `Company -[:OWNS]-> Subsidiary` edge per subsidiary per 10-K, keyed by the 10-K’s `accession_number` (`row_order` is stored on the edge, not used as a key). The edge holds what that exhibit says (name as filed, jurisdiction, nesting) and the filing's `reporting_period_end`, the same name as on the Filing node.
   - **How OWNS is cited:** it has no `section_id`, since Exhibit 21 is a separate document of the
@@ -724,6 +739,13 @@ python -m unittest discover tests
 8. Claims to segments and subsidiaries (#91):
    - P1 (code-only matching, [step 1c](#step-1c-entity-catalog)) is in. On the 20 filings: 402
      of 10,774 Claims link (105 to a subsidiary, 332 to a segment), up from 0.
+   - P1 (code-only matching, [step 1c](#step-1c-entity-catalog)) and P3 (`MENTIONS`, step 8) are
+     in. On the 20 filings: 416 of 10,774 Claims link (119 to a subsidiary, 332 to a segment), up
+     from 0; 511 MENTIONS edges. The prompt is unchanged (no P2), so no relabel is needed.
+   - 50 catalog hits left undecided (`entity_link_review.csv`): MiniMed (prior year only),
+     place-like segment names without context, one brand with several legal entities.
+   - Tell Adeline: `MENTIONS`, `Segment` and `HAS_SEGMENT` are now written by step 8; add them to
+     `docs/schema-ids-operations.md`.
    - Segment aliases: XBRL labels only ("Diabetes Group", "Neuroscience Group", "AEBU"); prose
      names that differ do not match yet.
    - One brand, several legal entities (Covidien, CathWorks, Instaclustr, Meggitt): stays
