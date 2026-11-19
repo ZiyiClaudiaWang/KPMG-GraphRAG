@@ -7,8 +7,8 @@ Input : the form: 10-K rows of config/filings.yaml (ticker, cik, accession,
 Output: data/output/subsidiaries.jsonl        one row per subsidiary per 10-K (loaded by step 8)
         data/output/subsidiary_qa.csv         one row per 10-K: rows parsed, and what to check
         data/output/subsidiary_catalog.json   the same subsidiaries in entity_annotation.py's
-                                              catalog format, for linking Claims later. No step
-                                              reads it yet (step 7b reads data/entity_catalog.json).
+                                              catalog format, for linking Claims; step 1c
+                                              (entity_catalog.py) copies it into data/entity_catalog.json.
                                               Each filing is offered the subsidiaries of its own
                                               year's 10-K, plus those listed only in the 10-K
                                               before it, flagged (catalog()).

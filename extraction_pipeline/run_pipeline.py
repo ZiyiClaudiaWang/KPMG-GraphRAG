@@ -9,6 +9,7 @@
 Steps, in order:
   fetch         check (or export) data/sections/*.jsonl
   subsidiaries  subsidiaries.jsonl: Exhibit 21 of each 10-K in filings.yaml (SEC EDGAR, no LLM)
+  entity_catalog entity_catalog.json: subsidiaries (step 1b) + XBRL segments a Claim may link to
   page_breaks   page_break_decisions.jsonl: yes/no for page breaks the rules leave gray (OpenAI)
   clean         remove page headers, repair paragraphs
   filter        section_manifest.csv: which sections to extract from
@@ -34,10 +35,10 @@ import argparse
 import sys
 import time
 
-from src import (build_claims, clean, fetch, filter_sections, heading_levels, label, load, page_breaks,
-                 risk_factors, segment, subsidiaries, validate)
+from src import (build_claims, clean, entity_catalog, fetch, filter_sections, heading_levels, label, load,
+                 page_breaks, risk_factors, segment, subsidiaries, validate)
 
-STEPS = ["fetch", "subsidiaries", "page_breaks", "clean", "filter", "heading_levels", "segment", "label",
+STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "heading_levels", "segment", "label",
          "validate", "risk_factors", "build_claims", "load"]
 OPT_IN = {"page_breaks", "heading_levels"}       # paid; only when named in --steps
 
@@ -64,6 +65,7 @@ def main() -> None:
     actions = {
         "fetch": lambda: fetch.run(args.from_db),
         "subsidiaries": subsidiaries.run,
+        "entity_catalog": entity_catalog.run,
         "page_breaks": lambda: page_breaks.run(dry_run=args.dry_run, limit=args.limit),
         "clean": clean.run,
         "filter": filter_sections.run,

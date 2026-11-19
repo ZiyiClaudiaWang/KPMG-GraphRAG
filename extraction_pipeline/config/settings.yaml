@@ -1,6 +1,10 @@
 # Paths are relative to the pipeline folder.
 data_dir: ../data            # holds sections/ (input) and all pipeline outputs
 
+entity_catalog:                      # step 1c
+  fact_store: null                   # .duckdb with financial_facts_v1, for XBRL segments; relative to
+                                     # extraction_pipeline/. --facts or PIPELINE_FACT_STORE override it
+
 clean:
   repeated_paragraph_min_count: 5   # a short paragraph seen this often in one filing is a page header
   repeated_paragraph_max_chars: 90

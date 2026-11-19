@@ -99,6 +99,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 |---|------|--------|------------------------|-----|
 | 1 | Fetch | `fetch.py` | `sections/*.jsonl` (from the Data-team database) | no |
 | 1b | [Subsidiaries](#step-1b-subsidiaries) | `subsidiaries.py`, `ex21/` | `output/subsidiaries.jsonl`, `output/subsidiary_qa.csv`, `output/subsidiary_catalog.json`, `ex21/raw/` | no |
+| 1c | [Entity catalog](#step-1c-entity-catalog) | `entity_catalog.py` | `entity_catalog.json` | no |
 | 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
@@ -217,7 +218,28 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     subsidiaries of its *reference 10-K*: the parent's first 10-K ending on or after the filing's
     `reporting_period_end` (the last 10-K for filings after it). A subsidiary listed only in the
     10-K before that one stays in scope, and the filing is named in `prior_year_only_accessions`.
-    No step reads it yet; step 7b reads `data/entity_catalog.json`.
+    Step 1c copies it into `data/entity_catalog.json`.
+
+- <a id="step-1c-entity-catalog"></a>**[1c] Entity catalog** builds `data/entity_catalog.json`, the
+  subsidiaries and segments a Claim may link to (#91, P1: matching in code, no LLM).
+  - Subsidiaries: `output/subsidiary_catalog.json` from step 1b, as it is.
+  - Segments: the XBRL members on `us-gaap:StatementBusinessSegmentsAxis` in a fact store
+    (`--facts path/to/corpus_facts.duckdb`, or `PIPELINE_FACT_STORE`). Each filing is offered the
+    segments its own facts use. Totals, "all other", Casey's single reportable segment and
+    NetApp's revenue categories are skipped (`segment_member_skip` in `config/entity_linking.yaml`).
+    Labels come from the QName (`mu:CDBUMember` -> "CDBU"); no aliases yet. Without a fact store
+    the catalog has no segments.
+  - The registrant's own names (`registrant_names`), so "Medtronic plc" is recognised and never
+    linked.
+  - Step 7b matches on `match_key()` (accents, case, punctuation, dashes, legal form and a trailing
+    "segment" ignored); a catalog hit decides the type; a dictionary pass adds catalog names the
+    model did not tag (`origin: dictionary`). A one-entry exact hit on an Exhibit 21 or XBRL entry
+    is `matched_auto` and goes into `related_*_ids`; a subsidiary listed only in the prior year's
+    10-K, or a key shared by several entries (Covidien, CathWorks), stays a candidate. Segment
+    names that are also places or words (`guard_terms`: "Europe", "Japan", "Cardiovascular") need
+    "segment" in the sentence or a word such as "net sales" right after them. Lower-case words
+    never match ("public cloud providers"). Details: `src/entity_annotation.py`.
+  - Measure on a run without relabelling: `python -m src.report_entity_links --run ../runs/<run>`.
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's
@@ -456,7 +478,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
 - <a id="step-7b-build-claims"></a>**[7b] Build Claims** writes one record per Claim (a statement at one place in a
   section): the ontology fields, provenance (source spans, context unit ids,
   XPath, section hash, request hash, model, prompt id), the source fragments and paragraph, and
-  entity mentions checked against the sentence and the entity catalog (`entity_annotation.py`).
+  entity mentions checked against the sentence and the entity catalog (`entity_annotation.py`,
+  [step 1c](#step-1c-entity-catalog)).
   `not_a_claim` and `needs_review` units, and units held in step 6, do not become Claims.
   All fields: [Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8).
   - `quote`: the source text of every fragment, joined by one space. A multi-span unit is never
@@ -697,9 +720,20 @@ python -m unittest discover tests
      - Apple's 10-Qs (179 units) and the opening paragraphs of each 10-K get no theme.
      - One option is a model pass that picks a theme from the library ([Appendix B](#appendix-b-risk-themes)).
    - the model's `is_risk_heading`
-     - it is kept only for `risk_lead_sentence` and `risk_lead_unit_id`, which [2.2](#2-decide-but-can-be-open) and [1.6](#1-improvement) would use.
-7. Segments:
-   - Link Claims to segments
+     - it is kept only for `risk_lead_sentence` and `risk_lead_unit_id`, which [2.2](#2-decide-but-can-be-open) and [1.7](#1-improvement) would use.
+8. Claims to segments and subsidiaries (#91):
+   - P1 (code-only matching, [step 1c](#step-1c-entity-catalog)) is in. On the 20 filings: 402
+     of 10,774 Claims link (105 to a subsidiary, 332 to a segment), up from 0.
+   - Segment aliases: XBRL labels only ("Diabetes Group", "Neuroscience Group", "AEBU"); prose
+     names that differ do not match yet.
+   - One brand, several legal entities (Covidien, CathWorks, Instaclustr, Meggitt): stays
+     `ambiguous_catalog_match`. Decide: link to all, or keep unlinked.
+   - Load the links (`MENTIONS` edge, P3) after the schema decision with Adeline.
+9. Repeated sentences across filings
+   - The same sentence in another filing is a separate Claim (`claim_id` includes the accession number); so is the same sentence twice in one section (`claim_id` includes its position).
+   - Repeats are common in the five-filing run (not yet counted on the 20 filings): 1,223 of about 2,400 Claims share their text with a Claim in another filing of the same
+     company; mostly between a 10-K and a 10-Q (448 Microsoft sentences), mainly in Risk Factors and MD&A
+   - no sentence repeated across companies
 
 ### 2. Decide but can be open:
 1. `multi_fragment` Claim: 
@@ -813,7 +847,7 @@ line. "Loaded" shows where a field ends up in Neo4j.
 | `source_fragments`, `parent_paragraph_context` | Start, end and text of the sentence and of its paragraph in the Data team `content` | no |
 | `entity_mentions`, `entity_review_flags`, `entity_annotation_version`, `graph_relations_created` | The model's entity mentions checked against the sentence and catalog (`entity_annotation.py`) | no |
 | `proposed_entity_mentions`, `entity_review`, `postcheck_policy_version` | Segment names found by rule, and the review of the model's mentions (`source_review.py`) | no |
-| `related_segment_ids`, `related_subsidiary_ids` | Always empty: no confirmed entity links yet | no |
+| `related_segment_ids`, `related_subsidiary_ids` | Segments and subsidiaries the Claim links to (`matched` / `matched_auto` only, step 1c); not loaded yet (#91 P3) | no |
 
 ## Appendix B: Risk themes
 
