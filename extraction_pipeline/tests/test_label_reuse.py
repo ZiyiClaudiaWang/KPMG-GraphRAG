@@ -18,7 +18,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURE = HERE / "fixtures" / "sections" / "TEST_0000000000-25-000001.jsonl"
 FIRST, SECOND = "0000000000-25-000001", "0000000000-26-000002"
 
-from src import clean, filter_sections, label, segment, validate  # noqa: E402
+from src import build_claims, clean, filter_sections, label, load, segment, validate  # noqa: E402
 from src.common import Paths, read_jsonl  # noqa: E402
 
 
@@ -136,6 +136,26 @@ class LabelReuse(unittest.TestCase):
         held = [dict(self.labels[first], source="code_quarantine")]
         self.assertEqual(label.reused_labels(held, {uid: first}, units), ([], {uid}))
         self.assertEqual(label.reused_labels([], {uid: first}, units), ([], set()))
+
+    def test_reused_labels_become_claims_and_load_rows(self):
+        """A unit that was not sent still ends up in the graph, with its first occurrence's label."""
+        build_claims.run()
+        claims = {c["claim_id"]: c for c in read_jsonl(Paths.claims())}
+        rows = {r["claim_id"]: r for r in load.build_rows()["claims"]}
+        held = validate.held_ids()
+        reused = [l for l in self.labels.values() if l["source"] == "llm_reused"
+                  and l["label"] in build_claims.CLAIM_TYPES and l["unit_id"] not in held]
+        self.assertTrue(reused)
+        for l in reused:
+            first = self.labels[l["reused_from_unit_id"]]
+            for row in (claims.get(l["unit_id"]), rows.get(l["unit_id"])):
+                self.assertIsNotNone(row, l["unit_id"])
+                self.assertEqual(row["claim_type"], first["label"])
+                self.assertEqual(row["accession_number"], SECOND)
+                self.assertEqual(row["section_id"], self.units[l["unit_id"]]["section_id"])
+            self.assertEqual(claims[l["unit_id"]]["provenance"]["context_unit_ids"], l["context_unit_ids"])
+        per_filing = {acc: sum(r["accession_number"] == acc for r in rows.values()) for acc in (FIRST, SECOND)}
+        self.assertEqual(per_filing[FIRST], per_filing[SECOND])
 
 
 if __name__ == "__main__":
