@@ -25,7 +25,6 @@ A boundary's id is accession|section_key|start of the second paragraph in the Da
 from __future__ import annotations
 
 import argparse
-import json
 
 from . import clean as C
 from .common import Paths, data_dir, filings, load_config, log, read_jsonl, settings, write_jsonl
@@ -69,34 +68,16 @@ def gray_boundaries() -> list[dict]:
         sections = list(read_jsonl(path))
         headers = C.repeated_headers(sections, cfg)
         for sec in sections:
-            raw = sec.get("content") or ""
-            if not raw.strip():
+            if not (sec.get("content") or "").strip():
                 continue
             if decide(C.clean_section(sec, headers), rules)[0] == "drop":
                 continue
-            paragraphs: list[list[list[int]]] = []
-            pending = False
-            for s, e in C.split_paragraphs(raw):
-                text = raw[s:e]
-                if C.drop_rule(text, headers):
-                    continue
-                if C.BULLET_ONLY.match(text):
-                    pending = True
-                    continue
-                starts_with_bullet, pending = pending, False
-                if paragraphs and not starts_with_bullet:
-                    prev = paragraphs[-1]
-                    cls = C.boundary_class(raw, prev, text)
-                    if cls in C.GRAY_CLASSES:
-                        ps, pe = prev[-1][:2]
-                        out.append({"boundary_id": C.boundary_id(sec, s), "class": cls,
-                                    "ticker": f["ticker"], "form": f["form"], "section_type": sec.get("section_type"),
-                                    "a": raw[max(ps, pe - TAIL):pe].translate(C.ONE_FOR_ONE),
-                                    "b": text[:TAIL].translate(C.ONE_FOR_ONE)})
-                    if C.should_join(raw, prev, text):
-                        prev.append([s, e])
-                        continue
-                paragraphs.append([[s, e]])
+            for b in C.walk(sec, headers)[2]:
+                if b["class"] in C.GRAY_CLASSES:
+                    out.append({"boundary_id": C.boundary_id(sec, b["next_start"]), "class": b["class"],
+                                "ticker": f["ticker"], "form": f["form"], "section_type": sec.get("section_type"),
+                                "a": b["prev"][-TAIL:].translate(C.ONE_FOR_ONE),
+                                "b": b["next"][:TAIL].translate(C.ONE_FOR_ONE)})
     return out
 
 

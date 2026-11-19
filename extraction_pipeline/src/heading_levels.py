@@ -105,7 +105,8 @@ def section_headings() -> list[dict]:
                               "style": style(u["text"]), "next_text": " ".join(after.split()[:12])})
             if len(heads) >= MIN_HEADINGS:
                 out.append({"ticker": f["ticker"], "form": f["form"], "accession": sec["accession_number"],
-                            "section_key": sec["section_key"], "section": u["section_label"], "headings": heads})
+                            "section_key": sec["section_key"], "section": units[0]["section_label"],
+                            "headings": heads})
     return out
 
 

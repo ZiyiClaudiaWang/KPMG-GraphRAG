@@ -150,12 +150,22 @@ def drop_rule(text: str, headers: set[str]) -> str | None:
     return None
 
 
-def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | None = None) -> dict:
+def walk(sec: dict, headers: set[str], decisions: dict[str, bool] | None = None) -> tuple[list, list, list]:
+    """Step 2's single pass over a section: drop furniture, attach lone bullets, join page breaks.
+
+    Returns (paragraphs, removed, boundaries):
+      paragraphs  [[raw_start, raw_end], ...] per kept paragraph (its pieces in `content`)
+      removed     [{raw_start, raw_end, rule, text}]
+      boundaries  one record per boundary between two kept paragraphs, in order:
+                  {class, prev, next, next_start, joined, prev_is_item}
+    diagnose.py and page_breaks.py read the boundaries, so the three never disagree.
+    """
     raw = sec["content"] or ""
-    paragraphs: list[dict] = []    # each: {"pieces": [[raw_start, raw_end]], "after_removal": bool}
+    paragraphs: list[list[list[int]]] = []
+    items: list[bool] = []                 # does each paragraph open a list item?
     removed: list[dict] = []
+    boundaries: list[dict] = []
     pending_bullet: tuple[int, int] | None = None
-    joined = 0
     for s, e in split_paragraphs(raw):
         text = raw[s:e]
         rule = drop_rule(text, headers)
@@ -172,23 +182,33 @@ def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | Non
             pieces.insert(0, list(pending_bullet))
             pending_bullet = None
 
-        prev = paragraphs[-1] if paragraphs else None
-        decision = (decisions or {}).get(boundary_id(sec, s))
-        if prev and not starts_with_bullet and should_join(raw, prev["pieces"], text, decision):
-            prev["pieces"].extend(pieces)     # paragraph split by a page break
-            joined += 1
-        else:
-            paragraphs.append({"pieces": pieces})
+        if paragraphs and not starts_with_bullet:
+            prev = paragraphs[-1]
+            cls = boundary_class(raw, prev, text)
+            joined = joins(cls, (decisions or {}).get(boundary_id(sec, s)))
+            boundaries.append({"class": cls, "prev": raw[prev[-1][0]:prev[-1][1]], "next": text,
+                               "next_start": s, "joined": joined, "prev_is_item": items[-1]})
+            if joined:
+                prev.extend(pieces)           # paragraph split by a page break
+                continue
+        paragraphs.append(pieces)
+        items.append(starts_with_bullet or is_item_start(text))
 
     if pending_bullet:                        # trailing bullet with nothing after it
         s, e = pending_bullet
         removed.append({"raw_start": s, "raw_end": e, "rule": "orphan_bullet", "text": raw[s:e]})
+    return paragraphs, removed, boundaries
+
+
+def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | None = None) -> dict:
+    raw = sec["content"] or ""
+    paragraphs, removed, boundaries = walk(sec, headers, decisions)
 
     # Build cleaned text: pieces inside a paragraph are joined by one space.
     out_paragraphs, parts, offset = [], [], 0
     for p in paragraphs:
         texts, mapped, cursor = [], [], offset
-        for i, (s, e) in enumerate(p["pieces"]):
+        for i, (s, e) in enumerate(p):
             if i:
                 cursor += 1                   # the joining space
             mapped.append([s, e, cursor])
@@ -200,7 +220,8 @@ def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | Non
         offset += len(text) + 2               # the "\n\n" separator
 
     out = {k: sec.get(k) for k in KEEP_FIELDS}
-    out.update(text="\n\n".join(parts), paragraphs=out_paragraphs, removed=removed, joined=joined)
+    out.update(text="\n\n".join(parts), paragraphs=out_paragraphs, removed=removed,
+               joined=sum(b["joined"] for b in boundaries))
     return out
 
 
@@ -216,8 +237,9 @@ GRAY_CLASSES = ("C9_gray_no_punct_capital", "C9_gray_short_prev_lower")
 BOUNDARY_CLASSES = ("sentence_end", "table_row", "short_prev", "heading_then_text", "text_then_heading",
                     "list_item_end", "bullet_item_end", "next_is_bullet", "checkbox") + JOIN_CLASSES + GRAY_CLASSES
 
-# A Word-style lettered item: "a.we maintain", "(1) cost of" (segment.ITEM_MARKER reads these too).
-LETTERED_ITEM = re.compile(r"^(?:\((?:[a-z]|[ivx]{2,4}|\d{1,2})\)|[a-z]\.(?![a-z]\.)|\d{1,2}\.(?!\d))\s?[A-Za-z]")
+# A lettered or numbered list item: "a.we maintain", "(b) the", "1.Product purchases", "(ii)pertain".
+# "e.g." and "i.e." are not items; nor is "1.5 million". The one definition (segment, diagnose).
+ITEM_MARKER = re.compile(r"^(?:\((?:[a-z]|[ivx]{2,4}|\d{1,2})\)|[a-z]\.(?![a-z]\.)|\d{1,2}\.(?!\d))\s?(?=[A-Za-z“\"(])")
 CHECKBOX_END = re.compile(r"(?:[☐☒☑ýþ]|\bNo o)$")
 # A word in capitals for heading purposes: "Results", "COVID-19", "iPhone" (a brand in lower case).
 CAPITALISED = re.compile(r"^(?:[A-Z0-9]|[a-z]{1,3}[A-Z])")
@@ -241,9 +263,8 @@ def looks_like_heading(text: str, max_words: int = 25) -> bool:
 
 
 def is_item_start(text: str) -> bool:
-    """A paragraph that opens a list item: a bullet ("•", "• |", a lone bullet) or "a." / "(1)"."""
-    return bool(LEADING_BULLET.match(text) or BULLET_ONLY.match(text.split(" ")[0] if text else "")
-                or LETTERED_ITEM.match(text))
+    """A paragraph that opens a list item: a bullet ("•", "• |", "o ") or "a." / "(1)"."""
+    return bool(LEADING_BULLET.match(text) or text.startswith("o ") or ITEM_MARKER.match(text))
 
 
 def boundary_class(raw: str, prev_pieces: list[list[int]], next_text: str) -> str:
@@ -307,18 +328,21 @@ def boundary_id(sec: dict, next_start: int) -> str:
     return f"{sec['accession_number']}|{sec['section_key']}|{next_start}"
 
 
-def should_join(raw: str, prev_pieces: list[list[int]], next_text: str, decision: bool | None = None) -> bool:
-    """Join when the previous paragraph stops mid-sentence and the next continues it
-    (boundary_class). A gray boundary is joined only when decision is True: the answer step 2b
-    (page_breaks.py) saved for it. Without a saved answer it is not joined, as before.
+def joins(cls: str, decision: bool | None = None) -> bool:
+    """Whether a boundary of this class is joined. A gray one only when decision is True: the
+    answer step 2b (page_breaks.py) saved for it; without one it stays two paragraphs.
 
     Examples. Joined: "...blocked by the" / "Sixth Circuit"; "...through February 27," / "2025, we
     had"; "...issuance of 2026 Notes and" / "2028 Notes". Not joined: "Mac | 8,675" / "iPad | 8,435"
     (table rows); "...; and" / "fluctuations in ..." (a list item, its bullet dropped); "iPhone" /
     "iPhone net sales ..." (a heading); "...the 2023 fiscal year" / "COVID-19 and Related Impacts".
     """
-    cls = boundary_class(raw, prev_pieces, next_text)
     return cls in JOIN_CLASSES or (cls in GRAY_CLASSES and decision is True)
+
+
+def should_join(raw: str, prev_pieces: list[list[int]], next_text: str, decision: bool | None = None) -> bool:
+    """joins() for one boundary, from the previous paragraph's pieces and the next paragraph."""
+    return joins(boundary_class(raw, prev_pieces, next_text), decision)
 
 
 def raw_spans(paragraph: dict, start: int, end: int) -> list[list[int]]:

@@ -64,9 +64,6 @@ TABLE_TITLE = re.compile(
 FURNITURE = re.compile(r"form\s+10-[kq]\b|^page\s+\d+", re.IGNORECASE)
 # A brand written in lower case ("iPhone", "iPad", "eBay"): not a missed join.
 BRAND = re.compile(r"^[a-z]{1,3}[A-Z]")
-# Lettered or numbered list items S12 does not read as bullets: "a.we maintain", "(b) the".
-# "e.g." and "i.e." are not items.
-LETTERED = re.compile(r"^(?:\(?[a-z]\)|[a-z]\.(?![a-z]\.)|\(?\d{1,2}\)|\d{1,2}\.)\s?[A-Za-z]")
 # U.S./Inc./... followed by a capitalised word, inside one unit (S2 did not split).
 ABBR_FOLLOW = re.compile(r"\b(U\.S|U\.K|E\.U|Inc|Corp|Co|Ltd|LLC|etc|plc)\.\s+([A-Z][A-Za-z]+)")
 ABBR_END = re.compile(r"\b(U\.S|U\.K|E\.U|Inc|Corp|Co|Ltd|LLC|etc|plc)\.$")
@@ -88,10 +85,9 @@ class Check:
 
 
 CHECKS = [
-    Check("C9_gray_no_punct_capital", "C9", "Prose paragraph with no end punctuation, next starts upper case; not joined. A page break the rules cannot decide."),
-    Check("C9_gray_dangling_digit", "C9", "Paragraph ends on 'and'/'the'/... and the next starts with a digit ('2026 Notes and' / '2028 Notes'); not joined. A missed join."),
+    Check("C9_gray_no_punct_capital", "C9", "Prose paragraph with no end punctuation, next starts upper case: a page break the rules cannot decide. Joined only if step 2b said yes; counted here when not joined."),
     Check("C9_gray_short_prev_lower", "C9", "Paragraph under 8 words, next starts lower case; not joined. Usually a heading ('iPhone' / 'iPhone net sales'), sometimes a cut sentence."),
-    Check("C9_join_table_row", "C9", "A table row was joined to the next paragraph: the join rule only knows rows that start or end with '|'."),
+    Check("C9_join_table_row", "C9", "A joined boundary where either side looks like a table row (any ' | '): has_table_cells() and this check disagree."),
     Check("C7_leftover_furniture", "C2-C7", "Short line naming the form ('FORM 10-Q') or a page, not removed."),
     Check("C7_repeated_in_section", "C7", "Short prose line repeated 3+ times in one section, not removed (C7 counts repeats across sections only)."),
     Check("S1_starts_lowercase", "S1, C9", "Unit sent to the LLM starts lower case, not from a list item (brands such as 'iPhone' and bullet or lettered items left out): a missed join or a bad split."),
@@ -117,35 +113,6 @@ CHECK_BY_ID = {c.id: c for c in CHECKS}
 # ---------------------------------------------------------------- step 2 ----
 
 BOUNDARY_ORDER = list(C.BOUNDARY_CLASSES) + ["C9_gray_joined_by_llm"]
-
-
-def walk_boundaries(sec: dict, headers: set[str], decisions: dict | None = None):
-    """Mirror clean_section's loop; yield (class, previous text, next text, joined, prev_is_item)
-    per boundary. prev_is_item: the previous paragraph opens with a bullet or "a." / "(1)",
-    including a bullet that stood on its own line."""
-    raw = sec["content"] or ""
-    paragraphs: list[list[list[int]]] = []
-    items: list[bool] = []
-    pending = False
-    for s, e in C.split_paragraphs(raw):
-        text = raw[s:e]
-        if C.drop_rule(text, headers):
-            continue
-        if C.BULLET_ONLY.match(text):
-            pending = True
-            continue
-        starts_with_bullet, pending = pending, False
-        if paragraphs and not starts_with_bullet:
-            prev = paragraphs[-1]
-            ps, pe = prev[-1][:2]
-            decision = (decisions or {}).get(C.boundary_id(sec, s))
-            joined = C.should_join(raw, prev, text, decision)
-            yield C.boundary_class(raw, prev, text), raw[ps:pe], text, joined, items[-1]
-            if joined:
-                prev.append([s, e])
-                continue
-        paragraphs.append([[s, e]])
-        items.append(starts_with_bullet or C.is_item_start(text))
 
 
 # ---------------------------------------------------------------- financial statements ----
@@ -304,7 +271,8 @@ def run() -> None:
             # ---- step 2
             for r in cleaned["removed"]:
                 removed[r["rule"]] += 1
-            for cls, before, after, joined, prev_item in walk_boundaries(sec, headers, decisions):
+            for b in C.walk(sec, headers, decisions)[2]:
+                cls, before, after, joined, prev_item = b["class"], b["prev"], b["next"], b["joined"], b["prev_is_item"]
                 boundaries[bucket][cls] += 1
                 if cls.startswith("C9_") and not joined:
                     hit(cls, f"{before[-70:]}  ⟶  {after[:90]}", before=before, after=after)
@@ -358,7 +326,7 @@ def run() -> None:
                 if in_list:
                     listed_paras.update(u.get("list_paragraphs") or [p])
                 if (to_llm and not in_list and not from_item and text[:1].islower() and not BRAND.match(text)
-                        and not LETTERED.match(text)):
+                        and not C.ITEM_MARKER.match(text)):
                     hit("S1_starts_lowercase", text, p, before, after)
                 if u["role"] == "body" and not in_list and S.is_bullet(paras[p]["text"]):
                     hit("S13_bullet_outside_list", text, p, before, after)
@@ -401,7 +369,7 @@ def run() -> None:
             for k, x in enumerate(texts):
                 prev_x = texts[k - 1] if k else ""
                 nxt_x = texts[k + 1] if k + 1 < len(texts) else ""
-                if (LETTERED.match(x) and not S.is_bullet(x) and k not in listed_paras
+                if (C.ITEM_MARKER.match(x) and not S.is_bullet(x) and k not in listed_paras
                         and not (x[:1].isdigit() and S.is_heading_like(x))):
                     hit("S12_lettered_list_item", x, k, prev_x, nxt_x)
                 if (x.endswith(":") and nxt_x and not S.item_marker(nxt_x) and not S.is_colon_heading(x)
@@ -493,9 +461,9 @@ def run() -> None:
 
     # 3. boundaries
     L += ["## 3. Paragraph boundaries (C9)", "",
-          "Every boundary between two paragraphs, by what the join rule did. Only the `C9_*` rows "
-          "need a person (or a new rule, or an LLM check); the others are decided correctly by "
-          "construction (`table_row`, `heading_then_text`, `list_item_end`) or joined.", ""]
+          "Every boundary between two paragraphs, by its class (clean.boundary_class). `join_*` "
+          "classes are joined, `C9_gray_*` only when step 2b said yes (`C9_gray_joined_by_llm`), "
+          "the rest never.", ""]
     rows = [[k] + [f"{boundaries[b][k]:,}" for b in cols] for k in BOUNDARY_ORDER
             if any(boundaries[b][k] for b in cols)]
     L += [md_table(["class"] + cols, rows), ""]

@@ -56,7 +56,7 @@ import re
 #     bullets, items whose bullet was lost; heading levels (step 4b); new page-break joins (step 2).
 SEGMENTATION_VERSION = "kelly_sentence_v6"
 
-from .clean import DANGLING_WORDS, has_table_cells, raw_spans
+from .clean import DANGLING_WORDS, ITEM_MARKER, has_table_cells, raw_spans
 from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_jsonl
 from .filter_sections import kept_section_keys
 
@@ -86,10 +86,6 @@ BOUNDARY = re.compile(r"[.?!][\"”’)\]]*(?=\s+[\"“‘(\[]?[A-Z0-9•])")
 # A bullet, with the "|" of a bullet exported as its own table cell after it ("• | Revenue grew").
 # "\uf0b7" is the Symbol-font bullet (NetApp).
 BULLET = re.compile(r"^(?:[•●◦▪‣\uf0b7]\s*(?:\|\s*)?|[–-]\s+(?:\|\s*)?|o\s+)")
-# A lettered or numbered list item: "a.we maintain", "(b) the", "1.Product purchases", "(ii)pertain".
-# Read as a list item only after an intro ending in ":", so table footnotes ("(1)Includes ...")
-# stay ordinary paragraphs. "e.g." and "i.e." are not items.
-ITEM_MARKER = re.compile(r"^(?:\((?:[a-z]|[ivx]{2,4}|\d{1,2})\)|[a-z]\.(?![a-z]\.)|\d{1,2}\.(?!\d))\s?(?=[A-Za-z“\"(])")
 # The last sentence of an intro that announces a list without a ":"
 # (McKesson: "The following summary provides highlights ... for the year ended March 31, 2021.").
 ANNOUNCES_LIST = re.compile(r"\bthe following\b|\bas follows\b", re.IGNORECASE)
@@ -249,7 +245,7 @@ def is_heading_like(text: str) -> bool:
     """
     words = text.split()
     return (len(text) <= 150 and "|" not in text and not is_bullet(text)
-            and not TERMINAL.search(text) and not text.endswith((":", ";", ","))
+            and not TERMINAL.search(text) and not text.endswith(":")
             and bool(words) and words[-1].lower() not in DANGLING_WORDS
             and note_key(text) not in TABLE_NOTE_KEYS and not FOOTNOTE_MARKER.match(text))
 
@@ -492,7 +488,7 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
                 # Split: the intro sentence is an ordinary unit, and each item is labelled
                 # on its own, pointing back to that intro sentence.
                 intro_unit = None
-                for k, (s, e) in enumerate(intro[opener:], start=opener):
+                for s, e in intro[opener:]:
                     unit = add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
                     intro_unit = intro_unit or unit
                 add_items(i + 1, j, intro_unit)
