@@ -7,6 +7,8 @@ so a laptop without Docker still gets the rest.
 
 from __future__ import annotations
 
+import datetime
+
 import os
 
 import pytest
@@ -146,16 +148,31 @@ def test_refusing_a_filter_says_why():
         graph_backend._check_filters({"is_table": True})
 
 
-@pytest.mark.parametrize("key", ["fiscal_year", "fiscal_period"])
-def test_the_fiscal_filters_are_accepted_and_ignored_like_the_structured_arm(key):
-    """Both arms are offered these keys by the contract. Refusing here while
-    the structured arm ignored them meant one filter dict worked on one arm
-    and raised on the other, and 129 of Eval's 155 questions carry one."""
-    graph_backend._check_filters({key: "anything"})
+def test_the_fiscal_filters_reach_the_query(monkeypatch):
+    """These were accepted and dropped, so a question about FY2026 returned
+    filings from any year. 129 of Eval's 155 questions carry one of them."""
+    monkeypatch.setattr(graph_backend, "_calendar", lambda driver=None: {
+        "MSFT": {"Q3 2026": (datetime.date(2026, 1, 1), datetime.date(2026, 3, 31))}})
 
-    where, params = graph_backend._where_clause({"ticker": "MSFT", key: "anything"})
-    assert where == "co.ticker = $ticker"
+    where, params = graph_backend._where_clause(
+        {"ticker": "MSFT", "fiscal_year": 2026, "fiscal_period": "Q3"})
+    assert "reporting_period_end" in where
+    assert params["fiscal_0_a"] == "2026-01-01"
+    assert params["fiscal_0_b"] == "2026-03-31"
+
+
+def test_a_period_no_filing_covers_matches_nothing(monkeypatch):
+    """Dropping the filter would return every year and call it FY2019."""
+    monkeypatch.setattr(graph_backend, "_calendar", lambda driver=None: {"MSFT": {}})
+    where, params = graph_backend._where_clause({"ticker": "MSFT", "fiscal_year": 2019})
+    assert "false" in where
     assert params == {"ticker": "MSFT"}
+
+
+def test_a_quarter_without_a_year_is_refused(monkeypatch):
+    monkeypatch.setattr(graph_backend, "_calendar", lambda driver=None: {"MSFT": {}})
+    with pytest.raises(contract.FilterNotSupportedError, match="needs fiscal_year"):
+        graph_backend._where_clause({"fiscal_period": "Q3"})
 
 
 def test_max_hops_below_the_traversal_is_refused():
