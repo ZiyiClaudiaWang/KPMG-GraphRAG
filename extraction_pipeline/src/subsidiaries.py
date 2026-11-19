@@ -31,9 +31,12 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
-from .common import Paths, filings, load_env, log, read_csv, read_jsonl, write_csv, write_jsonl
+import yaml
+
+from .common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, write_csv, write_jsonl
 from .ex21 import edgar
 from .ex21.normalize import entity_key, is_registrant, normalised_name, normalize_jurisdiction, sub_id
 from .ex21.parse import assign_parents, parse_file
@@ -104,27 +107,57 @@ def fetch(targets: list[dict]) -> tuple[dict[str, dict], list[dict]]:
     return saved, checks
 
 
-def parse(target: dict, entry: dict) -> tuple[list[dict], dict]:
+def aliases() -> dict:
+    """config/subsidiary_aliases.yaml (or the file named by PIPELINE_SUBSIDIARY_ALIASES, for tests):
+
+    {"same_entity": {(ticker, normalised other spelling): name to use},
+     "distinct": {(ticker, frozenset of the two normalised names)}}
+    """
+    path = Path(os.environ.get("PIPELINE_SUBSIDIARY_ALIASES") or CONFIG_DIR / "subsidiary_aliases.yaml")
+    cfg = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}) if path.exists() else {}
+    same, distinct = {}, set()
+    for e in cfg.get("same_entity") or []:
+        ticker = e["ticker"].upper()
+        for other in e["also"]:
+            key = (ticker, normalised_name(other))
+            if key in same and same[key] != e["name"]:
+                raise ValueError(f"subsidiary_aliases: {other!r} ({ticker}) is listed under two names")
+            same[key] = e["name"]
+    for e in cfg.get("distinct") or []:
+        a, b = e["names"]
+        distinct.add((e["ticker"].upper(), frozenset({normalised_name(a), normalised_name(b)})))
+    return {"same_entity": same, "distinct": distinct}
+
+
+def parse(target: dict, entry: dict, alias: dict | None = None) -> tuple[list[dict], dict]:
     """Subsidiary rows of one 10-K, and its QA row."""
     parsed = parse_file(Paths.ex21_raw().parent / entry["local_file"])
     # An earlier manifest called the EDGAR name parent_name.
     registrant = entry.get("registrant_name") or entry.get("parent_name") or ""
     kept = [r for r in parsed if not is_registrant(r["subsidiary_name"], registrant)]
+    same = (alias or {}).get("same_entity", {})
     rows = []
     for r in assign_parents(kept, target["ticker"]):
         country, region = normalize_jurisdiction(r["jurisdiction_raw"])
+        # A reviewed other spelling takes the sub_id (and keys) of the name it stands for;
+        # "name" stays as filed, so the OWNS edge records what this year's exhibit says.
+        canonical = same.get((target["ticker"].upper(), normalised_name(r["subsidiary_name"])))
+        key_name = canonical or r["subsidiary_name"]
+        flags = r["flags"]
+        if canonical:
+            flags = ";".join(f for f in [flags, "reviewed_alias"] if f)
         rows.append({
-            "sub_id": sub_id(target["cik"], r["subsidiary_name"]),
+            "sub_id": sub_id(target["cik"], key_name),
             "name": r["subsidiary_name"],
-            "normalised_name": normalised_name(r["subsidiary_name"]),
-            "entity_key": entity_key(r["subsidiary_name"]),
+            "normalised_name": normalised_name(key_name),
+            "entity_key": entity_key(key_name),
             "parent_cik": target["cik"], "parent_ticker": target["ticker"],
             "accession_number": target["accession"],
             "reporting_period_end": target["reporting_period_end"],
             "jurisdiction_raw": r["jurisdiction_raw"], "country": country, "state_or_region": region,
             "ownership_pct": r["ownership_pct"], "level": r["level"],
             "immediate_parent": r["immediate_parent"], "relationship": r["relationship"],
-            "row_order": r["row_order"], "parse_method": r["parse_method"], "flags": r["flags"],
+            "row_order": r["row_order"], "parse_method": r["parse_method"], "flags": flags,
             "source_url": entry["source_url"], "source_file": entry["local_file"],
             "parser_version": PARSER_VERSION,
         })
@@ -155,7 +188,7 @@ def parse(target: dict, entry: dict) -> tuple[list[dict], dict]:
 
 
 RENAME_COLS = ["parent_ticker", "parent_cik", "earlier_10k", "later_10k", "entity_key",
-               "earlier_name", "later_name", "earlier_sub_id", "later_sub_id"]
+               "earlier_name", "later_name", "earlier_sub_id", "later_sub_id", "review"]
 
 
 def reference_10ks(rows: list[dict]) -> dict[str, tuple[str, str | None]]:
@@ -228,13 +261,21 @@ def catalog(rows: list[dict]) -> list[dict]:
     return [e for e in out.values() if e["accessions"]]
 
 
-def rename_candidates(rows: list[dict]) -> list[dict]:
+def _key_name(row: dict) -> str:
+    return row.get("normalised_name") or normalised_name(row["name"])
+
+
+def rename_candidates(rows: list[dict], alias: dict | None = None) -> list[dict]:
     """Pairs that look like one subsidiary renamed between two consecutive 10-Ks.
 
     Same parent and same entity_key (legal form stripped), the earlier sub_id gone from the
     later 10-K and the later one new in it: "Example Holdings Inc." -> "Example Holdings LLC".
-    Reported for review only; sub_ids are never merged here.
+    Reported for review only; sub_ids are never merged here. A pair already checked and kept
+    apart in config/subsidiary_aliases.yaml (distinct) gets review=distinct; the rest are
+    left blank, still to review. A pair merged there (same_entity) has one sub_id, so it no
+    longer shows up at all.
     """
+    distinct = (alias or {}).get("distinct", set())
     by_parent: dict[str, dict[tuple[str, str], dict[str, dict]]] = {}
     for r in rows:
         key = (r["reporting_period_end"], r["accession_number"])
@@ -255,22 +296,27 @@ def rename_candidates(rows: list[dict]) -> list[dict]:
                                 "earlier_10k": a_key[1], "later_10k": b_key[1],
                                 "entity_key": old["entity_key"], "earlier_name": old["name"],
                                 "later_name": later["name"], "earlier_sub_id": old["sub_id"],
-                                "later_sub_id": later["sub_id"]})
+                                "later_sub_id": later["sub_id"],
+                                "review": "distinct" if (old["parent_ticker"].upper(), frozenset(
+                                    {_key_name(old), _key_name(later)})) in distinct else ""})
     return out
 
 
 def run() -> None:
-    targets = ten_ks()
+    # Oldest 10-K first per parent: step 8 sets a Subsidiary node's name from each row in turn,
+    # so the node ends up with the latest 10-K's spelling whatever order filings.yaml is in.
+    targets = sorted(ten_ks(), key=lambda t: (t["cik"], t["reporting_period_end"]))
     if not targets:
         log(STEP, "no form: 10-K rows in filings.yaml; nothing to do")
         return
     saved, qa_rows = fetch(targets)
     skipped = {q["accession"] for q in qa_rows}
+    alias = aliases()
     rows = []
     for t in targets:
         if t["accession"] in skipped or t["accession"] not in saved:
             continue
-        found, qa = parse(t, saved[t["accession"]])
+        found, qa = parse(t, saved[t["accession"]], alias)
         rows += found
         qa_rows.append(qa)
     write_jsonl(Paths.subsidiaries(), rows)
@@ -278,10 +324,19 @@ def run() -> None:
     entries = catalog(rows)
     Paths.subsidiary_catalog().write_text(json.dumps(entries, ensure_ascii=False, indent=1) + "\n",
                                           encoding="utf-8")
-    renames = rename_candidates(rows)
+    seen_names = {(r["parent_ticker"].upper(), normalised_name(r["name"])) for r in rows}
+    unused = sorted(f"{t}: {n}" for t, n in alias["same_entity"] if (t, n) not in seen_names)
+    if unused:
+        log(STEP, f"subsidiary_aliases.yaml: {len(unused)} spelling(s) found in no 10-K: {unused}")
+    merged = sum(1 for r in rows if "reviewed_alias" in r["flags"])
+    if merged:
+        log(STEP, f"{merged} rows took a reviewed name from config/subsidiary_aliases.yaml")
+    renames = rename_candidates(rows, alias)
     write_csv(Paths.subsidiary_renames(), renames, RENAME_COLS)
     if renames:
-        log(STEP, f"{len(renames)} possible renames between years -> {Paths.subsidiary_renames()}")
+        open_ = sum(1 for r in renames if not r["review"])
+        log(STEP, f"{len(renames)} possible renames between years ({open_} not reviewed yet) "
+                  f"-> {Paths.subsidiary_renames()}")
     log(STEP, f"{len(targets)} 10-Ks -> {len(rows)} subsidiary rows, {len(entries)} distinct "
               f"subsidiaries -> {Paths.subsidiaries()}")
     for q in qa_rows:

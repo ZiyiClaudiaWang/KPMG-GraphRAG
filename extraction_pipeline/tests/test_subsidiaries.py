@@ -23,13 +23,15 @@ class Ex21Case(unittest.TestCase):
 
     def setUp(self):
         self.saved_env = {k: os.environ.get(k) for k in
-                          ("PIPELINE_DATA_DIR", "PIPELINE_FILINGS", "SEC_USER_AGENT")}
+                          ("PIPELINE_DATA_DIR", "PIPELINE_FILINGS", "SEC_USER_AGENT",
+                           "PIPELINE_SUBSIDIARY_ALIASES")}
         self.tmp = Path(tempfile.mkdtemp())
         shutil.copytree(FIXTURES / "raw", self.tmp / "ex21" / "raw")
         shutil.copy(FIXTURES / "manifest.csv", self.tmp / "ex21" / "manifest.csv")
         os.environ["PIPELINE_DATA_DIR"] = str(self.tmp)
         os.environ["PIPELINE_FILINGS"] = str(FIXTURES / "filings.yaml")
         os.environ.pop("SEC_USER_AGENT", None)
+        os.environ["PIPELINE_SUBSIDIARY_ALIASES"] = str(self.tmp / "no_aliases.yaml")   # none
         self.real_get, self.real_env = edgar.get, subsidiaries.load_env
         edgar.get = self.no_network
         subsidiaries.load_env = lambda: None       # do not pick up a developer's .env
@@ -146,6 +148,19 @@ class TestSubsidiariesStep(Ex21Case):
         self.assertIn("also_listed_as_row_3", rows[0]["flags"])
         qa = self.qa()[DSC_10K]
         self.assertEqual((qa["rows_parsed"], qa["duplicate_names"]), ("3", "1"))
+
+    def test_reviewed_alias_takes_the_names_sub_id(self):
+        raw = self.tmp / "ex21" / "raw" / f"DSC_FY2026_{DSC_10K}_ex21.htm"
+        raw.write_text("<table><tr><td>Example IowaCo.</td><td>Iowa</td></tr></table>", encoding="utf-8")
+        (self.tmp / "no_aliases.yaml").write_text(
+            'same_entity:\n  - {ticker: DSC, name: "Example Iowa Co.", also: ["Example IowaCo."]}\n',
+            encoding="utf-8")
+        subsidiaries.run()
+        row = next(r for r in self.rows() if r["parent_ticker"] == "DSC")
+        self.assertEqual(row["sub_id"], subsidiaries.sub_id(row["parent_cik"], "Example Iowa Co."))
+        self.assertEqual(row["name"], "Example IowaCo.")          # the OWNS edge keeps it as filed
+        self.assertEqual(row["entity_key"], "example iowa")
+        self.assertIn("reviewed_alias", row["flags"])
 
 class TestDownload(Ex21Case):
 
@@ -302,6 +317,27 @@ class TestCatalogAcrossYears(unittest.TestCase):
                          [("Renamed Co Inc", "Renamed Co LLC")])
         self.assertIn("old-form", self.entries())
         self.assertIn("new-form", self.entries())
+
+
+class TestReviewedAliases(unittest.TestCase):
+    """config/subsidiary_aliases.yaml: spellings merged, and pairs kept apart."""
+
+    def test_the_teams_file_loads(self):
+        cfg = subsidiaries.aliases()               # raises on a spelling listed under two names
+        self.assertTrue(cfg["same_entity"])
+        self.assertTrue(cfg["distinct"])
+
+    def test_a_distinct_pair_is_marked_reviewed(self):
+        row = TestCatalogAcrossYears.row
+        rows = [row("a", "Renamed Co Inc", "renamed co", "k-2023", "2023-06-30"),
+                row("b", "Renamed Co LLC", "renamed co", "k-2024", "2024-06-30"),
+                row("c", "Other Co Inc", "other co", "k-2023", "2023-06-30"),
+                row("d", "Other Co LLC", "other co", "k-2024", "2024-06-30")]
+        alias = {"same_entity": {}, "distinct": {
+            ("YRS", frozenset({subsidiaries.normalised_name("Renamed Co Inc"),
+                               subsidiaries.normalised_name("Renamed Co LLC")}))}}
+        review = {r["earlier_name"]: r["review"] for r in subsidiaries.rename_candidates(rows, alias)}
+        self.assertEqual(review, {"Renamed Co Inc": "distinct", "Other Co Inc": ""})
 
 
 if __name__ == "__main__":

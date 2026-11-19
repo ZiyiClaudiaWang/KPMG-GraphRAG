@@ -204,7 +204,12 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     same parent is one node across filings; a renamed subsidiary gets a new `sub_id`. Each node also
     stores `entity_key` (legal form removed too): across years, a subsidiary that disappears and one
     that appears under the same parent with the same `entity_key` is likely a rename. Such pairs
-    between consecutive 10-Ks are listed in `subsidiary_renames.csv` for review; nothing is merged.
+    between consecutive 10-Ks are listed in `subsidiary_renames.csv` for review; nothing is merged
+    automatically. Reviewed pairs go in `config/subsidiary_aliases.yaml`: `same_entity` gives other
+    spellings of one subsidiary (Ltd / Limited, a missing space, a legal form left out) the
+    `sub_id` of the latest 10-K's name, while each OWNS edge keeps the name as filed; `distinct`
+    keeps a real change of legal form or jurisdiction as two nodes and marks the pair
+    `review=distinct`. A blank `review` is a pair still to check.
   - `subsidiary_catalog.json` holds the same subsidiaries in the entity-catalog format (all
     `needs_review`), for linking Claims to subsidiaries later. Each filing is offered the
     subsidiaries of its *reference 10-K*: the parent's first 10-K ending on or after the filing's
