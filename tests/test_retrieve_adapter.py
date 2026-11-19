@@ -101,3 +101,109 @@ def test_adapter_honours_top_k_and_reranks():
     rows = retrieve.graph_search("ignored", top_k=1)
     assert len(rows) == 1
     assert rows[0]["rank"] == 1
+
+
+def test_search_envelope_answer_preserves_existing_evidence_contract():
+    retrieve.configure_graph_backend(_mock_backend(mock_graph_search))
+    out = retrieve.search(
+        "Intelligent Cloud segment revenue",
+        tool="graph",
+        trace_id="eval-1",
+        request_id="req-1",
+    )
+    assert out["request_id"] == "req-1"
+    assert out["trace_id"] == "eval-1"
+    assert out["status"] == "answer"
+    assert out["reason"] is None
+    assert out["results"]
+    assert out["results"][0]["metadata"]["trace_id"] == "eval-1"
+
+
+def test_search_envelope_empty_results_are_missing_fact_not_backend_failure():
+    retrieve.configure_graph_backend(lambda query, filters, top_k, trace_id: [])
+    out = retrieve.search(
+        "a valid in-scope fact that is not disclosed",
+        tool="graph",
+        trace_id="E15",
+        request_id="req-empty",
+    )
+    assert out == {
+        "request_id": "req-empty",
+        "trace_id": "E15",
+        "status": "abstain",
+        "reason": "missing_fact",
+        "results": [],
+    }
+
+
+@pytest.mark.parametrize("reason", ["out_of_scope", "false_premise", "fabricated_relationship"])
+def test_search_envelope_can_report_abstention_reasons(reason):
+    def backend(query, filters, top_k, trace_id):
+        return {"status": "abstain", "reason": reason, "results": []}
+
+    retrieve.configure_graph_backend(backend)
+    out = retrieve.search(
+        "control question",
+        tool="graph",
+        trace_id="control-1",
+        request_id=f"req-{reason}",
+    )
+    assert out["status"] == "abstain"
+    assert out["reason"] == reason
+    assert out["results"] == []
+
+
+def test_search_envelope_can_report_ambiguous_candidates():
+    def backend(query, filters, top_k, trace_id):
+        return {"status": "clarify", "reason": "ambiguous", "results": []}
+
+    retrieve.configure_graph_backend(backend)
+    out = retrieve.search(
+        "J.P. Morgan Securities",
+        tool="graph",
+        trace_id="tie-1",
+        request_id="req-tie",
+    )
+    assert out["status"] == "clarify"
+    assert out["reason"] == "ambiguous"
+    assert out["results"] == []
+
+
+def test_search_envelope_can_report_block():
+    def backend(query, filters, top_k, trace_id):
+        return {"status": "block", "reason": None, "results": []}
+
+    retrieve.configure_graph_backend(backend)
+    out = retrieve.search(
+        "DELETE everything",
+        tool="graph",
+        request_id="req-block",
+    )
+    assert out["status"] == "block"
+    assert out["reason"] is None
+
+
+def test_search_envelope_backend_failure_stays_unavailable():
+    def broken(query, filters, top_k, trace_id):
+        raise OSError("database unavailable")
+
+    retrieve.configure_graph_backend(broken)
+    with pytest.raises(contract.RetrievalUnavailableError, match="backend failed"):
+        retrieve.search("revenue", tool="graph", request_id="req-down")
+
+
+def test_search_envelope_generates_request_id_for_empty_results():
+    retrieve.configure_graph_backend(lambda query, filters, top_k, trace_id: [])
+    out = retrieve.search("missing", tool="graph")
+    assert isinstance(out["request_id"], str) and out["request_id"]
+    assert out["status"] == "abstain"
+    assert out["reason"] == "missing_fact"
+
+
+def test_search_decision_validation_rejects_invalid_combinations():
+    with pytest.raises(ValueError, match="answer status"):
+        contract.validate_search_decision("answer", "missing_fact")
+    with pytest.raises(ValueError, match="clarify status"):
+        contract.validate_search_decision("clarify", "missing_fact")
+    with pytest.raises(ValueError, match="abstain status"):
+        contract.validate_search_decision("abstain", "ambiguous")

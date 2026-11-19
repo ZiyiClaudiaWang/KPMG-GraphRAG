@@ -1,0 +1,50 @@
+{
+  "request_hash": "b5733cbf1afee81e5ec3675dd7f03c992b00c94c36ab0b31b5a89a370e2fd8a5",
+  "raw_response": {
+    "id": "chatcmpl-EgqLBH3YQSPFx2g35WBh2amXLfR4Z",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"States a possible adverse effect without asserting it will occur.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible future adverse effects and changes that could occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects from changes or announcements of changes in laws and policies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Describes past and current actions by U.S. presidential administrations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"States that adapting to changes may be time-consuming and expensive, implying possible adverse impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"States that changes have resulted and may further result in restrictions and economic disincentives.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible future retaliatory actions by affected countries.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":\"trade environment\",\"annotation_note\":\"Describes current trends affecting the trade environment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"States the company's significant business impacted by trade policies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"U.S. economy; other countries' economies; industry; global demand for products\",\"annotation_note\":\"States possible adverse impacts on economies, industry, and demand that could affect the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"States current duties, tariffs or quotas affecting imported products.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects from elimination, adjustment or imposition of various trade measures by countries.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"States current legal obligations under FCPA and other anti-corruption laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible violations by employees and contractors despite compliance policies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"States possible adverse effects from violations of policies and laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879681,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 786,
+      "prompt_tokens": 2725,
+      "total_tokens": 3511,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d7c13dc8e9aa43fda77a5fb7c34b7c38",
+  "latency_ms": 5521
+}

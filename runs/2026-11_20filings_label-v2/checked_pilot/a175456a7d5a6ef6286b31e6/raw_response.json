@@ -1,0 +1,50 @@
+{
+  "request_hash": "a175456a7d5a6ef6286b31e60b727be17ae1f9df1df16aa210f8d5ed3564466f",
+  "raw_response": {
+    "id": "chatcmpl-Egr6MAWIBTgbGlxGTgEsZC3hI4JW5",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse outcomes if certain events occur; includes multiple potential causes and consequences.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"cyber-attacks and security breaches\",\"annotation_note\":\"States current trend and concern about supply-chain attacks; no explicit prediction or plan.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"cyberattacks\",\"annotation_note\":\"Explicit expectation about future increase in cyberattacks due to geopolitical conflicts and hacktivism.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States possibility company may fail to prevent unauthorized access; does not assert occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible delays in identifying or responding to cybersecurity incidents; does not assert occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible persistence of cyber-attacks undetected; does not assert occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"third-party service providers\",\"annotation_note\":\"Describes current use of third-party providers and their exposure to cybersecurity threats.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"third-party service providers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"third-party service providers\"}]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"third parties\",\"annotation_note\":\"States limited monitoring ability and possible inadequate security measures at third parties; implies risk but does not assert breach.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"third parties\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"third parties\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"supply-chain attacks and third parties’ infrastructure\",\"annotation_note\":\"States increase in frequency and severity of supply-chain attacks and possible compromise of infrastructure.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"third parties\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"third parties’ infrastructure\"},{\"mention_text\":\"our supply chain\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"our supply chain\"},{\"mention_text\":\"our third-party partners’ supply chains\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"our third-party partners’ supply chains\"}]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible consequences of a cybersecurity incident at a third-party provider; does not assert occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"third-party service provider\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"third-party service provider\"},{\"mention_text\":\"NetApp\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NetApp\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"many jurisdictions\",\"annotation_note\":\"States current regulatory requirements for data security incident notifications.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current regulatory requirements including SEC rules for public disclosure of cybersecurity incidents.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that mandatory disclosures often lead to negative publicity which may affect stock price; implies risk but does not assert definite impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"online information dissemination\",\"annotation_note\":\"States current fact about rapid dissemination magnifying reputational harm risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse consequences of security incidents or breaches, whether actual or perceived, including reputational and financial harm.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882606,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 997,
+      "prompt_tokens": 2631,
+      "total_tokens": 3628,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_95ce894b1a2545a28afd4b7b12308a63",
+  "latency_ms": 13919
+}

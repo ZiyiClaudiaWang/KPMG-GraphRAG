@@ -1,0 +1,50 @@
+{
+  "request_hash": "f146066f83df59593528c94bb98373ad952824c79b0532cb34b5c30a232e6ff8",
+  "raw_response": {
+    "id": "chatcmpl-EgrWoGnQmJhLggMVjiBsemtANTtli",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the nature of statements that may be included; introduces forward-looking statements concept.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Explains terminology that may identify forward-looking statements; still a factual description of statement types.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Defines forward-looking statements as all statements other than historical fact; factual description of statement types.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Describes risks and uncertainties that may cause actual results to differ from forward-looking statements; hedged risk about future outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Lists examples of topics that forward-looking statements may include; explicitly about future expectations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"forward_looking\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"States basis for forward-looking statements as current expectations and projections about future events and trends.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"States forward-looking statements speak only as of the report date and are subject to risks and uncertainties.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Warns that forward-looking statements are subject to risks and uncertainties and should not be relied on as predictions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"medical device industry\",\"annotation_note\":\"Enumerates specific risks and uncertainties that may affect future outcomes; subject_scope is the industry context for some risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"States no forward-looking statement is guaranteed and actual results may vary materially; hedged risk about future outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"States intent to use Safe Harbor provisions regarding forward-looking statements; factual statement about legal protection.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793884246,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 770,
+      "prompt_tokens": 3197,
+      "total_tokens": 3967,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_25c30f49ffa7451c8fbcbbc07e1953cc",
+  "latency_ms": 7679
+}

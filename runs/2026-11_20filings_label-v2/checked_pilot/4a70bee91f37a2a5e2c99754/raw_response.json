@@ -1,0 +1,50 @@
+{
+  "request_hash": "4a70bee91f37a2a5e2c99754561aa7fd60136bc72720fdfd459ed0f86f41f3bb",
+  "raw_response": {
+    "id": "chatcmpl-EgrUlRgvhb0EsQCfZI1gwVmCBFZvf",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued global penetration, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Micra transcatheter pacing portfolio\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued global penetration of our Micra transcatheter pacing portfolio\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued global growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Azure pacing system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued global growth of Azure pacing system\"}]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"SelectSecure 3830 lead\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued acceptance and growth of the SelectSecure 3830 lead\"}]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued growth and acceptance, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Reveal LINQ\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued growth and acceptance of Reveal LINQ and expansion of the LINQ II cardiac monitor\"}]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance, adoption, and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Electrophysiology Therapies division\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Continued acceptance, adoption, and growth of our innovative portfolio of products in the Electrophysiology Therapies division, including the PulseSelect pulsed field ablation system and the Affera mapping and ablation system with Sphere-9 catheter\"}]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued growth and market acceptance, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Affera Mapping and Ablation System, Sphere-9 catheter, and Sphere-360 pulsed field ablation single-shot catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued growth and market acceptance of the Affera Mapping and Ablation System, Sphere-9 catheter, and Sphere-360 pulsed field ablation single-shot catheter\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Sphere-360 catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The Sphere-360 catheter received CE Mark in January 2026\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Affera Mapping and Ablation System and Sphere-9 catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"In August 2026, there was an expanded CE Mark indication for Affera Mapping and Ablation System and Sphere-9 catheter for treatment of ventricular arrhythmias\"}]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CoreValve Evolut transcatheter aortic valve replacement (TAVR) platform\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued acceptance and growth of the self-expanding CoreValve Evolut transcatheter aortic valve replacement (TAVR) platform\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes features of Evolut PRO+ and Evolut FX systems as existing products.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Evolut PRO+\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"This includes Evolut PRO+ which provides enhanced hemodynamics, reliable delivery, enhanced durability, advanced sealing, and Evolut FX, a system designed to improve the overall procedural experience through enhancements in deliverability, implant visibility, and deployment stability\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes features and design of Evolut FX+ TAVR system as existing product.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Evolut FX+ TAVR system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The Evolut FX+ TAVR system maintains the valve performance benefits of the legacy Evolut TAVR platform and is designed to facilitate coronary access\"}]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Onyx Frontier drug-eluting stent (DES) platform\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued acceptance and growth of the Onyx Frontier drug-eluting stent (DES) platform\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Onyx Frontier as a DES with enhanced delivery system and use case, stated as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Onyx Frontier\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Onyx Frontier is a DES that introduces an enhanced delivery system and is used for complex percutaneous coronary intervention (PCI)\"}]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation of continued acceptance and growth, a future-oriented statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prevail, Paclitaxel Coated PTCA Balloon Catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Continued acceptance and growth of Prevail, Paclitaxel Coated PTCA Balloon Catheter\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States acquisition of CathWorks Ltd as a past event strengthening position in division.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CathWorks Ltd\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"April 2026 acquisition of CathWorks Ltd\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793884119,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1559,
+      "prompt_tokens": 2295,
+      "total_tokens": 3854,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_4b0a09fa057b4a8292cdee81d90fc8b6",
+  "latency_ms": 12562
+}

@@ -1,0 +1,24 @@
+# Claim types from docs/ontology-reconciliation.md, decision 2.3, and the
+# annotation rules in toy_graph/claim_examples.md. Keep this file in sync
+# with the ontology. The label prompt is built from these definitions.
+
+claim_types:
+  stated_fact: >-
+    A situation or action the company presents as existing or as having
+    occurred. This does not mean it has been independently verified.
+  forward_looking: >-
+    An explicit expectation, plan or prediction about the future.
+  hedged_risk: >-
+    A possible adverse event or outcome, stated without asserting that it
+    will occur.
+
+# Pipeline-only label. Never written to the graph or to claim_type.
+not_a_claim: >-
+  Not a statement by the company: a heading, a cross-reference such as
+  "See Note 5", a table fragment, or a fragment with no meaning on its own.
+
+rules:
+  - The categories can overlap. Pick the primary label and describe the other content in annotation_note.
+  - Keep qualifiers. Do not turn a possibility into a fact.
+  - A sentence that only reports a past number is stated_fact.
+  - Use subject_scope when the statement is about something other than the company itself (for example "global cyberattacks" or "the smartphone industry").

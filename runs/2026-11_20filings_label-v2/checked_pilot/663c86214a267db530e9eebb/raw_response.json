@@ -1,0 +1,50 @@
+{
+  "request_hash": "663c86214a267db530e9eebbfc6f24763c5cad46abf81388565baee17f409945",
+  "raw_response": {
+    "id": "chatcmpl-Egr0Ul0YUx5lpriEM9LkLACJHpkMK",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse outcomes from competition law enforcement and new regulations; does not assert these have occurred.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Potential future competition law actions or obligations are described as possible, not certain.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\",\"c5\"],\"subject_scope\":\"AI regulatory environment\",\"annotation_note\":\"Mentions evolving legislative and regulatory action that could increase costs or restrict opportunity, indicating possible adverse outcomes.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":\"EU AI Act\",\"annotation_note\":\"Specifies a particular regulation that may increase costs or impact operations, indicating a possible adverse effect.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"AI regulatory areas\",\"annotation_note\":\"Lists regulatory areas related to AI without asserting risk or future expectation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes existing laws and regulations applicable to the company.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that the company receives inquiries from authorities based on reports, describing current or past events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Describes company actions in response to reports and investigations, factual statements about past or ongoing events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that trade laws and regulations affect company operations, describing current conditions.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"Economic sanctions in the U.S., EU, and other countries\",\"annotation_note\":\"Describes possible prohibitions on business with restricted entities or countries, indicating potential adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"U.S. export controls\",\"annotation_note\":\"Describes restrictions that could limit offerings or investments, indicating possible adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"U.S. import controls\",\"annotation_note\":\"Describes restrictions and government review that may impact supply chain and transactions, indicating possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"Supply chain regulations\",\"annotation_note\":\"States that regulations may impact availability or cause scrutiny, indicating possible adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"Restrictions on data flows and outbound investment\",\"annotation_note\":\"Describes possible limitations on leveraging global engineering footprint, indicating potential adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\"],\"subject_scope\":\"Geopolitical instabilities and U.S. Administration priorities\",\"annotation_note\":\"Describes an unpredictable trade landscape due to geopolitical and policy changes, indicating possible adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882242,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 886,
+      "prompt_tokens": 2563,
+      "total_tokens": 3449,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_220bcaf9b8c04dfc8e55398f27a9161b",
+  "latency_ms": 8625
+}

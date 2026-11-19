@@ -1,0 +1,37 @@
+{
+  "request_hash": "42d541a7b0cf1a71eec4763a6503ede95f7287ccd1a13758b118d2f218d9f0c5",
+  "batch_id": "0000320193-25-000079|part-i-item-1a|checked_start_255_n15",
+  "quarantined_units": [
+    {
+      "unit_id": "a0eb68d6-5df8-5fa8-a46e-c3a44a3c4f26",
+      "local_id": "s7",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s7",
+          "label": "hedged_risk",
+          "context_ids": [
+            "c6"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Describes possible adverse impacts from laws and regulations on the Company’s business and financials.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s7",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    }
+  ],
+  "unexpected_model_rows": []
+}

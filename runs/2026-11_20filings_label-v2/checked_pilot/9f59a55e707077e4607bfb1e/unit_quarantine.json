@@ -1,0 +1,25 @@
+{
+  "request_hash": "9f59a55e707077e4607bfb1ee308c69a7b8863c69a6ea84493065870989dd738",
+  "batch_id": "0001628280-26-054870|part-i-item-2|checked_start_30_n15",
+  "quarantined_units": [
+    {
+      "unit_id": "f72be823-e53d-53ce-89b0-03401d131178",
+      "local_id": "s15",
+      "review_flags": [
+        "missing_model_target_id"
+      ],
+      "original_model_assessments": [],
+      "processing_projection": {
+        "id": "s15",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: missing_model_target_id. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    }
+  ],
+  "unexpected_model_rows": []
+}

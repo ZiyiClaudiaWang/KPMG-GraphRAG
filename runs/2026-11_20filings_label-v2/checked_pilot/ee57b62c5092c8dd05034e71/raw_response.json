@@ -1,0 +1,50 @@
+{
+  "request_hash": "ee57b62c5092c8dd05034e7187ed0e0ac6eb8bb3ca66ef8322b3e57184e1ec58",
+  "raw_response": {
+    "id": "chatcmpl-EgqGnhIwjdTsKEhWPs5gwtN59meKV",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Listed as a possible factor affecting future performance, implying risk but not asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Expresses uncertainty about ability to identify acquisition targets, a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Uncertainties about timing and success of acquisitions and integrations are possible risks.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CIRCOR Aerospace\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"pending acquisition of CIRCOR Aerospace\"},{\"mention_text\":\"FGC\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"integration of FGC\"},{\"mention_text\":\"Curtis\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"integration of FGC and Curtis\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Possible risk about ability to divest businesses and realize benefits.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Risk about ability to undertake business realignment and expected costs including savings.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":\"Possible risk about ability to implement initiatives including share repurchases.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risk about availability and cost increases of raw materials and components if costs cannot be recovered.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risk about managing costs related to insurance and employee benefits.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risk about legal, regulatory developments, government actions, supply chain and labor disruptions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risks from international conflicts, geopolitical tensions, cybersecurity, and intellectual property protection.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Uncertainties about resolution of legal proceedings and appeals.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"market conditions\",\"annotation_note\":\"Possible effects on market conditions from global reactions to U.S. trade policies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risks related to manufacturing, air travel, currency, market entry, and economic conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risk about inability to obtain or meet conditions for governmental and regulatory approvals.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"the company\",\"annotation_note\":\"Risk about changes in tax laws and interpretations in U.S. and foreign jurisdictions.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879409,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 889,
+      "prompt_tokens": 2233,
+      "total_tokens": 3122,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_c8d281c0995f4c59ba0142c522912ba9",
+  "latency_ms": 6843
+}

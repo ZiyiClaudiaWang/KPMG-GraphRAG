@@ -80,9 +80,64 @@ RENAMED_FILTERS = {
 
 MAX_TOP_K = 50
 
+# Retrieval-level decision taxonomy for the Eval/CLI search envelope.
+# The Agent-facing evidence-list contract remains unchanged.
+SEARCH_STATUSES = frozenset({"answer", "clarify", "abstain", "block"})
+SEARCH_REASONS = frozenset({
+    "out_of_scope",
+    "false_premise",
+    "fabricated_relationship",
+    "missing_fact",
+    "ambiguous",
+})
+
+
+def validate_search_decision(status: object, reason: object) -> tuple[str, str | None]:
+    """Validate the high-level retrieval decision used by the Eval envelope."""
+    if status not in SEARCH_STATUSES:
+        raise ValueError(
+            "status must be one of: " + ", ".join(sorted(SEARCH_STATUSES))
+        )
+    if reason is not None and reason not in SEARCH_REASONS:
+        raise ValueError(
+            "reason must be None or one of: " + ", ".join(sorted(SEARCH_REASONS))
+        )
+
+    if status == "answer" and reason is not None:
+        raise ValueError("answer status must have reason=None")
+    if status == "clarify" and reason != "ambiguous":
+        raise ValueError("clarify status currently requires reason='ambiguous'")
+    if status == "abstain" and reason not in {
+        "out_of_scope",
+        "false_premise",
+        "fabricated_relationship",
+        "missing_fact",
+    }:
+        raise ValueError(
+            "abstain status requires out_of_scope, false_premise, "
+            "fabricated_relationship, or missing_fact"
+        )
+    if status == "block" and reason is not None:
+        raise ValueError("block status currently has reason=None")
+    return status, reason
+
 
 class RetrievalUnavailableError(RuntimeError):
     """The store could not be reached. Distinct from 'nothing matched'."""
+
+
+class FilterNotSupportedError(ValueError):
+    """A filter is in the contract but this arm cannot serve it.
+
+    `validate_filters` rejects keys no arm knows. This one is for keys an arm
+    knows and cannot answer: the graph holds no fiscal year, the structured
+    store has no column for six of the ten shared keys.
+
+    It is separate from `RetrievalUnavailableError` because the two deserve
+    different handling. An outage is worth retrying and scores as
+    infrastructure noise. A filter an arm does not hold never becomes
+    serveable, so retrying it only hides the gap.
+    """
 
 
 def validate_query(query: object) -> str:
@@ -189,15 +244,20 @@ def validate_results(results: object, top_k: int) -> None:
 
 
 def sort_key(item: dict) -> tuple:
-    """Deterministic ordering: score descending, then the provenance key.
+    """Score descending, and nothing else.
 
-    RAG ties on chunk_id. Our arms have none, so we fall through to
-    section_id and then fact_id.
+    Equal scores keep the order the backend returned them in. Python's sort is
+    stable, so this preserves it rather than imposing an order of our own.
+
+    This used to tie on the provenance key, which is a hash, and that quietly
+    threw away everything the backend knew. A statement prints the quarter and
+    the year-to-date column together, so "revenue for the three months ended
+    March 31" matches two facts with the same score; the arm can tell which
+    one the question asked for, and the contract cannot. Ordering by fact id
+    meant the arm's answer was discarded and a hash decided.
+
+    So the rule is: a backend owns the order of its own ties, and must return
+    them in a deterministic order. Both of ours sort explicitly before they
+    return.
     """
-    tiebreak = (
-        item.get("chunk_id")
-        or item.get("section_id")
-        or item.get("metadata", {}).get("fact_id")
-        or ""
-    )
-    return (-item["score"], tiebreak)
+    return (-item["score"],)

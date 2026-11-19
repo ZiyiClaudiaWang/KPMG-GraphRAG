@@ -1,0 +1,50 @@
+{
+  "request_hash": "fb3c311cd39b20cb2228da2dec7c90e0141aa6cd116795b626d7a127e2c48f14",
+  "raw_response": {
+    "id": "chatcmpl-EgrOnr24yw6D48zGAtBaku8Ciymzd",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\"],\"subject_scope\":\"geopolitical tensions\",\"annotation_note\":\"The sentence states a possible adverse event (supply disruptions, price volatility, regulatory leverage) due to geopolitical tensions affecting critical materials and components.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"military operations in the Middle East\",\"annotation_note\":\"The sentence describes possible adverse effects on supply chains and business due to military operations and higher energy costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"conflict in Israel and the Middle East region\",\"annotation_note\":\"The sentence hedges risk of disruption and adverse impact on operations and supply chains.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c2\"],\"subject_scope\":\"government spending changes due to conflicts\",\"annotation_note\":\"The sentence states a possible adverse effect on business if government spending shifts from healthcare to defense.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"international trade arrangements\",\"annotation_note\":\"The sentence states a possible adverse effect on business due to changes or disruptions in trade agreements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":\"national healthcare systems in many countries\",\"annotation_note\":\"The sentence states that repayment depends on political and financial stability, implying risk but hedged as a dependency.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states ongoing monitoring as a current action, no explicit future prediction or risk hedging.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse effect if payment failure occurs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"currency exchange rates\",\"annotation_note\":\"The sentence states possible impact on reported financial values due to changes in currency exchange rates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"currency devaluations in countries with exchange fluctuations\",\"annotation_note\":\"The sentence states a possible negative impact on operating results due to currency devaluations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"currency exchange rates\",\"annotation_note\":\"The sentence states inability to predict or manage currency exchange rate changes, implying risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"healthcare industry consolidation and ASCs\",\"annotation_note\":\"The sentence states a possible adverse effect on revenues and results due to industry consolidation and ASCs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"healthcare industry companies\",\"annotation_note\":\"The sentence states current consolidation and strategic alliances in the healthcare industry.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s14\"],\"subject_scope\":\"healthcare industry consolidation\",\"annotation_note\":\"The sentence states a possible increase in competition as a result of industry consolidation.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883749,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 855,
+      "prompt_tokens": 2464,
+      "total_tokens": 3319,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_1c17029e4ef9406abfb64d5cc7fbc8ff",
+  "latency_ms": 8891
+}

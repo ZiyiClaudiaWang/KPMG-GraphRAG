@@ -1,0 +1,50 @@
+{
+  "request_hash": "231c623d4d0f44d532a4e2eb5c3942736946c1b4878923f861216fe98a8cbd9d",
+  "raw_response": {
+    "id": "chatcmpl-EgqqVGREgMfhxGv788gOvmtC8lw9D",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence describes a possible adverse tax event contingent on actions by Change or SpinCo or ownership changes, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Change\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Change\"},{\"mention_text\":\"SpinCo\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"SpinCo\"},{\"mention_text\":\"the Company\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"the Company\"}]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse financial impact if indemnification or tax-free treatment fails, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Change\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Change\"},{\"mention_text\":\"the Company\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"the Company\"}]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible adverse impact from outsourcing or third-party relationships, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states possible failure to realize benefits from outsourced service providers, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"third-party service providers\",\"annotation_note\":\"The sentence describes possible adverse consequences from cybersecurity incidents and disruptions at third-party providers, not asserting they have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"legislative action or customer contracts\",\"annotation_note\":\"The sentence states a possible limitation on outsourcing resources due to legislation or contracts, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\",\"s5\",\"s6\",\"s7\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states possible materially adverse impacts from various risks, not asserting they will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a possible failure to achieve strategic growth objectives, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"The sentence lists factors on which growth depends, implying uncertainty about future success.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"new technologies such as AI\",\"annotation_note\":\"The sentence states possible failure of new technologies to deliver benefits or keep pace with competitors, not asserting it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"The sentence states increased use of AI could heighten risks, implying possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"historical competitors and new competitive entrants\",\"annotation_note\":\"The sentence states a fact about competitors' experience with enabling technologies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"regulatory risks\",\"annotation_note\":\"The sentence states possible regulatory risks including laws restricting healthcare ownership, not asserting they will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881623,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 951,
+      "prompt_tokens": 2620,
+      "total_tokens": 3571,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_e921bee5b7534ed49ba748d6bfb5bbe2",
+  "latency_ms": 7815
+}

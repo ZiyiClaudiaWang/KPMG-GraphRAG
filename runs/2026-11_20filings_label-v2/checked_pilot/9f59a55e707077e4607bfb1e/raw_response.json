@@ -1,0 +1,50 @@
+{
+  "request_hash": "9f59a55e707077e4607bfb1ee308c69a7b8863c69a6ea84493065870989dd738",
+  "raw_response": {
+    "id": "chatcmpl-EgrSvNOOWI4ujjLyMeGxBitKnFThW",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Includes a stated release date in the future, indicating a plan or expectation.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rockstar Games continues to invest in the series and will release Grand Theft Auto VI on November 19, 2026\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"the label\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The label released its first trailer for the title in December 2023 and the second in May 2025, and pre-orders for the title commenced in June 2026\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Red Dead Redemption 2\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Red Dead Redemption 2, which has been a critical and commercial success that set numerous entertainment industry records, has sold-in more than 85 million units worldwide\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rockstar Games continues to expand on its established series by developing sequels, offering downloadable episodes, and providing additional content\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games' titles\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rockstar Games' titles are published across all key platforms, including mobile\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K label\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our 2K label publishes a variety of popular entertainment properties across all key platforms and across a range of genres including shooter, action, role-playing, strategy, sports, and family/casual entertainment\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions expectation but framed as recent expansion, so treated as stated_fact describing recent history and current state.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"In recent years, 2K has expanded its offerings to include several new franchises that are expected to enhance and diversify its slate of games and provide opportunities for sequels and additional content\"}]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"We expect 2K to continue to develop new, successful franchises in the future\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K's internally owned and developed series\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K's internally owned and developed series include the critically acclaimed, multi-million unit selling BioShock, Borderlands, Mafia, Sid Meier's Civilization, and XCOM franchises\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K's sports simulation titles\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K's sports simulation titles include NBA 2K, which continues to be the top-ranked NBA basketball video game, WWE 2K professional wrestling, and PGA TOUR 2K\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K also publishes mobile titles, including WWE SuperCard and NBA 2K All-Stars\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Zynga label\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our Zynga label publishes popular free-to-play mobile games that deliver high quality, deeply engaging entertainment experiences and generates revenue from in-game sales and advertising\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes strategy as current approach, not a future plan or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Zynga's strategy\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Zynga's strategy is to have numerous games in concept development and to determine which titles are best suited for soft and worldwide launch based on the achievement of various milestones and key performance indicator (KPI) thresholds\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Sentence fragment continuing list; treated as stated_fact describing portfolio.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Zynga's diverse portfolio of popular game franchises\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Zynga's diverse portfolio of popular game franchises has been downloaded more than 10 billion times, including Color Block Jam, CSR2, Empires & Puzzles, Game of Thrones: Legends, Game of Thrones Slots Casino, Golf Rival, Harry Potter: Puzzles & Spells, Hit it Rich!\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793884005,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1364,
+      "prompt_tokens": 2475,
+      "total_tokens": 3839,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_0aef9a27054b47fc968b0fcc8cd2a9ea",
+  "latency_ms": 11060
+}

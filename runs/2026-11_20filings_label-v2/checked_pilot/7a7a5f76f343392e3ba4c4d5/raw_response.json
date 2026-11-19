@@ -1,0 +1,50 @@
+{
+  "request_hash": "7a7a5f76f343392e3ba4c4d5d20679680e8daddbd26f5dbeb28c7c5b69608507",
+  "raw_response": {
+    "id": "chatcmpl-Egqws76KfsmLTeFfTMmbCaCQc6KNB",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes causes of gross margin percentage decrease and offsetting factors; all presented as current or past facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Details specific segment (Microsoft Cloud) gross margin percentage decrease and causes; factual reporting.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Microsoft Cloud gross margin percentage decreased to 67%\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports increase in operating expenses and reasons; all stated as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports total company headcount decline year-over-year as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports operating income increase and drivers as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports favorable foreign currency impact on revenue, gross margin, and operating income as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports unfavorable foreign currency impact on operating expenses as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports positive impact on net income and diluted EPS from investments in OpenAI as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"net gains from investments in OpenAI\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports negative impact on prior year net income and diluted EPS from investments in OpenAI as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"net losses from investments in OpenAI\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports revenue increase as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Reports revenue increase for Microsoft 365 Commercial products and cloud services as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft 365 Commercial products and cloud services\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microsoft 365 Commercial products and cloud services revenue increased $3.7 billion or 17%\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Reports growth in Microsoft 365 Commercial cloud revenue and drivers as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft 365 Commercial cloud\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microsoft 365 Commercial cloud revenue grew 19%\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Reports growth in Microsoft 365 Commercial seats and drivers as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft 365 Commercial seats\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microsoft 365 Commercial seats grew 6%\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Reports growth in Microsoft 365 Commercial products revenue as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft 365 Commercial products revenue\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microsoft 365 Commercial products revenue grew 1%\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Reports increase in Microsoft 365 Consumer products and cloud services revenue as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft 365 Consumer products and cloud services revenue\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microsoft 365 Consumer products and cloud services revenue increased $476 million or 26%\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882018,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1053,
+      "prompt_tokens": 2489,
+      "total_tokens": 3542,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_7c6d2aeb0d6344019dfefbc9812ea5a6",
+  "latency_ms": 7640
+}

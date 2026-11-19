@@ -1,0 +1,50 @@
+{
+  "request_hash": "96a6b17952facdea4540dc06cc6e27a8fef941ddff731fce81155f0f8b813435",
+  "raw_response": {
+    "id": "chatcmpl-EgqSciW47WrMut4rI1ubVT9sQiPbp",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Mac\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Mac net sales increased during 2025 compared to 2024 primarily due to higher net sales of laptops and desktops.\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions multiple product categories within Wearables, Home and Accessories segment but does not name the segment explicitly as a reportable segment.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":\"Mentions Services net sales and reasons for increase.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Services\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Services net sales increased during 2025 compared to 2024 primarily due to higher net sales from advertising, the App Store and cloud services.\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is a table introduction sentence presenting gross margin data for three years.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for increase in Products gross margin.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for decrease in Products gross margin percentage.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for increase in Services gross margin.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Services\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Services gross margin increased during 2025 compared to 2024 primarily due to higher Services net sales and a different mix of services.\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for increase in Services gross margin percentage.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Services\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Services gross margin percentage increased during 2025 compared to 2024 primarily due to a different mix of services, partially offset by higher costs.\"}]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Refers to potential future impacts on gross margins and points to risk factors section for details.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"The Company\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"The Company’s future gross margins can be impacted by a variety of factors, as discussed in Part I, Item 1A of this Form 10-K under the heading “Risk Factors.”\"}]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Expresses the Company's belief about future gross margin volatility and downward pressure.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Table introduction sentence presenting operating expenses data for three years.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for growth in R&D expense.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for growth in selling, general and administrative expense.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Table introduction sentence presenting provision for income taxes and tax rates for three years.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880142,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 963,
+      "prompt_tokens": 2333,
+      "total_tokens": 3296,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_6a8b4c0bfe5e4cc2a466866bc030a151",
+  "latency_ms": 9880
+}

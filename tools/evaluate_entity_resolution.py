@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 from pathlib import Path
 import sys
 
@@ -17,13 +18,40 @@ sys.path.insert(0, str(ROOT))
 
 from graphrag.entity_resolution import (  # noqa: E402
     AMBIGUOUS,
+    EX21,
     MATCH,
     NO_MATCH,
+    Provenance,
+    TEXT,
     resolve_subsidiary_names,
+    resolve_subsidiary_names_with_provenance,
 )
 
+# The fixture records where a name was read, as "MSFT Ex21 FY2024" or
+# "JPM 10-K FY2025 text (...)". Parsing that shape belongs here, not in the library.
+_EX21_SOURCE = re.compile(r"^(?P<registrant>[A-Za-z.]+)\s+Ex21\s+FY(?P<fiscal_year>\d{4})")
+_TEXT_SOURCE = re.compile(r"^(?P<registrant>[A-Za-z.]+)\s+10-K\s+FY(?P<fiscal_year>\d{4})\s+text")
 
-def evaluate(path: Path) -> dict:
+
+def provenance_from_source(source: str) -> Provenance | None:
+    """Read the fixture's source column into a Provenance, or None if unrecognised."""
+    source = source.strip()
+    hit = _EX21_SOURCE.match(source)
+    if hit:
+        return Provenance(hit["registrant"], EX21, int(hit["fiscal_year"]))
+    hit = _TEXT_SOURCE.match(source)
+    if hit:
+        return Provenance(hit["registrant"], TEXT, int(hit["fiscal_year"]))
+    return None
+
+
+def evaluate(path: Path, *, second_pass: bool = False) -> dict:
+    """Score the resolver on the answer key.
+
+    With ``second_pass``, an ambiguous pair may be settled by Exhibit 21
+    succession. Nothing else about the scoring changes, so the two runs are
+    directly comparable.
+    """
     rows = list(csv.DictReader(path.open(encoding="utf-8-sig")))
     counts = {MATCH: 0, NO_MATCH: 0, AMBIGUOUS: 0}
     tp = fp = tn = fn = 0
@@ -31,7 +59,15 @@ def evaluate(path: Path) -> dict:
     details = []
 
     for row in rows:
-        result = resolve_subsidiary_names(row["name_a"], row["name_b"])
+        if second_pass:
+            result = resolve_subsidiary_names_with_provenance(
+                row["name_a"],
+                row["name_b"],
+                provenance_a=provenance_from_source(row["source_a"]),
+                provenance_b=provenance_from_source(row["source_b"]),
+            )
+        else:
+            result = resolve_subsidiary_names(row["name_a"], row["name_b"])
         truth = row["label"].strip().lower() == "yes"
         counts[result.decision] += 1
 
@@ -87,26 +123,37 @@ def main() -> None:
     parser.add_argument("--show-all", action="store_true")
     args = parser.parse_args()
 
-    report = evaluate(args.pairs)
-    print(f"Pairs: {report['n']}")
+    def show(label: str, report: dict) -> None:
+        print(f"\n{label}")
+        print(
+            "  Decisions: "
+            f"match={report['counts'][MATCH]}, "
+            f"no_match={report['counts'][NO_MATCH]}, "
+            f"ambiguous={report['counts'][AMBIGUOUS]}"
+        )
+        print(
+            "  Confusion (automatic decisions only): "
+            f"TP={report['tp']} FP={report['fp']} TN={report['tn']} FN={report['fn']}"
+        )
+        print(f"  Ambiguous: positive={report['ambiguous_yes']} negative={report['ambiguous_no']}")
+        print(
+            f"  Precision={report['precision']:.3f} "
+            f"Recall={report['recall']:.3f} "
+            f"F1={report['f1']:.3f} "
+            f"Coverage={report['coverage']:.3f}"
+        )
+
+    baseline = evaluate(args.pairs)
+    print(f"Pairs: {baseline['n']}")
+    show("Pass 1 - names only", baseline)
+
+    report = evaluate(args.pairs, second_pass=True)
+    show("Pass 2 - plus Exhibit 21 succession", report)
+
+    gained = report["tp"] - baseline["tp"]
     print(
-        "Decisions: "
-        f"match={report['counts'][MATCH]}, "
-        f"no_match={report['counts'][NO_MATCH]}, "
-        f"ambiguous={report['counts'][AMBIGUOUS]}"
-    )
-    print(
-        "Confusion (automatic decisions only): "
-        f"TP={report['tp']} FP={report['fp']} TN={report['tn']} FN={report['fn']}"
-    )
-    print(
-        f"Ambiguous: positive={report['ambiguous_yes']} negative={report['ambiguous_no']}"
-    )
-    print(
-        f"Precision={report['precision']:.3f} "
-        f"Recall={report['recall']:.3f} "
-        f"F1={report['f1']:.3f} "
-        f"Coverage={report['coverage']:.3f}"
+        f"\nSecond pass settled {gained} ambiguous pair(s); "
+        f"false merges added: {report['fp'] - baseline['fp']}"
     )
 
     if args.show_all:

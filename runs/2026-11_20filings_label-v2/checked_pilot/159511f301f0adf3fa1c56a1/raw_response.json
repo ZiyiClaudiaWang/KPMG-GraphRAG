@@ -1,0 +1,50 @@
+{
+  "request_hash": "159511f301f0adf3fa1c56a1ca2b67f15e3530cb50a7b4ee52af7fbd6849d176",
+  "raw_response": {
+    "id": "chatcmpl-EgqTxCoUvVweAw9ke4cp7w8tUDyos",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"This sentence describes a possible adverse outcome if the company is unsuccessful in defending its commission structure or if restrictions expand.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"technology companies\",\"annotation_note\":\"The sentence discusses possible future adoption of laws affecting technology companies including the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states that the compliance plan may be challenged further, indicating a possible adverse event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This states a current provision of the DMA law regarding fines and penalties.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"EU users\",\"annotation_note\":\"The sentence states that many risks will remain despite intended risk reduction, indicating possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence describes possible material adverse effects on the company due to changes in response to laws and regulations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence describes possible material adverse impacts from ongoing investigations and litigation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence states the existence of lawsuits against the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence states the existence of investigations in Europe and other jurisdictions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence describes possible adverse consequences if investigations or litigation are resolved against the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"commercial relationships with other companies\",\"annotation_note\":\"This sentence describes possible adverse effects on the company due to investigations and litigation against other companies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence states the existence of commercial relationships and ongoing investigations affecting some arrangements.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Google LLC\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"Google LLC (“Google”)\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence reports a past legal finding against Google.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Google\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"Google\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880225,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 795,
+      "prompt_tokens": 2529,
+      "total_tokens": 3324,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_600084eb004544408ddbba053329124e",
+  "latency_ms": 6750
+}

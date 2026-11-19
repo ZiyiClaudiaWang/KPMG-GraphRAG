@@ -1,0 +1,50 @@
+{
+  "request_hash": "1b981faba90946abb7301ca4c0c661687a0424ae39ed75f207f8280e68b10bd0",
+  "raw_response": {
+    "id": "chatcmpl-EgqJQj1ZHFGLpW0P7P5O6SMqgDCK6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes past and possible future adverse effects on the company due to declines in consumer spending.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c1\",\"c2\",\"c3\"],\"subject_scope\":null,\"annotation_note\":\"Expresses a future possibility of inability to access financing at reasonable rates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current exposure to currency fluctuations without asserting future impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States past and possible future significant impact of currency volatility on operating results and financial condition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States past and possible future material adverse effects of commodity price volatility on costs and profitability.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States past and possible future impacts of supply chain issues caused by various factors.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"retailers of our products\",\"annotation_note\":\"Describes possible adverse effects on the company if retailers experience financial difficulties.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"retailers of our products\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"retailers of our products\"}]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"certain retailers of our products\",\"annotation_note\":\"Describes past occurrences and possible future risk of retailer insolvency affecting product sales.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"certain retailers of our products\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"certain retailers of our products\"}]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"contract manufacturers of our products or other participants in our supply chain\",\"annotation_note\":\"Describes possible adverse effects if supply chain participants face financing difficulties.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"contract manufacturers of our products or other participants in our supply chain\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"contract manufacturers of our products or other participants in our supply chain\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current intense competition faced by the company's products, services and experiences.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current factors affecting demand for the company's products, services and experiences.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"athletic footwear, apparel and equipment industry\",\"annotation_note\":\"States the competitive nature of the industry.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"athletic and leisure footwear, apparel and equipment markets\",\"annotation_note\":\"Lists competitors in the markets served by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"markets we serve\",\"annotation_note\":\"States that new competitors frequently enter these markets.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"production capacity of contract manufacturers\",\"annotation_note\":\"States competition for production capacity among companies.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879572,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 892,
+      "prompt_tokens": 2471,
+      "total_tokens": 3363,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d51377ff66dc4711a88b99dce43b402c",
+  "latency_ms": 6471
+}

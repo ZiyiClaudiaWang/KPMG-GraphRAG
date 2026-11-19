@@ -1,0 +1,50 @@
+{
+  "request_hash": "e37ecd25145006630af80f63a07585be51f44d73aa881d7345c7d956aac0b826",
+  "raw_response": {
+    "id": "chatcmpl-EgrAUj9L7vmjvMrIxSYe4GgcJqkug",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes conditions under which Sony may terminate the agreement, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Sony\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Sony\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes rights upon expiration or termination of the agreement, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes rights granted by Microsoft under license agreements, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft Corporation\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft Corporation\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes requirements under agreements with Microsoft, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes manufacturing requirements under agreements with Microsoft, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft-approved manufacturers\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States the effective date and nature of the Xbox 360 Publisher License Agreement with Microsoft.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft\"},{\"mention_text\":\"Xbox 360 Publisher License Agreement\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Xbox 360 Publisher License Agreement\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States the effective date and nature of the Xbox Console Publisher License Agreement with Microsoft.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft\"},{\"mention_text\":\"Xbox Console Publisher License Agreement\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Xbox Console Publisher License Agreement\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States expiration and renewal terms of Xbox Agreements with Microsoft.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Xbox Agreements\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Xbox Agreements\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes termination rights by Microsoft under Xbox Agreements, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft\"},{\"mention_text\":\"Xbox Agreements\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Xbox Agreements\"},{\"mention_text\":\"Xbox Next Gen Agreement\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Xbox Next Gen Agreement\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes rights upon expiration or termination of Xbox Agreements, factual statement about contract terms.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes sales channels used by the company, factual statement about business operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes geographic sales operations of the company, factual statement about business operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes management of direct-to-consumer platform, factual statement about business operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes benefits of leveraging direct-to-consumer platform, factual statement about business operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States dependency on limited customers, implying potential risk but not asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882862,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1063,
+      "prompt_tokens": 2432,
+      "total_tokens": 3495,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_9b88c4511ade4bd29d8d344b06ebf56c",
+  "latency_ms": 9061
+}

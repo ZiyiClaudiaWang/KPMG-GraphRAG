@@ -1,0 +1,50 @@
+{
+  "request_hash": "a1bf8d15603c0942037b15f4160a33f585aca4e82d07bfde28556b816835cd58",
+  "raw_response": {
+    "id": "chatcmpl-EgqwlDpqKo53zUgZjo572JdiHQHB0",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes causes of gross margin percentage decrease and offsetting factors; all stated as current or past facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":\"Microsoft Cloud\",\"annotation_note\":\"Similar to s1 but specific to Microsoft Cloud gross margin percentage.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft Cloud\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft Cloud\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for operating expenses increase as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains reasons for operating income increase as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports favorable foreign currency impact on revenue, gross margin, and operating income as past facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports unfavorable foreign currency impact on cost of revenue as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports negative impact on net income and diluted EPS from OpenAI investments as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"investments in OpenAI\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports prior year negative impact on net income and diluted EPS from OpenAI investments as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"investments in OpenAI\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports revenue increase driven by Microsoft Cloud as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Intelligent Cloud\",\"annotation_note\":\"Reports Intelligent Cloud revenue increase driven by Azure as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Intelligent Cloud\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Intelligent Cloud\"},{\"mention_text\":\"Azure\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Azure\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports Productivity and Business Processes revenue increase driven by Microsoft 365 Commercial cloud as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports More Personal Computing revenue relatively unchanged with offsetting factors as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports cost of revenue increase driven by Microsoft Cloud as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports gross margin increase with growth across segments as past fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882011,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 859,
+      "prompt_tokens": 2572,
+      "total_tokens": 3431,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_ac5b04984b9d4cd888abd104556230a7",
+  "latency_ms": 6883
+}

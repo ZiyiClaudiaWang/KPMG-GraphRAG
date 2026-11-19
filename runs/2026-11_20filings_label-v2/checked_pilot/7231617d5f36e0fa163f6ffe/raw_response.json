@@ -1,0 +1,50 @@
+{
+  "request_hash": "7231617d5f36e0fa163f6ffec9c36dd0ca55091e4981ca5ec2720db6025a3cab",
+  "raw_response": {
+    "id": "chatcmpl-EgqKdiiFmuVIjmNsuv1OBzuJ27Tlp",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse effects if licensees fail in various ways; hedged risk about future adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"licensees\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"licensees\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"licensees\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"licensees\"}]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"States attempts to protect brands but admits inability to fully control licensees' use; hedged risk about possible brand misuse.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"licensees\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"licensees\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Possible adverse effect from misuse or negative publicity involving licensees; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"licensee\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"licensee\"}]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"retailers\",\"annotation_note\":\"Describes increased and possible future consolidation and its potential adverse effects; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"retailers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"retailers\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"retail markets\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"athletic footwear, apparel and equipment retailers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"athletic footwear, apparel and equipment retailers\"}]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":\"retailers\",\"annotation_note\":\"States current and possible future increases in market shares of retailers; hedged risk about future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"retailers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"retailers\"}]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\",\"s7\"],\"subject_scope\":\"retailers\",\"annotation_note\":\"Possible adverse effect from retailer consolidation concentrating credit risk; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"retailers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"retailers\"}]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\",\"s7\",\"s8\"],\"subject_scope\":\"retailers\",\"annotation_note\":\"Possible adverse effect if a major retailer reduces purchases; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"retailers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"retailers\"}]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"counterparty financial institutions\",\"annotation_note\":\"Possible losses if counterparties default or fail; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"counterparty financial institutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"counterparty financial institutions\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current hedging activities and financial instruments used; stated fact about current operations.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"derivative financial instruments\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"derivative financial instruments\"},{\"mention_text\":\"financial institutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"financial institutions\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current holdings of cash and investments; stated fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"cash, cash equivalents and other investments\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"cash, cash equivalents and other investments\"},{\"mention_text\":\"banks or other financial institutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"banks or other financial institutions\"}]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s10\",\"s12\"],\"subject_scope\":\"counterparty financial institutions\",\"annotation_note\":\"Exposure to risk of default or failure of counterparties; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"counterparty financial institutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"counterparty financial institutions\"}]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":\"financial markets\",\"annotation_note\":\"Risk may be heightened during certain economic conditions; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"financial markets\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"financial markets\"}]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":\"counterparty financial institutions\",\"annotation_note\":\"Possible limited recovery if counterparty becomes insolvent or bankrupt; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"counterparty\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"counterparty\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879647,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1281,
+      "prompt_tokens": 2612,
+      "total_tokens": 3893,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_fc14bb2c67ed4954a05a1619cb8aaaf1",
+  "latency_ms": 9160
+}

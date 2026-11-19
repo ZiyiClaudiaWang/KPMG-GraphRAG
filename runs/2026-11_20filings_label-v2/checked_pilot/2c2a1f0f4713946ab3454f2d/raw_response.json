@@ -1,0 +1,50 @@
+{
+  "request_hash": "2c2a1f0f4713946ab3454f2d9f770ffb8363fe9076a5b0176cf1b2cd61b87325",
+  "raw_response": {
+    "id": "chatcmpl-EgqouAaEhAko6Iq5cuRdBCyHZLwEL",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":\"Medicare Part B and Medicare Part D drug pricing regulation\",\"annotation_note\":\"The sentence describes proposed rules that may be finalized in the future, indicating a possible regulatory change.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":\"Medicare Part B and Medicare Part D drug pricing regulation\",\"annotation_note\":\"Describes planned testing of models over a future multi-year period.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":\"Mentions ongoing litigation regarding manufacturer restrictions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":\"HRSA is evaluating a potential future implementation, indicating uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":\"Describes a past successful legal challenge by covered entities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":\"Describes ongoing litigation related to the pilot program.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\",\"s5\",\"s6\",\"s7\",\"s8\"],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":\"Indicates possible limitations on pricing availability as a potential adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\",\"s5\",\"s6\",\"s7\",\"s8\"],\"subject_scope\":\"340B Drug Pricing Program\",\"annotation_note\":\"Expresses uncertainty about future legislative, regulatory, or judicial changes and manufacturer participation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s9\",\"s10\"],\"subject_scope\":null,\"annotation_note\":\"States difficulty in predicting cumulative impact, indicating uncertainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"state drug pricing laws\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":\"state drug pricing laws\",\"annotation_note\":\"Potential for laws to encourage similar measures and affect economics is a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\",\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes ongoing monitoring activity by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Canadian provincial pharmaceutical regulation\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881524,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 777,
+      "prompt_tokens": 2347,
+      "total_tokens": 3124,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_fa3285baa721434693a8737e2a156d80",
+  "latency_ms": 5930
+}

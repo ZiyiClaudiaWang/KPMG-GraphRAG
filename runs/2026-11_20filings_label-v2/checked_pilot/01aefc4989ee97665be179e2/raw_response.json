@@ -1,0 +1,50 @@
+{
+  "request_hash": "01aefc4989ee97665be179e2fbf7043a35a6c840ccf8b0e6cba4697f85818f86",
+  "raw_response": {
+    "id": "chatcmpl-EgrINGEFQ19R59YNo6HnNlmla9qp6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"payment processing systems of these platform providers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"payment processing systems of these platform providers\"},{\"mention_text\":\"our direct-to-consumer commerce platform\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"our direct-to-consumer commerce platform\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Contains a present fact and a future expectation; labeled forward_looking as primary due to explicit future expectation.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Apple and Google platforms\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Apple and Google platforms\"}]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":\"Apple and Google platforms\",\"annotation_note\":\"Describes possible adverse changes by platform providers that may be unfavorable to the company.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Apple and Google\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Apple and Google generally have the discretion to set the amounts of their platform fees and change their platforms’ terms of service and other policies\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Compares gross margin percentages between mobile and Console or PC revenue as a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that product mix may affect gross margin percentage, indicating a possible future impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ongoing expansion efforts expected to enhance profitability.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current recording of expenditures related to player acquisition and retention.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that effectiveness or cost of programs may change, affecting operating results, indicating possible future adverse impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"2K released Mafia: The Old Country, NBA 2K26, Borderlands 4, and WWE 2K26\"}]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":\"Rockstar\",\"annotation_note\":\"Explicit plan and date for future release.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Rockstar plans to release Grand Theft Auto VI on November 19, 2026\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past net revenue and percentage increase.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past operating loss and reasons for change compared to prior year.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883351,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 919,
+      "prompt_tokens": 2536,
+      "total_tokens": 3455,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3bd097fb06474545abb8298efeb3012b",
+  "latency_ms": 8283
+}

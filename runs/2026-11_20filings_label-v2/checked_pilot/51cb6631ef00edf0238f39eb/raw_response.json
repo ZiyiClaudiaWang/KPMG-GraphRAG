@@ -1,0 +1,50 @@
+{
+  "request_hash": "51cb6631ef00edf0238f39ebce29235baf129b195aad2bcc62ee63d3f914e4cd",
+  "raw_response": {
+    "id": "chatcmpl-EgrRvn7jux1FHk3dcXobHyvqeEnG0",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Scientia Vascular (Scientia)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"the acquisition of all outstanding shares of Scientia Vascular (Scientia) (a privately held company)\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Explains timing classification of the acquisition as a subsequent event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expected expansion of Neuroscience portfolio through Scientia's products.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Scientia’s differentiated access products\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Scientia’s differentiated access products used to treat complex neurovascular conditions\"}]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Anticipates consideration amounts with customary adjustments and contingent payments.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"SPR Therapeutics, Inc.\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"acquire all outstanding equity of SPR Therapeutics, Inc., a privately held medical technology company\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Describes enhancement of Neuromodulation division with PNS technology.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Expectation of consideration amount subject to adjustments.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Expected timing of acquisition closing subject to approvals and conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"References disclosure location of significant accounting policies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes use of judgment in estimates affecting financial statement amounts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Estimates reflect judgment about economic and market conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Estimates based on historical experience and reasonable assumptions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory phrase listing critical accounting estimates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Describes revenue recognition variability due to variable consideration factors.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883943,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 825,
+      "prompt_tokens": 2434,
+      "total_tokens": 3259,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_fe58eb838837423894a3e7088834a700",
+  "latency_ms": 7537
+}

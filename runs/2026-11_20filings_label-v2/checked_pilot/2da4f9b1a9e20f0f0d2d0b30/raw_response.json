@@ -1,0 +1,50 @@
+{
+  "request_hash": "2da4f9b1a9e20f0f0d2d0b3087572722d74a6e11cabdddec01475b4ec3e3ef4d",
+  "raw_response": {
+    "id": "chatcmpl-EgqMOIQzu3oha3MQlaUgq7dQGHUhx",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Jordan Brand\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"sales of Jordan Brand products\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes composition of corporate revenues, no future or risk content.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory sentence to tables, no factual claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE, Inc.\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE, Inc. Revenues were $46.4 billion in fiscal 2026 compared to $46.3 billion in fiscal 2025\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Explains revenue decrease by region; factual reporting with percentages.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Greater China\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"lower revenues in Greater China\"},{\"mention_text\":\"Converse\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Converse\"},{\"mention_text\":\"Europe, Middle East & Africa (\\\"EMEA\\\")\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Europe, Middle East & Africa (\\\"EMEA\\\")\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Reports revenue increase in North America; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North America\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Higher revenues in North America\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE Brand revenues were $45.2 billion in fiscal 2026 compared to $44.7 billion in fiscal 2025\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand footwear\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE Brand footwear revenues were $29.5 billion in fiscal 2026 compared to $29.5 billion in fiscal 2025\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Reports currency-neutral decrease; factual with qualifier.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand footwear revenues\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"On a currency-neutral basis, NIKE Brand footwear revenues decreased 2%\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Reports unit sales decrease and ASP impact; factual reporting.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Explains causes of lower ASP; factual explanation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand apparel revenues\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NIKE Brand apparel revenues were $13.4 billion in fiscal 2026 compared to $13.0 billion in fiscal 2025\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Reports currency-neutral increase; factual with qualifier.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE Brand apparel revenues\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"On a currency-neutral basis, NIKE Brand apparel revenues increased 2%\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"Reports unit sales increase and ASP impact; factual reporting.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Explains causes of higher ASP; factual explanation.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879756,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1112,
+      "prompt_tokens": 2599,
+      "total_tokens": 3711,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_56482875c1e744cb9f6dc8db6f65eb30",
+  "latency_ms": 8206
+}

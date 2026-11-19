@@ -1,0 +1,50 @@
+{
+  "request_hash": "724a3d3874c7997786ac3d40712e8cc2a467689426933f41e83487df334dc6be",
+  "raw_response": {
+    "id": "chatcmpl-EgrQOCC35Q2GvUj3JjAokUj1Bwm50",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"U.S. Centers for Medicare and Medicaid Services (CMS)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"The U.S. Centers for Medicare and Medicaid Services (CMS)\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c5\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about market acceptance and growth in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Penditure LAA Exclusion System\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Penditure LAA Exclusion System\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about continued acceptance and growth in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Onyx Frontier drug-eluting stent (DES) platform\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Onyx Frontier drug-eluting stent (DES) platform\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Onyx Frontier\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Onyx Frontier\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes a completed acquisition event.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Coronary & Peripheral Vascular division\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Coronary & Peripheral Vascular division\"},{\"mention_text\":\"CathWorks Ltd.\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CathWorks Ltd.\"}]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Describes intended future impact of the acquisition.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CPV division\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"CPV division\"}]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about acceptance and growth in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"IN.PACT 018 drug-coated balloons (DCB)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"IN.PACT 018 drug-coated balloons (DCB)\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"IN.PACT 018\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"IN.PACT 018\"},{\"mention_text\":\"IN.PACT Admiral DCB portfolio\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"existing IN.PACT Admiral DCB portfolio\"}]},{\"id\":\"s10\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about market growth in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Liberant mechanical thrombectomy system\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Liberant mechanical thrombectomy system\"}]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about market acceptance and growth in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OmniaSecure defibrillation lead\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"OmniaSecure defibrillation lead\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OmniaSecure\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"OmniaSecure\"}]},{\"id\":\"s13\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about market acceptance and growth in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuroguard IEP carotid stenting system\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Neuroguard IEP carotid stenting system\"}]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ability and plans to meet demand and develop products in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Sphere 9\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"VT indication expansion for Sphere 9\"},{\"mention_text\":\"Affera Sphere-360 pulsed field ablation single-shot catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"commercialization of Affera Sphere-360 pulsed field ablation single-shot catheter\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883848,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1202,
+      "prompt_tokens": 2328,
+      "total_tokens": 3530,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_33b663a156584d738884eb76f7f6dd6e",
+  "latency_ms": 9928
+}

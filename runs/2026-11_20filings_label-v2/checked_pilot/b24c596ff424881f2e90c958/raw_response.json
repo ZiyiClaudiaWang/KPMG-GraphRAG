@@ -1,0 +1,50 @@
+{
+  "request_hash": "b24c596ff424881f2e90c9582a152bb3d19e003398570cb617aab69af6207186",
+  "raw_response": {
+    "id": "chatcmpl-EgqBHguEjmwSfvTdtmuER2gxO4ZOR",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes the company's annual and event-driven testing process for goodwill impairment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"reporting unit\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"reporting unit level (operating segment or one level below an operating segment)\"}]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":\"business climate, legal factors, operating performance indicators, competition, sale or disposition of a reporting unit\",\"annotation_note\":\"Lists possible events or circumstances that could trigger impairment testing, indicating potential adverse outcomes without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"reporting unit\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"sale or disposition of a significant portion of a reporting unit\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes the judgment involved in applying the goodwill impairment test.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"reporting units\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"identification of reporting units, assignment of assets and liabilities to reporting units, assignment of goodwill to reporting units\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Describes the method used to estimate fair value of reporting units.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"reporting unit\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"fair value of each reporting unit\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s4\"],\"subject_scope\":null,\"annotation_note\":\"Describes judgments required in estimating fair value, including future cash flows and cost of capital.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"States that estimates for fair value calculation change annually based on results and conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Indicates that changes in estimates could materially affect goodwill impairment determinations, implying possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes accounting treatment for research and development costs before technological feasibility.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Describes capitalization of software costs after technological feasibility until product release.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that judgment is required to determine technological feasibility.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Defines when technological feasibility is reached for software products.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"States typical timing of technological feasibility relative to product release.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Describes amortization of capitalized software costs over product life.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"legal proceedings and claims against the company\",\"annotation_note\":\"States uncertainty about outcomes of legal proceedings, implying possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Describes accounting treatment for probable loss contingencies from legal proceedings or claims.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879067,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 943,
+      "prompt_tokens": 2358,
+      "total_tokens": 3301,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_71559b832a8747738bb8c267d963e42c",
+  "latency_ms": 7571
+}

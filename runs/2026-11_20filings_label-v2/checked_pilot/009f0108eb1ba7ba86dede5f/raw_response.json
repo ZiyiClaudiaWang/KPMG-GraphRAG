@@ -1,0 +1,50 @@
+{
+  "request_hash": "009f0108eb1ba7ba86dede5f6068b1cd7f4f73bc938278b7a2fe968e6e0e4a1d",
+  "raw_response": {
+    "id": "chatcmpl-Egql76NUP8SnK4KNqAWAwgw8JbOH1",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"States a possible adverse event (hurricanes) affecting certain stores, without asserting occurrence.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"certain stores\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"certain stores\"}]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse impacts of inclement weather conditions without asserting they have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a current pattern of revenue and margin generation by season.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a possible adverse effect on operating results and cash flow from unfavorable weather conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States a possible adverse effect of wholesale petroleum cost volatility on operating results.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States the significant effect of retail fuel sales margins on net income.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past average revenue percentages from retail fuel sales.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"crude oil and domestic wholesale petroleum markets\",\"annotation_note\":\"Describes current and recent past market volatility as a fact about the markets, not the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"crude oil supplies and wholesale petroleum costs\",\"annotation_note\":\"States that political and other conditions have significantly affected crude oil supplies and costs recently and currently.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"supply of fuel and wholesale purchase costs\",\"annotation_note\":\"Describes possible adverse effects on supply and costs due to shortages from various causes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"consumer demand for fuel and discretionary purchases\",\"annotation_note\":\"States that increases in retail petroleum prices have resulted and could in the future adversely affect consumer demand.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States difficulty in predicting future impact of wholesale cost fluctuations, implying uncertainty and risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that significant changes in factors could materially affect sales and traffic, with adverse effects on business and financial condition.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"convenience store industry\",\"annotation_note\":\"States the competitive nature of the industry as a fact about the industry, not the company.\",\"is_risk_heading\":true,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":\"convenience store and retail fuel industries\",\"annotation_note\":\"Describes characteristics of the industries as facts, supporting the heading in s14.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881289,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 840,
+      "prompt_tokens": 2564,
+      "total_tokens": 3404,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_5b1d7060a9dd4949acf5d5db9589f2aa",
+  "latency_ms": 8094
+}

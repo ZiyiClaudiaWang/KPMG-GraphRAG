@@ -1,0 +1,307 @@
+{
+  "request_hash": "cd2f1018ed418c72be78f79fbb1916c0508835c5af9625bd93e1cff8a9dc662a",
+  "batch_id": "0000320193-25-000079|part-i-item-1a|checked_start_90_n15",
+  "quarantined_units": [
+    {
+      "unit_id": "c9d6e97c-9a5f-5b95-b890-17b3fb943e8a",
+      "local_id": "s6",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s6",
+          "label": "stated_fact",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "States that products can be affected by defects; factual statement about product complexity.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s6",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "1fe3bd78-33da-5d61-a0a1-71af980e06b4",
+      "local_id": "s7",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s7",
+          "label": "stated_fact",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "States that sophisticated software often has issues; factual statement about software complexity.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s7",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "cc4d94bf-289d-5527-8d67-1ea01f5f3660",
+      "local_id": "s8",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s8",
+          "label": "stated_fact",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "States defects can exist in third-party components; factual statement.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s8",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "dd242c1e-4436-567d-884a-fd237be11a60",
+      "local_id": "s9",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s9",
+          "label": "hedged_risk",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Possible safety risks and damages from component defects; hedged risk.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s9",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "0b9a2d02-a4b2-54d2-ba7b-5195642db4a3",
+      "local_id": "s10",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s10",
+          "label": "hedged_risk",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Possible increased risks as products enter specialized applications; hedged risk.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s10",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "c02946dd-7e1b-5491-adbe-7cb0399e4760",
+      "local_id": "s11",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s11",
+          "label": "stated_fact",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "States service offerings can have quality issues and outages; factual statement.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s11",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "e3095a3d-7251-5a42-bef0-2ca496da2fdd",
+      "local_id": "s12",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s12",
+          "label": "stated_fact",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "States services have not always performed as anticipated; factual statement.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s12",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "5d635e42-25c7-597f-a600-0cedd8df5bd0",
+      "local_id": "s13",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s13",
+          "label": "hedged_risk",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Possible increased safety risks from new technologies like AI; hedged risk.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s13",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "5ea030b4-305b-5f0e-a2cd-4e60ffe2be3d",
+      "local_id": "s14",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s14",
+          "label": "hedged_risk",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Possible inability to detect and fix all issues causing widespread problems; hedged risk.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s14",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    },
+    {
+      "unit_id": "e33e9d39-c68c-5919-9033-cbc5f4f38db2",
+      "local_id": "s15",
+      "review_flags": [
+        "context_not_supplied"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s15",
+          "label": "hedged_risk",
+          "context_ids": [
+            "c5"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Possible exploitation of errors and vulnerabilities compromising security; hedged risk.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s15",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_supplied. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    }
+  ],
+  "unexpected_model_rows": []
+}

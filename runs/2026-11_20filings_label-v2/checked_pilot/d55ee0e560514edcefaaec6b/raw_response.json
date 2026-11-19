@@ -1,0 +1,50 @@
+{
+  "request_hash": "d55ee0e560514edcefaaec6b1784bd4f47cc8a3344bee73ac545c4f5be91e876",
+  "raw_response": {
+    "id": "chatcmpl-EgrV5DEOTm9CgNP3erFDnbntEPZrN",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This sentence introduces graphs and does not make a factual or predictive statement on its own.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Cranial & Spinal Technologies (CST)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Cranial & Spinal Technologies (CST)\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Explains the cause of the sales increase as a fact presented by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Specialty Therapies (Specialty)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Specialty Therapies (Specialty)\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":\"Mentions a recall as a negative factor but states it as a fact affecting sales.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Neuromodulation (NM)\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Neuromodulation (NM)\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introduces expectations about future factors affecting Neuroscience.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"forward_looking\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Describes expected future adoption and growth of integrated solutions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past regulatory approvals as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past regulatory approvals as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes features of the system as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"forward_looking\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Expresses expectations about market acceptance and growth of products.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CST operating unit\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"CST operating unit\"}]},{\"id\":\"s15\",\"label\":\"forward_looking\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Forecasts continued global growth of a product line.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793884139,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 803,
+      "prompt_tokens": 2524,
+      "total_tokens": 3327,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_e806ce7541104305af28a365aa0d1355",
+  "latency_ms": 7133
+}

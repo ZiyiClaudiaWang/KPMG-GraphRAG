@@ -1,0 +1,50 @@
+{
+  "request_hash": "5003ce6377002eedb38377497c32858cfc62be7de4a2627dd1bfce9f4f7ae293",
+  "raw_response": {
+    "id": "chatcmpl-EgqvKyrdS0o4Nc66trP0PZUQWRFFd",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Includes cumulative effects of share repurchases during each period.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains decrease in weighted-average diluted shares due to share repurchases.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains presentation of percentage changes that are not meaningful.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"North American Pharmaceutical segment\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"North American Pharmaceutical revenues for the three months ended June 30, 2026 increased $4.0 billion or 5% compared to the same prior year period.\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":\"North American Pharmaceutical segment\",\"annotation_note\":\"Details sales increase within the segment, including factors affecting sales.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"U.S.\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"sales in the U.S. increased $3.7 billion primarily due to higher volumes from institutional and retail national account customers partially offset by branded pharmaceutical price decreases and branded to generic drug conversions.\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Oncology & Multispecialty segment\",\"annotation_note\":\"Revenue increase primarily driven by higher specialty pharmaceutical sales in provider solutions.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Oncology & Multispecialty\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Oncology & Multispecialty revenues for the three months ended June 30, 2026 increased $3.6 billion or 33% compared to the same prior year period primarily driven by higher specialty pharmaceutical sales in provider solutions.\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Prescription Technology Solutions segment\",\"annotation_note\":\"Revenue increase primarily due to increased volumes from third-party logistics.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Prescription Technology Solutions revenues for the three months ended June 30, 2026 increased $132 million or 9% compared to the same prior year period primarily due to increased volumes from third-party logistics.\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Medical-Surgical Solutions segment\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medical-Surgical Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Medical-Surgical Solutions revenues for the three months ended June 30, 2026 increased $118 million or 4% compared to the same prior year period.\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":\"Medical-Surgical Solutions segment\",\"annotation_note\":\"Details sales increases to extended care and ambulatory care customers driven by underlying business growth.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"extended care customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"sales to extended care customers increased $79 million\"},{\"mention_text\":\"ambulatory care customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"sales to ambulatory care customers increased $35 million\"}]},{\"id\":\"s13\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Explains presentation of percentage changes that are not meaningful.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Defines other segment expense, net as including cost of sales, total operating expenses, and other income, net for reportable segments.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"North American Pharmaceutical segment\",\"annotation_note\":\"Reports a provision for bad debts related to bankruptcy of customer Rite Aid during the three months ended June 30, 2025.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North American Pharmaceutical segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Other segment expense, net for our North American Pharmaceutical segment includes the following: •related to the bankruptcy of our customer Rite Aid, we recorded a provision for bad debts of $189 million during the three months ended June 30, 2025;\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881922,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1167,
+      "prompt_tokens": 2643,
+      "total_tokens": 3810,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_bd8d1fa9cc734ea1a769a8cd58c44b7e",
+  "latency_ms": 10152
+}

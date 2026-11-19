@@ -1,0 +1,50 @@
+{
+  "request_hash": "fa3def2013456d3fc6e33807fa919e1782a30955ee4e52b510dd0bf6ba72a5f8",
+  "raw_response": {
+    "id": "chatcmpl-EgqEAcKYmRcxwpkj71PQOQrF2zY6u",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes forward-looking statements as subject to unforeseen uncertainties and risks; hedged risk about future events.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes characteristics of forward-looking statements; not itself a forward-looking statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"States no guarantee that forward-looking events will occur; a factual disclaimer about forward-looking statements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Caution about reliance on forward-looking statements; factual advisory statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"States possibility that future performance may differ materially; hedged risk about future outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"s1\"],\"subject_scope\":\"individual markets\",\"annotation_note\":\"Possible volatile effect on segment performance due to economic changes; hedged risk about future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"not_a_claim\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Introductory phrase listing factors affecting future performance; fragment, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"business relationships with and orders by or from major customers, suppliers or distributors\",\"annotation_note\":\"Lists possible adverse factors affecting future performance; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"contract terms and new development programs\",\"annotation_note\":\"Possible disputes and changes affecting future performance; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"product mix\",\"annotation_note\":\"Possible changes affecting future performance; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"strategic acquisition targets\",\"annotation_note\":\"Possible ability to identify targets; hedged risk about future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"acquisitions and similar transactions\",\"annotation_note\":\"Uncertainties about timing and success of acquisitions; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"business divestitures\",\"annotation_note\":\"Possible ability to divest and realize benefits; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"business realignment activities\",\"annotation_note\":\"Possible determination and ability to undertake realignment and costs; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":\"business and operating initiatives\",\"annotation_note\":\"Possible ability to implement initiatives including share repurchases; hedged risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879246,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 822,
+      "prompt_tokens": 2288,
+      "total_tokens": 3110,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_255915840dfe4874bba7a6e595b5c64d",
+  "latency_ms": 5836
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "06d120324ae0cac09d0613164cd782fba4fe373a6419bebfce8dac8d4f81ba24",
+  "raw_response": {
+    "id": "chatcmpl-EgrNmz9R8RnqhWahehZvoMlpJs3od",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Ireland\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"including Ireland\"},{\"mention_text\":\"Pillar Two Model Rules\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Pillar Two Model Rules\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Potential adverse event that tax authorities may disagree and assess additional taxes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible adverse impact on business if audit outcomes differ from predictions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes complexity of tax laws affecting calculation of liabilities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible payment differing significantly from estimates due to disputes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes accounting treatment if payments are less than recorded amounts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Potential additional charges and material adverse effects if liabilities underestimated.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible material adverse impact from tax litigation outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medtronic, Inc.'s U.S. tax litigation\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Medtronic, Inc.'s U.S. tax litigation\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"IRS\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"IRS issued its audit report\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medtronic, Inc.\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Medtronic, Inc. reached agreements with the IRS\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medtronic, Inc.\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Medtronic, Inc.\"},{\"mention_text\":\"wholly-owned subsidiary operating in Puerto Rico\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"generic\",\"evidence_quote\":\"its wholly-owned subsidiary operating in Puerto Rico\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Describes sequence of legal events related to tax litigation.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Tax Court\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Tax Court issued its opinion\"},{\"mention_text\":\"IRS\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"IRS filed a Notice of Appeal\"},{\"mention_text\":\"U.S. Court of Appeals for the Eighth Circuit\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"U.S. Court of Appeals for the Eighth Circuit\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883686,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 954,
+      "prompt_tokens": 2484,
+      "total_tokens": 3438,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_f6000f62f42c46639c5749e52230168f",
+  "latency_ms": 8504
+}

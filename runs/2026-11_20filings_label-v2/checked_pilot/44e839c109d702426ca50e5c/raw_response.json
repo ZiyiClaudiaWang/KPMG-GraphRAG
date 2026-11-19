@@ -1,0 +1,50 @@
+{
+  "request_hash": "44e839c109d702426ca50e5c0e41f01be57c7b9c1c388d17a7d351966bc2f654",
+  "raw_response": {
+    "id": "chatcmpl-Egr7wgvjMgw8aH9EgR0kHurSjyjK8",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Instruction to read together with other sections, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions forward-looking statements involving risks and uncertainties.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to Risk Factors section, not a claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Company presents itself as a global leader in Intelligent Data Infrastructure.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes company headquarters and customer reach.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes flagship product and portfolio as foundation for customers' initiatives.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes integration with major cloud providers enabling customer workloads.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States company's strategic focus areas.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes portfolio expansion through investment in innovation.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes partnerships and ecosystem extending reach and capabilities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States company operations organized into two segments.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Hybrid Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"two segments: Hybrid Cloud and Public Cloud\"},{\"mention_text\":\"Public Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"two segments: Hybrid Cloud and Public Cloud\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Hybrid Cloud segment offerings and purpose.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Hybrid Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Hybrid Cloud offers a unified data storage portfolio\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Hybrid Cloud portfolio capabilities and data types.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Hybrid Cloud portfolio\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Hybrid Cloud portfolio accommodates both structured and unstructured data\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes components included in Hybrid Cloud segment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Hybrid Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Hybrid Cloud includes software, hardware, and related support\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Public Cloud segment offerings.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Public Cloud\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Public Cloud offers a portfolio of products delivered primarily as-a-service\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882704,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 852,
+      "prompt_tokens": 2198,
+      "total_tokens": 3050,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3fcad69e5412496a9d3ddb015182ed25",
+  "latency_ms": 6598
+}

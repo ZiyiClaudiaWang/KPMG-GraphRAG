@@ -1,0 +1,50 @@
+{
+  "request_hash": "fcaec829e6ac8426332d47b0e1d5935b0b06a345cc121e9565ae1a78982f8962",
+  "raw_response": {
+    "id": "chatcmpl-EgqjUY2dRcSKFDSS36ZU8gCPnyKJz",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reference to Note 7 is a cross-reference, but the sentence itself states current ownership facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Historical sales pattern described as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes customer behavior as a fact, not a prediction.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes formation dates and corporate status of subsidiaries as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Casey's Marketing Company (\\\"CMC\\\")\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Casey's Marketing Company (\\\"CMC\\\")\"},{\"mention_text\":\"Casey’s Services Company (\\\"CSC\\\")\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Casey’s Services Company (\\\"CSC\\\")\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes formation date and corporate status of subsidiary as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Casey’s Retail Company (\\\"CRC\\\")\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Casey’s Retail Company (\\\"CRC\\\")\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes formation date and corporate status of subsidiary as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CGS Stores, LLC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CGS Stores, LLC\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ownership relationships among subsidiaries as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CMC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CMC\"},{\"mention_text\":\"CSC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CSC\"},{\"mention_text\":\"CRC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CRC\"},{\"mention_text\":\"CGS Stores, LLC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CGS Stores, LLC\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes subsidiary operations and intellectual property ownership as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CRC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CRC\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes subsidiary operations and responsibilities as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CMC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CMC\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes subsidiary operations as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CGS Stores, LLC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CGS Stores, LLC\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes subsidiary services as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CSC\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"CSC\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes formation of a subsidiary and its purpose as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes company strategy as fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881188,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1017,
+      "prompt_tokens": 2368,
+      "total_tokens": 3385,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_b32391e856b84e828f707446d472d294",
+  "latency_ms": 7539
+}

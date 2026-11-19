@@ -1,0 +1,50 @@
+{
+  "request_hash": "570083fcaf5a1ffd7cb57575a0a7dac581b91e041e60c7bc40cb66e2eba76b49",
+  "raw_response": {
+    "id": "chatcmpl-EgrDG2UdTz0px86H2eMMiQpSRWXJw",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"software supply chain\",\"annotation_note\":\"Mentions possible future security incidents and breaches as risks, not asserting they have occurred.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"vendors, service providers, business partners, and software supply chain\",\"annotation_note\":\"Describes possible disruptions and attacks that may result in future incidents and breaches, and adverse impacts on the company's ability to provide products and services.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"information technology systems, networks, cybersecurity incidents impacting us or our vendors, service providers, business partners, or software supply chain\",\"annotation_note\":\"States past negative effects and possibility of future negative effects on business continuity, operations, financial results, and product reliability and stability.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"networks and e-commerce sites of console, PC, and mobile platform providers and other partners\",\"annotation_note\":\"States risks extend to partners' networks and e-commerce sites, implying possible adverse effects.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"external events such as remote work arrangements, Russia-Ukraine war, and war in the Middle East\",\"annotation_note\":\"States these events heighten the risk of threats, implying possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"events substantially within our control such as data migration and system upgrades\",\"annotation_note\":\"States these events could affect the risk, implying possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States past and expected future expenditure of resources to implement systems and technologies to guard against cyber risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes evolving and sophisticated attack techniques that may not be detected for long periods, implying ongoing risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"individuals or groups of hackers and sophisticated organizations\",\"annotation_note\":\"States that AI capabilities may be used to create new attack methods that are more difficult to defend against, implying possible future risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States current and future potential inadequacy of systems, processes and technologies to protect against all eventualities.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States lack of redundancy and possible inadequacy of disaster recovery planning, implying possible adverse outcomes.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States future requirement for increasing technical infrastructure to satisfy player needs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"States possibility of failure to scale infrastructure effectively, which may adversely affect performance and business.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that costs to respond to cyberattacks and vulnerabilities are significant, a current fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes possible adverse consequences of failures to prevent or mitigate security breaches or cyber risks.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883034,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 901,
+      "prompt_tokens": 2637,
+      "total_tokens": 3538,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_e85f68498fad41b4b6ab681588107061",
+  "latency_ms": 9181
+}

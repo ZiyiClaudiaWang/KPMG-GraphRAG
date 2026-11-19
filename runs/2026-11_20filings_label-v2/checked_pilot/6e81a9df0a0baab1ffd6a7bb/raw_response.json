@@ -1,0 +1,50 @@
+{
+  "request_hash": "6e81a9df0a0baab1ffd6a7bbd0c0903f1a8a65bc1fa6b7388d1267180e68e770",
+  "raw_response": {
+    "id": "chatcmpl-EgqWv25IwMGPYWhaS34XG0JYPAlLK",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to operational costs due to product portfolio complexity.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to manufacturing process complexity.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to difficulties in transitioning to advanced technologies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to process complexity.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to manufacturing yield and defect density.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to technological barriers.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to changes in process technologies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to new products requiring larger die sizes or advanced packaging.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to start-up or capacity expansion costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to regional cost differences in manufacturing.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to higher costs due to inflation, tariffs, input costs, or market conditions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"c3\"],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to higher manufacturing costs due to underutilization and insufficient volume.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This is a possible adverse event related to reduction or delay in production output leading to underutilization.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"This sentence lists factors that may cause the adverse events described in s13.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"This states a current condition about manufacturing costs being fixed.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880409,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 796,
+      "prompt_tokens": 2327,
+      "total_tokens": 3123,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_129cf8001a51499bb360b96a58e7aba6",
+  "latency_ms": 7939
+}

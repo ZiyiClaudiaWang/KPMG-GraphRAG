@@ -1,0 +1,50 @@
+{
+  "request_hash": "b9aa5c353b5eaf7b596208c0b48fa797657339745cd8094c9199347340280310",
+  "raw_response": {
+    "id": "chatcmpl-Egr2dTr8x7tobe2ejEXtQhn0cuKQ7",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"AWS\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"leading public clouds, including AWS\"},{\"mention_text\":\"Microsoft Azure\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"leading public clouds, including AWS, Microsoft Azure\"},{\"mention_text\":\"Google Cloud\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"leading public clouds, including AWS, Microsoft Azure, and Google Cloud\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microsoft Azure\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Microsoft Azure as Azure NetApp Files\"},{\"mention_text\":\"AWS\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"AWS as Amazon FSx for NetApp ONTAP\"},{\"mention_text\":\"Google Cloud\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Google Cloud as Google Cloud NetApp Volumes\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Cloud Volumes ONTAP\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp offers NetApp Cloud Volumes ONTAP on AWS, Google Cloud, and Microsoft Azure\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Console\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp Console\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s5\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Console\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"The NetApp Console is a unified control plane\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"Figurative language describing benefits, still a stated fact about the product.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Console\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"The NetApp Console also provides a single location to manage standard and optional capabilities (data services)\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Copy and Sync service\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp Copy and Sync service\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Backup and Recovery service\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp Backup and Recovery service\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Mentions data privacy regulations as context but is a stated fact about the service.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Classification service\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp Classification service\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Describes capabilities including AI-driven protection and recovery; stated fact about the service.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Ransomware Resilience service\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp Ransomware Resilience service\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Former name included for clarity; still a stated fact about the tool.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NetApp Data Infrastructure Insights\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NetApp Data Infrastructure Insights (formerly called “Cloud Insights”)\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882375,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1148,
+      "prompt_tokens": 2368,
+      "total_tokens": 3516,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_7c97ce1ed1c64557a9951b0ccc051aa3",
+  "latency_ms": 11867
+}

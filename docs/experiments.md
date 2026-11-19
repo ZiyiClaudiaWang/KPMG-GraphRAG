@@ -79,7 +79,7 @@ Four of these start this week. The gate on Phase 0 is not labour and never was; 
 | ID | Experiment | What varies | Output | Rides |
 | --- | --- | --- | --- | --- |
 | **E0** | Ontology check, run both ways | The 19 candidate questions in `eval-ask.md`, each mapped to a Cypher path — then every experiment below, mapped to the questions that score it | Questions v1 cannot answer → v2 changes. Experiments with no question → a question, or an admission. **Feeds the gold set before it freezes in W6** | Extraction 2's card, moved to W5 |
-| **E1** | Retriever plumbing | Five retrievers wired against the schema probe | Working harness for Phase 1 | New — needs a seat |
+| **E1** | Retriever plumbing | Five retrievers wired against the schema probe, each registered through `retrieve.Backend`, plus `backends.py` to register from the environment | Working harness for Phase 1, and a one-line switch off the mock for every consumer | Adeline, Claudia seconds |
 | **E2** | Text2Cypher baseline | With and without schema hints and few-shot examples | Valid-Cypher rate, failure types | New — needs a seat |
 | **E4a** | XBRL loading | Inline XBRL instance → DuckDB, MSFT only | `lookup_fact` returns value, unit, period, dimensions, `fact_id` | Structured's W5 card |
 
@@ -162,7 +162,7 @@ pairs every stream and says second hats should peak in different weeks from prim
 | ID | Experiment | Primary | Second |
 | --- | --- | --- | --- |
 | E0 | Ontology check | Alina | Kelly |
-| E1 | Retriever plumbing | Kelly | Claudia |
+| E1 | Retriever plumbing | Adeline | Claudia |
 | E2 | Text2Cypher baseline | Adeline | Alina |
 | E3b | Typed vs generic edges | Alina | Adeline |
 | E4a, E4b | XBRL loading, then facts vs LLM | Ashley | Jacob |
@@ -179,12 +179,13 @@ pairs every stream and says second hats should peak in different weeks from prim
 
 Four of these need saying out loud.
 
-**E1 and E10 sit with the plan-and-finish co-lead, which is off-hat.** That is deliberate.
-Both would otherwise land on Retrieval, and `assignments.md` already flags that seat as
-seconding eight contract threads while replacing the INT-0 mock. Kelly is working on the
-retrieval pipeline this week regardless, so E1 labels work already in flight rather than
-adding any. Claudia seconds, because her second hat is retrieval and is scheduled to peak
-W6–W7 — exactly when E1 lands.
+**E1 moved to the contracts co-lead on 28 Oct.** It had sat with plan-and-finish on the
+reasoning that Kelly was working the retrieval pipeline that week anyway, so the card
+labelled work already in flight. That premise changed: **Kelly took extraction and Adeline
+took retrieval.** E10 stays where it was. Both would otherwise land on Retrieval, and
+`assignments.md` already flags that seat as seconding eight contract threads while
+replacing the INT-0 mock. Claudia still seconds E1, because her second hat is retrieval and
+is scheduled to peak W6–W7 — exactly when E1 lands.
 
 **E2 is W6 work, not W5.** The fit is good: E2 and E3b ask whether our naming lets a model
 write correct Cypher, which is the query-side of the contract seat's existing work. The

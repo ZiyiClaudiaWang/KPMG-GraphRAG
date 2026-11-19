@@ -1,0 +1,50 @@
+{
+  "request_hash": "09ea4710483931a8f30e2051a0160694f3f7a687dd76833da629eafca8286fbe",
+  "raw_response": {
+    "id": "chatcmpl-EgqbI0HAxoOO7VK1nc9opbqwL4wBX",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes current product portfolio and technology enabling AI at the edge; no future prediction or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"LPDDR portfolio\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Our LPDDR portfolio\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Defines Mobile segment product focus; factual description.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Mobile\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Mobile: Consists of memory products sold into the smartphone and other mobile-device markets\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c3\"],\"subject_scope\":null,\"annotation_note\":\"Describes product portfolio designed for next-gen smartphones; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"MCBU\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"MCBU offers a portfolio of LPDDR solutions\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current focus and technology nodes used; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past and current shipment events in 2026; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"1γ 16Gb LPDDR5X product\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"our 1γ 16Gb LPDDR5X product\"},{\"mention_text\":\"1γ 24Gb LPDDR5X product\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"our 1γ 24Gb LPDDR5X product\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports shipment of qualification samples; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"1γ 16Gb LPDDR6 product\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"our 1γ 16Gb LPDDR6 product\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes client market focus and product support; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists product types sold into client PC market; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"client PC market\",\"annotation_note\":\"Describes characteristics of next-gen PCs increasing memory/storage needs; factual statement about the client PC market.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"client PC market\",\"annotation_note\":\"Describes emerging client category and typical DRAM usage; factual statement about client PC market.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes importance of memory for AI systems; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes company focus on client PC segments; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes role of memory and storage products in enabling AI; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes features of client SSDs; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports qualification completion with customers in 2026; factual statement.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"G9 Gen5 QLC-based NAND client SSD\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"our G9 Gen5 QLC-based NAND client SSD\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793880680,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1008,
+      "prompt_tokens": 2451,
+      "total_tokens": 3459,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d11bcf73590a4b2e9c90bd6cf1d3a0e5",
+  "latency_ms": 8699
+}

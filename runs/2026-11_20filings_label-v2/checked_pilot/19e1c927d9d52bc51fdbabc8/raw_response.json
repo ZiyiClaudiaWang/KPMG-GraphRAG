@@ -1,0 +1,50 @@
+{
+  "request_hash": "19e1c927d9d52bc51fdbabc889bb4eb77977545cc7f3ecd7a83c8940af87a8e3",
+  "raw_response": {
+    "id": "chatcmpl-Egqo5rGB58XG93VNYpt95huZXF2Aq",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"specialty health services in Canada\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"specialty health services in Canada\"},{\"mention_text\":\"biopharma services to pharmaceutical manufacturers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"biopharma services to pharmaceutical manufacturers\"},{\"mention_text\":\"a national network of specialized pharmacies and patient support and care programs\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"a national network of specialized pharmacies and patient support and care programs\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"INVIVA\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"INVIVA, which operates Canada’s first nationally accredited and one of the largest networks of private infusion clinics\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Specialty Health platform\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Through our Specialty Health platform, McKesson Canada provides data‑driven insights and real‑world evidence offerings\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"PDCI Market Access\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"McKesson Canada owns and operates PDCI Market Access, a leading Canadian market access and reimbursement consultancy\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Canadian retail business\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our Canadian retail business operates approximately 2,600 independent pharmacies under five nationally recognized banners: IDA®, Guardian®, Remedy’sRx®, Proxim®, and Uniprix®\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Onmark®\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"group purchasing organizations (“GPOs”) like Onmark®\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"U.S. Oncology Network\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"the U.S. Oncology Network, one of the nation’s largest networks of physician-led, integrated, community-based oncology practices\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"PRISM Vision\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"an 80% controlling interest in PRISM Vision, a leading provider of general ophthalmology and retina management services\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"SCRI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"a 51% controlling interest in SCRI, an oncology research business that is one of the nation’s largest research networks\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Ontada®\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Ontada®, McKesson’s oncology technology and insights business\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Ontada\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Ontada also partners with oncology providers and biopharma partners\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Definition of terms used by the company for specialty products or services\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881473,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1161,
+      "prompt_tokens": 2539,
+      "total_tokens": 3700,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_769212c9ac6f415c84de1de8c2e16382",
+  "latency_ms": 9861
+}

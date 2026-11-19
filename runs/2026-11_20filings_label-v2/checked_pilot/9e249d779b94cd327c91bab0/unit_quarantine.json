@@ -1,0 +1,38 @@
+{
+  "request_hash": "9e249d779b94cd327c91bab0ea32918d756602a5881603bd1a42fbfb47e73d7d",
+  "batch_id": "0000320187-26-000088|part-ii-item-7|checked_start_180_n15",
+  "quarantined_units": [
+    {
+      "unit_id": "f577f59d-30d1-508e-a61a-08c6e8fe5160",
+      "local_id": "s10",
+      "review_flags": [
+        "context_not_in_source_order"
+      ],
+      "original_model_assessments": [
+        {
+          "id": "s10",
+          "label": "stated_fact",
+          "context_ids": [
+            "s9",
+            "s6"
+          ],
+          "subject_scope": null,
+          "annotation_note": "Describes the offset effect of currency fluctuations on inventory cost as a fact.",
+          "is_risk_heading": false,
+          "entity_mentions": []
+        }
+      ],
+      "processing_projection": {
+        "id": "s10",
+        "label": "needs_review",
+        "context_ids": [],
+        "subject_scope": null,
+        "annotation_note": "CODE REVIEW ONLY: context_not_in_source_order. No candidate Claim published; original raw rows retained in unit_quarantine.json. This is not a model classification.",
+        "is_risk_heading": false,
+        "entity_mentions": []
+      },
+      "disposition": "held_for_review_no_candidate"
+    }
+  ],
+  "unexpected_model_rows": []
+}

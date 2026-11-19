@@ -1,0 +1,50 @@
+{
+  "request_hash": "07002708ff89e38f009cf7175760f63786006544c04bd78b1b1ee54b3dcdce64",
+  "raw_response": {
+    "id": "chatcmpl-EgqDZ58ErLKR5RJnHCmI9Frtg2aHQ",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Curtis acquisition\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Curtis acquisition\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\",\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"International businesses\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"International businesses\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"sales in the International businesses increased $45 million and $121 million in the current-year quarter and first nine months of fiscal 2026, respectively\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Diversified Industrial Segment\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Diversified Industrial Segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Diversified Industrial Segment operating margin decreased during the current-year quarter and increased during the first nine months of fiscal 2026.\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"North America and International businesses\",\"annotation_note\":\"Mixed reasons for margin changes are stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North America\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"operating margin decreased in both the North America and International businesses primarily due to unfavorable product mix, higher business realignment charges, higher amortization expense of acquired intangibles, as well as increased material costs offset by favorable pricing.\"},{\"mention_text\":\"International businesses\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"operating margin decreased in both the North America and International businesses primarily due to unfavorable product mix, higher business realignment charges, higher amortization expense of acquired intangibles, as well as increased material costs offset by favorable pricing.\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"North America and International businesses\",\"annotation_note\":\"Mixed reasons for margin changes are stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"North America\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Operating margin increased during the first nine months of fiscal 2026 in both the North America and International businesses primarily due to favorable product mix, benefits from prior-year business realignment activities, as well as favorable pricing offset by increased material costs.\"},{\"mention_text\":\"International businesses\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Operating margin increased during the first nine months of fiscal 2026 in both the North America and International businesses primarily due to favorable product mix, benefits from prior-year business realignment activities, as well as favorable pricing offset by increased material costs.\"}]},{\"id\":\"s7\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Introductory phrase to a list of charges, not a standalone claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Clarifies nature of charges mentioned in s7.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\",\"s8\"],\"subject_scope\":null,\"annotation_note\":\"Details about business realignment charges as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s7\",\"s8\",\"s9\"],\"subject_scope\":\"International businesses\",\"annotation_note\":\"Specifies geographic focus of charges within International businesses.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"International businesses\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Business realignment charges within the International businesses were primarily incurred in Europe.\"}]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Explicit expectation about future operating income impact from workforce reductions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation to continue restructuring actions in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Anticipation of incurring additional charges in the future.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Acknowledges uncertainty that changing conditions could affect costs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Diversified Industrial Segment\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Diversified Industrial Segment backlog\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Diversified Industrial Segment backlog, as of March 31, 2026, increased from both the comparable prior-year quarter and the June 30, 2025 balance of $3.7 billion\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879209,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1212,
+      "prompt_tokens": 2570,
+      "total_tokens": 3782,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_04c9a6d01a464d50b4b5fcfb3e84c28d",
+  "latency_ms": 9414
+}

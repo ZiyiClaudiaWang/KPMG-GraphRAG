@@ -1,0 +1,35 @@
+{
+  "time": "2026-11-05T12:14:18+00:00",
+  "batch_id": "0000723125-26-000023|part-i-item-1a|checked_start_120_n15",
+  "request_hash": "f7c2154b0a6c933307c3d4a402af7ff7e61d508de5e2c28775b9ed1d271f29c9",
+  "response_id": "chatcmpl-Egqdpe5n5LuPdVdiYkq3fK35hUAhO",
+  "api_request_id": "req_5dce82fff2e941e1addeccde47b49bcb",
+  "model_returned": "gpt-4.1-mini-2025-04-14",
+  "usage_raw": {
+    "completion_tokens": 1011,
+    "prompt_tokens": 2589,
+    "total_tokens": 3600,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "text_tokens": null
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": null,
+      "cached_tokens": 0,
+      "image_tokens": null,
+      "text_tokens": null
+    }
+  },
+  "input_tokens": 2589,
+  "cached_input_tokens": 0,
+  "output_tokens": 1011,
+  "reasoning_tokens": 0,
+  "total_tokens": 3600,
+  "generation_latency_ms": 21894,
+  "estimated_cost_usd": 0.0026532,
+  "cost_status": "estimated_from_configured_rates"
+}

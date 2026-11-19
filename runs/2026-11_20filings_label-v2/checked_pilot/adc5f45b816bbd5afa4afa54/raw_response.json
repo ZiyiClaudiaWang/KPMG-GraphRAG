@@ -1,0 +1,50 @@
+{
+  "request_hash": "adc5f45b816bbd5afa4afa540532911b6bef910b6e92fa5aa198049b61871842",
+  "raw_response": {
+    "id": "chatcmpl-EgrKrLG3Ng3MOL5U9bkOFpfs41jd2",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Hugo robotic-assisted surgery (RAS) system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Hugo robotic-assisted surgery (RAS) system\"},{\"mention_text\":\"Touch Surgery Enterprise\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Touch Surgery Enterprise\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"AbsorbaTack absorbable mesh fixation device\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"AbsorbaTack absorbable mesh fixation device\"},{\"mention_text\":\"MaxTack motorized fixation device\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"MaxTack motorized fixation device\"},{\"mention_text\":\"Symbotex composite mesh\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Symbotex composite mesh\"},{\"mention_text\":\"ProGrip laparoscopic self-fixating mesh\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"ProGrip laparoscopic self-fixating mesh\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"V-Loc barbed sutures\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"V-Loc barbed sutures\"},{\"mention_text\":\"Polysorb braided absorbable sutures\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Polysorb braided absorbable sutures\"},{\"mention_text\":\"Monosof absorbable monofilament nylon sutures\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Monosof absorbable monofilament nylon sutures\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"c1\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"GI Genius intelligent endoscopy module\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"GI Genius intelligent endoscopy module\"},{\"mention_text\":\"PillCam capsule endoscopy systems\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"PillCam capsule endoscopy systems\"},{\"mention_text\":\"Bravo calibration-free reflux testing systems\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Bravo calibration-free reflux testing systems\"},{\"mention_text\":\"Endoflip 300 impedance planimetry system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Endoflip 300 impedance planimetry system\"},{\"mention_text\":\"Emprint ablation system with Thermosphere technology\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Emprint ablation system with Thermosphere technology\"},{\"mention_text\":\"ManoScan high-resolution manometry system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"ManoScan high-resolution manometry system\"},{\"mention_text\":\"Barrx platform through ablation with the Barrx 360 Express catheter\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Barrx platform through ablation with the Barrx 360 Express catheter\"},{\"mention_text\":\"Cool-tip radiofrequency ablation system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Cool-tip radiofrequency ablation system\"},{\"mention_text\":\"Beacon delivery system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Beacon delivery system\"},{\"mention_text\":\"Nexpowder endoscopic hemostasis system\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Nexpowder endoscopic hemostasis system\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Fragment introducing principal products and services offered; no standalone claim.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Nellcor pulse oximetry monitors and sensors\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Nellcor pulse oximetry monitors and sensors\"},{\"mention_text\":\"Healthcast Connectivity Solutions\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Healthcast Connectivity Solutions\"},{\"mention_text\":\"RespArray patient monitor\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"RespArray patient monitor\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Bispectral Index (BIS) brain monitoring technology\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Bispectral Index (BIS) brain monitoring technology\"},{\"mention_text\":\"INVOS cerebral/somatic oximetry systems\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"INVOS cerebral/somatic oximetry systems\"},{\"mention_text\":\"WarmTouch convective warming\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"WarmTouch convective warming\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Microstream capnography monitors\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Microstream capnography monitors\"},{\"mention_text\":\"McGRATH MAC video laryngoscopes\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"McGRATH MAC video laryngoscopes\"},{\"mention_text\":\"Shiley endotracheal tubes\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Shiley endotracheal tubes\"},{\"mention_text\":\"Shiley tracheostomy tubes\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Shiley tracheostomy tubes\"},{\"mention_text\":\"DAR Breathing Systems\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"DAR Breathing Systems\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Mentions businesses the Company has exited, divested, or intends to separate, including Diabetes Business.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Diabetes Business\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Diabetes Business\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Diabetes Business\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Diabetes Business\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"medical specialists\",\"annotation_note\":\"Specifies primary medical specialists using Diabetes products.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to Note 20 for additional information; not a company statement.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"General statement about employees delivering on Mission; no future prediction or risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883505,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1734,
+      "prompt_tokens": 2645,
+      "total_tokens": 4379,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_866f2865af7a47e69e29caa839093238",
+  "latency_ms": 12985
+}

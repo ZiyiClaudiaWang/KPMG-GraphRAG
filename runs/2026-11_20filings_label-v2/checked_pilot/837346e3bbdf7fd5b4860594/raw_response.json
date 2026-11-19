@@ -1,0 +1,50 @@
+{
+  "request_hash": "837346e3bbdf7fd5b486059494692a7c92009dca7e497543da2102f67f8b7097",
+  "raw_response": {
+    "id": "chatcmpl-EgqO9YJeDTqN6Bye1beXhYuqnYfxa",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c2\",\"c3\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned actions and focus areas for the future despite current external factors.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned actions to accelerate innovation and rebalance product portfolio.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned repositioning and reinvestment strategies.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned inventory liquidation actions including markdowns and discounts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned investments to improve brand presentation in retail.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned investments in demand creation and marketing.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[\"s1\"],\"subject_scope\":null,\"annotation_note\":\"States current status of reportable operating segments regarding progress on actions.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"reportable operating segments\",\"entity_type\":\"segment\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our reportable operating segments\"}]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"Predicts that additional actions will extend beyond fiscal 2027 for certain brands.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[\"s8\"],\"subject_scope\":null,\"annotation_note\":\"States reasons for need of additional actions including discounting and marketplace pressure.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Describes current negative impacts on revenues and profitability in Greater China and Converse's strategic reset.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Greater China\",\"entity_type\":\"segment\",\"reference_kind\":\"generic\",\"evidence_quote\":\"in Greater China\"},{\"mention_text\":\"Converse\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"while Converse is in the midst of a strategic reset\"}]},{\"id\":\"s11\",\"label\":\"forward_looking\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Predicts continuation of actions related to Converse and Greater China beyond fiscal 2027.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Converse\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"actions related to Converse\"},{\"mention_text\":\"Greater China\",\"entity_type\":\"segment\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Greater China\"}]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Predicts continued adverse effects on revenues and profitability due to these actions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[\"s12\"],\"subject_scope\":null,\"annotation_note\":\"States belief that actions are necessary for long-term strategic objectives and shareholder value.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports announcement of a multi-year enterprise program including a previous plan.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"NIKE announced a multi-year enterprise program\"}]},{\"id\":\"s15\",\"label\":\"forward_looking\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Describes intended outcomes of the program including productivity and cost structure improvements.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"NIKE\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"improve organizational effectiveness, and decrease NIKE's cost structure\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879865,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 968,
+      "prompt_tokens": 2447,
+      "total_tokens": 3415,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_5188d326778048cdacf8c378c43c820d",
+  "latency_ms": 6914
+}

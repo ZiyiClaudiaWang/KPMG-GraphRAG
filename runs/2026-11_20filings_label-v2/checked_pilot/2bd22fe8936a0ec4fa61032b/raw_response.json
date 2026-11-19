@@ -1,0 +1,50 @@
+{
+  "request_hash": "2bd22fe8936a0ec4fa61032bedac8c497faacc11cae95deaf3ad01b5c2963438",
+  "raw_response": {
+    "id": "chatcmpl-EgrGTXGbdAGmNlekAnayeYRK7ET9Q",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"European Commission regulatory actions\",\"annotation_note\":\"Mentions expected publication of a draft law later this year, indicating a future event.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\",\"c3\",\"c4\"],\"subject_scope\":\"E.U. Consumer Protection Cooperation Network\",\"annotation_note\":\"Describes a recent publication and its implications as current facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Spanish Parliament legislation\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"Portugal's Parliament legislation\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"courts or regulatory agencies in various jurisdictions\",\"annotation_note\":\"States possibility that other jurisdictions could adopt similar regulations; does not assert it will occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists specific games that may have mechanics deemed as loot boxes; 'may be deemed' indicates some uncertainty but presented as current fact about the games.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CSR Racing 2\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"CSR Racing 2\"},{\"mention_text\":\"Dragon City\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Dragon City\"},{\"mention_text\":\"Empires & Puzzles\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Empires & Puzzles\"},{\"mention_text\":\"FarmVille 3\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"FarmVille 3\"},{\"mention_text\":\"Golf Rival\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Golf Rival\"},{\"mention_text\":\"Harry Potter: Puzzles & Spells\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Harry Potter: Puzzles & Spells\"},{\"mention_text\":\"Merge Dragons!\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Merge Dragons!\"},{\"mention_text\":\"Merge Magic!\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Merge Magic!\"},{\"mention_text\":\"Monster Legends\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Monster Legends\"},{\"mention_text\":\"NBA 2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"NBA 2K\"},{\"mention_text\":\"Top Eleven\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Top Eleven\"},{\"mention_text\":\"WWE 2K\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"WWE 2K\"},{\"mention_text\":\"Zynga Poker\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Zynga Poker\"}]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"U.K. and various European member states\",\"annotation_note\":\"Describes active exploration of proposals that could lead to prohibitions; possibility not certainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[\"s7\"],\"subject_scope\":null,\"annotation_note\":\"States that proposed prohibitions could impact consumer access if drafted broadly; a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":\"FTC, U.S. states and other international jurisdictions\",\"annotation_note\":\"Describes possible regulatory impacts that could harm business; does not assert certainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States difficulty in predicting application of laws, implying uncertainty and risk.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States potential liability and harm if laws apply; possibility not certainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"hedged_risk\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible need to expend resources or modify games, which would harm business; a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that increased attention could harm reputation or growth; possibility not certainty.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States that costs incurred as a result of potential liability could harm business; a possible adverse outcome.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"mobile games industry\",\"annotation_note\":\"Reports an increase in use of incentivized marketing as a current fact about the industry.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883233,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1171,
+      "prompt_tokens": 2657,
+      "total_tokens": 3828,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_e46c601f66a7441b9cc4b1e12adeb86a",
+  "latency_ms": 9485
+}

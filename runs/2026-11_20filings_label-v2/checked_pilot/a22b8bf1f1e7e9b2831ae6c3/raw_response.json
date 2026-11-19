@@ -1,0 +1,50 @@
+{
+  "request_hash": "a22b8bf1f1e7e9b2831ae6c396cc41a5bfe13290f21c790c93f9a2b16851d9e9",
+  "raw_response": {
+    "id": "chatcmpl-EgqAzcewyGjNZ3MxkBTvjNzMsJ9VV",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned future additions to property and equipment.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"datacenters\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"datacenters\"}]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[\"c4\"],\"subject_scope\":null,\"annotation_note\":\"Describes planned future investments in capital expenditures.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"cloud offerings\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"growth in our cloud offerings\"},{\"mention_text\":\"AI training\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"investments in AI training\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"datacenters\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"datacenters and related infrastructure\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes management's role in preparing financial statements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Defines critical accounting estimates and their impact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Lists areas of critical accounting estimates.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes contract terms with customers.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes judgment required in accounting for performance obligations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes judgment required for accounting cloud-based services.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes accounting treatment for Office 365 cloud services.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Office 365\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Office 365\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes revenue recognition method for Office 365.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Office 365\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Revenue from Office 365\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes judgment required to determine standalone selling price.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes estimation method for standalone selling price for certain items.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793879049,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 808,
+      "prompt_tokens": 2367,
+      "total_tokens": 3175,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_df5c3dfc64164911a1918faf4bb6794c",
+  "latency_ms": 5885
+}

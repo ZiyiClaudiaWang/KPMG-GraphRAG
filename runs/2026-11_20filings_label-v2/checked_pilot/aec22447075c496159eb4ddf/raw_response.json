@@ -1,0 +1,50 @@
+{
+  "request_hash": "aec22447075c496159eb4ddf784e73bd75ccb39c25a9c7ff45090514363aca14",
+  "raw_response": {
+    "id": "chatcmpl-EgrRnCEFhTBK22cjlCIRgCqcWtkzj",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses expectation about future cash flow access.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses a possible future change and potential tax obligations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes existing arrangements with Blackstone and potential future payments.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Blackstone Life Sciences Advisors L.L.C.\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"affiliates of Blackstone Life Sciences Advisors L.L.C. (collectively, \\\"Blackstone\\\")\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Describes possible future payments contingent on milestones that may never occur.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes recurring cash requirements from normal business operations.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Expresses belief and expectation about ability to meet obligations and cash requirements.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes current practice of reviewing capital needs and considering alternatives.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"not_a_claim\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Cross-reference to Note 3 for acquisition and disposition information.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Announces intent and plan to separate Diabetes Business into a new company.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"MiniMed Group, Inc.\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"MiniMed Group, Inc.\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Reports completion of MiniMed IPO on a past date.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"MiniMed\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"MiniMed completed an initial public offering\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[\"s10\"],\"subject_scope\":null,\"annotation_note\":\"Reports ownership percentage of MiniMed shares as of IPO closing.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"MiniMed Common Stock\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"shares of MiniMed Common Stock\"}]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[\"s11\"],\"subject_scope\":null,\"annotation_note\":\"Explains consolidation of MiniMed financial results due to controlling interest.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"MiniMed\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"financial results of MiniMed\"}]},{\"id\":\"s13\",\"label\":\"forward_looking\",\"context_ids\":[\"s9\"],\"subject_scope\":null,\"annotation_note\":\"Plans to complete separation within next fiscal year.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports acquisition of CathWorks Ltd. including consideration details.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"CathWorks Ltd.\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"CathWorks Ltd. (CathWorks)\"},{\"mention_text\":\"CathWorks\",\"entity_type\":\"unknown\",\"reference_kind\":\"named\",\"evidence_quote\":\"CathWorks\"}]},{\"id\":\"s15\",\"label\":\"forward_looking\",\"context_ids\":[\"s14\"],\"subject_scope\":null,\"annotation_note\":\"Describes intended impact of acquisition on Cardiovascular portfolio.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Coronary & Peripheral Vascular division\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Coronary & Peripheral Vascular division within the Cardiovascular portfolio\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883935,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 974,
+      "prompt_tokens": 2555,
+      "total_tokens": 3529,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_ced74a50a9e54f58bc50014fca569410",
+  "latency_ms": 8491
+}

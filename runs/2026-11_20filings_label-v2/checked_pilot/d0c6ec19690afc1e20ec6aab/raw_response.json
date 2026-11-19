@@ -1,0 +1,50 @@
+{
+  "request_hash": "d0c6ec19690afc1e20ec6aab4502e674a70595ec053cf423e2e5a8d60282e425",
+  "raw_response": {
+    "id": "chatcmpl-EgqxhnoAQB0aNwJbOpbRohFrOdN8E",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Includes specific past financial amounts and references to investments in OpenAI.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"investments in OpenAI\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Explains the source of net gains mentioned in prior sentence.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI Recapitalization\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"OpenAI Recapitalization\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in interest and dividends income.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in interest expense.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in net recognized gains on investments.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for decrease in net gains on derivatives.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes composition of Other, net including OpenAI.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"including OpenAI\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in interest and dividends income over nine months.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in interest expense over nine months.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in net recognized gains on investments over nine months.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes reasons for increase in net gains on derivatives over nine months.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes composition of Other, net including OpenAI over nine months.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"OpenAI\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"including OpenAI\"}]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports effective tax rates for specified periods.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882069,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 789,
+      "prompt_tokens": 2658,
+      "total_tokens": 3447,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_3d17a0094aca4cff863771c8f4ee8cd3",
+  "latency_ms": 6127
+}

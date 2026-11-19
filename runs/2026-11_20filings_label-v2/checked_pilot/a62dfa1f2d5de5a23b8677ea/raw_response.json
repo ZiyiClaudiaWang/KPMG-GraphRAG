@@ -1,0 +1,50 @@
+{
+  "request_hash": "a62dfa1f2d5de5a23b8677ead7d1fecee210193c9b207e3ac6db4938fcbb325a",
+  "raw_response": {
+    "id": "chatcmpl-EgrA0YSaQ8Rnu0O8Ami9wGudvXp5B",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a dependency on ability, implying risk but not asserting a fact or plan.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s4\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Includes expectation to continue generating incremental revenue.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Rockstar Games' strategy as stated by the company.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games' strategy\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Software titles published by our Rockstar Games label\"}]},{\"id\":\"s8\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Contains expectations about Rockstar Games' future leadership and entertainment creation.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"We expect Rockstar Games\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes Rockstar Games' established brand and sales as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games has established a uniquely original, popular, cultural phenomenon\"}]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports sales figures and release date as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Grand Theft Auto V\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Grand Theft Auto V\"}]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the GTA+ membership program as a current offering.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games offers its GTA+ membership program\"}]},{\"id\":\"s12\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Announces planned release date for Grand Theft Auto VI.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games continues to invest in the franchise and announced that Grand Theft Auto VI is planned for release\"}]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports past trailer releases and future sharing of details as facts and plans.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"the title\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"The label released its first trailer for the title in December 2023 and the second in May 2025\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports sales and success of Red Dead Redemption 2 as facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Red Dead Redemption 2\",\"entity_type\":\"unknown\",\"reference_kind\":\"uncertain\",\"evidence_quote\":\"Red Dead Redemption 2\"}]},{\"id\":\"s15\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes ongoing development plans for sequels and additional content.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Rockstar Games\",\"entity_type\":\"subsidiary\",\"reference_kind\":\"named\",\"evidence_quote\":\"Rockstar Games continues to expand on its established series\"}]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793882832,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1015,
+      "prompt_tokens": 2439,
+      "total_tokens": 3454,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_30bb3065301e49f2a72600f48d4c9fde",
+  "latency_ms": 10478
+}

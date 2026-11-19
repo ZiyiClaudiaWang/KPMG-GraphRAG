@@ -1,0 +1,50 @@
+{
+  "request_hash": "583aac464185d96703d80c78e4e4c49eda1b98f7d4074f16b223ea06bb951ac3",
+  "raw_response": {
+    "id": "chatcmpl-EgqoEArgak31FpEv0Ki4Yae4FEoWV",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"industry participants\",\"annotation_note\":\"The sentence states a comparative fact about terminology usage relative to competitors.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Our Prescription Technology Solutions segment works across healthcare to connect patients, pharmacies, providers, pharmacy benefit managers, health plans, and biopharma to deliver medication access solutions that support patients from first prescription fill to ongoing therapy, regardless of their insurance coverage.\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Prescription Technology Solutions has connections with most electronic health record systems, over 50,000 pharmacies, more than 1,000,000 providers, most pharmacy benefit managers and health plans, and has supported over 650 biopharma brands representing most therapeutic areas.\"}]},{\"id\":\"s4\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":null,\"annotation_note\":\"Describes capabilities and offerings as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Prescription Technology Solutions offers innovative solutions created to benefit healthcare stakeholders.\"}]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":null,\"annotation_note\":\"Describes the scope of solutions and services offered as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Its comprehensive solution suites and technology services span across the entire patient journey, including medication access and affordability, prescription decision support, prescription price transparency, benefit insight and dispensing support services, patient enrollment, as well as third-party logistics and wholesale distribution support, to help increase speed to therapy, reduce prescription abandonment, and support improved health outcomes for the patient.\"}]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":null,\"annotation_note\":\"Reports past year quantitative achievements as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Prescription Technology Solutions\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"In the past year, Prescription Technology Solutions helped patients save approximately $10 billion on brand and specialty medications, helped to prevent an estimated 12 million prescriptions from being abandoned due to affordability challenges, and helped patients access their medicine more than 135 million times.\"}]},{\"id\":\"s7\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"Medical-Surgical Solutions segment\",\"entity_type\":\"segment\",\"reference_kind\":\"named\",\"evidence_quote\":\"Our Medical-Surgical Solutions segment is a leading provider of medical-surgical supplies, laboratory equipment, and pharmaceutical distribution, logistics, biomedical maintenance, and other services to U.S. healthcare providers across the non-acute and alternate-site spectrum.\"}]},{\"id\":\"s8\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Reports number and types of customers as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"customers\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"Our more than 336,000 customers include physician offices, surgery centers, post-acute care facilities, hospital reference labs, and home health agencies.\"}]},{\"id\":\"s9\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes partnerships and markets served as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes products distributed as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes distribution network and product offerings as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes benefits provided to customers as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States focus of the segment as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes customized plans and support services as stated facts.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States delivery commitment as a fact.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793881482,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 1126,
+      "prompt_tokens": 2568,
+      "total_tokens": 3694,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_d3e5312878134c5cb1fa5afc152ade29",
+  "latency_ms": 8866
+}

@@ -1,0 +1,50 @@
+{
+  "request_hash": "05a75ff8f1313a542e8d8517f8523aafb22464f2906c1ff994e69ff9958be863",
+  "raw_response": {
+    "id": "chatcmpl-EgrGjeFtApYf75eFZQeTNY3uBJht6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"results\":[{\"id\":\"s1\",\"label\":\"stated_fact\",\"context_ids\":[\"c2\"],\"subject_scope\":\"E.U. member states\",\"annotation_note\":null,\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"E.U. member states\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"E.U. member states\"}]},{\"id\":\"s2\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The sentence states a fact about the DSA applicability date.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"E.U. Digital Services Act (“DSA”)\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"E.U. Digital Services Act (“DSA”)\"}]},{\"id\":\"s3\",\"label\":\"stated_fact\",\"context_ids\":[\"s2\"],\"subject_scope\":\"digital services\",\"annotation_note\":\"Describes obligations imposed by the DSA on digital services.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"digital services\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"digital services\"}]},{\"id\":\"s4\",\"label\":\"hedged_risk\",\"context_ids\":[\"s3\"],\"subject_scope\":null,\"annotation_note\":\"Potential fines and lawsuits are possible adverse outcomes if noncompliance occurs.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s5\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"online safety laws in Australia, the U.K., and Brazil\",\"annotation_note\":\"States existence of similar laws with fines in these countries.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s6\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":\"U.S. states\",\"annotation_note\":\"Reports on enacted privacy laws in U.S. states.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s7\",\"label\":\"hedged_risk\",\"context_ids\":[\"s6\"],\"subject_scope\":null,\"annotation_note\":\"States possible impact on data collection and use, especially for players under 18.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s8\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible future laws that may apply to the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s9\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible additional laws related to AI and advertising that may affect the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s10\",\"label\":\"hedged_risk\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Possible adverse consequences of failure to comply with privacy laws.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s11\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"States existence of specific requirements in some jurisdictions.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s12\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes COPPA and age-based privacy laws affecting the company.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s13\",\"label\":\"forward_looking\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"The effective date is in the future relative to the filing date, indicating a future event.\",\"is_risk_heading\":false,\"entity_mentions\":[{\"mention_text\":\"COPPA Rule\",\"entity_type\":\"unknown\",\"reference_kind\":\"generic\",\"evidence_quote\":\"COPPA Rule\"}]},{\"id\":\"s14\",\"label\":\"stated_fact\",\"context_ids\":[\"s13\"],\"subject_scope\":null,\"annotation_note\":\"Describes the content of the amendments to COPPA Rule.\",\"is_risk_heading\":false,\"entity_mentions\":[]},{\"id\":\"s15\",\"label\":\"stated_fact\",\"context_ids\":[],\"subject_scope\":null,\"annotation_note\":\"Describes the U.K. Age Appropriate Design Code and its effective date.\",\"is_risk_heading\":false,\"entity_mentions\":[]}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1793883249,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": "fp_e36a6a7c98",
+    "usage": {
+      "completion_tokens": 858,
+      "prompt_tokens": 2675,
+      "total_tokens": 3533,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "api_request_id": "req_6af103c3effa402cb0f820966d6b78f1",
+  "latency_ms": 6967
+}
