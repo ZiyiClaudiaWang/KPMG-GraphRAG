@@ -88,7 +88,7 @@ CHECKS = [
     Check("C9_gray_no_punct_capital", "C9", "Prose paragraph with no end punctuation, next starts upper case: a page break the rules cannot decide. Joined only if step 2b said yes; counted here when not joined."),
     Check("C9_gray_short_prev_lower", "C9", "Paragraph under 8 words, next starts lower case; not joined. Usually a heading ('iPhone' / 'iPhone net sales'), sometimes a cut sentence."),
     Check("C9_join_table_row", "C9", "A joined boundary where either side looks like a table row (any ' | '): has_table_cells() and this check disagree."),
-    Check("C7_leftover_furniture", "C2-C7", "Short line naming the form ('FORM 10-Q') or a page, not removed."),
+    Check("C7_leftover_furniture", "C2-C7", "Short line naming the form ('FORM 10-Q') or a page, not removed (cross-references such as 'Refer to ... of this Form 10-Q' left out)."),
     Check("C7_repeated_in_section", "C7", "Short prose line repeated 3+ times in one section, not removed (C7 counts repeats across sections only)."),
     Check("S1_starts_lowercase", "S1, C9", "Unit sent to the LLM starts lower case, not from a list item (brands such as 'iPhone' and bullet or lettered items left out): a missed join or a bad split."),
     Check("S1_no_end_punct", "S1", "Unit sent to the LLM with no end punctuation and no '|': a cut sentence or a missed heading."),
@@ -286,11 +286,11 @@ def run() -> None:
                     hit("S12_bullet_lost", after, None, before, after)
             texts = [p["text"] for p in paras]
             for k, x in enumerate(texts):
-                if len(x) <= 120 and "|" not in x and FURNITURE.search(x):
+                if len(x) <= 120 and "|" not in x and FURNITURE.search(x) and not S.CROSS_REFERENCE.search(x):
                     hit("C7_leftover_furniture", x, k)
             for x, n in Counter(x for x in texts if len(x) <= C.CONTINUED_HEADER_MAX_CHARS).items():
                 if (n >= 3 and not C.TERMINAL.search(x) and not TABLE_ROW.search(x) and not TABLE_TITLE.match(x)
-                        and not S.is_bullet(x)):
+                        and not S.is_bullet(x) and S.note_key(x) not in S.TABLE_NOTE_KEYS):
                     hit("C7_repeated_in_section", f"{x}  (x{n})")
 
             # ---- step 4, units

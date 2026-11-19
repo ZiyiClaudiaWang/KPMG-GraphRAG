@@ -245,3 +245,9 @@ class HeadingLevels(unittest.TestCase):
             {"results": [{"id": "h1", "level": 1}, {"id": "h2", "level": 3}, {"id": "h3", "level": 0}]})}}]}}
         problems, got = heading_levels.answers(plan, record)
         self.assertEqual((problems, got), ([], {"a": 1, "b": 2, "c": 0}))
+
+
+class TableNotes(unittest.TestCase):
+    def test_basis_points_legend_singular_and_plural(self):
+        for text in ["bp - basis point", "bp - basis points"]:
+            self.assertEqual(segment.prefilter(text, 4), "table_residue", text)

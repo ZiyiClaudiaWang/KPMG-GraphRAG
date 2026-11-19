@@ -221,6 +221,7 @@ def note_key(text: str) -> str:
 # Add a line when a new one turns up.
 TABLE_NOTES = [
     "bp - basis point",                          # MCK
+    "bp - basis points",                         # MCK (plural in most filings)
     "Percentages may not add due to rounding",   # NTAP
     "NM - Not Meaningful",                       # NTAP
     "(3)Not meaningful (NM)",                    # MDT
