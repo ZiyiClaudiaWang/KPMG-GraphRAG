@@ -212,6 +212,50 @@ def test_a_query_of_only_punctuation_returns_nothing_rather_than_failing():
     assert graph_backend.search("*?:") == []
 
 
+def test_m14_ownership_parser_is_deliberately_narrow():
+    assert graph_backend._parse_ownership_question(
+        "Does Microsoft own Apple Asia Limited?"
+    ) == ("Microsoft", "Apple Asia Limited")
+    assert graph_backend._parse_ownership_question("What does Microsoft own?") is None
+    assert graph_backend._parse_ownership_question("Microsoft owns Apple Asia Limited") is None
+
+
+def test_m14_guard_abstains_when_both_entities_exist_but_edge_is_absent(monkeypatch):
+    monkeypatch.setattr(graph_backend, "_company_ciks", lambda session, owner: ["0000789019"])
+    monkeypatch.setattr(graph_backend, "_subsidiary_ids", lambda session, name: ["sub-1"])
+    monkeypatch.setattr(graph_backend, "_owns_any", lambda session, cik, ids: False)
+
+    assert graph_backend._ownership_guard(object(), "Microsoft", "Apple Asia Limited") == {
+        "status": "abstain",
+        "reason": "fabricated_relationship",
+        "results": [],
+    }
+
+
+def test_m14_guard_does_not_abstain_when_edge_exists(monkeypatch):
+    monkeypatch.setattr(graph_backend, "_company_ciks", lambda session, owner: ["0000320193"])
+    monkeypatch.setattr(graph_backend, "_subsidiary_ids", lambda session, name: ["sub-1"])
+    monkeypatch.setattr(graph_backend, "_owns_any", lambda session, cik, ids: True)
+    assert graph_backend._ownership_guard(object(), "Apple", "Apple Asia Limited") is None
+
+
+@pytest.mark.parametrize(
+    "ciks, sub_ids",
+    [([], ["sub-1"]), (["0000789019", "0000320193"], ["sub-1"]), (["0000789019"], [])],
+)
+def test_m14_guard_does_not_call_unknown_or_ambiguous_entities_fabricated(
+    monkeypatch, ciks, sub_ids
+):
+    monkeypatch.setattr(graph_backend, "_company_ciks", lambda session, owner: ciks)
+    monkeypatch.setattr(graph_backend, "_subsidiary_ids", lambda session, name: sub_ids)
+    monkeypatch.setattr(
+        graph_backend,
+        "_owns_any",
+        lambda *args: pytest.fail("ownership edge should not be queried"),
+    )
+    assert graph_backend._ownership_guard(object(), "Unknown", "Unknown Sub") is None
+
+
 # ---- against a real graph -------------------------------------------------
 
 def _graph_available() -> bool:
@@ -241,6 +285,27 @@ live = pytest.mark.skipif(
 )
 
 
+def _ownership_graph_available() -> bool:
+    if not os.environ.get("NEO4J_URI"):
+        return False
+    try:
+        driver = graph_backend.connect()
+        with driver.session() as session:
+            return session.run(
+                "MATCH (:Company)-[:OWNS]->(:Subsidiary) RETURN count(*) AS n"
+            ).single()["n"] > 0
+    except Exception:
+        return False
+    finally:
+        graph_backend.close()
+
+
+ownership_live = pytest.mark.skipif(
+    not _ownership_graph_available(),
+    reason="needs a Neo4j holding Company-[:OWNS]->Subsidiary data",
+)
+
+
 @live
 def test_live_search_returns_contract_valid_evidence():
     graph_backend.ensure_index()
@@ -257,3 +322,29 @@ def test_live_a_filter_that_matches_nothing_is_empty_not_an_error():
     differently and the Agent should only retry one of them."""
     retrieve.configure_graph_backend(graph_backend.search)
     assert retrieve.graph_search("revenue", filters={"ticker": "NOSUCHTICKER"}) == []
+
+
+@ownership_live
+def test_live_m14_wrong_parent_abstains_as_fabricated_relationship():
+    retrieve.configure_graph_backend(graph_backend.search)
+    out = retrieve.search(
+        "Does Microsoft own Apple Asia Limited?",
+        tool="graph",
+        trace_id="M14",
+        request_id="M14-live",
+    )
+    assert out["status"] == "abstain"
+    assert out["reason"] == "fabricated_relationship"
+    assert out["results"] == []
+
+
+@ownership_live
+def test_live_m14_real_parent_is_not_fabricated_relationship():
+    retrieve.configure_graph_backend(graph_backend.search)
+    out = retrieve.search(
+        "Does Apple own Apple Asia Limited?",
+        tool="graph",
+        trace_id="M14-control",
+        request_id="M14-control-live",
+    )
+    assert (out["status"], out["reason"]) != ("abstain", "fabricated_relationship")
