@@ -234,10 +234,6 @@ class TestLoad(Ex21Case):
             load.build_rows()
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestCatalogAcrossYears(unittest.TestCase):
     """Several 10-Ks of one parent: each filing is offered its own year's subsidiaries."""
 
@@ -306,3 +302,7 @@ class TestCatalogAcrossYears(unittest.TestCase):
                          [("Renamed Co Inc", "Renamed Co LLC")])
         self.assertIn("old-form", self.entries())
         self.assertIn("new-form", self.entries())
+
+
+if __name__ == "__main__":
+    unittest.main()
