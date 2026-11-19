@@ -149,9 +149,10 @@ The Retrieval + Eval representation is now implemented as an additive internal
 
 Statuses:
 
-- `answer` — evidence is available;
+- `answer` — evidence is available; this also covers a correctable `false_premise`;
 - `clarify` — the system needs disambiguation;
 - `abstain` — the system cannot support a reliable answer;
+- `off_topic` — the request is not about the supported SEC-filing task;
 - `block` — reserved for a disallowed operation such as a future Text2Cypher write guard.
 
 Reasons:
@@ -162,15 +163,44 @@ Reasons:
 - `missing_fact`;
 - `ambiguous`.
 
+The decision mapping follows Eval's agreed taxonomy:
+
+- `ambiguous` -> `clarify`;
+- `out_of_scope` -> `abstain`;
+- `missing_fact` -> `abstain`;
+- `fabricated_relationship` -> `abstain`;
+- `false_premise` -> `answer` (with evidence that supports correcting the premise);
+- no reason -> `off_topic` when the request is outside the SEC-filing task.
+
 `search()` returns `{request_id, trace_id, status, reason, results}`. A legacy backend
 returning a non-empty evidence list maps to `answer`; a bare empty list maps to
 `abstain / missing_fact`. Backends with stronger knowledge can return an explicit decision
-dict, for example `abstain / fabricated_relationship` or `clarify / ambiguous`.
-Backend outages remain `RetrievalUnavailableError` and unsupported filters remain
-`FilterNotSupportedError`; neither is silently converted into abstention.
+dict, for example `abstain / fabricated_relationship` or `clarify / ambiguous`. A
+`clarify / ambiguous` decision may include the candidate evidence that tied so a rich
+consumer can say what needs clarification.
 
-The existing `graph_search()` and `structured_search()` signatures still return evidence
-lists, so current Agent callers do not break.
+The existing `graph_search()` and `structured_search()` signatures remain list-only. They
+return evidence only for `answer`; ambiguous candidates are suppressed to `[]` so legacy
+Agent callers cannot accidentally treat candidates as answers. Backend outages remain
+`RetrievalUnavailableError` and unsupported filters remain `FilterNotSupportedError`;
+neither is silently converted into abstention.
+
+### Trigger boundary and score calibration
+
+The rule-based decision representation above does not require a retrieval-score threshold.
+Eval Gold Set v2 currently marks 14 of 155 questions as **not a retrieval test** (including
+future-period, out-of-scope, not-disclosed, fabricated-edge, and fiscal-calendar / 53-week-year
+cases). Those controls must not be used to fit a retrieval score floor.
+
+Score-based triggers remain deliberately uncalibrated. Graph uses Neo4j full-text scores and
+Structured uses its own concept/dimension heuristic, so raw values are not comparable across
+arms. Do not add a shared numeric floor or tie margin until retrieval-test questions provide
+per-arm score distributions. When those data arrive, calibrate separately:
+
+- low top-1 score -> candidate signal for `abstain / missing_fact`;
+- top-1/top-2 near-tie -> candidate signal for `clarify / ambiguous`.
+
+Exact equality or an arbitrary numeric margin is not implemented as a production trigger yet.
 
 ## Immediate dependency requests
 

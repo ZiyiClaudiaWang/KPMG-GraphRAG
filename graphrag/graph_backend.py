@@ -25,6 +25,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -385,8 +386,87 @@ def _to_evidence(row: dict, trace_id: str | None) -> dict[str, Any]:
     }
 
 
+
+_OWNERSHIP_QUESTION_RE = re.compile(
+    r"^\s*does\s+(.+?)\s+own\s+(.+?)\s*[?.]?\s*$",
+    re.IGNORECASE,
+)
+
+_COMPANY_MATCH_CYPHER = """
+MATCH (c:Company)
+WHERE toLower(c.ticker) = toLower($owner)
+   OR toLower(c.name) = toLower($owner)
+   OR toLower(c.name) STARTS WITH toLower($owner) + ' '
+RETURN DISTINCT c.cik AS cik
+LIMIT 2
+"""
+
+_SUBSIDIARY_MATCH_CYPHER = """
+MATCH (s:Subsidiary)
+WHERE toLower(s.name) = toLower($subsidiary)
+   OR toLower(s.normalised_name) = toLower($subsidiary)
+RETURN DISTINCT s.sub_id AS sub_id
+LIMIT 25
+"""
+
+_OWNS_ANY_CYPHER = """
+MATCH (c:Company), (s:Subsidiary)
+WHERE c.cik = $cik AND s.sub_id IN $sub_ids
+OPTIONAL MATCH (c)-[r:OWNS]->(s)
+RETURN count(r) > 0 AS owns
+"""
+
+
+def _parse_ownership_question(query: str) -> tuple[str, str] | None:
+    """Return ``(owner, subsidiary)`` for the narrow M14 ``Does X own Y?`` form."""
+    match = _OWNERSHIP_QUESTION_RE.match(query)
+    if match is None:
+        return None
+    owner = match.group(1).strip(" \t\r\n?.")
+    subsidiary = match.group(2).strip(" \t\r\n?.")
+    if not owner or not subsidiary:
+        return None
+    return owner, subsidiary
+
+
+def _company_ciks(session: Any, owner: str) -> list[str]:
+    rows = session.run(_COMPANY_MATCH_CYPHER, owner=owner).data()
+    return sorted({str(row["cik"]) for row in rows if row.get("cik")})
+
+
+def _subsidiary_ids(session: Any, subsidiary: str) -> list[str]:
+    rows = session.run(_SUBSIDIARY_MATCH_CYPHER, subsidiary=subsidiary).data()
+    return sorted({str(row["sub_id"]) for row in rows if row.get("sub_id")})
+
+
+def _owns_any(session: Any, cik: str, sub_ids: list[str]) -> bool:
+    row = session.run(_OWNS_ANY_CYPHER, cik=cik, sub_ids=sub_ids).single()
+    return bool(row and row["owns"])
+
+
+def _ownership_guard(session: Any, owner: str, subsidiary: str) -> dict[str, Any] | None:
+    """Return M14 abstention only when both sides resolve and the OWNS edge is absent.
+
+    Unknown or non-unique companies, and unknown subsidiaries, fall through to the
+    ordinary retriever rather than being mislabeled as fabricated relationships.
+    """
+    ciks = _company_ciks(session, owner)
+    if len(ciks) != 1:
+        return None
+    sub_ids = _subsidiary_ids(session, subsidiary)
+    if not sub_ids:
+        return None
+    if _owns_any(session, ciks[0], sub_ids):
+        return None
+    return {
+        "status": "abstain",
+        "reason": "fabricated_relationship",
+        "results": [],
+    }
+
+
 def search(query: str, filters: dict | None = None, top_k: int = 10,
-           trace_id: str | None = None) -> list[dict[str, Any]]:
+           trace_id: str | None = None) -> list[dict[str, Any]] | dict[str, Any]:
     """Find Claims matching the query. Matches `retrieve.Backend`.
 
     Call it through `retrieve.graph_search`, which owns input validation,
@@ -395,6 +475,7 @@ def search(query: str, filters: dict | None = None, top_k: int = 10,
     """
     filters = filters or {}
     _check_filters(filters)
+    ownership = _parse_ownership_question(query)
 
     lucene = _lucene_safe(query)
     if not lucene:
@@ -411,6 +492,11 @@ def search(query: str, filters: dict | None = None, top_k: int = 10,
 
     try:
         with driver.session(database=_database) as session:
+            if ownership is not None:
+                decision = _ownership_guard(session, *ownership)
+                if decision is not None:
+                    return decision
+
             rows = session.run(
                 cypher, index=FULLTEXT_INDEX, lucene=lucene, limit=limit, **params
             ).data()

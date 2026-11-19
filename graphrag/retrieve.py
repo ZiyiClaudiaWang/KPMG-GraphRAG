@@ -72,8 +72,13 @@ def _normalize_backend_outcome(raw: object, backend_name: str) -> tuple[str, str
         raise ValueError(f"{backend_name} backend decision results must be a list")
     if status == "answer" and not rows:
         raise ValueError(f"{backend_name} backend answer decision must include evidence")
-    if status != "answer" and rows:
-        raise ValueError(f"{backend_name} backend non-answer decision must have empty results")
+    if status in {"abstain", "off_topic", "block"} and rows:
+        raise ValueError(
+            f"{backend_name} backend {status} decision must have empty results"
+        )
+    # ``clarify / ambiguous`` may carry the tied candidates in the rich envelope
+    # so Eval/Agents can explain what needs disambiguation. Legacy list APIs below
+    # intentionally suppress those candidates so they cannot be mistaken for answers.
     return status, reason, rows
 
 
@@ -187,7 +192,7 @@ def graph_search(
     trace_id: str | None = None,
 ) -> list[dict]:
     """Search graph retrieval using the unchanged Agent-facing evidence-list API."""
-    _, _, results = _run(
+    status, _, results = _run(
         backend=_graph_backend,
         backend_name="graph",
         query=query,
@@ -196,7 +201,7 @@ def graph_search(
         trace_id=trace_id,
         allowed_filters=contract.GRAPH_FILTERS,
     )
-    return results
+    return results if status == "answer" else []
 
 
 def structured_search(
@@ -206,7 +211,7 @@ def structured_search(
     trace_id: str | None = None,
 ) -> list[dict]:
     """Search structured retrieval using the unchanged Agent-facing evidence-list API."""
-    _, _, results = _run(
+    status, _, results = _run(
         backend=_structured_backend,
         backend_name="structured",
         query=query,
@@ -215,4 +220,4 @@ def structured_search(
         trace_id=trace_id,
         allowed_filters=contract.STRUCTURED_FILTERS,
     )
-    return results
+    return results if status == "answer" else []
