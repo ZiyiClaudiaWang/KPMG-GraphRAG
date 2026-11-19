@@ -38,11 +38,11 @@ label:
 # max_reasoning_tokens is extra output room per request; too little ends a reply early
 # ("Missing or incomplete completion"), and that reply is saved and not resent.
 # Compare models before a run:  python -m src.page_breaks --compare   /   python -m src.heading_levels --compare
-page_breaks:                         # step 2b: ~62 yes/no pairs, a few requests, cents with any model
+page_breaks:                         # step 2b: ~62 yes/no pairs, one request per section, cents with any model
   model: gpt-5.4
   reasoning_effort: low              # none | low | medium | high (gpt-5 itself: minimal instead of none)
   max_reasoning_tokens: 2000
-  budget_usd: 0.50
+  budget_usd: 1.0
 
 heading_levels:                      # step 4b: ~12k headings in ~330 requests
   model: gpt-5.4-mini

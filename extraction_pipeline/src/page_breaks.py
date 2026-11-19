@@ -36,9 +36,9 @@ from .common import Paths, data_dir, filings, load_config, log, read_jsonl, sett
 from .filter_sections import decide
 
 STEP = "page_breaks"
-RUNNER_VERSION = "kelly_page_breaks_v1"
+RUNNER_VERSION = "kelly_page_breaks_v2"      # v2: one section per request
 TAIL = 300                      # characters of each paragraph the model sees
-BATCH = 20                      # boundaries per request
+BATCH = 20                      # boundaries per request, at most; one section per request
 
 SYSTEM = """You repair text extracted from SEC 10-K and 10-Q filings. A page break can cut a
 sentence in two, so the end of one paragraph and the start of the next are one sentence.
@@ -95,21 +95,30 @@ def schema() -> dict:
 
 
 def plans(boundaries: list[dict], cfg: dict) -> list[dict]:
+    """Requests of up to BATCH boundaries, never mixing two sections.
+
+    A request holds the boundaries of one section only, so adding, removing or changing a section
+    leaves every other section's request (and its saved reply) as it was.
+    """
     from .label import canonical, digest
+    by_section: dict[str, list[dict]] = {}
+    for b in boundaries:                          # boundary_id = accession|section_key|start
+        by_section.setdefault(b["boundary_id"].rsplit("|", 1)[0], []).append(b)
     out = []
-    for i in range(0, len(boundaries), BATCH):
-        chunk = boundaries[i:i + BATCH]
-        pairs = [{"id": f"p{k + 1}", "A": b["a"], "B": b["b"]} for k, b in enumerate(chunk)]
-        request = {"model": cfg["model"],
-                   "messages": [{"role": "system", "content": SYSTEM},
-                                {"role": "user", "content": canonical({"pairs": pairs})}],
-                   "response_format": {"type": "json_schema", "json_schema": schema()},
-                   "store": False}
-        llm_cost.model_params(request, cfg, answer_tokens=1000)
-        key = {"runner_version": RUNNER_VERSION, "request": request}
-        batch = {"batch_id": f"page_breaks_{i // BATCH}", "boundary_ids": [b["boundary_id"] for b in chunk]}
-        out.append({"batch": batch, "request": request, "request_hash": digest(canonical(key)),
-                    "identity": {"runner_version": RUNNER_VERSION, "request": request, "batch": batch}})
+    for section, items in by_section.items():
+        for part, i in enumerate(range(0, len(items), BATCH)):
+            chunk = items[i:i + BATCH]
+            pairs = [{"id": f"p{k + 1}", "A": b["a"], "B": b["b"]} for k, b in enumerate(chunk)]
+            request = {"model": cfg["model"],
+                       "messages": [{"role": "system", "content": SYSTEM},
+                                    {"role": "user", "content": canonical({"pairs": pairs})}],
+                       "response_format": {"type": "json_schema", "json_schema": schema()},
+                       "store": False}
+            llm_cost.model_params(request, cfg, answer_tokens=40 * len(chunk) + 200)
+            key = {"runner_version": RUNNER_VERSION, "request": request}
+            batch = {"batch_id": f"{section}|page_breaks_{part}", "boundary_ids": [b["boundary_id"] for b in chunk]}
+            out.append({"batch": batch, "request": request, "request_hash": digest(canonical(key)),
+                        "identity": {"runner_version": RUNNER_VERSION, "request": request, "batch": batch}})
     return out
 
 
