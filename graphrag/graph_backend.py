@@ -22,11 +22,20 @@ Connect with NEO4J_URI, NEO4J_USERNAME and NEO4J_PASSWORD, then register it:
 
 from __future__ import annotations
 
+import datetime
 import json
 import os
+import sys
+from pathlib import Path
 from typing import Any
 
 from . import contract
+
+# The fiscal calendar lives with the structured arm, which imports by bare
+# name, so its directory goes on the path the way backends.py does it. A
+# pyproject.toml would make this an ordinary import.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "structured"))
+import fiscal  # noqa: E402
 
 # Lexical search over the claim text. Neo4j scores the match for us, which is
 # what the envelope's `score` reports.
@@ -48,18 +57,26 @@ _FILTER_TO_PROPERTY = {
     "section": ("sec", "section_key"),
 }
 
-# Accepted and not applied, matching the structured arm. Both arms are offered
-# the same keys by the contract, so refusing here and ignoring there meant one
-# filter dict worked on one arm and raised on the other, and every caller had
-# to learn which was which.
-#
-#   fiscal_year    the graph stores reporting_period_end, and a fiscal year
-#                  cannot be read off it for every filer
-#   fiscal_period  the graph stores form (10-K, 10-Q) but not the quarter
-#
-# Ignoring a filter silently is its own hazard: the caller gets rows that look
-# filtered and are not. Filter on reporting_period_end or form instead.
-_IGNORED_FILTERS = {"fiscal_year", "fiscal_period"}
+# Nothing is accepted and dropped any more. fiscal_year and fiscal_period used
+# to sit here, on the grounds that a fiscal year cannot be read off a
+# reporting_period_end for every filer. It can: each filer's 10-K ends on its
+# own fiscal year end, and its 10-Qs fall at quarter offsets from there. See
+# structured/fiscal.py.
+_IGNORED_FILTERS: set[str] = set()
+
+# This graph holds a 10-K and one or two 10-Qs per filer, so a year's start
+# cannot be read from the previous year's end the way the fact store does it.
+# A year is taken as the 364 days before its 10-K, and a quarter as the 90
+# before its 10-Q. Both are approximations and neither needs to be exact: the
+# filter matches a filing's own reporting_period_end, and the quarter index is
+# a rounded offset, so being a few days out changes nothing.
+# Not a property on any node. These are turned into a reporting_period_end
+# window by _fiscal_clause, so _check_filters has to know they are served.
+_DERIVED_FILTERS = {"fiscal_year", "fiscal_period"}
+
+_YEAR_SPAN = 364
+_QUARTER_SPAN = 90
+_CALENDAR = None
 
 # Why each of the rest is refused, so the caller gets a reason and not a shrug.
 _UNSUPPORTED_FILTERS = {
@@ -145,7 +162,8 @@ def ensure_index(driver=None) -> None:
 def _check_filters(filters: dict) -> None:
     """Refuse a filter this graph cannot serve, by name and with a reason."""
     for key in filters:
-        if key in _FILTER_TO_PROPERTY or key == "max_hops" or key in _IGNORED_FILTERS:
+        if (key in _FILTER_TO_PROPERTY or key == "max_hops"
+                or key in _IGNORED_FILTERS or key in _DERIVED_FILTERS):
             continue
         reason = _UNSUPPORTED_FILTERS.get(key)
         if reason:
@@ -160,9 +178,78 @@ def _check_filters(filters: dict) -> None:
         )
 
 
+def _calendar(driver=None) -> dict:
+    """Each filer's fiscal calendar, read once from the filings it holds."""
+    global _CALENDAR
+    if _CALENDAR is None:
+        driver = driver or connect()
+        with driver.session(database=_database) as session:
+            rows = session.run(
+                "MATCH (co:Company)-[:FILES]->(fl:Filing) "
+                "WHERE co.ticker IS NOT NULL AND fl.reporting_period_end IS NOT NULL "
+                "RETURN co.ticker AS ticker, fl.form AS form, "
+                "fl.reporting_period_end AS period_end"
+            ).data()
+        periods = []
+        for row in rows:
+            end = fiscal._as_date(row["period_end"])
+            if end is None:
+                continue
+            span = _YEAR_SPAN if str(row["form"]).upper().startswith("10-K") else _QUARTER_SPAN
+            periods.append((row["ticker"], end - datetime.timedelta(days=span), end))
+        _CALENDAR = fiscal.build_calendar(periods)
+    return _CALENDAR
+
+
+def _fiscal_clause(filters: dict) -> tuple[str, dict]:
+    """Match filings whose own period end falls inside the label asked for.
+
+    One window per filer, because FY2026 is a different stretch of time for
+    each of them. No filer having the period is a real answer rather than a
+    reason to drop the filter and return every year.
+    """
+    if "fiscal_year" not in filters:
+        raise FilterNotSupportedError(
+            "fiscal_period needs fiscal_year: a quarter on its own names no "
+            "stretch of time"
+        )
+
+    calendar = _calendar()
+    wanted = filters["fiscal_year"]
+    years = wanted if isinstance(wanted, (list, tuple, set)) else [wanted]
+    scope = filters.get("ticker")
+    if scope is None:
+        tickers = sorted(calendar)
+    else:
+        tickers = list(scope) if isinstance(scope, (list, tuple, set)) else [scope]
+
+    parts, params = [], {}
+    for ticker in tickers:
+        for year in years:
+            span = fiscal.window(calendar, ticker, year, filters.get("fiscal_period"))
+            if not span:
+                continue
+            key = f"fiscal_{len(parts)}"
+            parts.append(
+                f"(co.ticker = ${key}_t AND "
+                f"fl.reporting_period_end >= ${key}_a AND "
+                f"fl.reporting_period_end <= ${key}_b)")
+            params[f"{key}_t"] = ticker
+            params[f"{key}_a"] = str(span[0])
+            params[f"{key}_b"] = str(span[1])
+
+    if not parts:
+        return "false", {}
+    return "(" + " OR ".join(parts) + ")", params
+
+
 def _where_clause(filters: dict) -> tuple[str, dict]:
     """Turn the supported filters into Cypher and its parameters."""
     clauses, params = [], {}
+    if "fiscal_year" in filters or "fiscal_period" in filters:
+        clause, fiscal_params = _fiscal_clause(filters)
+        clauses.append(clause)
+        params.update(fiscal_params)
     for key, value in filters.items():
         if key not in _FILTER_TO_PROPERTY:
             continue
