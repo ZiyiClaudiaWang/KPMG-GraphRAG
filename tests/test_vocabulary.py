@@ -34,19 +34,22 @@ def test_every_offered_filter_is_classified_exactly_once():
         assert len(classified) == len(set(classified))
 
 
-def test_the_two_period_filters_are_still_ignored_by_both_arms():
-    """This is the defect the Agent team hit: they send these on every call
-    and neither arm applies either one.
+def test_the_report_names_what_an_arm_does_with_a_key_it_drops():
+    """The two period filters are the reason this module exists: the Agent
+    team sent them on every call and both arms dropped them in silence.
 
-    When that is fixed, this test fails and should be rewritten to assert the
-    new behaviour. It is here so the fix is a decision rather than a drift.
+    This asserts the report can say so, not that it still has to. PR #90
+    applies them in the structured arm, and this test passes either way —
+    what it protects is that a dropped key is never reported as applied.
     """
     for arm in ("graph", "structured"):
         detail = vocabulary.filters(arm)
         if "unavailable" in detail:
             pytest.skip(f"{arm} arm is not importable here")
-        assert "fiscal_year" in detail[vocabulary.IGNORED]
-        assert "fiscal_period" in detail[vocabulary.IGNORED]
+        for key in ("fiscal_year", "fiscal_period"):
+            states = [s for s in (vocabulary.APPLIED, vocabulary.IGNORED,
+                                  vocabulary.REFUSED) if key in detail[s]]
+            assert len(states) == 1, f"{arm}/{key} is reported as {states}"
 
 
 def test_an_unknown_arm_is_refused_by_name():
