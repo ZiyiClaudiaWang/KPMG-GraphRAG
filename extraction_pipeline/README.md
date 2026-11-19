@@ -100,8 +100,10 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 1 | Fetch | `fetch.py` | `sections/*.jsonl` (from the Data-team database) | no |
 | 1b | [Subsidiaries](#step-1b-subsidiaries) | `subsidiaries.py`, `ex21/` | `output/subsidiaries.jsonl`, `output/subsidiary_qa.csv`, `output/subsidiary_catalog.json`, `ex21/raw/` | no |
 | 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
+| 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl` | no |
+| 4b | [Heading levels](#step-4b-heading-levels) (optional, paid) | `heading_levels.py` | `interim/heading_levels.jsonl`, `output/usage_heading_levels.jsonl` | yes |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -250,7 +252,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - What is left is gray: no end punctuation and a capital next ("...the European Union General
     Data" / "Protection Regulation"), or a short line before lower case. On the 233 filings this
     is 62 boundaries in kept sections (779 + 61 before 19 November 2026). Gray boundaries are not
-    joined unless step 2b said yes.
+    joined unless step 2b said yes, so run step 2b once before labelling at scale
+    ([Run](#run)); MSFT "...Securities and Exchange" / "Commission on..." stays split without it.
 - <a id="step-2b-page-breaks"></a>**[2b] Page breaks** (`src/page_breaks.py`, optional, OpenAI)
   asks the model, for each gray boundary in a kept section, whether the second paragraph goes on
   with the sentence of the first (20 per request; 4 requests for the 233 filings: under $0.10
@@ -464,7 +467,11 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     the source ([Remaining issues 3.1](#3-todo-list)).
   - `claim_id`: the unit's `unit_id` ([Unit ID & Claim ID](#unit-id--claim-id)); `claim_identity_version`
     is `source_span_position_v1`. A Claim is a statement at one place: the same sentence twice
-    in one section is two Claims.
+    in one section is two Claims, and so is the same sentence in two filings of a company.
+    Repeats across filings stay separate Claims on purpose; step 5 only reuses their label
+    ([Repeats](#step-5-label)). `python -m src.report_claim_repeats data/output/claims.jsonl --output
+    data/output/claim_repeats.json` counts Claims whose text repeats in another filing of the same
+    company (whitespace normalised; repeats inside one filing are left out).
   - Ids that point at other units (`context_evidence`, `risk_category_id`,
     `provenance.context_unit_ids`, `provenance.risk_lead_unit_id`) are `unit_id`s.
   - Each run compares its `claim_id`s with the `claims.jsonl` it replaces and writes
@@ -489,7 +496,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - Claims and subsidiaries load independently: `--steps subsidiaries,load` loads subsidiaries
     without any Claims.
   - Step 8 only adds and updates; Claims whose ids changed in a rebuild stay in the graph
-    ([Remaining issues 1.6](#1-improvement)).
+    ([Remaining issues 1.5](#1-improvement)).
 
 ## Unit ID & Claim ID
 Every unit has one id, `unit_id`: uuid5 of `<accession_number>|<section_key>|<raw_spans>`, with
@@ -511,7 +518,7 @@ sit in the pipeline: [ID workflow](#2-id-workflow).
 
 `output/claim_id_report.json` shows how many `claim_id`s each build changed
 ([step 7b](#step-7b-build-claims)). Anything joined on `claim_id` across builds (Eval's citations, a review decision) stops matching for the ids that changed. Open points: old Claims after a rebuild, a step 4
-report ([Remaining issues 1.5–1.6](#1-improvement)).
+report ([Remaining issues 1.4–1.5](#1-improvement)).
 
 
 ## Setup
@@ -556,6 +563,10 @@ The risk theme library and map are in `config/risk_themes.csv` and `config/risk_
 
 ```bash
 python run_pipeline.py --until segment      # steps 1-4: free, no API
+python run_pipeline.py --steps page_breaks --dry-run      # step 2b: requests and cost, no API
+python run_pipeline.py --steps page_breaks,clean,filter   # step 2b (paid): once before labelling at scale
+python run_pipeline.py --steps heading_levels,segment     # step 4b (paid, optional)
+python -m src.report_unit_repeats           # repeats across filings, before labelling: data/output/repeats/
 python run_pipeline.py --steps risk_factors # step 7a: free; lists unmapped risk categories
 # review data/output/section_manifest.csv, sentences.jsonl and risk_categories.csv
 
@@ -662,28 +673,23 @@ python -m unittest discover tests
    | Market risk (10-K Item 7A, 10-Q Part I Item 3) | Interest-rate and currency exposure, with sensitivity figures | Some narrative risk sentences | Mostly numbers that belong to `Fact`; decide together with the MD&A type-fit question |
    | Cybersecurity (10-K Item 1C) | How the company governs and manages cyber risk | Answers "how does the company manage cybersecurity?" | The risks themselves are already in Item 1A; mostly process descriptions |
 
-2. Step 2 - Page Break:
-   - **A sentence cut by a page break, the next page starting with a capital and the first part
-     ending on an ordinary word**, is gray: joined only when step 2b says so (62 boundaries in
-     kept sections of the 233 filings; MSFT "...Securities and Exchange" / "Commission on..."). Run
-     step 2b once before labelling at scale.
-3. Step 4 - Headings: 
+2. Step 4 - Headings:
    - Without step 4b (or levels from the Data team), headings have one level only. A heading replaces the one above it (AAPL "Products" > "iPhone" keeps only "iPhone").
      - 872 headings in kept sections of the 233 filings directly follow another heading (so the first is the parent).
      - Asked the Data team whether the export can carry the HTML tag or style of each heading; until then, step 4b.
    - Some real headings are marked `too_short`, not `heading`.
      - TTWO "Player acquisition costs." (×2) and "International operations risks": a period, or a lower-case word, keeps them from the heading rules. They are not sent to the LLM either way, but the units below them keep the previous heading in `section_path`
-4. Step 6 - Release held units.
+3. Step 6 - Release held units.
    - A unit held in `review_queue.jsonl` stays out of `claims.jsonl`. After review, the only way through is editing files by hand, and the next step 6 run holds it again.
    - To do: a release list that step 6 reads, by `unit_id` so it survives renumbering, and who signs off on a release.
-5. Step 4 - Unit id changes are only counted after labelling.
+4. Step 4 - Unit id changes are only counted after labelling.
    - `claim_id_report.json` is written in step 7b, after step 5 has been paid for.
    - The ids are made in step 4, so a step 4 report (units added, gone, text changed, against the last `sentences.jsonl`) would show the effect of a rule change before any API call.
-6. Step 8 - Old Claims stay in the graph after a rebuild.
+5. Step 8 - Old Claims stay in the graph after a rebuild.
    - Step 8 only MERGEs. When a step 2 or 4 change gives some units new ids, the Claims with the old ids stay in Neo4j next to the new ones; nothing deletes them.
    - For now: run `python -m src.load --wipe` before loading a rebuilt `claims.jsonl`.
    - To do: have step 8 delete this scope's Claims that are not in the current `claims.jsonl`, or wipe and reload by default.
-7. Risk themes
+6. Risk themes
    - New risks year over year (eval M06) & Too coarse
      - Themes are too coarse: a new risk usually goes into an existing category (MCK's new AI risk sits under "Company and Operational Risks").
      - Comparing the risk lead sentences of two years would find it, but each company here has one 10-K; a prior-year 10-K (e.g. MSFT FY2025) is needed.
@@ -691,14 +697,9 @@ python -m unittest discover tests
      - Apple's 10-Qs (179 units) and the opening paragraphs of each 10-K get no theme.
      - One option is a model pass that picks a theme from the library ([Appendix B](#appendix-b-risk-themes)).
    - the model's `is_risk_heading`
-     - it is kept only for `risk_lead_sentence` and `risk_lead_unit_id`, which [2.2](#2-decide-but-can-be-open) and [1.7](#1-improvement) would use.
-8. Segments:
+     - it is kept only for `risk_lead_sentence` and `risk_lead_unit_id`, which [2.2](#2-decide-but-can-be-open) and [1.6](#1-improvement) would use.
+7. Segments:
    - Link Claims to segments
-9. Repeated sentences across filings
-   - The same sentence in another filing is a separate Claim (`claim_id` includes the accession number); so is the same sentence twice in one section (`claim_id` includes its position).
-   - Repeats are common in the five-filing run (not yet counted on the 20 filings): 1,223 of about 2,400 Claims share their text with a Claim in another filing of the same
-     company; mostly between a 10-K and a 10-Q (448 Microsoft sentences), mainly in Risk Factors and MD&A
-   - no sentence repeated across companies
 
 ### 2. Decide but can be open:
 1. `multi_fragment` Claim: 
