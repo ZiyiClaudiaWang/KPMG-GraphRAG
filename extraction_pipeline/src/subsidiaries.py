@@ -39,7 +39,7 @@ from .ex21.normalize import entity_key, is_registrant, normalised_name, normaliz
 from .ex21.parse import assign_parents, parse_file
 
 STEP = "subsidiaries"
-PARSER_VERSION = "ex21_v2"
+PARSER_VERSION = "ex21_v3"
 
 MANIFEST_COLS = ["ticker", "cik", "accession", "reporting_period_end", "registrant_name",
                  "source_url", "local_file"]
