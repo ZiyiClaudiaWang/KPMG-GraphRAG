@@ -9,6 +9,9 @@ Output: data/output/subsidiaries.jsonl        one row per subsidiary per 10-K (l
         data/output/subsidiary_catalog.json   the same subsidiaries in entity_annotation.py's
                                               catalog format, for linking Claims later. No step
                                               reads it yet (step 7b reads data/entity_catalog.json).
+                                              Each filing is offered only the subsidiaries of its
+                                              own year's 10-K (catalog()).
+        data/output/subsidiary_renames.csv    possible renames between consecutive 10-Ks, for review
 
 How Exhibit 21 is read lives in src/ex21/ (edgar.py downloads, parse.py reads the exhibit,
 normalize.py maps jurisdictions and builds the identity keys). This file only runs the step.
@@ -150,26 +153,109 @@ def parse(target: dict, entry: dict) -> tuple[list[dict], dict]:
     return unique, qa
 
 
+RENAME_COLS = ["parent_ticker", "parent_cik", "earlier_10k", "later_10k", "entity_key",
+               "earlier_name", "later_name", "earlier_sub_id", "later_sub_id"]
+
+
+def reference_10ks(rows: list[dict]) -> dict[str, tuple[str, str | None]]:
+    """For every filing in filings.yaml: (its reference 10-K, the 10-K before that one).
+
+    The reference 10-K is the first 10-K of the same parent whose reporting_period_end is on or
+    after the filing's (so a 10-Q takes the 10-K of its own fiscal year, and a 10-K takes
+    itself); a filing after the parent's last 10-K takes that last one. Only 10-Ks whose
+    Exhibit 21 was parsed count, so a year with no exhibit falls through to the next one.
+    """
+    listed: dict[str, list[tuple[str, str]]] = {}
+    for r in rows:
+        pair = (r["reporting_period_end"], r["accession_number"])
+        if pair not in listed.setdefault(r["parent_cik"], []):
+            listed[r["parent_cik"]].append(pair)
+    out = {}
+    for f in filings():
+        ten_ks = sorted(listed.get(str(f["cik"]).zfill(10), []))
+        if not ten_ks:
+            continue
+        period = str(f["reporting_period_end"])
+        i = next((k for k, (end, _) in enumerate(ten_ks) if end >= period), len(ten_ks) - 1)
+        out[f["accession"]] = (ten_ks[i][1], ten_ks[i - 1][1] if i > 0 else None)
+    return out
+
+
 def catalog(rows: list[dict]) -> list[dict]:
     """Entity-catalog rows (entity_annotation.validate_catalog format), one per sub_id.
 
-    A subsidiary applies to every filing of its parent in filings.yaml (the 10-Qs too: they
-    carry no Exhibit 21 of their own). Everything is needs_review: nothing here is checked by
-    a person yet, so step 7b would report a hit as candidate_match_needs_review, not matched.
+    A subsidiary applies to a filing when the filing's reference 10-K lists it (see
+    reference_10ks), so a 2021 10-Q is not offered a company first listed in 2024. A
+    subsidiary listed in the 10-K before the reference one but not in the reference one
+    (sold or merged during the year) still applies, and the filing is named in
+    prior_year_only_accessions so a link through it can be flagged.
+
+    Everything is needs_review: nothing here is checked by a person yet, so step 7b would
+    report a hit as candidate_match_needs_review, not matched.
     """
-    accessions: dict[str, list[str]] = {}
-    for f in filings():
-        accessions.setdefault(str(f["cik"]).zfill(10), []).append(f["accession"])
+    listed_in: dict[str, set[str]] = {}
+    for r in rows:
+        listed_in.setdefault(r["sub_id"], set()).add(r["accession_number"])
+    refs = reference_10ks(rows)
     out: dict[str, dict] = {}
     for r in rows:
         entry = out.setdefault(r["sub_id"], {
             "entity_id": r["sub_id"], "entity_type": "subsidiary", "issuer_cik": r["parent_cik"],
-            "name": r["name"], "aliases": [], "accessions": accessions.get(r["parent_cik"], []),
-            "review_status": "needs_review", "source": "exhibit_21",
+            "name": r["name"], "aliases": [], "accessions": [], "prior_year_only_accessions": [],
+            "listed_in_10ks": [], "review_status": "needs_review", "source": "exhibit_21",
         })
         if r["name"] != entry["name"] and r["name"] not in entry["aliases"]:
             entry["aliases"].append(r["name"])
-    return list(out.values())
+    for f in filings():
+        ref = refs.get(f["accession"])
+        if not ref:
+            continue
+        current, prior = ref
+        for sub_id, tens in listed_in.items():
+            entry = out[sub_id]
+            if entry["issuer_cik"] != str(f["cik"]).zfill(10):
+                continue
+            if current in tens:
+                entry["accessions"].append(f["accession"])
+            elif prior in tens:
+                entry["accessions"].append(f["accession"])
+                entry["prior_year_only_accessions"].append(f["accession"])
+    for sub_id, entry in out.items():
+        entry["listed_in_10ks"] = sorted(listed_in[sub_id])
+    # validate_catalog needs a filing scope on every entry; one whose 10-K is no longer in
+    # filings.yaml has none and is left out.
+    return [e for e in out.values() if e["accessions"]]
+
+
+def rename_candidates(rows: list[dict]) -> list[dict]:
+    """Pairs that look like one subsidiary renamed between two consecutive 10-Ks.
+
+    Same parent and same entity_key (legal form stripped), the earlier sub_id gone from the
+    later 10-K and the later one new in it: "Example Holdings Inc." -> "Example Holdings LLC".
+    Reported for review only; sub_ids are never merged here.
+    """
+    by_parent: dict[str, dict[tuple[str, str], dict[str, dict]]] = {}
+    for r in rows:
+        key = (r["reporting_period_end"], r["accession_number"])
+        by_parent.setdefault(r["parent_cik"], {}).setdefault(key, {})[r["sub_id"]] = r
+    out = []
+    for cik, years in by_parent.items():
+        ordered = sorted(years)
+        for (a_key, b_key) in zip(ordered, ordered[1:]):
+            a, b = years[a_key], years[b_key]
+            gone = [a[s] for s in a if s not in b]
+            new = {}
+            for s in b:
+                if s not in a:
+                    new.setdefault(b[s]["entity_key"], []).append(b[s])
+            for old in gone:
+                for later in new.get(old["entity_key"], []):
+                    out.append({"parent_ticker": old["parent_ticker"], "parent_cik": cik,
+                                "earlier_10k": a_key[1], "later_10k": b_key[1],
+                                "entity_key": old["entity_key"], "earlier_name": old["name"],
+                                "later_name": later["name"], "earlier_sub_id": old["sub_id"],
+                                "later_sub_id": later["sub_id"]})
+    return out
 
 
 def run() -> None:
@@ -191,6 +277,10 @@ def run() -> None:
     entries = catalog(rows)
     Paths.subsidiary_catalog().write_text(json.dumps(entries, ensure_ascii=False, indent=1) + "\n",
                                           encoding="utf-8")
+    renames = rename_candidates(rows)
+    write_csv(Paths.subsidiary_renames(), renames, RENAME_COLS)
+    if renames:
+        log(STEP, f"{len(renames)} possible renames between years -> {Paths.subsidiary_renames()}")
     log(STEP, f"{len(targets)} 10-Ks -> {len(rows)} subsidiary rows, {len(entries)} distinct "
               f"subsidiaries -> {Paths.subsidiaries()}")
     for q in qa_rows:
