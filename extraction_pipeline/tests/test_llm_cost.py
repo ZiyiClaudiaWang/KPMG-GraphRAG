@@ -1,0 +1,31 @@
+"""Settings, prices and request fields of the small LLM steps (2b, 4b)."""
+
+import unittest
+
+from src import llm_cost
+
+
+class LlmCostTest(unittest.TestCase):
+    def test_steps_have_their_own_model_and_budget(self):
+        for step in ("page_breaks", "heading_levels"):
+            cfg = llm_cost.step_cfg(step)
+            self.assertIn("budget_usd", cfg)
+            self.assertIsNotNone(cfg["price_input_per_1m"], f"{cfg['model']} missing from prices:")
+
+    def test_regional_uplift_only_for_new_models_on_regional_endpoints(self):
+        us, world = "https://us.api.openai.com/v1", "https://api.openai.com/v1"
+        self.assertAlmostEqual(llm_cost.prices_for("gpt-5.4", us)["price_output_per_1m"], 16.5)
+        self.assertAlmostEqual(llm_cost.prices_for("gpt-5.4", world)["price_output_per_1m"], 15.0)
+        self.assertAlmostEqual(llm_cost.prices_for("gpt-4.1-mini", us)["price_output_per_1m"], 1.6)
+        self.assertIsNone(llm_cost.prices_for("not-a-model", us)["price_input_per_1m"])
+
+    def test_request_fields_by_model_family(self):
+        old = llm_cost.model_params({}, {"model": "gpt-4.1-mini"}, 100)
+        self.assertEqual(old, {"max_completion_tokens": 100, "temperature": 0})
+        new = llm_cost.model_params({}, {"model": "gpt-5.4", "reasoning_effort": "low",
+                                         "max_reasoning_tokens": 2000}, 100)
+        self.assertEqual(new, {"max_completion_tokens": 2100, "reasoning_effort": "low"})
+
+
+if __name__ == "__main__":
+    unittest.main()

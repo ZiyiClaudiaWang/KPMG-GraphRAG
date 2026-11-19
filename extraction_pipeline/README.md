@@ -244,10 +244,14 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     joined unless step 2b said yes.
 - <a id="step-2b-page-breaks"></a>**[2b] Page breaks** (`src/page_breaks.py`, optional, OpenAI)
   asks the model, for each gray boundary in a kept section, whether the second paragraph goes on
-  with the sentence of the first (20 per request; 4 requests, about $0.02, for the 233 filings).
+  with the sentence of the first (20 per request; 4 requests for the 233 filings: under $0.10
+  with gpt-5.4, its default model).
   The answers go to `data/interim/page_break_decisions.jsonl`, keyed by
   `accession|section_key|start of the second paragraph`; step 2 reads them on every later run.
-  Same money rules as step 5 (saved replies in `data/page_breaks/`, no resend, `budget_usd`).
+  Same money rules as step 5 (saved replies in `data/page_breaks/`, no resend), but its own model,
+  reasoning effort and `budget_usd` (`page_breaks:` in `config/settings.yaml`) and its own ledger
+  `data/output/usage_page_breaks.jsonl`. `--compare` prints the cost with every model in `prices:`;
+  `--model` tries another model.
 - <a id="step-3-filter"></a>**[3] Filter** keeps Item 1A, MD&A and Business (`config/sections.yaml`). Everything else is
   dropped with a reason, or marked `review` for a person to decide.
 - <a id="step-4-segment"></a>**[4] Segment** splits kept sections into units, written in source order:
@@ -325,8 +329,10 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   heading, such as a risk factor whose period was lost: CASY "We may be adversely impacted by
   increases in the cost of food ingredients ...", TTWO "We may be adversely affected by the effects
   of inflation"; step 4 then labels it like any sentence). A level more than one deeper than the
-  heading before it is cut back. One request per section: 316 sections, 12,051 headings, at most $1.76 for the
-  233 filings. Not needed if the Data team can export heading levels from the HTML: they would
+  heading before it is cut back. One request per section: 316 sections, 12,345 headings for the
+  233 filings. Own model, budget and ledger (`heading_levels:` in `config/settings.yaml`,
+  `data/output/usage_heading_levels.jsonl`); `--compare` and `--model` as in 2b. The dry run gives a
+  typical and a worst-case cost; after a `--limit 3` run it also extrapolates from the measured cost. Not needed if the Data team can export heading levels from the HTML: they would
   write the same file (`heading_id`, `level`, `text`, `source`).
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
   - Batches of up to 15 consecutive sentences per section, with read-only context: the 4 units
@@ -574,11 +580,14 @@ python -m unittest discover tests
 
 ## Cost tracking
 
-- Every API call is logged to `data/output/usage.jsonl`, and to `usage.json` in its request
+- Every step-5 API call is logged to `data/output/usage.jsonl` (steps 2b and 4b: `usage_page_breaks.jsonl`,
+  `usage_heading_levels.jsonl`, each with its own `budget_usd`), and to `usage.json` in its request
   folder, with its tokens (including cached input tokens), request id, latency and estimated cost.
-- `python -m src.label --report` prints the totals. Prices are set in `config/settings.yaml`
-  (published gpt-4.1-mini rates); update them when changing the model.
-- `budget_usd` (default 3.0) stops the run before a request could take total estimated spend
+- `python -m src.label --report` prints the totals. Step 5's prices are the `price_*` keys in `label:`
+  (published gpt-4.1-mini rates); update them when changing the model. Steps 2b and 4b look up their
+  model in the `prices:` table (10% added on the US data-residency endpoint for models marked
+  `regional_uplift`).
+- `label.budget_usd` (default 3.0) stops the step-5 run before a request could take total estimated spend
   past it. With no token prices set, costs are not estimated and the budget is not enforced;
   step 5 logs a warning.
 - Each request is saved in `data/checked_pilot/<first 24 characters of request_hash>/`:

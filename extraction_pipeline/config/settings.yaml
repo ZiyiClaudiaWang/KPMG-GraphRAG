@@ -24,13 +24,48 @@ label:
   max_completion_tokens: 4000        # output limit per request
   max_retries: 0                     # per batch, when the reply fails validation
   stop_on_failure: true              # stop the run at a failed batch for a person to look
-  budget_usd: 3.0                    # stop before a request could take total spend past this
+  budget_usd: 3.0                    # step 5 only: stop before a request could take its spend past this
   # USD per 1M tokens for the model above (published gpt-4.1-mini rates).
   # Check https://openai.com/api/pricing when changing the model. Left empty, only tokens are
   # reported and budget_usd is not enforced (the run logs a warning).
   price_input_per_1m: 0.40
   price_cached_input_per_1m: 0.10
   price_output_per_1m: 1.60
+
+# Steps 2b and 4b: each has its own model, budget and ledger (data/output/usage_<step>.jsonl),
+# separate from step 5. base_url is label.base_url unless set here. Prices come from prices: below.
+# reasoning_effort and max_reasoning_tokens apply to reasoning models only (gpt-5*, o*):
+# max_reasoning_tokens is extra output room per request; too little ends a reply early
+# ("Missing or incomplete completion"), and that reply is saved and not resent.
+# Compare models before a run:  python -m src.page_breaks --compare   /   python -m src.heading_levels --compare
+page_breaks:                         # step 2b: ~62 yes/no pairs, a few requests, cents with any model
+  model: gpt-5.4
+  reasoning_effort: low              # none | low | medium | high (gpt-5 itself: minimal instead of none)
+  max_reasoning_tokens: 2000
+  budget_usd: 0.50
+
+heading_levels:                      # step 4b: ~12k headings in ~330 requests
+  model: gpt-5.4-mini
+  reasoning_effort: low
+  max_reasoning_tokens: 4000
+  budget_usd: 4.0
+
+# USD per 1M tokens, Standard tier, from https://openai.com/api/pricing (checked 2026-11-18).
+# regional_uplift: true = released on or after 2026-03-05, so 10% more on a data-residency
+# endpoint such as us.api.openai.com (label.base_url). Used by steps 2b and 4b; step 5 still
+# uses the price_* keys in label:.
+regional_uplift: 0.10
+prices:
+  gpt-4.1-mini: {input: 0.40, cached_input: 0.10,  output: 1.60}
+  gpt-4.1:      {input: 2.00, cached_input: 0.50,  output: 8.00}
+  gpt-4o-mini:  {input: 0.15, cached_input: 0.075, output: 0.60}
+  gpt-5-mini:   {input: 0.25, cached_input: 0.025, output: 2.00}
+  gpt-5.1:      {input: 1.25, cached_input: 0.125, output: 10.00}
+  gpt-5.2:      {input: 1.75, cached_input: 0.175, output: 14.00}
+  gpt-5.4-nano: {input: 0.20, cached_input: 0.02,  output: 1.25,  regional_uplift: true}
+  gpt-5.4-mini: {input: 0.75, cached_input: 0.075, output: 4.50,  regional_uplift: true}
+  gpt-5.4:      {input: 2.50, cached_input: 0.25,  output: 15.00, regional_uplift: true}
+  gpt-5.5:      {input: 5.00, cached_input: 0.50,  output: 30.00, regional_uplift: true}
 
 review:
   # Step 6 holds a Claim that starts with one of these names when a ":" intro is among the

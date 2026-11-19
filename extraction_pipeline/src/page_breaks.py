@@ -17,7 +17,11 @@ Usage:
   python -m src.page_breaks --limit 3     send at most 3 new requests
 
 Money rules are label.py's: a request whose reply is saved (data/page_breaks/<hash>/) is never
-sent again, nothing is resent automatically, and the run stops before budget_usd.
+sent again, nothing is resent automatically, and the run stops before budget_usd. The model,
+reasoning effort and budget are this step's own (settings.yaml page_breaks:), and its spend is
+logged to data/output/usage_page_breaks.jsonl, separate from step 5.
+  python -m src.page_breaks --dry-run --compare        cost with every model in settings prices:
+  python -m src.page_breaks --model gpt-5.5 --limit 1  try another model than the configured one
 A boundary's id is accession|section_key|start of the second paragraph in the Data-team content
 (clean.boundary_id), so a decision survives a change of the cleaning rules elsewhere.
 """
@@ -27,6 +31,7 @@ from __future__ import annotations
 import argparse
 
 from . import clean as C
+from . import llm_cost
 from .common import Paths, data_dir, filings, load_config, log, read_jsonl, settings, write_jsonl
 from .filter_sections import decide
 
@@ -99,9 +104,8 @@ def plans(boundaries: list[dict], cfg: dict) -> list[dict]:
                    "messages": [{"role": "system", "content": SYSTEM},
                                 {"role": "user", "content": canonical({"pairs": pairs})}],
                    "response_format": {"type": "json_schema", "json_schema": schema()},
-                   "max_completion_tokens": 1000, "store": False}
-        if cfg["model"].startswith(("gpt-4.1", "gpt-4o")):
-            request["temperature"] = 0
+                   "store": False}
+        llm_cost.model_params(request, cfg, answer_tokens=1000)
         key = {"runner_version": RUNNER_VERSION, "request": request}
         batch = {"batch_id": f"page_breaks_{i // BATCH}", "boundary_ids": [b["boundary_id"] for b in chunk]}
         out.append({"batch": batch, "request": request, "request_hash": digest(canonical(key)),
@@ -128,17 +132,24 @@ def answers(plan: dict, record: dict) -> tuple[list[str], dict[str, bool]]:
     return problems, {by_local[k]: v[0] for k, v in seen.items() if len(v) == 1}
 
 
-def run(dry_run: bool = False, limit: int | None = None) -> None:
-    from .label import Labeller, StopRun, reserve_cost
-    cfg = settings()["label"]
+def expected_answer_tokens(todo: list[dict]) -> list[int]:
+    """About 12 tokens per pair ({"id":"p12","same_sentence":false},) plus the envelope."""
+    return [12 * len(p["batch"]["boundary_ids"]) + 10 for p in todo]
+
+
+def run(dry_run: bool = False, limit: int | None = None, model: str | None = None,
+        compare: bool = False) -> None:
+    from .label import Labeller, StopRun
+    cfg = llm_cost.step_cfg(STEP, model)
     boundaries = gray_boundaries()
     todo = plans(boundaries, cfg)
-    log(STEP, f"{len(boundaries)} gray boundaries in kept sections, {len(todo)} requests "
-              f"(about ${sum(reserve_cost(p['request'], cfg) for p in todo):.3f} at most)")
+    log(STEP, f"{len(boundaries)} gray boundaries in kept sections, model {cfg['model']}"
+              + (f", reasoning_effort {cfg.get('reasoning_effort')}" if llm_cost.is_reasoning(cfg["model"]) else ""))
+    llm_cost.report(STEP, cfg, lambda c: plans(boundaries, c), expected_answer_tokens, log, compare)
     if dry_run:
         write_jsonl(data_dir() / "interim" / "page_break_candidates.jsonl", boundaries)
         return
-    labeller, sent, decided = Labeller(cfg), 0, {}
+    labeller, sent, decided = Labeller(cfg, Paths.step_usage(STEP)), 0, {}
     try:
         for plan in todo:
             record = labeller.cached(plan, "page_breaks")
@@ -165,5 +176,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--model", help="use this model instead of settings.yaml page_breaks.model")
+    ap.add_argument("--compare", action="store_true", help="cost with every model in settings prices:")
     args = ap.parse_args()
-    run(dry_run=args.dry_run, limit=args.limit)
+    run(dry_run=args.dry_run or args.compare, limit=args.limit, model=args.model, compare=args.compare)

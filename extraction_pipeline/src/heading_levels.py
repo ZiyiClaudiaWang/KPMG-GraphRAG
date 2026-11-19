@@ -26,7 +26,11 @@ Usage:
   python -m src.heading_levels --limit 3    send at most 3 new requests
 
 Money rules are label.py's (saved replies in data/heading_levels/<hash>/, no automatic resend,
-budget_usd).
+budget_usd). The model, reasoning effort and budget are this step's own (settings.yaml
+heading_levels:), and its spend is logged to data/output/usage_heading_levels.jsonl, separate
+from step 5.
+  python -m src.heading_levels --dry-run --compare        cost with every model in settings prices:
+  python -m src.heading_levels --model gpt-5.4 --limit 3  try another model than the configured one
 """
 
 from __future__ import annotations
@@ -34,6 +38,7 @@ from __future__ import annotations
 import argparse
 import re
 
+from . import llm_cost
 from .common import Paths, data_dir, filings, log, read_jsonl, settings, write_jsonl
 from .filter_sections import kept_section_keys
 
@@ -138,9 +143,8 @@ def plans(sections: list[dict], cfg: dict) -> list[dict]:
                        "messages": [{"role": "system", "content": SYSTEM},
                                     {"role": "user", "content": canonical(payload)}],
                        "response_format": {"type": "json_schema", "json_schema": schema()},
-                       "max_completion_tokens": 20 * len(chunk) + 200, "store": False}
-            if cfg["model"].startswith(("gpt-4.1", "gpt-4o")):
-                request["temperature"] = 0
+                       "store": False}
+            llm_cost.model_params(request, cfg, answer_tokens=20 * len(chunk) + 200)
             batch = {"batch_id": f"{sec['accession']}|{sec['section_key']}|headings_{part}",
                      "heading_ids": [h["heading_id"] for h in chunk], "texts": [h["text"] for h in chunk]}
             key = {"runner_version": RUNNER_VERSION, "request": request}
@@ -179,18 +183,25 @@ def answers(plan: dict, record: dict) -> tuple[list[str], dict[str, int]]:
     return problems, out
 
 
-def run(dry_run: bool = False, limit: int | None = None) -> None:
-    from .label import Labeller, StopRun, reserve_cost
-    cfg = settings()["label"]
+def expected_answer_tokens(todo: list[dict]) -> list[int]:
+    """About 10 tokens per heading ({"id":"h12","level":2},) plus the envelope."""
+    return [10 * len(p["batch"]["heading_ids"]) + 10 for p in todo]
+
+
+def run(dry_run: bool = False, limit: int | None = None, model: str | None = None,
+        compare: bool = False) -> None:
+    from .label import Labeller, StopRun
+    cfg = llm_cost.step_cfg(STEP, model)
     sections = section_headings()
     todo = plans(sections, cfg)
     n_heads = sum(len(s["headings"]) for s in sections)
-    log(STEP, f"{len(sections)} sections with {n_heads} sub-headings, {len(todo)} requests "
-              f"(about ${sum(reserve_cost(p['request'], cfg) for p in todo):.2f} at most)")
+    log(STEP, f"{len(sections)} sections with {n_heads} sub-headings, model {cfg['model']}"
+              + (f", reasoning_effort {cfg.get('reasoning_effort')}" if llm_cost.is_reasoning(cfg["model"]) else ""))
+    llm_cost.report(STEP, cfg, lambda c: plans(sections, c), expected_answer_tokens, log, compare)
     if dry_run:
         write_jsonl(data_dir() / "interim" / "heading_candidates.jsonl", sections)
         return
-    labeller, sent, levels, texts = Labeller(cfg), 0, {}, {}
+    labeller, sent, levels, texts = Labeller(cfg, Paths.step_usage(STEP)), 0, {}, {}
     try:
         for plan in todo:
             record = labeller.cached(plan, "heading_levels")
@@ -216,5 +227,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--model", help="use this model instead of settings.yaml heading_levels.model")
+    ap.add_argument("--compare", action="store_true", help="cost with every model in settings prices:")
     args = ap.parse_args()
-    run(dry_run=args.dry_run, limit=args.limit)
+    run(dry_run=args.dry_run or args.compare, limit=args.limit, model=args.model, compare=args.compare)

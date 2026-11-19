@@ -425,10 +425,11 @@ def quarantine(batch: dict, results: list[dict]) -> tuple[list[dict], list[dict]
 
 
 class Labeller:
-    def __init__(self, cfg: dict):
+    def __init__(self, cfg: dict, usage_path: Path | None = None):
         self.cfg = cfg
+        self.usage_path = usage_path or Paths.usage()   # this step's ledger; budget_usd counts only it
         self.client = None              # created on the first real request
-        self.spent = spent_so_far()
+        self.spent = spent_so_far(self.usage_path)
 
     def folder(self, request_hash: str, kind: str = "checked_pilot") -> Path:
         return data_dir() / kind / request_hash[:24]
@@ -471,7 +472,7 @@ class Labeller:
         usage = usage_record(record["raw_response"], request_hash, record["latency_ms"],
                              record["api_request_id"], plan["batch"], self.cfg)
         save_json(folder / "usage.json", usage)
-        append_jsonl(Paths.usage(), usage)
+        append_jsonl(self.usage_path, usage)
         self.spent += usage["estimated_cost_usd"] or 0.0
         return record
 
@@ -600,10 +601,11 @@ def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
     return [], labels
 
 
-def spent_so_far() -> float:
-    if not Paths.usage().exists():
+def spent_so_far(path: Path | None = None) -> float:
+    path = path or Paths.usage()
+    if not path.exists():
         return 0.0
-    return sum(r.get("estimated_cost_usd") or 0.0 for r in read_jsonl(Paths.usage()))
+    return sum(r.get("estimated_cost_usd") or 0.0 for r in read_jsonl(path))
 
 
 # ---------- labels file ----------
