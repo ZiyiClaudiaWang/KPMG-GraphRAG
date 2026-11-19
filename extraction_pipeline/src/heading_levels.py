@@ -43,17 +43,22 @@ from .common import Paths, data_dir, filings, log, read_jsonl, settings, write_j
 from .filter_sections import kept_section_keys
 
 STEP = "heading_levels"
-RUNNER_VERSION = "kelly_heading_levels_v2"
+RUNNER_VERSION = "kelly_heading_levels_v3"
 MAX_HEADINGS = 120             # headings per request; a longer section is sent in parts
-MIN_HEADINGS = 2               # a section with fewer headings has nothing to nest
+MIN_HEADINGS = 1               # one heading is enough: it may be a sentence (-1) or a table title (0)
 
 SYSTEM = """You restore the outline of a section of an SEC 10-K or 10-Q filing. You get its
 sub-headings in order, as plain text, each with the first words of the text under it. Give each
 heading a level: 1 for the top headings of the section, 2 for a heading under the nearest
 level-1 heading above it, 3 under the nearest level 2, and so on (at most 4). A heading's level
 can be at most one more than the level of the heading before it.
+A section usually has several level-1 headings: do not put every heading under the first one.
+A heading is a child only when it names a part of the heading above it.
 Give level 0 to lines that are not section headings: table titles, column or row headers
-("Fiscal Year", "(In millions)", "Three Months Ended March 31,"), units, and footnote labels.
+("Fiscal Year", "(In millions)", "Three Months Ended March 31,"), units, footnote labels, and
+names or titles in a signature block. A line followed directly by a row of figures (a label
+and amounts, such as "Revenue | $ | 139,996") labels rows of that table: level 0. A heading
+followed by a table's column headers ("(In millions) | 2026 | 2025") is still a heading.
 Give level -1 to a line that is a sentence of the text, not a heading: it states something
 about the company, usually with a verb ("We may be adversely affected by the effects of
 inflation", a risk factor whose period was lost). A heading names a topic ("Security of our
@@ -61,7 +66,6 @@ products, services, devices, and customers' data") and is not a sentence.
 Use the wording and the typography the text still shows: capitals, title case, numbering
 ("Note 7", "(a)"), a trailing ":" or ".", and repeated patterns (the same kind of heading is
 usually the same level). Return one result per heading id."""
-
 
 def levels_path():
     return data_dir() / "interim" / "heading_levels.jsonl"
