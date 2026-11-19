@@ -236,3 +236,73 @@ class TestLoad(Ex21Case):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCatalogAcrossYears(unittest.TestCase):
+    """Several 10-Ks of one parent: each filing is offered its own year's subsidiaries."""
+
+    FILINGS = """filings:
+  - {ticker: YRS, cik: "9", form: 10-Q, reporting_period_end: "2023-03-31", accession: "q-2023"}
+  - {ticker: YRS, cik: "9", form: 10-K, reporting_period_end: "2023-06-30", accession: "k-2023"}
+  - {ticker: YRS, cik: "9", form: 10-Q, reporting_period_end: "2024-03-31", accession: "q-2024"}
+  - {ticker: YRS, cik: "9", form: 10-K, reporting_period_end: "2024-06-30", accession: "k-2024"}
+  - {ticker: YRS, cik: "9", form: 10-Q, reporting_period_end: "2024-09-30", accession: "q-2025"}
+"""
+
+    def setUp(self):
+        self.saved = os.environ.get("PIPELINE_FILINGS")
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "filings.yaml").write_text(self.FILINGS, encoding="utf-8")
+        os.environ["PIPELINE_FILINGS"] = str(self.tmp / "filings.yaml")
+
+    def tearDown(self):
+        if self.saved is None:
+            os.environ.pop("PIPELINE_FILINGS", None)
+        else:
+            os.environ["PIPELINE_FILINGS"] = self.saved
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    @staticmethod
+    def row(sub_id, name, key, accession, period):
+        return {"sub_id": sub_id, "name": name, "entity_key": key, "parent_cik": "0000000009",
+                "parent_ticker": "YRS", "accession_number": accession, "reporting_period_end": period}
+
+    def rows(self):
+        r = self.row
+        return [r("kept", "Kept Co Ltd", "kept co", "k-2023", "2023-06-30"),
+                r("kept", "Kept Co Ltd", "kept co", "k-2024", "2024-06-30"),
+                r("sold", "Sold Co Ltd", "sold co", "k-2023", "2023-06-30"),
+                r("bought", "Bought Co Ltd", "bought co", "k-2024", "2024-06-30"),
+                r("old-form", "Renamed Co Inc", "renamed co", "k-2023", "2023-06-30"),
+                r("new-form", "Renamed Co LLC", "renamed co", "k-2024", "2024-06-30")]
+
+    def entries(self):
+        catalog = subsidiaries.catalog(self.rows())
+        entity_annotation.validate_catalog(catalog)
+        return {e["entity_id"]: e for e in catalog}
+
+    def test_reference_10k_is_the_filings_own_year(self):
+        refs = subsidiaries.reference_10ks(self.rows())
+        self.assertEqual(refs["q-2023"], ("k-2023", None))
+        self.assertEqual(refs["k-2023"], ("k-2023", None))
+        self.assertEqual(refs["q-2024"], ("k-2024", "k-2023"))
+        self.assertEqual(refs["q-2025"], ("k-2024", "k-2023"))     # after the last 10-K
+
+    def test_a_later_acquisition_is_not_offered_to_earlier_filings(self):
+        self.assertEqual(self.entries()["bought"]["accessions"], ["q-2024", "k-2024", "q-2025"])
+
+    def test_a_subsidiary_gone_from_the_10k_stays_with_a_flag(self):
+        sold = self.entries()["sold"]
+        self.assertEqual(sold["accessions"], ["q-2023", "k-2023", "q-2024", "k-2024", "q-2025"])
+        self.assertEqual(sold["prior_year_only_accessions"], ["q-2024", "k-2024", "q-2025"])
+        self.assertEqual(self.entries()["kept"]["prior_year_only_accessions"], [])
+
+    def test_listed_years_are_recorded(self):
+        self.assertEqual(self.entries()["kept"]["listed_in_10ks"], ["k-2023", "k-2024"])
+
+    def test_rename_is_reported_not_merged(self):
+        renames = subsidiaries.rename_candidates(self.rows())
+        self.assertEqual([(x["earlier_name"], x["later_name"]) for x in renames],
+                         [("Renamed Co Inc", "Renamed Co LLC")])
+        self.assertIn("old-form", self.entries())
+        self.assertIn("new-form", self.entries())
