@@ -209,9 +209,13 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     removed, legal form kept), as agreed in `docs/schema-ids-operations.md`. The same name under the
     same parent is one node across filings; a renamed subsidiary gets a new `sub_id`. Each node also
     stores `entity_key` (legal form removed too): across years, a subsidiary that disappears and one
-    that appears under the same parent with the same `entity_key` is likely a rename.
+    that appears under the same parent with the same `entity_key` is likely a rename. Such pairs
+    between consecutive 10-Ks are listed in `subsidiary_renames.csv` for review; nothing is merged.
   - `subsidiary_catalog.json` holds the same subsidiaries in the entity-catalog format (all
-    `needs_review`, scoped to every filing of the parent), for linking Claims to subsidiaries later.
+    `needs_review`), for linking Claims to subsidiaries later. Each filing is offered the
+    subsidiaries of its *reference 10-K*: the parent's first 10-K ending on or after the filing's
+    `reporting_period_end` (the last 10-K for filings after it). A subsidiary listed only in the
+    10-K before that one stays in scope, and the filing is named in `prior_year_only_accessions`.
     No step reads it yet; step 7b reads `data/entity_catalog.json`.
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
