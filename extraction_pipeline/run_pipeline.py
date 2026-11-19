@@ -9,8 +9,10 @@
 Steps, in order:
   fetch         check (or export) data/sections/*.jsonl
   subsidiaries  subsidiaries.jsonl: Exhibit 21 of each 10-K in filings.yaml (SEC EDGAR, no LLM)
+  page_breaks   page_break_decisions.jsonl: yes/no for page breaks the rules leave gray (OpenAI)
   clean         remove page headers, repair paragraphs
   filter        section_manifest.csv: which sections to extract from
+  heading_levels heading_levels.jsonl: how the sub-headings of a section nest (OpenAI)
   segment       sentences.jsonl: numbered sentences and list groups
   label         labels.jsonl: one label per sentence (OpenAI)
   validate      errors.jsonl: every sentence has exactly one valid label
@@ -19,6 +21,11 @@ Steps, in order:
   load          Neo4j (Claims and subsidiaries)
 
   python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
+
+page_breaks and heading_levels are not in a default run: they cost money, and their output
+files, once written, are read by clean and segment on every later run. Run them on purpose:
+  python run_pipeline.py --steps page_breaks,clean,filter          (clean must have run once)
+  python run_pipeline.py --steps heading_levels,segment
 """
 
 from __future__ import annotations
@@ -27,10 +34,12 @@ import argparse
 import sys
 import time
 
-from src import (build_claims, clean, fetch, filter_sections, label, load, risk_factors, segment,
-                 subsidiaries, validate)
+from src import (build_claims, clean, fetch, filter_sections, heading_levels, label, load, page_breaks,
+                 risk_factors, segment, subsidiaries, validate)
 
-STEPS = ["fetch", "subsidiaries", "clean", "filter", "segment", "label", "validate", "risk_factors", "build_claims", "load"]
+STEPS = ["fetch", "subsidiaries", "page_breaks", "clean", "filter", "heading_levels", "segment", "label",
+         "validate", "risk_factors", "build_claims", "load"]
+OPT_IN = {"page_breaks", "heading_levels"}       # paid; only when named in --steps
 
 
 def main() -> None:
@@ -43,20 +52,22 @@ def main() -> None:
     parser.add_argument("--from-db", metavar="FOLDER", help="fetch: export from the database via this folder")
     args = parser.parse_args()
 
-    steps = STEPS
+    steps = [s for s in STEPS if s not in OPT_IN]
     if args.steps:
         steps = [s.strip() for s in args.steps.split(",")]
         unknown = [s for s in steps if s not in STEPS]
         if unknown:
             sys.exit(f"Unknown steps: {', '.join(unknown)}. Choose from: {', '.join(STEPS)}")
     elif args.until:
-        steps = STEPS[:STEPS.index(args.until) + 1]
+        steps = [s for s in STEPS[:STEPS.index(args.until) + 1] if s not in OPT_IN]
 
     actions = {
         "fetch": lambda: fetch.run(args.from_db),
         "subsidiaries": subsidiaries.run,
+        "page_breaks": lambda: page_breaks.run(dry_run=args.dry_run, limit=args.limit),
         "clean": clean.run,
         "filter": filter_sections.run,
+        "heading_levels": lambda: heading_levels.run(dry_run=args.dry_run, limit=args.limit),
         "segment": segment.run,
         "label": lambda: label.run(dry_run=args.dry_run, filing=args.filing, limit=args.limit),
         "validate": validate.run,

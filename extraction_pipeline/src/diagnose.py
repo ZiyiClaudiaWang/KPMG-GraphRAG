@@ -94,16 +94,17 @@ CHECKS = [
     Check("C9_join_table_row", "C9", "A table row was joined to the next paragraph: the join rule only knows rows that start or end with '|'."),
     Check("C7_leftover_furniture", "C2-C7", "Short line naming the form ('FORM 10-Q') or a page, not removed."),
     Check("C7_repeated_in_section", "C7", "Short prose line repeated 3+ times in one section, not removed (C7 counts repeats across sections only)."),
-    Check("S1_starts_lowercase", "S1, C9", "Unit sent to the LLM starts lower case (brands such as 'iPhone' left out): a missed join, a bad split or a list item without its bullet."),
+    Check("S1_starts_lowercase", "S1, C9", "Unit sent to the LLM starts lower case, not from a list item (brands such as 'iPhone' and bullet or lettered items left out): a missed join or a bad split."),
     Check("S1_no_end_punct", "S1", "Unit sent to the LLM with no end punctuation and no '|': a cut sentence or a missed heading."),
     Check("S1_very_long", "S1", "Unit sent to the LLM over 1,500 characters: a missed split, often a ';' list in one sentence."),
     Check("S15_single_pipe", "S15", "Unit sent to the LLM with one '|': a two-column table row ('Acquisitions | 47'). S15 needs 2+ pipes."),
     Check("S5_long_heading", "S5", "Heading over 100 characters (table titles left out): often a sentence cut by a page break, so it is never sent to the LLM."),
     Check("S5_missed_heading", "S5-S7", "Whole paragraph marked too_short, upper case, no '|': may be a heading the rules missed."),
     Check("S8_heading_after_heading", "S8", "Heading right after another (table titles left out): a parent/child pair; only the child is kept in section_path."),
-    Check("S12_lettered_list_item", "S12", "Paragraph opens 'a.', '(b)', '1.': a list item not read as a bullet, so no list_intro_id."),
-    Check("S12_bullet_lost", "S12", "Paragraph after a bullet that looks like an item ('...;' or lower case) but has no bullet sign: dropped by the export."),
-    Check("S13_fragment_bullet_no_intro", "S13", "Bullet that is a fragment ('tariffs;') with no ':' intro before it: the item is labelled without its context."),
+    Check("S12_lettered_list_item", "S12", "Paragraph opens 'a.', '(b)', '1.' and is not in a list (table footnotes '(1)...' mostly): a list item not read as one, or a footnote."),
+    Check("S12_bullet_lost", "S12", "Paragraph after a bullet item that looks like an item ('...;' or lower case) but has no bullet sign, and step 2 did not join it: the export dropped the bullet."),
+    Check("S13_bullet_outside_list", "S13", "Unit from a bullet paragraph with no list_intro_id (no ':' intro, heading or 'the following' before the list). Mostly full sentences, which read alone.", "info"),
+    Check("S13_fragment_bullet_no_intro", "S13", "Same, and the item is cut ('tariffs;', lower case, no end punctuation): it cannot be read alone."),
     Check("S13_colon_list_without_bullets", "S6, S13", "Paragraph ends in ':' and the next is prose, not a bullet or a table: an unbulleted list."),
     Check("S9_risk_section_no_category", "S9", "Item 1A with 20+ units and no category heading: its Claims get no risk theme."),
     Check("S9_unmapped_category", "S9", "Category heading not in config/risk_theme_map.csv: step 7a reports it unmapped."),
@@ -115,45 +116,16 @@ CHECK_BY_ID = {c.id: c for c in CHECKS}
 
 # ---------------------------------------------------------------- step 2 ----
 
-def boundary_class(raw: str, prev_pieces: list[list[int]], next_text: str) -> str:
-    """Why C.should_join joins or does not join two paragraphs."""
-    s, e = prev_pieces[-1][:2]
-    prev = raw[s:e]
-    joined = C.should_join(raw, prev_pieces, next_text)
-    if TABLE_ROW.search(prev) or TABLE_ROW.search(next_text):
-        return "C9_join_table_row" if joined else "table_row"
-    if C.TERMINAL.search(prev):
-        return "sentence_end"
-    words = prev.split()
-    if len(words) < C.MIN_WORDS_TO_JOIN:
-        return "C9_gray_short_prev_lower" if next_text[:1].islower() else "short_prev"
-    if next_text[:1].islower():
-        return "join_lowercase"
-    if C.CONTINUES_AFTER_BREAK.match(next_text):
-        return "join_amount_paren"
-    if joined:
-        return "join_dangling_word"
-    last = words[-1].lower()
-    if last in ("and", "or") and words[-2].endswith(";"):
-        return "list_item_end"
-    if last in C.DANGLING_WORDS and next_text[:1].isdigit():
-        return "C9_gray_dangling_digit"
-    # A real heading is short or in capitals. A longer line read as a heading is often a sentence
-    # cut by a page break, which S5 then also takes for a heading (see S5_long_heading).
-    if prev.upper() == prev or (S.is_heading_like(prev) and len(words) <= 12):
-        return "heading_then_text"
-    return "C9_gray_no_punct_capital"
+BOUNDARY_ORDER = list(C.BOUNDARY_CLASSES) + ["C9_gray_joined_by_llm"]
 
 
-BOUNDARY_ORDER = ["sentence_end", "table_row", "short_prev", "heading_then_text", "list_item_end",
-                  "join_lowercase", "join_dangling_word", "join_amount_paren", "C9_join_table_row",
-                  "C9_gray_no_punct_capital", "C9_gray_dangling_digit", "C9_gray_short_prev_lower"]
-
-
-def walk_boundaries(sec: dict, headers: set[str]):
-    """Mirror clean_section's loop; yield (class, previous text, next text) per boundary."""
+def walk_boundaries(sec: dict, headers: set[str], decisions: dict | None = None):
+    """Mirror clean_section's loop; yield (class, previous text, next text, joined, prev_is_item)
+    per boundary. prev_is_item: the previous paragraph opens with a bullet or "a." / "(1)",
+    including a bullet that stood on its own line."""
     raw = sec["content"] or ""
     paragraphs: list[list[list[int]]] = []
+    items: list[bool] = []
     pending = False
     for s, e in C.split_paragraphs(raw):
         text = raw[s:e]
@@ -166,11 +138,14 @@ def walk_boundaries(sec: dict, headers: set[str]):
         if paragraphs and not starts_with_bullet:
             prev = paragraphs[-1]
             ps, pe = prev[-1][:2]
-            yield boundary_class(raw, prev, text), raw[ps:pe], text
-            if C.should_join(raw, prev, text):
+            decision = (decisions or {}).get(C.boundary_id(sec, s))
+            joined = C.should_join(raw, prev, text, decision)
+            yield C.boundary_class(raw, prev, text), raw[ps:pe], text, joined, items[-1]
+            if joined:
                 prev.append([s, e])
                 continue
         paragraphs.append([[s, e]])
+        items.append(starts_with_bullet or C.is_item_start(text))
 
 
 # ---------------------------------------------------------------- financial statements ----
@@ -267,6 +242,8 @@ def run() -> None:
     with open(theme_map, encoding="utf-8", newline="") as fh:
         mapped = {r["category_text"].strip().lower() for r in csv.DictReader(fh)}
 
+    from .page_breaks import load_decisions
+    decisions = load_decisions()
     col = Collector()
     hits: dict[str, Counter] = defaultdict(Counter)        # bucket -> check -> n
     units_in: Counter = Counter()                          # bucket -> units
@@ -299,7 +276,7 @@ def run() -> None:
         for sec in sections:
             if not (sec.get("content") or "").strip():
                 continue
-            cleaned = C.clean_section(sec, headers)
+            cleaned = C.clean_section(sec, headers, decisions)
             decision, _ = decide(cleaned, rules)
             stype = cleaned["section_type"] or "None"
             if stype not in rules["keep"] and stype not in rules["drop"] and stype not in (rules.get("review") or {}):
@@ -327,10 +304,18 @@ def run() -> None:
             # ---- step 2
             for r in cleaned["removed"]:
                 removed[r["rule"]] += 1
-            for cls, before, after in walk_boundaries(sec, headers):
+            for cls, before, after, joined, prev_item in walk_boundaries(sec, headers, decisions):
                 boundaries[bucket][cls] += 1
-                if cls.startswith("C9_"):
+                if cls.startswith("C9_") and not joined:
                     hit(cls, f"{before[-70:]}  ⟶  {after[:90]}", before=before, after=after)
+                if cls.startswith("C9_") and joined:
+                    boundaries[bucket]["C9_gray_joined_by_llm"] += 1
+                if joined and (TABLE_ROW.search(before) or TABLE_ROW.search(after)):
+                    hit("C9_join_table_row", f"{before[-70:]}  ⟶  {after[:90]}", before=before, after=after)
+                if (prev_item and not joined and not C.is_item_start(after) and "|" not in after
+                        and not BRAND.match(after) and not S.is_heading_like(after)
+                        and (after[:1].islower() or after.rstrip().endswith((";", "; and", "; or")))):
+                    hit("S12_bullet_lost", after, None, before, after)
             texts = [p["text"] for p in paras]
             for k, x in enumerate(texts):
                 if len(x) <= 120 and "|" not in x and FURNITURE.search(x):
@@ -342,6 +327,7 @@ def run() -> None:
 
             # ---- step 4, units
             units = S.segment_section(cleaned, cfg_seg)
+            listed_paras: set[int] = set()
             n_cat = 0
             prev_u = None
             for u in units:
@@ -368,10 +354,17 @@ def run() -> None:
                 before = paras[p - 1]["text"] if p > 0 else ""
                 after = paras[p + 1]["text"] if p + 1 < len(paras) else ""
                 in_list = "list_intro_id" in u or u["role"] == "list_group"
-
-                if (to_llm and not in_list and text[:1].islower() and not BRAND.match(text)
+                from_item = bool(S.item_marker(paras[p]["text"]))
+                if in_list:
+                    listed_paras.update(u.get("list_paragraphs") or [p])
+                if (to_llm and not in_list and not from_item and text[:1].islower() and not BRAND.match(text)
                         and not LETTERED.match(text)):
                     hit("S1_starts_lowercase", text, p, before, after)
+                if u["role"] == "body" and not in_list and S.is_bullet(paras[p]["text"]):
+                    hit("S13_bullet_outside_list", text, p, before, after)
+                    item = S.BULLET.sub("", paras[p]["text"])
+                    if item[:1].islower() or item.rstrip().endswith((";", ",")) or not S.TERMINAL.search(item):
+                        hit("S13_fragment_bullet_no_intro", text, p, before, after)
                 if (to_llm and not in_list and not S.TERMINAL.search(text) and not text.endswith(":")
                         and not u.get("rule_heading") and "|" not in text):
                     hit("S1_no_end_punct", text, p, before, after)
@@ -408,15 +401,10 @@ def run() -> None:
             for k, x in enumerate(texts):
                 prev_x = texts[k - 1] if k else ""
                 nxt_x = texts[k + 1] if k + 1 < len(texts) else ""
-                if LETTERED.match(x) and not S.is_bullet(x) and not (x[:1].isdigit() and S.is_heading_like(x)):
+                if (LETTERED.match(x) and not S.is_bullet(x) and k not in listed_paras
+                        and not (x[:1].isdigit() and S.is_heading_like(x))):
                     hit("S12_lettered_list_item", x, k, prev_x, nxt_x)
-                if (S.is_bullet(prev_x) and not S.is_bullet(x) and "|" not in x
-                        and (x[:1].islower() or x.rstrip().endswith((";", "; and", "; or")))):
-                    hit("S12_bullet_lost", x, k, prev_x, nxt_x)
-                if (S.is_bullet(x) and S.is_fragment(x) and not S.is_bullet(prev_x)
-                        and not prev_x.endswith(":")):
-                    hit("S13_fragment_bullet_no_intro", x, k, prev_x, nxt_x)
-                if (x.endswith(":") and nxt_x and not S.is_bullet(nxt_x) and not S.is_colon_heading(x)
+                if (x.endswith(":") and nxt_x and not S.item_marker(nxt_x) and not S.is_colon_heading(x)
                         and not TABLE_ROW.search(nxt_x) and not TABLE_TITLE.match(nxt_x)
                         and not TABLE_WORDS.search(x) and not S.is_heading_like(nxt_x)):
                     hit("S13_colon_list_without_bullets", x, k, prev_x, nxt_x)

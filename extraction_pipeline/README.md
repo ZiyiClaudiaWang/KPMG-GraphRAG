@@ -219,15 +219,33 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - running headers ending "(Continued)" or "(Concluded)" (McKesson's "FINANCIAL REVIEW (Continued)"), which repeat in one section only
     - the "(UNAUDITED)" label under McKesson's 10-Q headers
   - Lone bullets ("•" on its own line) are attached to the text after them.
-  - A paragraph cut by a page break is joined to the next when:
+  - Lone bullets ("•", the Symbol-font "\uf0b7" of NetApp, and "• |", a bullet exported as its
+    own table cell) are attached to the text after them.
+  - **Page breaks.** Every boundary between two paragraphs gets a class (`boundary_class()`,
+    the same classes in the diagnostics report, section 3). A paragraph cut by a page break is
+    joined to the next when:
     - the next starts in lower case, or
-    - the first ends on a word no sentence ends on ("the", "of", "and"), or
+    - the first ends on a word no sentence ends on ("the", "of", "and") and the next starts with
+      a word, a quote or a number ("...issuance of 2026 Notes and" / "2028 Notes"), or
+    - the first ends on a comma ("Through February 27," / "2025, we had"), or
+    - a quote or parenthesis is opened before the break and closed after it, or
     - the next starts with an amount ("$19.7 billion", "€500 million"), or with a parenthesis
       the sentence goes on after ('("Information Technology Systems"), may'). A table caption
       such as "(In millions)" ends its paragraph and is not joined.
-
-  - A list item ending "; and" is not joined, and neither is a short heading or a table row
-    (cells joined by " | ", `has_table_cells()`).
+  - Never joined: a table row (cells joined by " | ", `has_table_cells()`), a list item ending
+    "; and", a bullet next, a check box line ("Yes ☒ No ☐"), a list item that ends without
+    punctuation, and a title before or after (capitals or title case: "Item 2. Management's
+    Discussion and Analysis ...", "Critical Audit Matter Description").
+  - What is left is gray: no end punctuation and a capital next ("...the European Union General
+    Data" / "Protection Regulation"), or a short line before lower case. On the 233 filings this
+    is 62 boundaries in kept sections (779 + 61 before 19 November 2026). Gray boundaries are not
+    joined unless step 2b said yes.
+- <a id="step-2b-page-breaks"></a>**[2b] Page breaks** (`src/page_breaks.py`, optional, OpenAI)
+  asks the model, for each gray boundary in a kept section, whether the second paragraph goes on
+  with the sentence of the first (20 per request; 4 requests, about $0.02, for the 233 filings).
+  The answers go to `data/interim/page_break_decisions.jsonl`, keyed by
+  `accession|section_key|start of the second paragraph`; step 2 reads them on every later run.
+  Same money rules as step 5 (saved replies in `data/page_breaks/`, no resend, `budget_usd`).
 - <a id="step-3-filter"></a>**[3] Filter** keeps Item 1A, MD&A and Business (`config/sections.yaml`). Everything else is
   dropped with a reason, or marked `review` for a person to decide.
 - <a id="step-4-segment"></a>**[4] Segment** splits kept sections into units, written in source order:
@@ -237,14 +255,27 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       "During", "Refer"). So "U.S. GAAP" and "NIKE, Inc. Revenues" stay one sentence.
     - "Item 1A. Risk Factors" and "Note 9. Debt" are not split.
     - "non-U.S." is read as "U.S.".
-  - **Lists** ([diagram](#c-lists)). A bullet is "•", "●", "◦", "▪", "‣", a dash or "o", with or without a space after it. A list whose intro ends in ":" becomes one `list_group` unit (intro plus items) only
+  - **Lists** ([diagram](#c-lists)). A bullet is "•", "●", "◦", "▪", "‣", "\uf0b7", a dash or "o", with or without a space after it, and with or without the "|" of a bullet exported as its own table cell ("• | Revenue grew 6%."). A list starts:
+    - after an intro ending in ":", with bullets or with lettered or numbered items ("a.we
+      maintain", "(1) cost of product revenues", "(ii)pertain to"); lettered items only here, so
+      footnotes under a table ("(1)Includes ...") stay ordinary paragraphs;
+    - after a heading (Micron's risk factor summary: "Risks Related to Laws and Regulations" /
+      "•tax expense and tax laws in key jurisdictions; and"): the heading is the intro;
+    - after a sentence announcing "the following" (McKesson "The following summary provides
+      highlights ... ."), even when another sentence comes after it in the paragraph.
+
+    An item whose bullet the export dropped stays in the list: a lower-case paragraph after an
+    item ending ";", "; and" or ",", or a short name between two short-name bullets
+    (Parker-Hannifin "• Power generation" / "Renewable energy" / "• Water purification").
+    A list whose intro ends in ":" becomes one `list_group` unit (intro plus items) only
     when its items cannot stand alone and the group is short:
     1. every item is a fragment and items average under 60 characters (a list of names), or
     2. at least one item is a fragment and the last intro sentence plus all items is at most
       600 characters.
 
     Every other list is split: each item is a unit and carries `list_intro_id`, the `unit_id` of the
-    intro's last sentence. Bullets without a ":" intro are ordinary paragraphs.
+    intro sentence (or heading). Bullets after any other paragraph are ordinary paragraphs
+    (mostly full sentences: MSFT "• | Gaming revenue increased $1.7 billion ...").
   - **Headings.**
     - A short line without sentence punctuation is a heading and becomes the `subheading` of the
       units below it, unless it ends in ":" or on a word such as "of" or "the" (a piece of a
@@ -256,8 +287,11 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       sentence. The ":" is left out of `subheading` and `section_path`.
     - A short title-case sentence ending in a period at the start of a paragraph
       ("Flexible Work.", "Zynga.") is also a heading.
-    - Only one level is kept: a heading replaces the one before it
-      ([Remaining issues 1.3](#1-improvement)).
+    - Levels come from `data/interim/heading_levels.jsonl` (step 4b, or the Data team's HTML if
+      they can export it): a heading keeps the headings above it in `section_path` and in the new
+      `heading_path` field ("Part II Item 7 > SEGMENT RESULTS OF OPERATIONS > Reportable Segments >
+      Intelligent Cloud"); level 0 is not a heading (a table title, "(In millions)") and changes no
+      path. Without the file a heading replaces the one before it, as before.
   - **Item 1A - Risk Factors** ([diagram](#b-risk-factors)).
     - Category headings ("Business Risks", "RISKS RELATING TO …", "Risks related to our
       business and industry") set the unit's `category`.
@@ -278,10 +312,17 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
       graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v5`) records which splitting rules made the units.
+    - `segmentation_version` (`kelly_sentence_v6`) records which splitting rules made the units.
       It is a label only: it is not in the request hash, so changing it alone costs nothing; a
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
+- <a id="step-4b-heading-levels"></a>**[4b] Heading levels** (`src/heading_levels.py`, optional,
+  OpenAI) sends the sub-headings of each kept section, in order, with their typography (capitals,
+  title case, numbering, a trailing ":" or ".") and the first words below each, and the model gives
+  each a level (1-4, or 0 for a table title). A level more than one deeper than the heading before
+  it is cut back. One request per section: 316 sections, 12,051 headings, at most $1.76 for the
+  233 filings. Not needed if the Data team can export heading levels from the HTML: they would
+  write the same file (`heading_id`, `level`, `text`, `source`).
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
   - Batches of up to 15 consecutive sentences per section, with read-only context: the 4 units
     before them, plus the intro of any split list item in the batch whose intro is in neither
@@ -583,13 +624,15 @@ python -m unittest discover tests
    | Market risk (10-K Item 7A, 10-Q Part I Item 3) | Interest-rate and currency exposure, with sensitivity figures | Some narrative risk sentences | Mostly numbers that belong to `Fact`; decide together with the MD&A type-fit question |
    | Cybersecurity (10-K Item 1C) | How the company governs and manages cyber risk | Answers "how does the company manage cybersecurity?" | The risks themselves are already in Item 1A; mostly process descriptions |
 
-2. Step 3 - Page Break:
-   - **A sentence cut by a page break is not rejoined when the next page starts with a capital
-     and the first part ends on an ordinary word.** One case: MSFT "...Securities and Exchange" / "Commission on...". The cases starting with an amount or a parenthesis (MDT, NKE) are joined since 4 November 2026.
+2. Step 2 - Page Break:
+   - **A sentence cut by a page break, the next page starting with a capital and the first part
+     ending on an ordinary word**, is gray: joined only when step 2b says so (62 boundaries in
+     kept sections of the 233 filings; MSFT "...Securities and Exchange" / "Commission on..."). Run
+     step 2b once before labelling at scale.
 3. Step 4 - Headings: 
-   - Headings have one level only. A heading replaces the one above it (AAPL "Products" > "iPhone" keeps only "iPhone").
-     - Of 913 sub-headings outside Item 1A, 58 directly follow another heading (so the first is the parent) and 825 follow body text (level unknown).
-     - Plain text has no font size or weight, so no rule is planned.
+   - Without step 4b (or levels from the Data team), headings have one level only. A heading replaces the one above it (AAPL "Products" > "iPhone" keeps only "iPhone").
+     - 872 headings in kept sections of the 233 filings directly follow another heading (so the first is the parent).
+     - Asked the Data team whether the export can carry the HTML tag or style of each heading; until then, step 4b.
    - Some real headings are marked `too_short`, not `heading`.
      - TTWO "Player acquisition costs." (×2) and "International operations risks": a period, or a lower-case word, keeps them from the heading rules. They are not sent to the LLM either way, but the units below them keep the previous heading in `section_path`
 4. Step 6 - Release held units.
@@ -623,10 +666,11 @@ python -m unittest discover tests
 1. `multi_fragment` Claim: 
    - merge the list if fewer than 600 characters
    - Step 6 holds every split item that cites its intro as context, complete sentences too, although the Claim already carries the intro in `context`.
-   - Lists without bullets or without a ":" intro get no `list_intro_id`.
-     - MU's risk factor summary: about 54 units; 4 short items are `too_short`
-     - MCK lists whose intro is separated from the items by "Fiscal 2026" / "Fiscal 2025"
-       sub-headings: 7 items, all full sentences
+   - Lists after a heading or "the following" get a `list_intro_id` since 19 November 2026 (MU's
+     risk factor summary; MCK lists under "Fiscal 2026" / "Fiscal 2025" take the sub-heading).
+     Bullets after any other paragraph still get none: 2,474 units in kept sections of the 233
+     filings, mostly full sentences; 127 are cut items, mostly Parker-Hannifin's product lists
+     exported as a two-column table ("Filtration Group: | • Aerospace").
 2. Risk Factors:
    - Now every Claim takes the themes of its category directly. 
    - Alternative: only the risk lead sentence links to the theme, and the Claims below it link to the lead sentence (a Claim-to-Claim edge, a change to the ontology).

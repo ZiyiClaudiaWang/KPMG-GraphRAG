@@ -48,7 +48,11 @@ UNAUDITED_LABEL = re.compile(r"^\(unaudited\)$", re.IGNORECASE)
 # even if the next page starts with a capital ("...blocked by the" / "Sixth Circuit ...").
 DANGLING_WORDS = {"a", "an", "the", "of", "to", "by", "in", "for", "with", "on", "at", "from",
                   "and", "or", "as", "that", "our", "its", "their"}
-BULLET_ONLY = re.compile(r"^([•●◦▪‣–-]|o)$")  # "o" is a second-level bullet
+# A bullet on its own line. "o" is a second-level bullet; "\uf0b7" is the Symbol-font bullet
+# (NetApp); "• |" is a bullet exported as its own table cell (Microsoft, NetApp, Nike).
+BULLET_ONLY = re.compile(r"^(?:[•●◦▪‣\uf0b7–-]|o)(?:\s*\|)?$")
+# The bullet that opens an item, with the "|" of a bullet cell after it: "• | Revenue grew 6%."
+LEADING_BULLET = re.compile(r"^(?:[•●◦▪‣\uf0b7]|[–-](?=\s))\s*(?:\|\s*)?")
 TERMINAL = re.compile(r"[.?!:;\"”’)]$")
 MIN_WORDS_TO_JOIN = 8
 # A page that starts with an amount, or with a parenthesis followed by more of the sentence.
@@ -95,10 +99,11 @@ def has_table_cells(text: str) -> bool:
     A sentence with a stray "|" at one end is not a table: Microsoft's risk factors put one
     before the text ("| We derive substantial revenue ..."), and an executive bio can end
     "... Boulder. |". So a "|" at either end is ignored when what is left is a sentence.
+    A bullet exported as its own cell ("• | Revenue grew 6%.") is a list item, not a table.
     """
     if "|" not in text:
         return False
-    core = text.strip().strip("|").strip()
+    core = LEADING_BULLET.sub("", text.strip()).strip("|").strip()
     return "|" in core or not SENTENCE_END.search(core)
 
 
@@ -145,7 +150,7 @@ def drop_rule(text: str, headers: set[str]) -> str | None:
     return None
 
 
-def clean_section(sec: dict, headers: set[str]) -> dict:
+def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | None = None) -> dict:
     raw = sec["content"] or ""
     paragraphs: list[dict] = []    # each: {"pieces": [[raw_start, raw_end]], "after_removal": bool}
     removed: list[dict] = []
@@ -168,7 +173,8 @@ def clean_section(sec: dict, headers: set[str]) -> dict:
             pending_bullet = None
 
         prev = paragraphs[-1] if paragraphs else None
-        if prev and not starts_with_bullet and should_join(raw, prev["pieces"], text):
+        decision = (decisions or {}).get(boundary_id(sec, s))
+        if prev and not starts_with_bullet and should_join(raw, prev["pieces"], text, decision):
             prev["pieces"].extend(pieces)     # paragraph split by a page break
             joined += 1
         else:
@@ -198,32 +204,121 @@ def clean_section(sec: dict, headers: set[str]) -> dict:
     return out
 
 
-def should_join(raw: str, prev_pieces: list[list[int]], next_text: str) -> bool:
-    """Join when the previous paragraph stops mid-sentence and the next continues it.
+# ---------- page breaks (C9) ----------
+#
+# Every boundary between two kept paragraphs gets a class. The class decides the join:
+# JOIN_CLASSES are joined, GRAY_CLASSES are joined only when step 2b (page_breaks.py, an LLM
+# yes/no) said so, every other class is never joined. diagnose.py reports the same classes.
 
-    The next paragraph continues it when it starts in lower case, or when the
-    previous one ends on a word no sentence ends on ("the", "of", "and").
-    "...; and" ends a list item, so it is not joined.
-    It also continues it when it starts with an amount ("$19.7 billion", "€500 million") or
-    with a parenthesis that the sentence goes on after ('("Information Technology Systems"),
-    may'); a table caption such as "(In millions)" ends its paragraph, so it is not joined.
-    Table rows are never joined ("Mac | 8,675 | 7,160" / "iPad | 8,435 | 5,977": the second
-    starts in lower case only because of the product name).
-    The previous paragraph must be a run of text, not a short heading: Apple's
-    product headings ("iPhone") are followed by paragraphs that also start in
-    lower case.
+JOIN_CLASSES = ("join_lowercase", "join_dangling_word", "join_dangling_quote", "join_dangling_digit",
+                "join_amount_paren", "join_comma", "join_open_quote")
+GRAY_CLASSES = ("C9_gray_no_punct_capital", "C9_gray_short_prev_lower")
+BOUNDARY_CLASSES = ("sentence_end", "table_row", "short_prev", "heading_then_text", "text_then_heading",
+                    "list_item_end", "bullet_item_end", "next_is_bullet", "checkbox") + JOIN_CLASSES + GRAY_CLASSES
+
+# A Word-style lettered item: "a.we maintain", "(1) cost of" (segment.ITEM_MARKER reads these too).
+LETTERED_ITEM = re.compile(r"^(?:\((?:[a-z]|[ivx]{2,4}|\d{1,2})\)|[a-z]\.(?![a-z]\.)|\d{1,2}\.(?!\d))\s?[A-Za-z]")
+CHECKBOX_END = re.compile(r"(?:[☐☒☑ýþ]|\bNo o)$")
+# A word in capitals for heading purposes: "Results", "COVID-19", "iPhone" (a brand in lower case).
+CAPITALISED = re.compile(r"^(?:[A-Z0-9]|[a-z]{1,3}[A-Z])")
+OPENING_MARK = "“\"‘'("
+
+
+def looks_like_heading(text: str, max_words: int = 25) -> bool:
+    """A title rather than a sentence: no end punctuation, at most max_words words, and in
+    capitals or title case (60% of the words of 4+ letters capitalised): "Critical Audit Matter
+    Description", "Item 2. Management's Discussion and Analysis ...", "Three Months Ended
+    December 31, 2021 Compared with Three Months Ended December 31, 2020"."""
+    words = text.split()
+    if not words or len(words) > max_words or SENTENCE_END.search(text) or text.endswith((",", ";", ":")):
+        return False
+    if text.upper() == text and any(c.isalpha() for c in text):
+        return True
+    long_words = [w.strip("(“\"‘") for w in words if len(w.strip("(“\"‘,")) >= 4]
+    if not long_words:
+        return CAPITALISED.match(words[0]) is not None and len(words) <= 3
+    return sum(bool(CAPITALISED.match(w)) for w in long_words) / len(long_words) >= 0.6
+
+
+def is_item_start(text: str) -> bool:
+    """A paragraph that opens a list item: a bullet ("•", "• |", a lone bullet) or "a." / "(1)"."""
+    return bool(LEADING_BULLET.match(text) or BULLET_ONLY.match(text.split(" ")[0] if text else "")
+                or LETTERED_ITEM.match(text))
+
+
+def boundary_class(raw: str, prev_pieces: list[list[int]], next_text: str) -> str:
+    """Why a paragraph and the next one are, or are not, one paragraph split by a page break.
+
+    In order: table rows are never joined; a paragraph that ends a sentence ends there; a short
+    paragraph is a heading unless lower case follows (then gray: "Earnings (loss) per common share
+    attributable" / "to McKesson"); "...; and" ends a list item; then the joins: lower case next,
+    an amount or a parenthesis that the sentence goes on after, a word no sentence ends on ("the",
+    "of", "and") before a word, a quote or a number, a comma, a quote or parenthesis left open
+    and closed in the next paragraph; then what is never joined: a
+    bullet next, a check box ("Yes ☒ No ☐"), a list item, a title before or after. What is left
+    (no end punctuation, capital next) is gray and goes to the LLM (page_breaks.py).
     """
     s, e = prev_pieces[-1][:2]
-    prev_text = raw[s:e]
-    if has_table_cells(prev_text) or has_table_cells(next_text):
-        return False
-    if len(prev_text.split()) < MIN_WORDS_TO_JOIN or TERMINAL.search(prev_text):
-        return False
-    if next_text[:1].islower() or CONTINUES_AFTER_BREAK.match(next_text):
-        return True
-    words = prev_text.split()
-    return (words[-1].lower() in DANGLING_WORDS and not words[-2].endswith(";")
-            and next_text[:1].isalpha() and not BULLET_ONLY.match(next_text[:1]))
+    prev = raw[s:e]
+    first = raw[prev_pieces[0][0]:prev_pieces[0][1]]          # where the previous paragraph starts
+    if has_table_cells(prev) or has_table_cells(next_text):
+        return "table_row"
+    if TERMINAL.search(prev):
+        return "sentence_end"
+    words = prev.split()
+    if len(words) < MIN_WORDS_TO_JOIN:
+        if next_text[:1].islower() and not looks_like_heading(prev):
+            return "C9_gray_short_prev_lower"
+        return "heading_then_text" if next_text[:1].islower() else "short_prev"
+    last = words[-1].lower()
+    if last in ("and", "or") and words[-2].endswith(";"):
+        return "list_item_end"
+    if next_text[:1].islower():
+        return "join_lowercase"
+    if CONTINUES_AFTER_BREAK.match(next_text):
+        return "join_amount_paren"
+    if is_item_start(next_text):
+        return "next_is_bullet"
+    if last in DANGLING_WORDS:
+        if next_text[:1].isalpha():
+            return "join_dangling_word"
+        if next_text[:1] in OPENING_MARK:
+            return "join_dangling_quote"
+        if next_text[:1].isdigit():
+            return "join_dangling_digit"
+    if prev.endswith(",") and not looks_like_heading(next_text, 12):
+        return "join_comma"
+    if ((prev.count("“") > prev.count("”") and "”" in next_text[:200])
+            or (prev.count("(") > prev.count(")") and ")" in next_text[:100] and next_text[:1] != "(")):
+        return "join_open_quote"      # 'See “Item 1. ... Notes to Consolidated Financial' / 'Statements – ...”.'
+    if CHECKBOX_END.search(prev):
+        return "checkbox"
+    if is_item_start(first):
+        return "bullet_item_end"
+    if looks_like_heading(prev):
+        return "heading_then_text"
+    if looks_like_heading(next_text, 12):
+        return "text_then_heading"
+    return "C9_gray_no_punct_capital"
+
+
+def boundary_id(sec: dict, next_start: int) -> str:
+    """The id of the page break before the paragraph that starts at next_start in `content`."""
+    return f"{sec['accession_number']}|{sec['section_key']}|{next_start}"
+
+
+def should_join(raw: str, prev_pieces: list[list[int]], next_text: str, decision: bool | None = None) -> bool:
+    """Join when the previous paragraph stops mid-sentence and the next continues it
+    (boundary_class). A gray boundary is joined only when decision is True: the answer step 2b
+    (page_breaks.py) saved for it. Without a saved answer it is not joined, as before.
+
+    Examples. Joined: "...blocked by the" / "Sixth Circuit"; "...through February 27," / "2025, we
+    had"; "...issuance of 2026 Notes and" / "2028 Notes". Not joined: "Mac | 8,675" / "iPad | 8,435"
+    (table rows); "...; and" / "fluctuations in ..." (a list item, its bullet dropped); "iPhone" /
+    "iPhone net sales ..." (a heading); "...the 2023 fiscal year" / "COVID-19 and Related Impacts".
+    """
+    cls = boundary_class(raw, prev_pieces, next_text)
+    return cls in JOIN_CLASSES or (cls in GRAY_CLASSES and decision is True)
 
 
 def raw_spans(paragraph: dict, start: int, end: int) -> list[list[int]]:
@@ -238,11 +333,15 @@ def raw_spans(paragraph: dict, start: int, end: int) -> list[list[int]]:
 
 
 def run() -> None:
+    from .page_breaks import load_decisions     # step 2b's answers for gray page breaks, if any
     cfg = settings()["clean"]
+    decisions = load_decisions()
+    if decisions:
+        log(STEP, f"{len(decisions)} page-break decisions from step 2b, {sum(decisions.values())} joined")
     for f in filings():
         sections = list(read_jsonl(Paths.sections(f)))
         headers = repeated_headers(sections, cfg)
-        cleaned = [clean_section(sec, headers) for sec in sections]
+        cleaned = [clean_section(sec, headers, decisions) for sec in sections]
         write_jsonl(Paths.cleaned(f), cleaned)
         n_removed = sum(len(c["removed"]) for c in cleaned)
         n_joined = sum(c["joined"] for c in cleaned)
