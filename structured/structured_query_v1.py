@@ -3,6 +3,7 @@ import duckdb
 import json
 
 import concept_match
+import fiscal
 import segments
 
 # Set once per connection from the store itself, so the envelope describes
@@ -88,9 +89,6 @@ SUPPORTED_FILTERS = {
 
 # Accepted and not applied, which is what the mock already does.
 #
-#   fiscal_year, fiscal_period  a fiscal year is not a calendar year and the
-#                               year end moves by company. Deriving one needs a
-#                               fiscal calendar we do not hold.
 #   section, is_table           an XBRL fact has no section pointer. That is
 #                               issue #40, and until it closes there is nothing
 #                               to filter on.
@@ -98,7 +96,14 @@ SUPPORTED_FILTERS = {
 # Ignoring a filter silently is its own hazard: the caller gets unfiltered rows
 # that look filtered. Keep this list short, and say so in the reply to Eval
 # whenever it changes.
-IGNORED_FILTERS = {"fiscal_year", "fiscal_period", "section", "is_table"}
+IGNORED_FILTERS = {"section", "is_table"}
+
+# fiscal_year and fiscal_period used to sit in that set, on the grounds that
+# deriving a fiscal calendar needs one we do not hold. That was true of a
+# lookup table and false of the filings: every filer declares its own period
+# boundaries, so the calendar is read out of them. See structured/fiscal.py.
+_CALENDAR = None
+_CALENDAR_PATH = None
 
 # Filters that take one value only. Everything else may be given a list, which
 # becomes an IN. `segment` and `basis` are looked up in a table of known names
@@ -133,6 +138,69 @@ RENAMED_FILTERS = {
     "period_end": "reporting_period_end",
     "question": "query",
 }
+
+
+def _calendar(conn):
+    """Each filer's fiscal calendar, read once per store from its periods."""
+    global _CALENDAR, _CALENDAR_PATH
+    path = _store_path()
+    if _CALENDAR is None or _CALENDAR_PATH != path:
+        rows = conn.execute(
+            "SELECT DISTINCT ticker, period_start, period_end "
+            "FROM financial_facts_v1 WHERE period_type = 'duration' "
+            "AND period_start IS NOT NULL AND period_end IS NOT NULL"
+        ).fetchall()
+        _CALENDAR, _CALENDAR_PATH = fiscal.build_calendar(rows), path
+    return _CALENDAR
+
+
+def _fiscal_clause(conn, filters):
+    """Turn a filer's own fiscal labels into dates its facts can be matched on.
+
+    One window per filer, because FY2026 is a different stretch of time for
+    each of them. A question that names no ticker is asked of every filer the
+    calendar knows, which is what the caller meant.
+
+    No filer having the period asked for is a real answer: we hold no filings
+    covering it. That is different from being unable to place the period, and
+    only the first can be decided here.
+    """
+    if "fiscal_year" not in filters:
+        raise ValueError(
+            "fiscal_period needs fiscal_year: a quarter on its own names no "
+            "stretch of time"
+        )
+
+    calendar = _calendar(conn)
+    wanted = filters["fiscal_year"]
+    years = wanted if isinstance(wanted, (list, tuple, set)) else [wanted]
+
+    scope = filters.get("ticker")
+    if scope is None:
+        tickers = sorted(calendar)
+    else:
+        tickers = list(scope) if isinstance(scope, (list, tuple, set)) else [scope]
+
+    clauses, params = [], []
+    for ticker in tickers:
+        for year in years:
+            span = fiscal.window(calendar, ticker, year, filters.get("fiscal_period"))
+            if span:
+                # Both ends must sit inside the window, not just the last one.
+                # A 10-Q reports the quarter and the year to date side by
+                # side and they end on the same day, so matching on the end
+                # alone answers "the third quarter" with nine months of it.
+                # An instant fact has no start and is placed by its date.
+                clauses.append(
+                    "(ticker = ? AND (period_start IS NULL OR period_start >= ?) "
+                    "AND period_end BETWEEN ? AND ?)")
+                params.extend([ticker, str(span[0]), str(span[0]), str(span[1])])
+
+    if not clauses:
+        # Nothing in the corpus covers it. Match no rows rather than quietly
+        # dropping the filter, which is what returning every row would do.
+        return " AND 1 = 0", []
+    return " AND (" + " OR ".join(clauses) + ")", params
 
 
 def _filings_table_exists(conn=None):
@@ -223,6 +291,11 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
                   AND (d.value ->> 'member') IN ({placeholders})
             )"""
             params.extend(members)
+
+        if "fiscal_year" in filters or "fiscal_period" in filters:
+            clause, values = _fiscal_clause(conn, filters)
+            sql += clause
+            params.extend(values)
 
         # fact_id is a hash, so this orders nothing. It is here to make the
         # result set stable between runs; the ranking happens in
