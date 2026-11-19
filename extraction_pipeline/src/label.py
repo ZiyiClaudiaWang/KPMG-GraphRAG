@@ -57,6 +57,16 @@ Problems with single units are handled as in Claudia's run (her recovery v2 and 
   with its own context (its 4 preceding units, plus its list intro when missing). Their labels
   replace the placeholders.
 
+Repeats (label.reuse_repeats: path): a unit whose text, 4 preceding units and section_path are
+the same as a unit in an earlier filing of the same company (report_unit_repeats.py, level
+"path") is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
+reused_from_unit_id), with context_unit_ids moved to its own units at the same distance before
+it. Batches are cut at reused units, so every sent sentence still has its own preceding units
+as context. A reused unit falls back to its own request (a second round of batches in the same
+run) when the first occurrence has no model label (held by quarantine) or cites a context unit
+whose counterpart before the reused unit has other text. Set reuse_repeats to null to label
+every occurrence.
+
 Usage:
   python -m src.label --dry-run                         plan batches, estimate cost, no API calls
   python -m src.label --filing 0000320193-25-000079     label one filing first
@@ -78,6 +88,7 @@ from pathlib import Path
 from . import entity_annotation, source_review
 from .common import (PROMPTS_DIR, source_text, Paths, append_jsonl, data_dir, filings, load_config, load_env, log,
                      read_jsonl, settings, unit_id, write_jsonl)
+from .report_unit_repeats import build as repeat_groups, norm
 from .validate import LABELS, check_reply
 
 STEP = "label"
@@ -252,8 +263,12 @@ def request_key(request: dict, runner: str = RUNNER_VERSION, retry_of: str | Non
     return key
 
 
-def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
+def plan_batches(units: list[dict], cfg: dict, skip: set[str] | frozenset = frozenset(),
+                 only: set[str] | None = None) -> list[dict]:
     """One plan per request: consecutive labelable units of a section, batch_max_sentences at a time.
+
+    skip: unit ids not to send (reused labels); only: send just these. A batch never spans a
+    labelable unit that is not sent, so the units before each batch are its own context.
 
     A plan holds the batch, the request, and the identity (request plus the source versions
     it depends on, saved in request.json). request_hash = hash of request_key(): only what
@@ -274,43 +289,56 @@ def plan_batches(units: list[dict], cfg: dict) -> list[dict]:
     plans = []
     for (accession, section_key), section_units in sorted(by_section.items()):
         source = sources[(accession, section_key)]
-        eligible = [u for u in section_units if u["prefilter"] is None]
-        start = 0
-        while start < len(eligible):
-            size = min(cfg["batch_max_sentences"], len(eligible) - start)
-            while True:
-                selected = eligible[start:start + size]
-                first = next(i for i, u in enumerate(section_units) if u["unit_id"] == selected[0]["unit_id"])
-                context = context_units(section_units, first, selected, cfg)
-                context_numbers, numbers = batch_numbers(context, selected)
-                batch = {
-                    "batch_id": f"{accession}|{section_key}|checked_start_{start}_n{len(selected)}",
-                    "accession_number": accession, "section_key": section_key,
-                    "section_type": selected[0]["section_type"],
-                    "filing": f"{source['ticker']} {source['form']}",
-                    "unit_ids": [u["unit_id"] for u in selected],
-                    "context_unit_ids": [u["unit_id"] for u in context],
-                    "local_ids": numbers,
-                    "context_local_ids": context_numbers,
+        sentences = [u for u in section_units if u["prefilter"] is None]
+        runs, run, offset = [], [], 0                 # (index of the run's first sentence, run)
+        for k, u in enumerate(sentences):
+            if u["unit_id"] in skip or (only is not None and u["unit_id"] not in only):
+                if run:
+                    runs.append((offset, run))
+                run = []
+                continue
+            if not run:
+                offset = k
+            run.append(u)
+        if run:
+            runs.append((offset, run))
+        for offset, eligible in runs:
+            start = 0
+            while start < len(eligible):
+                size = min(cfg["batch_max_sentences"], len(eligible) - start)
+                while True:
+                    selected = eligible[start:start + size]
+                    first = next(i for i, u in enumerate(section_units) if u["unit_id"] == selected[0]["unit_id"])
+                    context = context_units(section_units, first, selected, cfg)
+                    context_numbers, numbers = batch_numbers(context, selected)
+                    batch = {
+                        "batch_id": f"{accession}|{section_key}|checked_start_{offset + start}_n{len(selected)}",
+                        "accession_number": accession, "section_key": section_key,
+                        "section_type": selected[0]["section_type"],
+                        "filing": f"{source['ticker']} {source['form']}",
+                        "unit_ids": [u["unit_id"] for u in selected],
+                        "context_unit_ids": [u["unit_id"] for u in context],
+                        "local_ids": numbers,
+                        "context_local_ids": context_numbers,
+                    }
+                    request = build_request(batch, lookup, cfg, system)
+                    if len(canonical(request).encode("utf-8")) <= cfg["max_request_bytes"] or size == 1:
+                        break
+                    size = max(1, size // 2)
+                identity = {
+                    "runner_version": RUNNER_VERSION, "request": request, "batch": batch,
+                    "source_section_sha256": digest(source["content"]),
+                    "processing_set_id": source["processing_set_id"],
+                    "source_locator": source["source_locator"],
+                    "selected_units": selected,
+                    "provisional_source_segment_definitions": vocabulary,
+                    "context_units": context,
+                    "source_metadata": {k: v for k, v in source.items() if k != "content"},
+                    "entity_catalog": catalog,
                 }
-                request = build_request(batch, lookup, cfg, system)
-                if len(canonical(request).encode("utf-8")) <= cfg["max_request_bytes"] or size == 1:
-                    break
-                size = max(1, size // 2)
-            identity = {
-                "runner_version": RUNNER_VERSION, "request": request, "batch": batch,
-                "source_section_sha256": digest(source["content"]),
-                "processing_set_id": source["processing_set_id"],
-                "source_locator": source["source_locator"],
-                "selected_units": selected,
-                "provisional_source_segment_definitions": vocabulary,
-                "context_units": context,
-                "source_metadata": {k: v for k, v in source.items() if k != "content"},
-                "entity_catalog": catalog,
-            }
-            plans.append({"batch": batch, "request": request, "identity": identity,
-                          "request_hash": digest(canonical(request_key(request)))})
-            start += size
+                plans.append({"batch": batch, "request": request, "identity": identity,
+                              "request_hash": digest(canonical(request_key(request)))})
+                start += size
     return plans
 
 
@@ -633,6 +661,69 @@ def llm_labels(plan: dict, record: dict, results: list[dict], held: list[dict], 
     } for r in results]
 
 
+# ---------- repeats ----------
+
+def reuse_plan(units: list[dict], cfg: dict) -> dict[str, str]:
+    """unit id -> the first occurrence whose label it reuses (label.reuse_repeats), or {}."""
+    level = cfg.get("reuse_repeats")
+    if not level:
+        return {}
+    if level != "path":
+        raise ValueError(f"label.reuse_repeats must be path or null, not {level!r}")
+    order = {f["accession"]: k for k, f in enumerate(filings())}
+    rows, _ = repeat_groups(units, cfg["context_sentences"], order)
+    return {r["unit_id"]: r["path_first_unit_id"] for r in rows
+            if r["path_first_unit_id"] not in (None, r["unit_id"])}
+
+
+def units_before(units: list[dict]) -> dict[str, tuple[list[dict], int]]:
+    """unit id -> (its section's units without section titles, how many of them come before it),
+    as in report_unit_repeats.unit_keys. seq[n - d] is the unit d places before it."""
+    out, sections = {}, defaultdict(list)
+    for u in units:
+        seq = sections[(u["accession_number"], u["section_key"])]
+        out[u["unit_id"]] = (seq, len(seq))
+        if u["role"] != "section_title":
+            seq.append(u)
+    return out
+
+
+def reused_labels(labels: list[dict], reuse: dict[str, str], units: list[dict]) -> tuple[list[dict], set[str]]:
+    """Copies of first-occurrence labels for reused units, and the units that must be sent instead.
+
+    A context unit the first occurrence cites is moved to the unit at the same distance before
+    the reused unit, if that unit has the same text; otherwise the reused unit is sent. A unit
+    whose first occurrence has no label yet gets neither (it waits for a later run).
+    """
+    by_unit = {l["unit_id"]: l for l in labels}
+    before = units_before(units)
+    index = {}                                           # unit id -> its place in its section's seq
+    for seq in {id(seq): seq for seq, _ in before.values()}.values():
+        index.update((u["unit_id"], k) for k, u in enumerate(seq))
+    out, fallback = [], set()
+    for uid, first_id in reuse.items():
+        first = by_unit.get(first_id)
+        if first is None:
+            continue                                     # not labelled yet
+        if first["source"] not in ("llm", "llm_repair", "llm_reused"):
+            fallback.add(uid)                            # held by quarantine: no model label to copy
+            continue
+        (mine, n_mine), (theirs, n_theirs) = before[uid], before[first_id]
+        moved = []
+        for cid in first["context_unit_ids"]:
+            k = index.get(cid)
+            d = n_theirs - k if k is not None and k < n_theirs and theirs[k]["unit_id"] == cid else None
+            if d is None or d > n_mine or norm(mine[n_mine - d]["text"]) != norm(theirs[n_theirs - d]["text"]):
+                break
+            moved.append(mine[n_mine - d]["unit_id"])
+        else:
+            out.append(dict(first, unit_id=uid, source="llm_reused", context_unit_ids=moved,
+                            reused_from_unit_id=first_id))
+            continue
+        fallback.add(uid)
+    return out, fallback
+
+
 def usage_report() -> None:
     if not Paths.usage().exists():
         log(STEP, "no API calls recorded yet")
@@ -648,8 +739,12 @@ def usage_report() -> None:
 def run(dry_run: bool = False, filing: str | None = None, limit: int | None = None) -> None:
     cfg = settings()["label"]
     units = list(read_jsonl(Paths.sentences()))
-    plans = plan_batches(units, cfg)
+    reuse = reuse_plan(units, cfg)
+    plans = plan_batches(units, cfg, skip=set(reuse))
     write_jsonl(Paths.batches(), [dict(p["batch"], request_hash=p["request_hash"]) for p in plans])
+    if reuse:
+        log(STEP, f"{len(reuse)} units reuse the label of an earlier filing (reuse_repeats: "
+                  f"{cfg['reuse_repeats']}); they are not sent")
 
     if dry_run:
         reserve = sum(reserve_cost(p["request"], cfg) for p in plans)
@@ -661,35 +756,55 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
                   "estimated and budget_usd is not enforced")
     labeller = Labeller(cfg)
     labels = [rule_label(u) for u in units if u["prefilter"]]
-    sent = rejected = complete = 0
-    stopped = None
+    state = {"sent": 0, "rejected": 0, "complete": 0, "stopped": None}
     gaps: dict[str, str] = {}              # unit id -> "missing" or "ambiguous"
-    for plan in plans:
-        selected = filing is None or plan["batch"]["accession_number"] == filing
-        may_send = not dry_run and not stopped and selected and (limit is None or sent < limit)
-        try:
-            reply = labeller.label(plan, send=may_send)
-        except StopRun as err:
-            stopped = str(err)
-            log(STEP, f"stopped: {stopped}")
-            continue
-        sent += reply["sent"]
-        if reply["record"] is None:
-            continue
-        if reply["problems"]:
-            rejected += 1
-            log(STEP, f"{plan['batch']['batch_id']} rejected: {'; '.join(reply['problems'])[:200]}")
-            if cfg["stop_on_failure"] and not stopped:
-                stopped = f"{plan['batch']['batch_id']} rejected; see {labeller.folder(plan['request_hash'])}"
-                log(STEP, f"stopped: {stopped}")
-            continue
-        complete += 1
-        labels += llm_labels(plan, reply["record"], reply["results"], reply["held"], cfg)
-        for h in reply["held"]:
-            log(STEP, f"{plan['batch']['batch_id']} {h['local_id']} set aside as needs_review: "
-                      f"{', '.join(h['review_flags'])}")
-            if h["review_flags"][0] in ("missing_model_target_id", "duplicate_model_target_id"):
-                gaps[h["unit_id"]] = "missing" if h["review_flags"][0] == "missing_model_target_id" else "ambiguous"
+
+    def label_all(batch_plans: list[dict]) -> None:
+        nonlocal labels
+        for plan in batch_plans:
+            selected = filing is None or plan["batch"]["accession_number"] == filing
+            may_send = (not dry_run and not state["stopped"] and selected
+                        and (limit is None or state["sent"] < limit))
+            try:
+                reply = labeller.label(plan, send=may_send)
+            except StopRun as err:
+                state["stopped"] = str(err)
+                log(STEP, f"stopped: {state['stopped']}")
+                continue
+            state["sent"] += reply["sent"]
+            if reply["record"] is None:
+                continue
+            if reply["problems"]:
+                state["rejected"] += 1
+                log(STEP, f"{plan['batch']['batch_id']} rejected: {'; '.join(reply['problems'])[:200]}")
+                if cfg["stop_on_failure"] and not state["stopped"]:
+                    state["stopped"] = f"{plan['batch']['batch_id']} rejected; see {labeller.folder(plan['request_hash'])}"
+                    log(STEP, f"stopped: {state['stopped']}")
+                continue
+            state["complete"] += 1
+            labels += llm_labels(plan, reply["record"], reply["results"], reply["held"], cfg)
+            for h in reply["held"]:
+                log(STEP, f"{plan['batch']['batch_id']} {h['local_id']} set aside as needs_review: "
+                          f"{', '.join(h['review_flags'])}")
+                if h["review_flags"][0] in ("missing_model_target_id", "duplicate_model_target_id"):
+                    gaps[h["unit_id"]] = "missing" if h["review_flags"][0] == "missing_model_target_id" else "ambiguous"
+
+    label_all(plans)
+    if reuse:
+        # Second round: reused units whose first occurrence gave no label they can copy.
+        copies, fallback = reused_labels(labels, reuse, units)
+        second = plan_batches(units, cfg, only=fallback) if fallback else []
+        if second:
+            log(STEP, f"{len(fallback)} reused units cannot copy their first occurrence's label; "
+                      f"labelled on their own in {len(second)} batches")
+            write_jsonl(Paths.batches(), [dict(p["batch"], request_hash=p["request_hash"]) for p in plans + second])
+            label_all(second)
+        plans = plans + second
+        labels += copies
+        waiting = len(reuse) - len(copies) - len(fallback)
+        log(STEP, f"{len(copies)} labels reused" + (f"; {waiting} wait for their first occurrence's label"
+                                                    if waiting else ""))
+    sent, rejected, complete, stopped = state["sent"], state["rejected"], state["complete"], state["stopped"]
 
     if gaps and complete == len(plans):
         order = {u["unit_id"]: i for i, u in enumerate(units)}

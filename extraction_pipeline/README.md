@@ -352,6 +352,15 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       Because the numbers count within the request, a change further up the section that
       leaves the batch's own units and context alone (a heading or page footer added or
       removed) does not change the request.
+  - Repeats (`label.reuse_repeats: path`): a sentence whose text, 4 units before and
+    `section_path` are the same as in an earlier filing of the same company is not sent
+    (`report_unit_repeats.py`, level `path`; about 25% of the 233 filings' sentences). It gets a
+    copy of the first occurrence's label (`source: llm_reused`, `reused_from_unit_id`; same
+    `request_hash`, `model` and `prompt_version`), with `context_unit_ids` moved to its own units
+    at the same place. Batches are cut at reused sentences, so every sentence sent still has its
+    own preceding units as context. A reused sentence is sent after all (a second round in the
+    same run) when its first occurrence was held by quarantine, or cites a context unit whose
+    counterpart has other text. `null` sends every sentence.
   - Before sending, every sentence is rebuilt from the Data team text at its `raw_spans`; a
     mismatch stops the step, and so does a `unit_id` that does not match the unit's spans.
     Steps 5 and 7b compare a unit with its source the same way
