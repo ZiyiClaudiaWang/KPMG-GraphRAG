@@ -32,6 +32,10 @@ US_STATES = {
     "wisconsin", "wyoming", "district of columbia", "puerto rico",
 }
 # Canadian provinces and territories: country = Canada, the province goes to state_or_region.
+# Misspellings found in filed exhibits, mapped to the state meant.
+#   Parker-Hannifin FY2022 10-K: "LORD Corporation | Pennslyvania"
+US_STATE_MISSPELLINGS = {"pennslyvania": "Pennsylvania"}
+
 CA_PROVINCES = {
     "alberta": "Alberta", "british columbia": "British Columbia", "manitoba": "Manitoba",
     "new brunswick": "New Brunswick", "newfoundland and labrador": "Newfoundland and Labrador",
@@ -111,6 +115,8 @@ def normalize_jurisdiction(raw: str) -> tuple[str, str]:
         p2 = re.sub(r"^state of\s+", "", p)
         if p2 in US_STATES:
             return "United States", parts[i].replace("State of ", "").strip()
+        if p2 in US_STATE_MISSPELLINGS:
+            return "United States", US_STATE_MISSPELLINGS[p2]
     # "Ontario" / "Province of Quebec" / "British Columbia, Canada"
     for p in low:
         p2 = re.sub(r"^province of\s+", "", p)

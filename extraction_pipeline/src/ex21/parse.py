@@ -24,6 +24,7 @@ HEADER_WORDS = re.compile(
     r"incorporated\s+in|organized\s+under|percent|%\s*owned|ownership)",
     re.I,
 )
+LIST_NUMBER = re.compile(r"\(?\d{1,3}[.)]")       # a numbering cell: "1." / "(2)" / "3)"
 PCT = re.compile(r"^\(?\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)?$")
 FOOTNOTE_MARK = re.compile(r"(\s*(\*+|\(\d{1,2}\)|\[\d{1,2}\]|†|‡))+$")
 PAREN_JURIS = re.compile(r"^(?P<name>.+?)\s*\((?P<j>[^()]+)\)\s*$")
@@ -118,6 +119,8 @@ def parse_html(html: str) -> list[dict]:
                 continue
             if HEADER_WORDS.match(filled[0][1]) and len(filled[0][1]) < 60:
                 continue
+            if len(filled) > 1 and LIST_NUMBER.fullmatch(filled[0][1]):
+                filled = filled[1:]                 # Casey's 2021: "1." | "Name, an Iowa corporation"
             split = _split_stacked_row(filled)
             if split:
                 for name, juris in split:
@@ -131,7 +134,7 @@ def parse_html(html: str) -> list[dict]:
             juris_cells = [t for t in rest if not PCT.match(t)]
             juris = juris_cells[-1] if juris_cells else ""
             if not juris:
-                m = PAREN_JURIS.match(name)
+                m = DESCRIBED.match(name) or PAREN_JURIS.match(name)
                 if m:
                     name, juris = m.group("name"), m.group("j")
             if _not_a_subsidiary(name, juris):

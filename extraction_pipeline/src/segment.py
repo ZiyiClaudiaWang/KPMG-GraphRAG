@@ -50,9 +50,13 @@ import re
 # v3: bullets, list rule, abbreviation splits, headings with a period.
 # v4 (4 Nov 2026): unit_id (#45); page breaks before an amount or parenthesis; "U.S. Cultural";
 #     headings ending in ":"; table cells and footnote markers; Microsoft item links (step 2).
-SEGMENTATION_VERSION = "kelly_sentence_v4"
+# v5 (18 Nov 2026): any table row is table_residue, two-column rows ("Acquisitions | 47") too;
+#     table rows are never joined across a page break (step 2).
+# v6 (19 Nov 2026): lists after a heading or "the following", lettered items, "• |" and "\uf0b7"
+#     bullets, items whose bullet was lost; heading levels (step 4b); new page-break joins (step 2).
+SEGMENTATION_VERSION = "kelly_sentence_v6"
 
-from .clean import DANGLING_WORDS, raw_spans
+from .clean import DANGLING_WORDS, ITEM_MARKER, has_table_cells, raw_spans
 from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_jsonl
 from .filter_sections import kept_section_keys
 
@@ -79,7 +83,14 @@ OPENERS = {
 ITEM_NUMBER = re.compile(r"\d{1,2}[a-c]?")   # "1a" in "see Item 1A. Risk Factors", "9" in "Note 9. Debt"
 REFERENCE_WORDS = {"item", "note"}            # "Item 1A. Risk Factors", "Note 9. Debt": the title follows the number
 BOUNDARY = re.compile(r"[.?!][\"”’)\]]*(?=\s+[\"“‘(\[]?[A-Z0-9•])")
-BULLET = re.compile(r"^(?:[•●◦▪‣]\s*|[–-]\s+|o\s+)")
+# A bullet, with the "|" of a bullet exported as its own table cell after it ("• | Revenue grew").
+# "\uf0b7" is the Symbol-font bullet (NetApp).
+BULLET = re.compile(r"^(?:[•●◦▪‣\uf0b7]\s*(?:\|\s*)?|[–-]\s+(?:\|\s*)?|o\s+)")
+# The last sentence of an intro that announces a list without a ":"
+# (McKesson: "The following summary provides highlights ... for the year ended March 31, 2021.").
+ANNOUNCES_LIST = re.compile(r"\bthe following\b|\bas follows\b", re.IGNORECASE)
+# A list item that ends so that another item must follow: "...;", "...; and", "...,".
+ITEM_GOES_ON = re.compile(r"(?:[;,]|;\s+(?:and|or)|,\s+(?:and|or)|\band/or)$")
 
 
 def split_sentences(text: str) -> list[tuple[int, int]]:
@@ -90,8 +101,9 @@ def split_sentences(text: str) -> list[tuple[int, int]]:
         before = text[start:m.start() + 1]
         token = before.split()[-1].rstrip(".?!").lower() if before.split() else ""
         token = token.lstrip("(\"“")
-        if token.rsplit("-", 1)[-1] in ABBREVIATIONS:    # "non-U.S." is read as "U.S.", not "10-K." as "K."
-            token = token.rsplit("-", 1)[-1]
+        tail = re.split(r"[-/–—]", token)[-1]
+        if tail in ABBREVIATIONS:    # "non-U.S.", "Euro/U.S.", "patents—U.S." are read as "U.S.", not "10-K." as "K."
+            token = tail
         nxt = text[end:].split(maxsplit=1)[0] if text[end:].strip() else ""
         opener = nxt.strip("\"“(").rstrip(".,;:")               # "Additionally," -> "Additionally"
         dotted = bool(re.fullmatch(r"(?:[a-z]\.)+[a-z]", token))   # "d.c", "u.s", "e.g"
@@ -132,9 +144,54 @@ def is_bullet(text: str) -> bool:
     return bool(BULLET.match(text))
 
 
+def item_marker(text: str) -> re.Match | None:
+    """The bullet or letter/number that opens a list item, or None."""
+    return BULLET.match(text) or ITEM_MARKER.match(text)
+
+
+def list_items_end(paragraphs: list[dict], i: int, lettered: bool) -> int:
+    """Index after the last list item of the run starting at paragraph i.
+
+    An item is a bullet paragraph, or, in a lettered run ("a.", "(1)"), a lettered paragraph.
+    A paragraph without a bullet also counts as an item when it is not a table row and either
+    the item before it ends so that another must follow ("...;", "...; and", "...,") and it starts
+    in lower case, or it is a short name between two short-name items (Parker-Hannifin's market
+    lists: "• Power generation" / "Renewable energy" / "• Water purification"): the Data team
+    export drops the bullet sign of some items (S12_bullet_lost).
+    """
+    j = i
+    while j < len(paragraphs):
+        text = paragraphs[j]["text"]
+        if is_bullet(text) or (lettered and ITEM_MARKER.match(text)):
+            j += 1
+        elif j > i and not has_table_cells(text) and (
+                (text[:1].islower() and ITEM_GOES_ON.search(paragraphs[j - 1]["text"].rstrip()))
+                or (short_item(text) and short_item(paragraphs[j - 1]["text"])
+                    and j + 1 < len(paragraphs) and is_bullet(paragraphs[j + 1]["text"]))):
+            j += 1
+        else:
+            break
+    return j
+
+
+def short_item(text: str) -> bool:
+    """A name in a list of names: at most 5 words, no end punctuation ("• Power generation",
+    "Renewable energy"). Between two bullets, such a paragraph is an item whose bullet was lost."""
+    body = BULLET.sub("", text)
+    return 0 < len(body.split()) <= 5 and not TERMINAL.search(body) and not body.endswith(":")
+
+
+def starts_list(paragraphs: list[dict], i: int, colon_intro: bool) -> bool:
+    """True when paragraph i opens a list: a bullet, or after a ":" intro a lettered item."""
+    if i >= len(paragraphs):
+        return False
+    text = paragraphs[i]["text"]
+    return is_bullet(text) or (colon_intro and bool(ITEM_MARKER.match(text)))
+
+
 def is_fragment(text: str) -> bool:
     """A bullet item that cannot stand alone ("Driving customer adoption...", "tariffs;", "iPad Air")."""
-    item = BULLET.sub("", text)
+    item = ITEM_MARKER.sub("", BULLET.sub("", text))
     first = item.split()[0] if item.split() else ""
     return (item[:1].islower() or first.endswith("ing") or item.rstrip().endswith((";", ",", "; and", "; or"))
             or not TERMINAL.search(item))
@@ -164,6 +221,7 @@ def note_key(text: str) -> str:
 # Add a line when a new one turns up.
 TABLE_NOTES = [
     "bp - basis point",                          # MCK
+    "bp - basis points",                         # MCK (plural in most filings)
     "Percentages may not add due to rounding",   # NTAP
     "NM - Not Meaningful",                       # NTAP
     "(3)Not meaningful (NM)",                    # MDT
@@ -221,6 +279,8 @@ def is_period_heading(text: str) -> bool:
     words = re.findall(r"[A-Za-z][A-Za-z’'-]*", text)
     return bool(words) and words[0][0].isupper() and all(w[0].isupper() for w in words if len(w) >= 4)
 
+
+SENTENCE_LEVEL = -1        # heading_levels.jsonl: "a sentence, not a heading"
 
 RISK_CATEGORY_START = re.compile(r"^risks?\s+(?:related|relating)\s+to\b", re.IGNORECASE)
 RISK_SUMMARY = re.compile(r"^(?:risk factors? summary|summary of risk factors?)$", re.IGNORECASE)
@@ -282,7 +342,7 @@ def section_label(sec: dict) -> str:
 
 def prefilter(text: str, min_words: int) -> str | None:
     """Rule-based not_a_claim, applied before the LLM."""
-    if text.count("|") >= 2 or note_key(text) in TABLE_NOTE_KEYS or FOOTNOTE_MARKER.match(text):
+    if has_table_cells(text) or note_key(text) in TABLE_NOTE_KEYS or FOOTNOTE_MARKER.match(text):
         return "table_residue"
     if CROSS_REFERENCE.search(text) and not re.search(
             r"\b(?:there have been (?:no )?material changes|have not materially changed)\b", text, re.I):
@@ -297,12 +357,46 @@ def prefilter(text: str, min_words: int) -> str | None:
 
 # ---------- segmentation ----------
 
-def segment_section(sec: dict, cfg: dict) -> list[dict]:
+def heading_id(sec: dict, paragraph: dict, start: int) -> str:
+    """The id of a heading for heading levels: accession|section_key|its start in `content`."""
+    spans = raw_spans(paragraph, start, start + 1)
+    return f"{sec['accession_number']}|{sec['section_key']}|{spans[0][0] if spans else start}"
+
+
+def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) -> list[dict]:
+    """Units of one cleaned section. levels: heading id -> level (heading_levels.py, or the Data
+    team's HTML when it comes), 1 = top. With levels, a heading keeps the headings above it in
+    section_path ("Part II Item 7 > Results of Operations > Segment Results > Intelligent Cloud");
+    level 0 means "not a heading" (a table title or column header) and changes no path; level -1
+    means the line is a sentence of the text (CASY "We may be adversely impacted by increases in
+    the cost of food ingredients and other related costs", a risk heading without its period):
+    it is split and labelled like any paragraph. Without levels every heading is level 1, so a
+    heading replaces the one before it, as before.
+    """
     paragraphs = sec["paragraphs"]
     is_risk = sec["section_type"] == "risk_factors"
     base = section_label(sec)
     units: list[dict] = []
     category = subheading = None
+    stack: list[tuple[int, str]] = []          # (level, heading text) above the current unit
+
+    def is_sentence(p_index: int, start: int) -> bool:
+        """Step 4b said this heading-like line is a sentence of the text (level -1)."""
+        return (levels or {}).get(heading_id(sec, paragraphs[p_index], start)) == SENTENCE_LEVEL
+
+    def open_heading(name: str, p_index: int, start: int) -> int:
+        """Put a sub-heading on the stack by its level; return the level (0: not a heading)."""
+        nonlocal subheading
+        level = (levels or {}).get(heading_id(sec, paragraphs[p_index], start), 1 if not levels else None)
+        if level is None:                       # levels given but not for this heading: a sibling
+            level = stack[-1][0] if stack else 1
+        if level == 0:
+            return 0
+        while stack and stack[-1][0] >= level:
+            stack.pop()
+        stack.append((level, name))
+        subheading = name
+        return level
 
     def add(role: str, p_index: int, start: int, end: int, rule: str | None,
             spans: list | None = None, text: str | None = None, rule_heading: str | None = None) -> dict:
@@ -310,8 +404,9 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             "accession_number": sec["accession_number"], "ticker": sec["ticker"], "form": sec["form"],
             "section_id": sec["section_id"], "section_key": sec["section_key"],
             "section_type": sec["section_type"],
-            "section_path": " > ".join(x for x in (base, category, subheading) if x),
+            "section_path": " > ".join(x for x in (base, category, *(h for _, h in stack)) if x),
             "section_label": base, "category": category, "subheading": subheading,
+            "heading_path": [h for _, h in stack],
             "role": role,
             "text": text if text is not None else sec["text"][start:end],
             "char_start": start, "char_end": end,
@@ -325,6 +420,20 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
         units.append(unit)
         return unit
 
+    def add_items(k0: int, k1: int, intro_unit: dict) -> None:
+        """Split list items k0..k1-1: each sentence is a unit pointing back to intro_unit."""
+        for k in range(k0, k1):
+            item, q0 = paragraphs[k]["text"], paragraphs[k]["start"]
+            marker = item_marker(item)
+            body_start = q0 + (marker.end() if marker else 0)
+            body = sec["text"][body_start:q0 + len(item)]
+            for s, e in split_sentences(body):
+                rule = prefilter(body[s:e], cfg["min_words"])
+                if rule == "too_short":           # meaning comes from the intro, so keep it
+                    rule = None
+                unit = add("body", k, body_start + s, body_start + e, rule)
+                unit["list_intro_id"] = intro_unit["unit_id"]
+
     i = 0
     while i < len(paragraphs):
         para = paragraphs[i]
@@ -335,32 +444,48 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             i += 1
             continue
 
-        list_follows = i + 1 < len(paragraphs) and is_bullet(paragraphs[i + 1]["text"])
-        if is_heading_like(text) or (is_colon_heading(text) and not list_follows):
+        colon = text.endswith(":")
+        list_follows = starts_list(paragraphs, i + 1, colon)
+        if (is_heading_like(text) or (is_colon_heading(text) and not list_follows)) and not is_sentence(i, p0):
             name = text.rstrip(":").rstrip()      # "Executive Summary:" is shown as "Executive Summary"
             if is_risk and is_category(name):
                 category, subheading = name, None
-                add("category_heading", i, p0, p0 + len(text), "heading")
+                stack.clear()
+                heading = add("category_heading", i, p0, p0 + len(text), "heading")
             else:
-                subheading = name
-                add("heading", i, p0, p0 + len(text), "heading")
+                level = open_heading(name, i, p0)
+                heading = add("heading", i, p0, p0 + len(text), "heading")
+                heading["heading_level"] = level
             i += 1
+            # Bullets right under a heading ("Risks Related to Laws and Regulations" / "•tax
+            # expense and tax laws in key jurisdictions; and"): the heading is their intro.
+            if starts_list(paragraphs, i, False):
+                j = list_items_end(paragraphs, i, False)
+                add_items(i, j, heading)
+                i = j
             continue
 
-        # A list: an intro ending in ":" plus the bullet paragraphs right after it.
-        if text.endswith(":") and i + 1 < len(paragraphs) and is_bullet(paragraphs[i + 1]["text"]):
-            j = i + 1
-            while j < len(paragraphs) and is_bullet(paragraphs[j]["text"]):
-                j += 1
+        # A list: an intro ending in ":" (or a sentence announcing "the following") plus the
+        # list items right after it.
+        intro = split_sentences(text) if list_follows else []
+        # The sentence that opens the list: the last one for a ":" intro, else the last sentence
+        # announcing "the following" (Medtronic: "...included the following. Unless otherwise
+        # stated, amounts apply to both periods.").
+        opener = len(intro) - 1
+        if intro and not colon:
+            hits = [k for k, (a, b) in enumerate(intro) if ANNOUNCES_LIST.search(text[a:b])]
+            opener = hits[-1] if hits and not is_bullet(text) and is_bullet(paragraphs[i + 1]["text"]) else None
+        if list_follows and opener is not None:
+            lettered = not is_bullet(paragraphs[i + 1]["text"])
+            j = list_items_end(paragraphs, i + 1, lettered)
             bullets = paragraphs[i + 1:j]
             # Earlier sentences of the intro paragraph stay ordinary units;
             # only its last sentence opens the list.
-            intro = split_sentences(text)
-            for s, e in intro[:-1]:
+            for s, e in intro[:opener]:
                 add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
             start = p0 + intro[-1][0]
-            if merge_list(sec["text"][start:p0 + len(text)], bullets, cfg):
-                # Merge: the intro sentence and every bullet become one list_group unit.
+            if colon and merge_list(sec["text"][start:p0 + len(text)], bullets, cfg):
+                # Merge: the intro sentence and every item become one list_group unit.
                 end = bullets[-1]["start"] + len(bullets[-1]["text"])
                 spans = raw_spans(para, start, p0 + len(text))
                 for m in bullets:
@@ -370,20 +495,13 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
                            text=" ".join(pieces))          # fragments joined by one space
                 unit["list_paragraphs"] = list(range(i, j))
             else:
-                # Split: the intro sentence is an ordinary unit, and each bullet is labelled
+                # Split: the intro sentence is an ordinary unit, and each item is labelled
                 # on its own, pointing back to that intro sentence.
-                s, e = intro[-1]
-                intro_unit = add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
-                for k in range(i + 1, j):
-                    item, q0 = paragraphs[k]["text"], paragraphs[k]["start"]
-                    body_start = q0 + BULLET.match(item).end()
-                    body = sec["text"][body_start:q0 + len(item)]
-                    for s, e in split_sentences(body):
-                        rule = prefilter(body[s:e], cfg["min_words"])
-                        if rule == "too_short":           # meaning comes from the intro, so keep it
-                            rule = None
-                        unit = add("body", k, body_start + s, body_start + e, rule)
-                        unit["list_intro_id"] = intro_unit["unit_id"]
+                intro_unit = None
+                for s, e in intro[opener:]:
+                    unit = add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
+                    intro_unit = intro_unit or unit
+                add_items(i + 1, j, intro_unit)
             i = j
             continue
 
@@ -392,9 +510,9 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
         if not is_bullet(text):
             sentences = split_sentences(text)
             s, e = sentences[0]
-            if is_period_heading(text[s:e]):
-                subheading = text[s:e]
-                add("heading", i, p0 + s, p0 + e, "heading")
+            if is_period_heading(text[s:e]) and not is_sentence(i, p0 + s):
+                level = open_heading(text[s:e], i, p0 + s)
+                add("heading", i, p0 + s, p0 + e, "heading")["heading_level"] = level
                 for s, e in sentences[1:]:
                     add("body", i, p0 + s, p0 + e, prefilter(text[s:e], cfg["min_words"]))
                 i += 1
@@ -404,6 +522,7 @@ def segment_section(sec: dict, cfg: dict) -> list[dict]:
             strength = risk_heading_strength(paragraphs, i, cfg["max_heading_chars"])
             if strength:
                 subheading = None
+                stack.clear()
                 add("body", i, p0, p0 + len(text), None, rule_heading=strength)
                 i += 1
                 continue
@@ -445,14 +564,18 @@ def mark_risk_summary(units: list[dict]) -> None:
 
 
 def run() -> None:
+    from .heading_levels import load_levels      # heading levels, when step 4b has run
     cfg = settings()["segment"]
     kept = kept_section_keys()
+    levels = load_levels()
+    if levels:
+        log(STEP, f"{len(levels)} heading levels from step 4b")
     all_units = []
     for f in filings():
         for sec in read_jsonl(Paths.cleaned(f)):
             if (sec["accession_number"], sec["section_key"]) not in kept:
                 continue
-            units = segment_section(sec, cfg)
+            units = segment_section(sec, cfg, levels)
             all_units += units
             to_label = sum(u["prefilter"] is None for u in units)
             proposed = sum(bool(u["rule_heading"]) for u in units)

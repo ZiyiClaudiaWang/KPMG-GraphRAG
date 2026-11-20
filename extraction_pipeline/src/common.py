@@ -99,11 +99,14 @@ class Paths:
     subsidiaries = staticmethod(lambda: data_dir() / "output" / "subsidiaries.jsonl")      # step 1b
     subsidiary_qa = staticmethod(lambda: data_dir() / "output" / "subsidiary_qa.csv")      # step 1b
     subsidiary_catalog = staticmethod(lambda: data_dir() / "output" / "subsidiary_catalog.json")  # step 1b
+    subsidiary_renames = staticmethod(lambda: data_dir() / "output" / "subsidiary_renames.csv")   # step 1b
     manifest = staticmethod(lambda: data_dir() / "output" / "section_manifest.csv")        # step 3
     sentences = staticmethod(lambda: data_dir() / "output" / "sentences.jsonl")            # step 4
     batches = staticmethod(lambda: data_dir() / "interim" / "label_batches.jsonl")         # step 5
     labels = staticmethod(lambda: data_dir() / "output" / "labels.jsonl")                  # step 5
     usage = staticmethod(lambda: data_dir() / "output" / "usage.jsonl")                    # step 5
+    # Steps 2b and 4b keep their own ledgers, so each has its own budget_usd.
+    step_usage = staticmethod(lambda step: data_dir() / "output" / f"usage_{step}.jsonl")  # steps 2b, 4b
     label_cache = staticmethod(lambda: data_dir() / "cache" / "label")                     # step 5
     errors = staticmethod(lambda: data_dir() / "output" / "errors.jsonl")                  # step 6
     review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 6

@@ -1,0 +1,76 @@
+# Linking Claims to subsidiaries and segments (step 1c builds the catalog, step 7b matches).
+# Design: docs/claim-entity-linking.md (PR #91), P1 = code-only matching.
+
+# The registrant's own names, per ticker. A mention or catalog key equal to one of these is
+# the company itself, never a subsidiary or segment ("Medtronic plc", "NetApp", "Microsoft").
+# Compared after match_key(): case, punctuation and legal form are ignored.
+registrant_names:
+  AAPL: [Apple, Apple Inc.]
+  CASY: ["Casey's", "Casey's General Stores", Caseys]
+  MCK: [McKesson, McKesson Corporation]
+  MDT: [Medtronic, Medtronic plc]
+  MSFT: [Microsoft, Microsoft Corporation]
+  MU: [Micron, Micron Technology]
+  NKE: [Nike, NIKE Inc.]
+  NTAP: [NetApp, NetApp Inc.]
+  PH: [Parker, Parker-Hannifin, Parker Hannifin Corporation]
+  TTWO: [Take-Two, Take-Two Interactive, Take-Two Interactive Software]
+
+# Segment names that are also places or everyday words. Such a hit counts only when the
+# sentence says "segment(s)", or the name is followed by one of guard_context_after
+# ("Europe net sales", "Cardiovascular's net sales", "the Medical Surgical Portfolio");
+# otherwise it stays needs_type_evidence_review. "Europe" in "investigations in Europe" and
+# "Japan" in "imports from China, India, Japan" are places, not Apple's segments.
+guard_terms:
+  - Americas
+  - Europe
+  - Japan
+  - Greater China
+  - Rest of Asia Pacific
+  - Asia Pacific
+  - North America
+  - International
+  - Services
+  - Products
+  - Other
+  - Corporate
+  - Consumer
+  - Enterprise
+  - Commercial
+  - Industrial
+  - Retail
+  - Cardiovascular        # Medtronic: also an adjective ("cardiovascular disease")
+  - Neuroscience
+  - Diabetes              # Medtronic's Diabetes segment vs "patients with diabetes"
+  - Medical Surgical
+guard_context_after:
+  - net sales
+  - net revenues?
+  - revenues?
+  - sales
+  - operating income
+  - segments?
+  - portfolio
+  - reporting unit
+  - products
+  - includes
+  - also includes
+
+# XBRL members on the segment axis that are not a segment a sentence can name: totals,
+# "all other", a filer's single reportable segment (Casey's), and revenue categories that
+# NetApp tags on the same axis. Regexes on the member's local name ("AllOtherSegmentsMember").
+segment_member_skip:
+  - ^AllOtherSegments
+  - ^TotalReportableSegments
+  - ^ReportableSegmentAggregation
+  - ^ReportableSegmentMember$
+  - ^OtherOperatingSegment
+  - RevenuesMember$
+
+# The dictionary pass (a catalog name found in a Claim the model did not tag) skips keys
+# shorter than this, and the keys listed under dictionary_skip (too common as words).
+dictionary_min_key_length: 4
+dictionary_skip: []
+# Short names searched all the same (whole word, capital or digit first, and not right after
+# a capitalised word: "NBA 2K" is a game series).
+dictionary_short_names: [2K]   # Take-Two's 2K label (2K, Inc.)

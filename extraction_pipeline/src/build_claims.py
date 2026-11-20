@@ -1,7 +1,7 @@
 """Step 7b - Build Claims: one candidate record per Claim occurrence, in Claudia's format.
 
 Input : data/output/sentences.jsonl, data/output/labels.jsonl, data/output/review_queue.jsonl,
-        data/sections/*.jsonl, data/interim/clean/*.jsonl, data/entity_catalog.json (optional)
+        data/sections/*.jsonl, data/interim/clean/*.jsonl, data/entity_catalog.json (optional, step 1c)
 Output: data/output/claims.jsonl   one line per occurrence: a Claim sentence at one place in a section
 
 Follows her build_candidates() field by field. Units labelled not_a_claim or needs_review,
@@ -107,11 +107,10 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                                                       issuer_cik=source["cik"],
                                                       accession=source["accession_number"], catalog=catalog))
     reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
+    # related_*_ids keep only matched / matched_auto links (entity_annotation.py, #91 P1);
+    # anything weaker stays a candidate on the mention. Step 8 does not load them yet (#91 P3).
     record.update(proposed_entity_mentions=reviewed["proposed_entity_mentions"], entity_review=reviewed,
-                  postcheck_policy_version=POSTCHECK_POLICY_VERSION, related_segment_ids=[],
-                  related_subsidiary_ids=[])
-    for m in record["entity_mentions"]:        # no confirmed entity links in this unreviewed run
-        m["matched_entity_id"] = None
+                  postcheck_policy_version=POSTCHECK_POLICY_VERSION)
     record["entity_review_flags"] = sorted(set(record["entity_review_flags"] + reviewed["review_flags"]))
     record["candidate_occurrence_id"] = digest(canonical([record["claim_id"],
                                                           record["provenance"]["section_content_sha256"],

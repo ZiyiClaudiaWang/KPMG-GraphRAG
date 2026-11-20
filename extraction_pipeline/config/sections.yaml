@@ -32,6 +32,12 @@ drop:
   properties: Short list of facilities.
   other_information: Mostly insider trading-plan notices.
   unknown: Items 1B, 6 and 9C, which are "None" or "[Reserved]" here.
+  # Types first seen in the 2021-2026 filings (233 filings, 18 Nov 2026 diagnostics).
+  signatures: Signature block and certifications; no Claims.
+  unresolved_staff_comments: Item 1B; under 100 characters each ("None").
+  reserved: Item 6 "[Reserved]"; no content.
+  selected_financial_data: Item 6 in older 10-Ks; about 70 characters each here. Figures belong to Fact.
+  foreign_inspection_disclosure: Item 9C; under 100 characters each ("Not applicable").
 
 review:
   cybersecurity: Narrative on risk management and governance; may hold Claims.
