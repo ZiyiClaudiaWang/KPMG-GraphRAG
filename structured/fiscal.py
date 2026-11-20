@@ -110,6 +110,30 @@ def normalize_period(value: object) -> str | None:
     )
 
 
+def normalize_periods(value: object) -> list:
+    """The periods a caller asked for, always as a list.
+
+    `ticker` and `fiscal_year` have accepted a list since the arms learned to,
+    and `fiscal_period` did not. A question needing two periods - the year and
+    a quarter, to derive the quarter nobody files - was rejected outright.
+
+    `[None]` for no period at all, so a caller can loop over the result either
+    way and the year-only case stays one pass.
+    """
+    if value is None:
+        return [None]
+    if isinstance(value, (list, tuple, set)):
+        if not value:
+            raise ValueError(
+                "fiscal_period is an empty list; give at least one period or "
+                "drop the filter"
+            )
+        # dict.fromkeys and not set(), so ["FY", "Q3"] keeps the caller's order
+        # and two spellings of the same quarter collapse to one window.
+        return list(dict.fromkeys(normalize_period(v) for v in value))
+    return [normalize_period(value)]
+
+
 def build_calendar(periods) -> dict:
     """Read each filer's fiscal calendar out of the periods it reported.
 

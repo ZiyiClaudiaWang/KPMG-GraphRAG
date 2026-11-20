@@ -207,6 +207,10 @@ def _fiscal_clause(filters: dict) -> tuple[str, dict]:
     One window per filer, because FY2026 is a different stretch of time for
     each of them. No filer having the period is a real answer rather than a
     reason to drop the filter and return every year.
+
+    Several periods make several windows joined by OR. A list containing FY
+    widens to the whole year, because the FY window already contains every
+    quarter in it.
     """
     if "fiscal_year" not in filters:
         raise FilterNotSupportedError(
@@ -223,20 +227,23 @@ def _fiscal_clause(filters: dict) -> tuple[str, dict]:
     else:
         tickers = list(scope) if isinstance(scope, (list, tuple, set)) else [scope]
 
+    periods = fiscal.normalize_periods(filters.get("fiscal_period"))
+
     parts, params = [], {}
     for ticker in tickers:
         for year in years:
-            span = fiscal.window(calendar, ticker, year, filters.get("fiscal_period"))
-            if not span:
-                continue
-            key = f"fiscal_{len(parts)}"
-            parts.append(
-                f"(co.ticker = ${key}_t AND "
-                f"fl.reporting_period_end >= ${key}_a AND "
-                f"fl.reporting_period_end <= ${key}_b)")
-            params[f"{key}_t"] = ticker
-            params[f"{key}_a"] = str(span[0])
-            params[f"{key}_b"] = str(span[1])
+            for period in periods:
+                span = fiscal.window(calendar, ticker, year, period)
+                if not span:
+                    continue
+                key = f"fiscal_{len(parts)}"
+                parts.append(
+                    f"(co.ticker = ${key}_t AND "
+                    f"fl.reporting_period_end >= ${key}_a AND "
+                    f"fl.reporting_period_end <= ${key}_b)")
+                params[f"{key}_t"] = ticker
+                params[f"{key}_a"] = str(span[0])
+                params[f"{key}_b"] = str(span[1])
 
     if not parts:
         return "false", {}

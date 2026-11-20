@@ -164,6 +164,12 @@ def _fiscal_clause(conn, filters):
     No filer having the period asked for is a real answer: we hold no filings
     covering it. That is different from being unable to place the period, and
     only the first can be decided here.
+
+    Several periods make several windows joined by OR. Worth knowing that a
+    list containing FY widens to the whole year, because the FY window already
+    contains every quarter in it - so `["FY", "Q3"]` also lets Q1, Q2 and Q4
+    through. Narrowing that needs the fact's own duration, which nothing reads
+    yet.
     """
     if "fiscal_year" not in filters:
         raise ValueError(
@@ -181,11 +187,15 @@ def _fiscal_clause(conn, filters):
     else:
         tickers = list(scope) if isinstance(scope, (list, tuple, set)) else [scope]
 
+    periods = fiscal.normalize_periods(filters.get("fiscal_period"))
+
     clauses, params = [], []
     for ticker in tickers:
         for year in years:
-            span = fiscal.window(calendar, ticker, year, filters.get("fiscal_period"))
-            if span:
+            for period in periods:
+                span = fiscal.window(calendar, ticker, year, period)
+                if not span:
+                    continue
                 # Both ends must sit inside the window, not just the last one.
                 # A 10-Q reports the quarter and the year to date side by
                 # side and they end on the same day, so matching on the end
