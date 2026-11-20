@@ -11,7 +11,7 @@ decision with a separate answer on credentials.
 ## First run
 
 ```bash
-cp .env.example .env.internal        # then fill it in — see Credentials below
+cp extraction_pipeline/.env.example extraction_pipeline/.env.internal  # then fill it in — see Credentials below
 pip install -r requirements-dev.txt  # streamlit and pandas are in there
 python3 tools/corpus_report.py       # check the connection before Streamlit
 streamlit run tools/dashboard/app.py
@@ -29,15 +29,21 @@ Two graphs, and knowing which one you are looking at is most of the value:
 
 | Instance | What it is | Credentials file |
 | --- | --- | --- |
-| `internal` | the team's own graph, the default, where we look first | `.env.internal` |
-| `canonical` | what Eval and Agents are given | `extraction_pipeline/.env` |
+| `internal` | the team's own graph, the default, where we look first | `extraction_pipeline/.env.internal` |
+| `canonical` | what Eval and Agents are given | `extraction_pipeline/.env.canonical` |
+
+Both files live in `extraction_pipeline/`, next to the pipeline's own `.env`, but the
+dashboard never reads `extraction_pipeline/.env`. That file belongs to the extraction
+pipeline (`run_pipeline.py`) and can point wherever the pipeline run needs. The
+dashboard only reads `.env.internal` and `.env.canonical`, so changing `.env` does
+not change what the dashboard shows. All three files are git-ignored.
 
 They are not copies of each other. As of 16 Nov `internal` has the Exhibit 21
 subsidiaries loaded and `canonical` does not, so a subsidiary question answers on one
 and returns nothing on the other. The sidebar radio switches between them; the
 provenance block under the title always says which one you are on.
 
-`.env.internal` needs `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`,
+`extraction_pipeline/.env.internal` needs `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`,
 `NEO4J_DATABASE` and `MSFT_FACT_DB_PATH`. `NEO4J_DATABASE` is the instance ID, not
 `neo4j` — that one has cost two people an afternoon each.
 
@@ -125,8 +131,8 @@ changed the ranking rather than asserted to have.
 
 | What you see | What it means |
 | --- | --- |
-| `No NEO4J_URI in .env.internal` | The file is missing or empty. Copy `.env.example` and fill it in |
-| `No credentials at .env.internal` in the sidebar | Same, caught earlier |
+| `No NEO4J_URI in …/extraction_pipeline/.env.internal` | The file is missing or empty. Copy `extraction_pipeline/.env.example` and fill it in |
+| `No credentials at extraction_pipeline/.env.internal` in the sidebar | Same, caught earlier |
 | `No store configured. Set MSFT_FACT_DB_PATH` | The path is unset, relative, or uses `~` |
 | `RetrievalUnavailableError` on the first Ask | Aura cold start. Press Refresh once and ask again |
 | Counts roughly double | A second extraction run is in the database. The report warns when more than one `pipeline_scope` is present — set one in the sidebar |
