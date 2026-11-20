@@ -22,6 +22,7 @@ Backend = Callable[[str, dict, int, str | None], object]
 
 _graph_backend: Backend | None = None
 _structured_backend: Backend | None = None
+_cypher_backend: Backend | None = None
 
 
 def configure_graph_backend(backend: Backend | None) -> None:
@@ -38,6 +39,14 @@ def configure_structured_backend(backend: Backend | None) -> None:
     if backend is not None and not callable(backend):
         raise TypeError("structured backend must be callable or None")
     _structured_backend = backend
+
+
+def configure_cypher_backend(backend: Backend | None) -> None:
+    """Register (or clear with ``None``) the generated-Cypher retrieval backend."""
+    global _cypher_backend
+    if backend is not None and not callable(backend):
+        raise TypeError("cypher backend must be callable or None")
+    _cypher_backend = backend
 
 
 def _normalize_backend_outcome(raw: object, backend_name: str) -> tuple[str, str | None, list]:
@@ -101,6 +110,11 @@ def _run(
         raw = backend(clean_query, clean_filters, clean_top_k, clean_trace_id)
     except contract.RetrievalUnavailableError:
         raise
+    except contract.QueryGenerationError:
+        # The generated query was wrong, not the store. Retrying the question
+        # would fail the same way, and Eval counts this against the generator
+        # rather than the infrastructure.
+        raise
     except contract.FilterNotSupportedError:
         # Unsupported capability is not a store outage and should not be retried
         # as infrastructure noise.
@@ -134,6 +148,21 @@ def _run(
         item["rank"] = rank
 
     contract.validate_results(normalized, clean_top_k)
+
+    # Eval groups rows by this key, so a row must say which arm produced it and
+    # must not claim to be another arm's. Checked here so no adapter can forget.
+    owner = {v: k for k, v in contract.RETRIEVAL_METHODS.items()}
+    for item in normalized:
+        method = item["metadata"].get("retrieval_method")
+        if not method:
+            raise ValueError(
+                f"{backend_name} backend returned a row with no retrieval_method"
+            )
+        if owner.get(method, backend_name) != backend_name:
+            raise ValueError(
+                f"{backend_name} backend returned retrieval_method={method!r}, "
+                f"which belongs to the {owner[method]} arm"
+            )
     return status, reason, normalized
 
 
@@ -142,7 +171,9 @@ def _tool_config(tool: str) -> tuple[Backend | None, str, frozenset[str]]:
         return _graph_backend, "graph", contract.GRAPH_FILTERS
     if tool == "structured":
         return _structured_backend, "structured", contract.STRUCTURED_FILTERS
-    raise ValueError("tool must be 'graph' or 'structured'")
+    if tool == "cypher":
+        return _cypher_backend, "cypher", contract.CYPHER_FILTERS
+    raise ValueError("tool must be 'graph', 'structured' or 'cypher'")
 
 
 def search(
@@ -214,5 +245,29 @@ def structured_search(
         top_k=top_k,
         trace_id=trace_id,
         allowed_filters=contract.STRUCTURED_FILTERS,
+    )
+    return results
+
+
+def cypher_search(
+    query: str,
+    filters: dict | None = None,
+    top_k: int = 10,
+    trace_id: str | None = None,
+) -> list[dict]:
+    """Search the graph with a query written for the question, not a fixed one.
+
+    A separate entry point rather than a mode on ``graph_search``, so that a
+    caller scoring one arm is never handed results from the other. Every row
+    still says which produced it in ``metadata.retrieval_method``.
+    """
+    _, _, results = _run(
+        backend=_cypher_backend,
+        backend_name="cypher",
+        query=query,
+        filters=filters,
+        top_k=top_k,
+        trace_id=trace_id,
+        allowed_filters=contract.CYPHER_FILTERS,
     )
     return results
