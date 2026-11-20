@@ -62,17 +62,35 @@ def primary_document(cik, accession, user_agent):
     request = urllib.request.Request(folder + "/", headers={"User-Agent": user_agent})
     with urllib.request.urlopen(request, timeout=60) as response:
         index = response.read().decode("utf-8", "replace")
+    return f"{folder}/{pick_primary(index, cik, accession)}"
 
-    names = re.findall(r'href="[^"]*?/([a-zA-Z0-9][a-zA-Z0-9._-]*\.htm)"', index)
-    # The primary document is the one named for a period, not an exhibit.
-    candidates = [n for n in names
-                  if re.fullmatch(r"[a-z0-9]+-\d{8}\.htm", n)]
-    if not candidates:
-        candidates = [n for n in names
-                      if "-ex" not in n.lower() and "index" not in n.lower()]
-    if not candidates:
-        raise ValueError(f"no primary document in {folder}")
-    return f"{folder}/{candidates[0]}"
+
+def pick_primary(index_html, cik, accession):
+    """Choose the primary document from an EDGAR folder listing.
+
+    Only links into this filing's own folder count: the listing page also links to
+    EDGAR's site pages (search.htm, brokers.htm), and taking one of those gave a 404 on
+    every filing from the agent that names documents msft-10q_20201231.htm. Accepted names,
+    in order: <ticker>-<yyyymmdd>.htm; <ticker>-10q_<yyyymmdd>.htm or -10k_; any other
+    document that is not an exhibit, an index or an R<n>.htm viewer page.
+    """
+    own = f"/Archives/edgar/data/{int(cik)}/{accession.replace('-', '')}/"
+    names = []
+    for href in re.findall(r'href="([^"]+\.htm)"', index_html):
+        path = href.split("?doc=")[-1]
+        if own in path:
+            name = path.rsplit("/", 1)[-1]
+            if name not in names:
+                names.append(name)
+    rules = (lambda n: re.fullmatch(r"[a-z0-9]+-\d{8}\.htm", n),
+             lambda n: re.fullmatch(r"[a-z0-9]+-10[kq]_\d{8}\.htm", n, re.I),
+             lambda n: ("-ex" not in n.lower() and "index" not in n.lower()
+                        and not re.fullmatch(r"R\d+\.htm", n)))
+    for rule in rules:
+        candidates = [n for n in names if rule(n)]
+        if candidates:
+            return candidates[0]
+    raise ValueError(f"no primary document in {own}")
 
 
 def fetch(url, user_agent, into):
