@@ -45,8 +45,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # and Agents are given; instance 2 is the team's internal graph and is where we
 # look first.
 INSTANCES = {
-    "internal": ROOT / ".env.internal",
-    "canonical": ROOT / "extraction_pipeline" / ".env",
+    "internal":  ROOT / "extraction_pipeline" / ".env.internal",
+    "canonical": ROOT / "extraction_pipeline" / ".env.canonical",
 }
 
 # A filing should carry all of these. Revenue and cash are families because

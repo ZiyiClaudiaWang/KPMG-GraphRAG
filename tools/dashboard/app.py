@@ -77,6 +77,8 @@ def configure_arms(instance: str) -> dict[str, str]:
                 "MSFT_FACT_DB_PATH"):
         if env.get(key):
             os.environ[key] = env[key]
+        else:
+            os.environ.pop(key, None)
     from graphrag import backends
 
     return backends.configure_from_env()
@@ -115,7 +117,7 @@ instance = st.sidebar.radio(
 )
 
 if not cr.INSTANCES[instance].exists():
-    st.sidebar.error(f"No credentials at {cr.INSTANCES[instance].name}")
+    st.sidebar.error(f"No credentials at {cr.INSTANCES[instance].relative_to(ROOT)}")
 
 scope_override = st.sidebar.text_input("pipeline_scope", value="",
                                        help="Leave empty for the only scope present.")
