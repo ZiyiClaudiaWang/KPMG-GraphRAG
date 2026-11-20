@@ -92,6 +92,21 @@ def test_the_quarter_can_be_written_several_ways():
         fiscal.normalize_period("Q9")
 
 
+def test_several_periods_can_be_asked_for_at_once():
+    # Deriving the quarter nobody files needs the year and a quarter in the
+    # same question, which used to be refused outright.
+    assert fiscal.normalize_periods(["FY", "Q3"]) == ["FY", "Q3"]
+    assert fiscal.normalize_periods("Q3") == ["Q3"]
+    assert fiscal.normalize_periods(None) == [None]
+    # Two spellings of one quarter are one window, and the order asked for
+    # is the order returned.
+    assert fiscal.normalize_periods(["q3", "3", "FY"]) == ["Q3", "FY"]
+    with pytest.raises(ValueError, match="fiscal_period"):
+        fiscal.normalize_periods([])
+    with pytest.raises(ValueError, match="fiscal_period"):
+        fiscal.normalize_periods(["Q3", "Q9"])
+
+
 def test_a_fiscal_year_that_is_not_a_year_is_refused():
     with pytest.raises(ValueError, match="fiscal_year"):
         fiscal.window({}, "MSFT", "not a year")

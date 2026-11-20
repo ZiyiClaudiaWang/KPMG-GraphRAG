@@ -86,6 +86,23 @@ def test_several_years_can_be_asked_for_at_once():
     assert "2025-07-01" in params
 
 
+def test_several_periods_can_be_asked_for_at_once():
+    # Three questions in the gold set ask for the year and a quarter together,
+    # to derive the fourth quarter Microsoft does not file. Both arms used to
+    # raise on the list rather than answer.
+    clause, params = structured_query_v1._fiscal_clause(
+        None, {"ticker": "MSFT", "fiscal_year": 2026, "fiscal_period": ["FY", "Q3"]})
+    assert clause.count("ticker = ?") == 2
+    assert "2026-06-30" in params    # the year ends here
+    assert "2026-03-31" in params    # the quarter ends here
+
+
+def test_one_period_still_makes_one_window():
+    clause, _ = structured_query_v1._fiscal_clause(
+        None, {"ticker": "MSFT", "fiscal_year": 2026, "fiscal_period": "Q3"})
+    assert clause.count("ticker = ?") == 1
+
+
 @pytest.mark.skipif(not os.environ.get("MSFT_FACT_DB_PATH"),
                     reason="needs a DuckDB fact store")
 def test_the_third_quarter_returns_three_months_not_nine(monkeypatch):
