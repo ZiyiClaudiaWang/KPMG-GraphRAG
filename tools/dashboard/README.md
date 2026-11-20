@@ -11,12 +11,9 @@ decision with a separate answer on credentials.
 ## First run
 
 ```bash
-cp extraction_pipeline/.env.example extraction_pipeline/.env.internal
-# then fill it in — see Credentials below
-pip install -r requirements-dev.txt
-# streamlit and pandas are in there
-python3 tools/corpus_report.py
-# check the connection before Streamlit
+cp extraction_pipeline/.env.example extraction_pipeline/.env.internal  # then fill it in — see Credentials below
+pip install -r requirements-dev.txt  # streamlit and pandas are in there
+python3 tools/corpus_report.py       # check the connection before Streamlit
 streamlit run tools/dashboard/app.py
 ```
 
@@ -134,7 +131,7 @@ changed the ranking rather than asserted to have.
 
 | What you see | What it means |
 | --- | --- |
-| `No NEO4J_URI in .env.internal` | The file is missing or empty. Copy `.env.example` and fill it in |
+| `No NEO4J_URI in …/extraction_pipeline/.env.internal` | The file is missing or empty. Copy `extraction_pipeline/.env.example` and fill it in |
 | `No credentials at extraction_pipeline/.env.internal` in the sidebar | Same, caught earlier |
 | `No store configured. Set MSFT_FACT_DB_PATH` | The path is unset, relative, or uses `~` |
 | `RetrievalUnavailableError` on the first Ask | Aura cold start. Press Refresh once and ask again |
