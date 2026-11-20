@@ -180,24 +180,43 @@ Blocked until the Exhibit 21 load runs on the instance being measured. `internal
 
 ## Retrieval — Alison
 
-### Tool routing tuned
+### Abstention, per arm
 
-- [ ] The before figure is measured on the round 1 question set, not estimated
-- [ ] The after figure is measured on the same set
-- [ ] "The right arm" is defined per question type before measuring, and the
-      definition is Adeline's routing table
-- [ ] Questions that got the right arm and still failed are counted separately from
-      questions that got the wrong arm
-- **Closes when:** two numbers exist on the same questions and the gap between them is
-      attributable.
+- [ ] Each arm has its own floor and its own tie rule
+- [ ] Each number records what it was fitted on and what it trades away
+- [ ] A number fitted on one arm is never applied to another, and the document says so
+      in the words Eval agreed to
+- [ ] The graph arm's floor says when it expires. Its score is Neo4j's full-text
+      relevance, which moves with the corpus, so a number fitted at twenty filings
+      does not survive the v2 load
+- [ ] Scale-free rules are preferred where one will do. The gap between the top two
+      results needs no normalisation and works on both arms; an absolute floor does
+      not
+- **Closes when:** four numbers and four reasons exist, and each says what would
+      invalidate it.
 
-### Abstention threshold per arm
+### Future-period questions abstain on coverage
 
-- [ ] Each arm has its own number
-- [ ] Each number has a recorded reason — what it was fitted on and what it trades
-- [ ] A threshold fitted on one arm is not applied to another, and the document says
-      so in the words Eval agreed to
-- **Closes when:** three numbers and three reasons exist.
+- [ ] A per-company bound exists: the latest `reporting_period_end` we hold for that
+      ticker, not a single date for the corpus
+- [ ] A question asking beyond that bound abstains without consulting a score
+- [ ] All five round 1 cases abstain — EV1-063, EV1-065, EV2-046, EV2-047, EV2-050
+- [ ] A 53-week fiscal year and a non-calendar year-end are each covered by a test.
+      Both are in the round 1 set already
+- [ ] The reason emitted is whichever the co-lead settles with Eval. It cannot be
+      invented here — the validator rejects anything outside `SEARCH_REASONS`
+- **Closes when:** the five abstain, and none of them needed a threshold to do it.
+
+### Period-aware ranking
+
+Comes first. The coverage check above cannot tell a wrong-period fact from a right one
+until this lands.
+
+- [ ] `score_fact()` reads `period_start` and `period_end`
+- [ ] Two facts differing only in period no longer score the same
+- [ ] The nine-month-versus-three-month case has a test against the real store
+- **Closes when:** asking for a three-month figure stops returning the nine-month one
+      at the same score.
 
 ### Text2Cypher interface questions
 
