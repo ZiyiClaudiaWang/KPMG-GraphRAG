@@ -245,9 +245,12 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     names that are also places or words (`guard_terms`: "Europe", "Japan", "Cardiovascular") need
     "segment" in the sentence or a word such as "net sales" right after them. Lower-case words
     never match ("public cloud providers"). Details: `src/entity_annotation.py`.
-  - Measure on a run without relabelling: `python -m src.report_entity_links --run ../runs/<run>`.
   - Measure on a run without relabelling: `python -m src.report_entity_links --run ../runs/<run>`;
     `entity_link_review.csv` lists the hits code left undecided, with their candidates.
+  - Check the inputs first: `python -m src.report_entity_inputs` reads steps 1b and 1c and
+    reports 10-Ks flagged for checking, the same subsidiary twice in one 10-K, row counts that
+    jump between years, and the filings and companies offered no segment
+    (`data/output/entity_inputs/`).
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's

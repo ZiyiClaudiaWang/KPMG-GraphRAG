@@ -99,9 +99,11 @@ def segment_members(path: Path) -> list[tuple[str, str, str]]:
     conn = duckdb.connect(str(path), read_only=True)
     try:
         rows = conn.execute(f"""
-            SELECT DISTINCT f.cik, f.accession_number, d.value ->> 'member'
+            SELECT DISTINCT f.cik, f.accession_number, (d.value ->> 'member')
             FROM financial_facts_v1 f, json_each(f.dimensions) AS d
-            WHERE d.value ->> 'axis' = '{SEGMENT_AXIS}' AND d.value ->> 'member' IS NOT NULL
+            -- Parentheses needed: on older DuckDB (seen in Colab; 1.3.2 fails, 2.0 works) ->> binds
+            -- looser than =, so 'axis' = '...' is read as the JSON path and the query fails.
+            WHERE (d.value ->> 'axis') = '{SEGMENT_AXIS}' AND (d.value ->> 'member') IS NOT NULL
         """).fetchall()
     finally:
         conn.close()
