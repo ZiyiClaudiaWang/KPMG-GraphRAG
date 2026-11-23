@@ -11,6 +11,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 
@@ -113,6 +114,39 @@ class LabelReuse(unittest.TestCase):
             self.assertEqual([self.units[c]["char_start"] for c in row["context_unit_ids"]],
                              [self.units[c]["char_start"] for c in self.labels[twin]["context_unit_ids"]])
             self.assertTrue(all(self.units[c]["accession_number"] == SECOND for c in row["context_unit_ids"]))
+
+    def test_selected_filing_with_an_uncached_donor_is_labelled(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(FakeOpenAI, "calls", []):
+            root = Path(folder)
+            shutil.copytree(self.tmp / "sections", root / "sections")
+            with patch.dict(os.environ, {"PIPELINE_DATA_DIR": folder}):
+                clean.run()
+                filter_sections.run()
+                segment.run()
+                label.run(filing=SECOND)
+                targets = {uid for uid, u in self.units.items()
+                           if u["accession_number"] == SECOND and u["prefilter"] is None}
+                direct = {row["unit_id"] for row in read_jsonl(Paths.labels()) if row["source"] == "llm"}
+                self.assertEqual(direct, targets)
+                self.assertTrue(FakeOpenAI.calls)
+
+    def test_list_intro_and_form_must_match_before_copying(self):
+        units = []
+        for acc in (FIRST, SECOND):
+            for i, text in enumerate(["Earlier risks include:", "One", "Two", "Three", "Four", "Target item"]):
+                units.append({"unit_id": f"{acc}/{i}", "ticker": "TEST", "form": "10-K",
+                              "section_key": "risk", "section_type": "risk_factors", "section_path": "Item 1A",
+                              "accession_number": acc, "role": "body", "text": text, "char_start": i,
+                              "prefilter": None, "list_intro_id": f"{acc}/0" if i == 5 else None})
+        target = units[-1]["unit_id"]
+        cfg = label.settings()["label"]
+        self.assertIn(target, label.reuse_plan(units, cfg))
+        units[6]["text"] = "Current operations include:"
+        self.assertNotIn(target, label.reuse_plan(units, cfg))
+        units[6]["text"] = units[0]["text"]
+        for unit in units[6:]:
+            unit["form"] = "10-Q"
+        self.assertNotIn(target, label.reuse_plan(units, cfg))
 
     def test_some_reused_labels_cite_context(self):
         reused = [l for l in self.labels.values() if l["source"] == "llm_reused"]
