@@ -3,7 +3,7 @@
 Turns Data-team section text from SEC 10-K and 10-Q filings into `Claim` nodes in Neo4j,
 following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2.4).
 
-> **Last updated:** 4 November 2026, 2pm, by Kelly Zhou (wenyu-kelly-zhou), on branch
+> **Last updated:** 23 Nov 2026 by Kelly Zhou (wenyu-kelly-zhou), on branch
 > `kelly/claim-extraction-pipeline` (PR #35).
 >
 > **Based on** the version merged with Claudia's code (five filings, [Appendix C](#appendix-c-merge-notes-with-claudias-code)), plus:
@@ -13,6 +13,7 @@ following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2
 > - the link from Claims to risk themes (#53)
 > - ids by source position instead of text (#45)
 > - list groups and sentences rejoined across a page break now become Claims (they used to be held for review)
+
 
 ```
 Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCERNS_RISK]-> RiskFactor
@@ -42,9 +43,7 @@ Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCER
 
 ## Data Scope
 
-20 filings from 10 companies based on Data Team's list: every 10-K and 10-Q in the Data team database with
-`validation_status` passed, listed in `config/filings.yaml`. The NTAP 10-Q
-0001193125-26-380207 is left out (`review_required`).
+233 filings from 10 companies based on Data Team's list: every 10-K and 10-Q in the Data team database, listed in `config/filings.yaml`. Here are some examples listed:
 
 | Company | Industry | Form | Reporting period end | Accession | Filing |
 |---------|----------|------|------------|-----------|--------|
@@ -111,7 +110,6 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 7b | [Build Claims](#step-7b-build-claims) | `build_claims.py` | `output/claims.jsonl` | no |
 | 8 | [Load](#step-8-load) | `load.py` | Neo4j | no |
 
-On the 20 filings, steps 1 to 4 give 15,053 units, of which 11,854 go to the LLM.
 
 ### 2. ID workflow
 #### a. unit_id and claim_id
