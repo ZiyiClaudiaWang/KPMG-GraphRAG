@@ -22,5 +22,13 @@ class ClaimEdits(unittest.TestCase):
                       claim("five", "B", b, section="mda"), claim("six", "B", a)]:
             self.assertEqual(list(pairs([rows[0], other])), [])
         result, = pairs(rows)
-        self.assertEqual(result["edit"], {"left": ["may"], "right": ["could"]})
+        change, = result["edit"]["changes"]
+        self.assertEqual((change["operation"], change["left"], change["right"]), ("replace", ["may"], ["could"]))
         self.assertEqual((result["left"]["claim_id"], result["right"]["claim_id"]), ("one", "two"))
+
+    def test_changed_words_at_both_ends(self):
+        words = "Our operating costs may increase as a result of the changes described in the annual report for fiscal year 2025".split()
+        changed = ["Their", *words[1:-1], "2026"]
+        result = edit(words, changed)
+        self.assertGreaterEqual(result["similarity"], 0.90)
+        self.assertEqual([c["right"] for c in result["changes"]], [["Their"], ["2026"]])
