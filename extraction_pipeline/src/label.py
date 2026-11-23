@@ -67,7 +67,7 @@ Problems with single units are handled as in Claudia's run (her recovery v2 and 
 
 Repeats (label.reuse_repeats: path): a unit whose text, 4 preceding units and section_path are
 the same as a unit in an earlier filing of the same company (report_unit_repeats.py, level
-"path") is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
+"path") can reuse its label when the form and linked list introduction also match. It gets a copy of that first occurrence's label (source "llm_reused",
 reused_from_unit_id), with context_unit_ids moved to its own units at the same distance before
 it. Batches are cut at reused units, so every sent sentence still has its own preceding units
 as context. A reused unit falls back to its own request (a second round of batches in the same
@@ -718,8 +718,23 @@ def reuse_plan(units: list[dict], cfg: dict) -> dict[str, str]:
         raise ValueError(f"label.reuse_repeats must be path or null, not {level!r}")
     order = {f["accession"]: k for k, f in enumerate(filings())}
     rows, _ = repeat_groups(units, cfg["context_sentences"], order)
-    return {r["unit_id"]: r["path_first_unit_id"] for r in rows
-            if r["path_first_unit_id"] not in (None, r["unit_id"])}
+    # The model also sees the filing form and any linked list introduction,
+    # even if that introduction is outside the four preceding units.
+    by_id = {u["unit_id"]: u for u in units}
+
+    def extra_context(unit: dict) -> tuple:
+        intro_id = unit.get("list_intro_id")
+        intro = by_id.get(intro_id)
+        if intro_id and intro is None:
+            return (unit["unit_id"],)  # Unresolved input cannot establish equivalence.
+        return unit.get("form"), norm(intro["text"]) if intro else None
+
+    reuse = {}
+    for row in rows:
+        uid, donor = row["unit_id"], row["path_first_unit_id"]
+        if donor is not None and donor != uid and extra_context(by_id[uid]) == extra_context(by_id[donor]):
+            reuse[uid] = donor
+    return reuse
 
 
 def units_before(units: list[dict]) -> dict[str, tuple[list[dict], int]]:
@@ -887,6 +902,11 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
     if reuse:
         # Second round: reused units whose first occurrence gave no label they can copy.
         copies, fallback = reused_labels(labels, reuse, units)
+        if filing is not None:
+            # --filing cannot send a request for an uncached donor in another filing.
+            labelled = {row["unit_id"] for row in labels}
+            fallback.update(u["unit_id"] for u in units if u["accession_number"] == filing
+                            and u["unit_id"] in reuse and reuse[u["unit_id"]] not in labelled)
         second = plan_batches(units, cfg, only=fallback) if fallback else []
         if second:
             log(STEP, f"{len(fallback)} reused units cannot copy their first occurrence's label; "
