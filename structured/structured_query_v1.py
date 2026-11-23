@@ -297,7 +297,7 @@ def query_database(query, filters=None, top_k=10, trace_id=None):
             placeholders = ", ".join("?" for _ in members)
             sql += f""" AND EXISTS (
                 SELECT 1 FROM json_each(financial_facts_v1.dimensions) AS d
-                WHERE d.value ->> 'axis' = '{segments.SEGMENT_AXIS}'
+                WHERE (d.value ->> 'axis') = '{segments.SEGMENT_AXIS}'
                   AND (d.value ->> 'member') IN ({placeholders})
             )"""
             params.extend(members)

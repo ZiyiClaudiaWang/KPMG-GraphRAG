@@ -48,10 +48,12 @@ SUFFIXES = ("Segment", "Segments")
 SUGGESTIONS = 5
 
 _MEMBERS_SQL = f"""
-SELECT DISTINCT d.value ->> 'member' AS member
+SELECT DISTINCT (d.value ->> 'member') AS member
 FROM financial_facts_v1, json_each(financial_facts_v1.dimensions) AS d
-WHERE d.value ->> 'axis' = '{SEGMENT_AXIS}'
-  AND d.value ->> 'member' IS NOT NULL
+-- Parentheses needed: on older DuckDB (seen in Colab; 1.3.2 fails, 2.0 works) ->> binds
+-- looser than =, so 'axis' = '...' is read as the JSON path and the query fails (see #99).
+WHERE (d.value ->> 'axis') = '{SEGMENT_AXIS}'
+  AND (d.value ->> 'member') IS NOT NULL
 ORDER BY member
 """
 
