@@ -1,62 +1,201 @@
 # Agent team call — 18 November 2026
 
-Eight things to agree. Each ends in a decision.
+Updated 23 November against `yz5405/kpmg-agentic-backbone` `main` at `9fcd5b9`
+(PR #14 v0.4 and PR #15 merged 22 November). PRs #9, #11, #13 and
+`feat/real-rag-retrieval` are still open. 
 
-**Start at section 1.** Your GraphRAG adapter is written but imports the wrong
-module and is not in the workflow path, so you have one retriever and nothing
-to route between. One line and a file move. Most of this page depends on it.
-
+# Content
 ---
+**Urgent**
+1. The fallback mode still drops good evidence
+2. A quarter without a fiscal year ends in ERROR
+3. Run one real answer end to end
 
-## 1 · Your adapter imports the wrong module, and nothing calls it
+**Decision/Discussion Needed**
 
-You already wrote the adapter. `demo/03_GraphRAG_graphrag_adapter.py` calls
-both our arms, passes the arguments correctly, and keeps our provenance when
-it normalises. Two things stop it working, and one of them is one line.
+4. Keep one workflow
+5. Who owns the arithmetic
 
-**It imports the wrong module.**
+**FYI**
+
+6. The import
+7. Every row says which arm produced it
+8. Four failures, one of which you should never retry
+9. What "no evidence" looks like, and who says "I don't know"
+10. You cannot traverse the graph through anything we have given you
+11. Two things that look like bugs and are not
+
+**The bigger picture: what the Agent layer still has to deliver**
+
+
+# Urgent
+
+## 1 · The fallback mode still drops good evidence
+
+**Done 22 Nov:** `tool_selection.py` chooses a tool before retrieval
+(`KPMG_TOOL_SELECTION=auto`), calls `graph_search`, allows one alternate arm,
+and runs the financial evaluator only on financial questions. Your 22 Nov
+smoke test routed a Microsoft competition-claims question to Graph with zero
+fallbacks.
+
+**The bug, still in fallback mode.** With `KPMG_GRAPHRAG_ENABLED=1` and no
+`KPMG_TOOL_SELECTION=auto`, `select_outcome` still sends every non-error
+question through `evaluate_financial_evidence`. It returns `[]` for anything
+that is not one of its regex shapes, asks for the GraphRAG fallback, and ends
+in `NO_EVIDENCE`, so a narrative question that RAG answered is thrown away.
+Delete the fallback mode (§4), or run the evaluator only on the fallback path
+and keep RAG's evidence when it declines.
+
+**Our rows and the evaluator.** On financial questions,
+`evaluate_financial_evidence` requires `metadata.fiscal_year` and
+`fiscal_period` to equal the parsed filters, and a text line like
+`Total revenue 70,066`. Our structured rows carry
+`us-gaap:RevenueFromContract…: 70066000000 USD` with `period_start` /
+`period_end`, so outside the MSFT Q3 revenue special case a correct row can be
+rejected. Match on `concept`, `period_start`, `period_end` and `value_num`, as
+your annual path already does. `_matches_filters` already skips missing fiscal
+labels for our arms; do the same in the evaluator.
+
+**Route subsidiary questions to Graph.** Graph is chosen today only for
+"claims / disclosures about …". "Which subsidiaries does Apple have in
+Ireland?" goes to Vector. Add:
 
 ```python
-# demo/03_GraphRAG_graphrag_adapter.py, in real mode
-importlib.import_module("graphrag.retrieve")   # raises on every call
-importlib.import_module("graphrag.backends")   # this one
+if re.search(r"\b(subsidiar(y|ies)|owns|acquired)\b", query, re.I):
+    return "graph", "narrative"
 ```
 
-`retrieve` holds the contract and waits for something to register a backend.
-`backends` registers both arms from the environment as it loads. Import the
-first and you get a working function that raises every time, which is what
-real mode has been doing.
+Until `neighbours` exists (§10), Graph means `graph_search`, which returns
+sentences, not edges.
 
-**Nothing calls it.** It lives in `demo/` and `integration.py` wires
-`retriever=retrieve_evidence` from `rag_tool.py`. Moving it into
-`agent/tools/` and passing it as the retriever is the rest of the work.
+**Route by what the arms do today**, not by Layer 3 of
+`schema-ids-operations.md`:
 
-You do not need to translate anything else for us. Your `retrieval_node`
-already calls `retriever(query=…, filters=…, top_k=…)`, which is our signature
-with `trace_id` left at its default, and our arms already return the agreed
-envelope. Keep `_to_evidence` only while RAG's shape differs from it — that is
-a RAG question, not ours.
+| Type | Layer 3 says | Route to today |
+|---|---|---|
+| Relational / multi-hop | Graph | Abstain (§10) |
+| Subsidiary | Graph | `graph_search` (text match; `MENTIONS` links are loaded) |
+| Global synthesis | Community summaries | Abstain; never built |
 
-Two more things to know:
+**State.** `AgentGraphState` keeps RAG and GraphRAG evidence separate, but
+there is still one pass and at most one alternate arm, so the multi-input
+questions in §5 still need an accumulator.
 
-- We have no `pyproject.toml`, so you cannot pip install us. Put the checkout
-  on `PYTHONPATH` or add a submodule. Ours to fix, this week.
-- Graph needs `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`,
-  `NEO4J_DATABASE`. Structured needs `MSFT_FACT_DB_PATH`. Call
-  `backends.status` at startup and log it — it names every arm and why any one
+**Decision: (a) delete or fix the fallback mode; (b) relax the evaluator to
+match on periods; (c) add the subsidiary route; (d) measure the share of
+questions routed to the right arm.**
+
+
+## 2 · A quarter without a fiscal year ends in ERROR
+
+**Done 22 Nov:** the ticker map has the ten companies, and a bare year is no
+longer read as `fiscal_year`.
+
+Still open:
+
+- **`fiscal_period` without `fiscal_year`.** "What was Nike's revenue in Q3?"
+  parses to `fiscal_period="Q3"` and no year. Our arms refuse that filter, your
+  loop stops on `unsupported_filter`, and the user gets `ERROR`. Either ask
+  which fiscal year, or drop the period and say so. Do not send it alone.
+- **The `MSFT + "March 31, 2026" → Q3 FY2026` special case** in
+  `query_parser.py` is still there. Period filters work on both arms now, so
+  drop it.
+- **Lists work.** Our arms take a list for `ticker` and `fiscal_year` (applied
+  as an `IN`). For multi-company or multi-period questions, one call to our
+  arms is enough; `retrieve_multi` is only needed for RAG.
+- **`form` filter.** You now send `form`. Both arms accept it; check that the
+  values you send are `10-K` / `10-Q`.
+- **Coverage (PR #13, open).** Our coverage is the ten tickers, 2021–2026,
+  233 filings, which is not RAG's list. Hard-code ours in the precheck, so a
+  question RAG cannot cover can still reach us.
+- **Valid filter values.** Do not call `graphrag.vocabulary`; it is not on our
+  `main`. Use the rules above and your own ticker map.
+
+**Decision: never send a quarter without a fiscal year.**
+
+
+## 3 · Run one real answer end to end
+
+The answer node and the LLM client are built, but every v0.4 check ran with
+both LLM flags off: `KPMG_QUERY_LLM_ENABLED` and `KPMG_ANSWER_ENABLED` are off
+by default, and your own docs list "a real model-generated answer with
+citations in Financial Explorer" as the remaining check.
+
+The online demo (Render) uses bundled sample data, with no live retrieval and
+no generated answers. It is not an end-to-end run.
+
+Run once, before the 30 November freeze: auto mode, real Chroma, both of our
+arms, LLM query understanding and answer generation on, in Financial Explorer.
+Keep the raw trace; the v0.4 regression, Neo4j and UI results were not kept.
+
+Then run the gold set through the agent, with the share of questions routed
+correctly as the first number (INT-3).
+
+**Decision: who runs it, and by when.**
+
+
+# Decision/Discussion Needed
+
+## 4 · Keep one workflow
+
+The API now has two GraphRAG modes, and the orchestrator still lives in
+`demo/github-demo.zip`.
+
+| | Auto (`KPMG_TOOL_SELECTION=auto`) | Fallback (`KPMG_GRAPHRAG_ENABLED=1` only) |
+|---|---|---|
+| Tool choice | Vector / Structured / Graph by rule | RAG, then one GraphRAG arm on weak |
+| Evaluator | Financial questions only | Every question (§1) |
+| Abstain reason | Yes, for calculations and relationships | No |
+| Errors | Classified | Bare `Exception` (§8) |
+
+**Decision: keep auto, delete fallback, and delete the demo orchestrator or
+move its clarify / off-topic step into auto.**
+
+
+## 5 · Who owns the arithmetic
+
+Eval compared RAG and our structured arm on one Microsoft 10-Q
+(`0001193125-26-191507`), `top_k=8`. Of 25 numeric misses, 13 ranked below 8,
+10 needed several inputs, 2 were not in the top 50.
+
+**The ten multi-input ones still have no owner.** v0.4 abstains on them
+(`unsupported_calculation`): rankings, `calculate`, `percentage change`, and
+numeric comparisons. That is a safe default, not a decision. Layer 2 lists
+`compare_periods`, `ratio` and `trend` as structured operations; the arm
+returns facts only, and nothing in your workflow composes two facts.
+
+**Decision: pick one. If ours, we build the three operations. If yours, we
+delete those rows from Layer 2. If neither before 30 Nov, say so and the
+readout lists them as out of scope.**
+
+
+# FYI
+
+## 6 · The import
+
+**Done 22 Nov** in `agent/tools/graphrag_tool.py`: it now imports
+`structured_search` and `graph_search` from `graphrag.backends`.
+
+Still open, only if you keep the demo orchestrator (§4):
+`demo/03_GraphRAG_graphrag_adapter.py` still imports `graphrag.retrieve`, and
+`demo/github-demo.zip` still bundles its own 10 November copy of our
+`graphrag/contract.py`. Import ours rather than vendoring it.
+
+Setup:
+
+- We have no `pyproject.toml` yet. Put our checkout on `PYTHONPATH`, as your
+  `docs/v04-agent-setup.md` already says.
+- Graph needs `NEO4J_URI`, `NEO4J_USERNAME` (or `NEO4J_USER`),
+  `NEO4J_PASSWORD`, `NEO4J_DATABASE`. Structured needs `MSFT_FACT_DB_PATH`;
+  point it at the 233-filing store for the ten companies, not the MSFT-only
+  default.
+- Log `graphrag.backends.status` at startup. It names each arm and why any one
   did not start.
 
-**This gap is ours, not yours.** Both arms only started working on 10
-November, the day of your last commit, and until today you had no credentials
-and no import guidance. You wrote an adapter against a contract you could not
-run.
+**Decision: fix the demo adapter or delete it.**
 
-**Decision: change the import, move the file, wire it in. Tell us if anything
-in the envelope does not fit once it runs.**
 
----
-
-## 2 · Every row says which arm produced it
+## 7 · Every row says which arm produced it
 
 | Arm | `metadata.retrieval_method` |
 |---|---|
@@ -64,231 +203,89 @@ in the envelope does not fit once it runs.**
 | `structured_search` | `duckdb_concept_match` |
 | `cypher_search` | `neo4j_text2cypher` |
 
-Until this week nothing checked this. A row could claim another arm's label
-and pass every validator. Eval groups by this key and you will route on it, so
-a wrong label makes both measure the wrong system with nothing raising. The
-wrapper now rejects a row carrying another arm's label, or no label. PR #67,
-green, not merged.
+The wrapper rejects a row that carries another arm's label, or none.
 
-**Decision: you key on these three strings. Tell us if you key on anything
-else.**
+The Cypher arm is a seam only and raises `RetrievalUnavailableError`. Keep
+`CYPHER_ARM_ENABLED` off and do not route to it, as your v0.4 setup already
+does.
 
----
+**Citations.** The citations `/query` returns carry `section_id`, `fact_id`,
+`chunk_id` and `accession_number`, but not `claim_id` or `retrieval_method`.
+Add both, so a citation still says which arm and which row it came from. PR #11
+(citation schema) is still open; carry the same fields there.
 
-## 3 · Four failures, one of which you should never retry
+**Decision: you key on these three strings. Tell us if you key on anything else.**
+
+
+## 8 · Four failures, one of which you should never retry
 
 | What happened | Example | What we raise |
 |---|---|---|
 | The call was wrong | `filters={"nonsense": 1}` | `ValueError` |
-| The arm cannot serve that filter | `fiscal_year` on the graph arm | `FilterNotSupportedError` |
-| The model wrote a query that will not run | bad syntax, unknown label | `QueryGenerationError` — new |
+| The arm cannot serve that filter | `is_table` on the graph arm | `FilterNotSupportedError` |
+| The model wrote a query that will not run | bad syntax, unknown label | `QueryGenerationError` |
 | The store is unreachable | Aura down or cold | `RetrievalUnavailableError` |
 
-Only the last is worth retrying. The third does not exist on `main` yet — a
-bad generated query comes back today as `RetrievalUnavailableError`, so you
-would retry something that can never succeed.
+**Done 22 Nov:** `describe_retrieval_error` now sorts failures into these
+types, and `run_tool_selection` stops on `invalid_request` and
+`unsupported_filter`.
 
-Your side: `retrieval_node` catches bare `Exception` and `determine_status`
-returns `SUCCESS`, `NO_EVIDENCE` or `ERROR`. All four arrive as `ERROR`.
-Splitting out the retry case is a change to one function.
+Still open:
 
-**Decision: retry only `RetrievalUnavailableError`.**
+- On `RetrievalUnavailableError` you move to the alternate arm. Retry the
+  **same** arm once first: Aura's first call after idle always fails this way
+  (§11), and the alternate arm is usually the wrong arm for the question.
+- Treat `ValueError` and `FilterNotSupportedError` the same way for filters.
+  Today the two arms can answer the same bad filter with different errors.
+- The fallback-mode `graphrag_node` still catches bare `Exception`. If you keep
+  only auto mode (§4), this goes away.
 
----
+**Decision: retry only `RetrievalUnavailableError`, once, on the same arm.**
 
-## 4 · What "no evidence" looks like, and who says "I don't know"
 
-Call `graph_search` / `structured_search` / `cypher_search` and you get a list.
-Empty means nothing matched. Call `search(query, tool=...)` and you get
-`request_id`, `trace_id`, `status`, `reason`, `results`. An arm that finds
-nothing returns `status="abstain"`, `reason="missing_fact"`.
+## 9 · What "no evidence" looks like, and who says "I don't know"
+
+Call `graph_search` / `structured_search` and you get a list. Empty means
+nothing matched. Call `search(query, tool=...)` and you get `request_id`,
+`trace_id`, `status`, `reason`, `results`. An arm that finds nothing returns
+`status="abstain"`, `reason="missing_fact"`.
 
 Statuses are `answer`, `clarify`, `abstain`, `block`. Reasons are
 `out_of_scope`, `false_premise`, `fabricated_relationship`, `missing_fact`,
-`ambiguous`. **All describe the question, not whether an arm is running.** An
-arm that is switched off raises `RetrievalUnavailableError` instead — saying a
-question was out of scope when an arm is simply off is a lie you would act on.
+`ambiguous`. All describe the question, not whether an arm is running. An arm
+that is off raises `RetrievalUnavailableError` instead.
 
-We can tell you a fact is missing. We cannot tell you a question is
-unanswerable. Eval has said the same to us.
+Our arms can say a fact is missing; they cannot say a question is unanswerable.
+Your v0.4 now abstains with a reason for comparisons, rankings and relationship
+questions (`retrieval_limitation`). Use the same field for the plain
+`NO_EVIDENCE` case, so the user always sees why.
 
 **Decision: the final "I don't know" is composed on your side.**
 
----
 
-## 5 · Your parser and our corpus know different companies
+## 10 · You cannot traverse the graph through anything we have given you
 
-From `agent/query_parser.py`. Parsing is three regexes, no model, returning
-`ticker`, `fiscal_year`, `fiscal_period`.
+Layer 2 of `schema-ids-operations.md` lists eleven operations. Built:
+`lookup_fact`, roughly, as `structured_search`; and RAG's `search_text`. Not
+built: everything else, including all four graph operations — `neighbours`,
+`find_path`, `events_between`, `community_summary`. Your v0.4 already abstains
+on traversal questions, which is correct for now.
 
-**The ticker lists barely overlap.** Yours holds microsoft, apple, google,
-alphabet, amazon, meta, nvidia, tesla. Ours is these ten and only these ten:
+Candidates, in our order:
 
-```python
-COMPANY_TICKERS = {
-    "apple": "AAPL",            "casey's": "CASY",
-    "mckesson": "MCK",          "medtronic": "MDT",
-    "microsoft": "MSFT",        "micron": "MU",
-    "nike": "NKE",              "netapp": "NTAP",
-    "parker hannifin": "PH",    "take-two": "TTWO",
-}
-```
+- **`neighbours(entity, relation_types, depth)`.** One parameterised Cypher
+  behind the envelope you already consume. Walks `OWNS`, `MENTIONS` and
+  `HAS_SEGMENT`. No model.
+- **`trend` and `segment_breakdown`.**
+- **`max_hops`** is validated and never applied; do not rely on it.
 
-Overlap today is MSFT and AAPL. Five of yours have no filings here. Eight of
-ours return `None` from `_extract_ticker`, so no filter is set and the search
-runs across every company — ask about Medtronic, get Microsoft.
+Company lookup ("Apple" → `AAPL`) is not exported by us. Keep resolving
+companies with your own `COMPANY_TICKERS`.
 
-Your comment says to keep the list in sync with what RAG retrieves. It is in
-sync with them and not with us, and nobody wrote our list down anywhere.
+**Decision: tell us which of the eleven you would actually call, in your order.**
 
-**Both period filters you emit are ignored, and that is ours.** `fiscal_year`
-and `fiscal_period` are accepted by the contract and applied by neither arm.
-The structured arm also ignores `section` and `is_table`. They pass
-validation, never reach the query, and nothing raises — so a question about
-FY2023 gets claims from any year that look filtered and are not. Our own code
-comment warns about this three lines above the set that does it. We will apply
-them or refuse them by name. Until then send `reporting_period_end` or `form`.
 
-Smaller: `query_parser.py` special-cases `MSFT + "March 31, 2026" → Q3
-FY2026`. That is fitted to the mock's single filing.
-
-**The advice we gave Eval does not work for you.** We told them callers,
-Agents included, should send `{ticker, accession_number}`. Eval can do that
-because the gold set tells them which filing holds the answer. **You do not
-know the accession number until after retrieval**, so that advice was only
-followable by someone who already has the answer.
-
-Nor does anyone hold a fiscal calendar. Eval's harness does not convert
-"FY2023 Q3" into dates — it substitutes the gold accession instead. So for
-your path, period filtering either works through these two keys or it does not
-exist, and building it is ours.
-
-**Decision: the ticker list is sent. Run `python3 -m graphrag.vocabulary` for
-what each arm applies, ignores and refuses. We will make the period keys work
-rather than refuse them, unless you tell us you would rather filter on
-`reporting_period_end` yourselves.**
-
----
-
-## 6 · You cannot traverse the graph through anything we have given you
-
-Layer 2 of `schema-ids-operations.md` is an operation catalogue we agreed with
-you in W4–W6. Eleven operations. Built: `lookup_fact`, roughly, as
-`structured_search`; and RAG's `search_text`. **Not built: everything else**,
-including all four graph operations — `neighbours`, `find_path`,
-`events_between`, `community_summary`.
-
-So the graph arm exposes one operation out of four, and it is lexical search.
-The 752 `Subsidiary` nodes and 752 `OWNS` edges are loaded on both instances
-and unreachable through any contract we have given you.
-
-What works today is two filtered calls and an intersection on your side. That
-is how "which risk factor do Microsoft and Apple both disclose" is answerable.
-It puts graph logic in your code rather than ours.
-
-What we think to add, in order:
-
-1. **`neighbours(entity, relation_types, depth)`** — one parameterised Cypher
-   behind the envelope you already consume. No model, no prompt, no token
-   cost. Walks `OWNS`, which answers the Exhibit 21 questions.
-2. **A company lookup.** You have "Apple" and every filter wants a ticker. The
-   matching logic sits in `graphrag/entity_resolution.py` and is not exported,
-   so you had to write regexes. Ours to fix.
-3. **A list of valid filter values** — tickers, forms, sections, risk themes.
-   A wrong value returns empty, which you cannot tell from a missing fact.
-4. **`trend` and `segment_breakdown`.** `trend` is most of PR #74
-   (`fact_series.py`), already open. `segment_breakdown` is on Ashley's card.
-5. **`max_hops`** is validated and never applied, because there is no
-   traversal to bound. Refuse it until `neighbours` exists.
-
-Text2Cypher writes a query per question and covers shapes nobody enumerated.
-`neighbours` covers the ones we can name, for far less. Our read: 1 and 2
-unblock you this week; the generated arm is a W10 bet.
-
-**Decision: tell us which of the eleven you would actually call, in your
-order.**
-
----
-
-## 7 · Who owns the arithmetic
-
-Eval compared RAG and our structured arm on **one Microsoft 10-Q**
-(`0001193125-26-191507`), `top_k=8`. The graph arm was not run — their
-`not_run` note says so — so nothing here says anything about traversal either
-way. Of 25 number misses:
-
-| Eval's category | Count |
-|---|---|
-| `in_top50_ranked_below_8` | 13 (6 of them the period-word bug) |
-| `multi_input_not_all_in_top50` | 10 |
-| `single_input_not_in_top50` | 2 |
-
-All 25 are ranking or composition failures in the structured arm. None would
-be fixed by generating Cypher — worth saying because routing numeric misses to
-the generated arm is a tempting wrong move.
-
-**The ten multi-input ones have no owner.** Each needs two retrievals and an
-arithmetic step, and our two documents disagree about whose step it is. Layer
-2 lists `compare_periods`, `ratio` and `trend` as Structured operations —
-computed at query time, returning the derived number with both inputs cited,
-never stored, because a stored growth rate has no XBRL provenance and goes
-stale when a 10-K/A restates an input. The arm as built returns facts only, so
-today you compose, by default rather than by decision.
-
-**Decision: pick one. If ours, we build the three operations. If yours, we
-delete those rows from Layer 2 so it stops promising what nobody is building.**
-
----
-
-## 8 · The routing table needs revising
-
-Layer 3 of `schema-ids-operations.md`, written in W6 and untouched since.
-
-| Type | Route today |
-|---|---|
-| Local lookup | Vector |
-| Numeric lookup | Structured |
-| Numeric comparison | Structured |
-| Relational / multi-hop | Graph |
-| Hybrid | Graph resolves the event, structured supplies numbers, vector supplies prose |
-| Global synthesis | Community summaries |
-
-Three rows do not survive:
-
-- **Relational / multi-hop → Graph.** The arm does no traversal. See 6.
-- **Its subsidiary example.** The data is there — both instances hold 752
-  `Subsidiary` nodes, measured this morning — but the arm matches claim text
-  and never walks `OWNS`, so you get a sentence mentioning a subsidiary, not
-  the relationship.
-- **Global synthesis → Community summaries.** We never built them.
-
-A tool-choosing node belongs before retrieval, not after. Rules are enough to
-start:
-
-```python
-def choose_tool(query: str) -> str:
-    q = query.lower()
-    if any(w in q for w in ("subsidiary", "subsidiaries", "owns", "acquired")):
-        return "graph"
-    if any(w in q for w in ("revenue", "income", "assets", "margin", "eps",
-                            "cash flow", "how much")):
-        return "structured"
-    return "vector"
-```
-
-Measure it before trusting it. The share of questions reaching the right arm,
-before and after, is what makes INT-3 real.
-
-One more, worth deciding early because it changes state rather than a node:
-your graph is linear and `AgentGraphState` holds a single `evidence` field, so
-a second retrieval overwrites the first. The ten multi-input questions need an
-accumulator and an edge back to retrieval.
-
-**Decision: revise these rows now, against what the arms actually do.**
-
----
-
-## Three things that look like bugs and are not
+## 11 · Two things that look like bugs and are not
 
 **Dimensions are a list on the real arm and a dict on the mock.** Both shapes
 validate, so a key built on one silently never matches the other.
@@ -301,44 +298,25 @@ validate, so a key built on one silently never matches the other.
   "member": "msft:IntelligentCloudMember", "type": "explicit"}]
 ```
 
-The real one carries namespaces and tag names. Matching on `"Intelligent
-Cloud"` finds nothing.
-
-**`graphrag.backends`, not `graphrag.retrieve`.** Covered in section 1 and
-worth repeating, because the failure is a function that raises on every call.
-
 **Aura cold-starts.** The first call after idle raises
-`RetrievalUnavailableError`. That is wake-up latency. Pre-warm before any demo
-or you will report an outage that is not one.
+`RetrievalUnavailableError`. Retry once (§8), and pre-warm before any demo.
 
----
 
-## Two corrections to `docs/agent-notes.md`
+# The bigger picture: what the Agent layer still has to deliver
 
-Dated 13 October. Two things in it are now wrong, and we will fix both.
+The path a question needs, and where each step stands.
 
-- "An exception means retrieval is broken." Only one of the four in section 3
-  means that.
-- "Connecting to Neo4j is a card this week." Done on 10 November.
-
----
-
-## What we owe you, and what we need back
-
-| | What | When |
+| Step | Needed for | State 23 Nov |
 |---|---|---|
-| Ours | ~~Neo4j credentials, out of band~~ | **sent** |
-| Ours | ~~The ten tickers~~ | **sent** |
-| Ours | Which filters we apply, ignore and refuse — `python3 -m graphrag.vocabulary` | today |
-| Ours | PR #32's import guidance, pointing at `backends` not `retrieve` | today |
-| Ours | `fiscal_year` and `fiscal_period` applied or refused, never ignored | this week |
-| Ours | PR #67 merged, so the error taxonomy is real | this week |
-| Ours | A `pyproject.toml`, so we can be installed rather than path-hacked | this week |
-| Ours | Layer 3 revised, `agent-notes.md` corrected | this week |
-| Ours | `neighbours`, if you say it is the one you need | next week |
-| Yours | Change the import, move the adapter into `agent/tools/`, wire it in | this week |
-| Yours | Widen the ticker map, swap the period keys | this week |
-| Yours | Split the retry case out of `ERROR` | this week |
-| Yours | Which Layer 2 operations you would actually call, in your order | today |
-| Yours | Whether `AgentGraphState` accumulates evidence across calls | this week |
-| Both | Who owns the arithmetic on multi-input questions | today |
+| Understand the question | Company, period, metric, question type | **Done:** ten tickers; optional LLM query understanding (off by default) |
+| Resolve to our vocabulary | "Apple" → `AAPL`; "Q3 FY2026" → a filing window | Company: your ticker map. Period: our arms. Quarter-only questions still fail (§2) |
+| Choose a tool | Relational and numeric questions to the arm that can answer them | **Done** in auto mode; subsidiary route missing (§1) |
+| Decompose | Comparisons, multi-company, multi-period | Abstains. RAG `retrieve_multi` still on a branch; our arms take lists (§2) |
+| Retrieve with retries | Outage vs bad call vs bad filter | Failures classified; same-arm retry missing (§8) |
+| Judge evidence | Enough to answer, or abstain | Narrative: provenance + filter match. Financial: regex shapes, rejects our rows (§1) |
+| Compute | Growth, ratios, differences, with both inputs cited | Abstains; no owner (§5) |
+| Compose the answer | The answer the user reads | Answer node built, **never run with a live model** (§3) |
+| Cite | Every number and claim traceable to a filing | SEC links validated; `claim_id` / `retrieval_method` missing (§7); PR #11 open |
+| Abstain honestly | "I don't know" with a reason | Reason for calculations and relationships; none for plain `NO_EVIDENCE` (§9) |
+| Trace | Eval scoring, debugging | **Done** |
+| Measure | INT-3: does routing help? | Ten-question local traces only. Gold set not run through the agent (§3) |
