@@ -52,3 +52,9 @@ A Claim is one statement at one source position. Its `claim_id` is the `unit_id`
 4. Run `python -m pytest -q tests/test_toy_graph_fixture.py tests/test_corpus_report.py` from the repo root with the development dependencies installed. These tests check the fixture and reporting logic. Save the two live reports as evidence of the actual load.
 
 See the [sprint acceptance criteria](../docs/sprints/2026-11-16-acceptance.md#extraction-1--claudia) for sign-off.
+
+### Repeated sentences and label consistency
+
+In the 20-filing pilot, 127 of 1,579 repeat groups (8.0%) had conflicting primary labels when grouped by company, section type and exact text. After also matching form, section path and pre-batch context, nine groups still showed differences in subject scope or risk-heading flags. The denominator is groups. These checks do not establish a per-sentence error rate. See [the pilot report](https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/pull/88).
+
+Link repeated disclosures across filings while retaining each occurrence’s Claim ID, accession and source span for Eval. Treat a near match as a review candidate. A changed number, date, negation or modal verb may change the meaning. Run the existing exact-repeat report when a new claims file arrives.
