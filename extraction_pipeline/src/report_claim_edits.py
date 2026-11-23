@@ -1,8 +1,9 @@
-"""Report one-token edits between filings. Run from extraction_pipeline with
+"""Report high-similarity edits between filings. Run from extraction_pipeline with
 python -m src.report_claim_edits claims.jsonl --output edits.jsonl
 """
 import argparse
 from collections import defaultdict
+from difflib import SequenceMatcher
 from pathlib import Path
 import json
 import re
@@ -11,18 +12,19 @@ from .common import read_jsonl
 
 
 def edit(left, right):
-    """Return changed tokens for one insertion, deletion or replacement."""
-    if abs(len(left) - len(right)) > 1 or left == right:
+    """Keep single-token edits or a token similarity of at least 0.90."""
+    if left == right:
         return None
-    start = 0
-    while start < min(len(left), len(right)) and left[start] == right[start]:
-        start += 1
-    a, b = len(left), len(right)
-    while a > start and b > start and left[a - 1] == right[b - 1]:
-        a -= 1
-        b -= 1
-    if max(a - start, b - start) == 1:
-        return {"left": left[start:a], "right": right[start:b]}
+    matcher = SequenceMatcher(None, left, right, autojunk=False)
+    if abs(len(left) - len(right)) > 1 and matcher.real_quick_ratio() < 0.90:
+        return None
+    changes = [{"operation": op, "left": left[i:j], "right": right[k:m],
+                "left_start": i, "right_start": k}
+               for op, i, j, k, m in matcher.get_opcodes() if op != "equal"]
+    single = len(changes) == 1 and max(len(changes[0]["left"]), len(changes[0]["right"])) == 1
+    score = matcher.ratio()
+    if single or score >= 0.90:
+        return {"similarity": score, "changes": changes}
 
 
 def pairs(claims):
@@ -38,12 +40,18 @@ def pairs(claims):
             continue
         if sum(t.isalnum() for t in tokens) < 6:
             continue
-        # A single edit leaves at least one three-token end intact.
+        # Candidate filter: a matching prefix, suffix, or interior three-token sequence.
+        # Index three anchors per prior quote; probe its interior anchor anywhere.
         keys = [(int(cik), section, side, tuple(end)) for side, end in
                 (("prefix", tokens[:3]), ("suffix", tokens[-3:]))]
         source = {k: claim[k] for k in ("claim_id", "accession_number", "quote", "section_id")}
         source.update(period_end=prov.get("reporting_period_end"), source_url=prov.get("source_url"))
-        for i in sorted({i for key in keys for i in index[key]}):
+        middle = len(tokens) // 2 - 1
+        interior = (int(cik), section, "interior", tuple(tokens[middle:middle + 3]))
+        probes = set(keys)
+        probes.update((int(cik), section, "interior", tuple(tokens[j:j + 3]))
+                      for j in range(len(tokens) - 2))
+        for i in sorted({i for key in probes for i in index.get(key, ())}):
             previous, other = entries[i]
             if other["accession_number"] == accession:
                 continue
@@ -51,7 +59,7 @@ def pairs(claims):
             if change:
                 yield {"cik": cik.zfill(10), "section_type": section, "edit": change,
                        "left": other, "right": source}
-        for key in keys:
+        for key in [*keys, interior]:
             index[key].append(len(entries))
         entries.append((tokens, source))
 
