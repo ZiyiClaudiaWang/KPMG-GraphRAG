@@ -44,6 +44,35 @@ FULLTEXT_INDEX = "claim_quote_fulltext"
 EXTRACTION_VERSION = "claim-pipeline-v1"
 INDEX_VERSION = "neo4j-fulltext-v1"
 
+# How many claims to ask the index for when a filter is present.
+#
+# The filter runs after the index, not inside it. So the index is asked for the
+# best N claims in the whole graph, and only then are the ones outside the
+# filter thrown away. When the filter selects a small share of the corpus, the
+# rows it wants can sit far down the global score order and never reach the
+# WHERE at all: measured on 10,774 claims, "revenue" filtered to one quarter of
+# one company returned nothing at top_k=8, because its four claims sat at
+# positions 227, 461, 488 and 498. The old rule asked for top_k * 10, which at
+# top_k=8 is 80.
+#
+# So a multiple of top_k cannot be right - top_k says how many rows the caller
+# wants back, and nothing about how far down the list they start. The rule is
+# instead: ask the index for every claim matching the query, and let the filter
+# choose from all of them. That is correct by construction rather than by a
+# large enough guess, and it costs one extra round trip to learn the size of
+# the match set.
+#
+# The match set is bounded by the query, not the corpus - "revenue" matches 548
+# of 10,774 claims. The cap below is a backstop for a query matching most of the
+# graph, where reading everything would cost more than the answer is worth.
+FULLTEXT_MATCH_CAP = 25_000
+
+COUNT_MATCHES_CYPHER = """
+CALL db.index.fulltext.queryNodes($index, $lucene, {limit: $limit})
+YIELD node
+RETURN count(node) AS matches
+"""
+
 # Filters that map onto a property this graph actually stores. Anything in
 # the contract's graph filter set but missing here is refused by name rather
 # than ignored, because an ignored filter silently widens the search.
@@ -412,12 +441,23 @@ def search(query: str, filters: dict | None = None, top_k: int = 10,
     cypher = SEARCH_CYPHER.replace("{where}", f"WHERE {where}" if where else "")
 
     driver = connect()
-    # Ask for more than top_k because the WHERE runs after the index, so
-    # filtered-out claims would otherwise eat the result slots.
-    limit = top_k * 10 if where else top_k
 
     try:
         with driver.session(database=_database) as session:
+            if where:
+                # Every claim the query matches, so the filter chooses from all
+                # of them rather than from whichever happened to rank highest
+                # across the whole graph. See FULLTEXT_MATCH_CAP.
+                matched = session.run(
+                    COUNT_MATCHES_CYPHER, index=FULLTEXT_INDEX, lucene=lucene,
+                    limit=FULLTEXT_MATCH_CAP,
+                ).single()["matches"]
+                limit = max(matched, top_k)
+            else:
+                # Nothing is discarded after the index, so the best top_k the
+                # index returns are the best top_k there are.
+                limit = top_k
+
             rows = session.run(
                 cypher, index=FULLTEXT_INDEX, lucene=lucene, limit=limit, **params
             ).data()

@@ -229,6 +229,100 @@ def test_a_query_of_only_punctuation_returns_nothing_rather_than_failing():
     assert graph_backend.search("*?:") == []
 
 
+# ---- how many candidates the index is asked for ---------------------------
+
+class _FakeIndex:
+    """A full-text index over claims, with the filter running after it.
+
+    Models the thing that broke: the index returns the best `limit` claims in
+    the whole graph, and only then is the filter applied. Wanted claims sitting
+    far down the global score order never reach it.
+    """
+
+    def __init__(self, total=600, wanted_at=(227, 461, 488, 498)):
+        # One row per claim, best first. The wanted ones carry the ticker the
+        # filter asks for; everything else does not.
+        self.matches = [
+            _row(claim_id=f"c{i}", ticker="AAPL" if i in wanted_at else "MSFT",
+                 score=float(total - i))
+            for i in range(total)
+        ]
+        self.limits = []
+
+    def session(self, database=None):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def run(self, cypher, **params):
+        limit = params["limit"]
+        self.limits.append(limit)
+        returned = self.matches[:limit]
+        if "count(node)" in cypher:
+            return _Single({"matches": len(returned)})
+        ticker = params.get("ticker")
+        if ticker:
+            returned = [r for r in returned if r["ticker"] == ticker]
+        return _Rows(returned)
+
+
+class _Single:
+    def __init__(self, value):
+        self._value = value
+
+    def single(self):
+        return self._value
+
+
+class _Rows:
+    def __init__(self, rows):
+        self._rows = rows
+
+    def data(self):
+        return self._rows
+
+
+def _use_fake_index(monkeypatch, index):
+    monkeypatch.setattr(graph_backend, "connect", lambda: index)
+    monkeypatch.setattr(graph_backend, "_database", None)
+
+
+def test_a_narrow_filter_returns_its_claims_however_small_top_k_is(monkeypatch):
+    """The bug: at top_k=8 the arm asked for 80 candidates and the four claims
+    the filter wanted sat at 227 and below, so it reported no evidence while
+    they sat in the graph untouched."""
+    index = _FakeIndex()
+    _use_fake_index(monkeypatch, index)
+
+    for top_k in (5, 8, 20, 100):
+        rows = graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=top_k)
+        assert len(rows) == 4, f"top_k={top_k} returned {len(rows)}"
+
+
+def test_the_candidate_count_follows_the_match_set_not_top_k(monkeypatch):
+    index = _FakeIndex()
+    _use_fake_index(monkeypatch, index)
+
+    graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=8)
+    # First the count, then the search itself: both ask for every match, and
+    # neither number is derived from top_k.
+    assert index.limits == [graph_backend.FULLTEXT_MATCH_CAP, 600]
+
+
+def test_an_unfiltered_search_still_asks_for_only_top_k(monkeypatch):
+    """Nothing is discarded after the index, so the best top_k it returns are
+    the best top_k there are. Asking for the whole match set would be waste."""
+    index = _FakeIndex()
+    _use_fake_index(monkeypatch, index)
+
+    graph_backend.search("revenue", top_k=8)
+    assert index.limits == [8]
+
+
 # ---- against a real graph -------------------------------------------------
 
 def _graph_available() -> bool:
