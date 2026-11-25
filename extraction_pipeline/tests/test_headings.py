@@ -12,7 +12,6 @@ from pathlib import Path
 
 from src import clean, segment
 from src.common import settings
-from src.headings import levels as L
 from src.headings.step import filing_rows
 
 BIG = "font-size:14pt;font-weight:bold"
@@ -123,7 +122,7 @@ class HtmlHeadings(unittest.TestCase):
 
 
 class Step(unittest.TestCase):
-    """run(): the levels file, review and summary files, and the old LLM file kept aside."""
+    """run(): the levels file, and the review and summary files with their column guide."""
 
     def test_run_writes_levels_review_and_summary(self):
         import csv
@@ -155,15 +154,12 @@ class Step(unittest.TestCase):
             try:
                 clean_step.run()
                 filter_sections.run()
-                levels_path().parent.mkdir(parents=True, exist_ok=True)
-                old = [{"heading_id": h["heading_id"], "level": 1, "text": h["text"], "source": "llm:x"}
-                       for h in group["headings"]]
-                levels_path().write_text("".join(json.dumps(r) + "\n" for r in old))
                 step.run(fetch=False)
                 levels = [json.loads(line) for line in levels_path().read_text().splitlines()]
-                review = list(csv.DictReader(step.review_path().open()))
-                summary = list(csv.DictReader(step.summary_path().open()))
-                backup = levels_path().with_name("heading_levels_llm_backup.jsonl").read_text()
+                review_lines = step.review_path().read_text().splitlines()
+                summary_lines = step.summary_path().read_text().splitlines()
+                review = list(csv.DictReader(line for line in review_lines if not line.startswith("#")))
+                summary = list(csv.DictReader(line for line in summary_lines if not line.startswith("#")))
             finally:
                 for k, v in saved.items():
                     if v is None:
@@ -174,11 +170,12 @@ class Step(unittest.TestCase):
         self.assertEqual(len(levels), len(group["headings"]))
         by_text = {r["text"]: r for r in review}
         self.assertEqual(by_text["Server Products"]["heading_path"], "SEGMENT RESULTS > Intelligent Cloud > Server Products")
-        self.assertEqual(by_text["Server Products"]["level_old"], "1")
-        self.assertEqual(by_text["Server Products"]["parent_old"], "")
         self.assertEqual(summary[0]["ticker"], "TEST")
         self.assertEqual(summary[0]["found_in_html_pct"], "100.0")
-        self.assertIn("llm:x", backup)
+        for lines, cols in ((review_lines, step.REVIEW_HELP), (summary_lines, step.SUMMARY_HELP)):
+            guide = [line for line in lines if line.startswith("# ")]
+            self.assertEqual([line[2:].split(":")[0] for line in guide], list(cols))   # one line per column
+            self.assertEqual(lines[len(guide)].split(","), list(cols))               # then the header
 
 
 class Fallbacks(unittest.TestCase):
@@ -188,11 +185,6 @@ class Fallbacks(unittest.TestCase):
             rows, info = filing_rows([group], {raw["section_key"]: raw}, None, False)
         self.assertEqual(info["html"], "missing")
         self.assertEqual({(r["level"], r["reason"]) for r in rows}, {(1, "missing_html")})
-
-    def test_old_levels_give_parents_like_step_4(self):
-        heads = [{"heading_id": k, "text": k} for k in "ABCD"]
-        self.assertEqual(L.paths_from_levels(heads, {"A": 1, "B": 2, "C": 0, "D": 2}),
-                         {"A": None, "B": "A", "C": "B", "D": "A"})
 
 
 if __name__ == "__main__":

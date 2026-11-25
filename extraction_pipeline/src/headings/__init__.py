@@ -16,6 +16,6 @@ section_path and heading_path.
 from .candidates import levels_path, load_levels  # noqa: F401
 
 
-def run(fetch: bool = True, compare_with=None) -> None:
+def run(fetch: bool = True) -> None:
     from .step import run as _run
-    _run(fetch=fetch, compare_with=compare_with)
+    _run(fetch=fetch)

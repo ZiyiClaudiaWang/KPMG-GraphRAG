@@ -188,20 +188,3 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
             "block_text": block.text[:160] if block is not None else None,
         })
     return rows
-
-
-def paths_from_levels(headings: list[dict], levels: dict[str, int]) -> dict[str, str | None]:
-    """heading_id -> parent heading text, as step 4 would build it from these levels (to compare
-    with another levels file)."""
-    stack: list[tuple[int, str]] = []
-    out = {}
-    for h in headings:
-        level = levels.get(h["heading_id"], stack[-1][0] if stack else 1)
-        if level <= 0:
-            out[h["heading_id"]] = stack[-1][1] if stack else None
-            continue
-        while stack and stack[-1][0] >= level:
-            stack.pop()
-        out[h["heading_id"]] = stack[-1][1] if stack else None
-        stack.append((level, h["text"]))
-    return out

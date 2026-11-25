@@ -394,10 +394,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     `reason`), read by step 4; `output/heading_review.csv`, one row per heading with its level,
     parent, path, reason, flags and style; `output/heading_summary.csv`, one row per company
     (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
-    hash differs from the export's `source_sha256`).
-  - The first run keeps an older LLM file as `interim/heading_levels_llm_backup.jsonl` and adds
-    its levels to the review files (`level_old`, `parent_old`, `same_level_as_old`,
-    `same_parent_as_old`); `python -m src.headings --compare-with <file>` compares with any other.
+    hash differs from the export's `source_sha256`). Both CSV files start with one
+    `# column: meaning` line per column, then the header row (pandas: `read_csv(path, comment="#")`).
   - A new level changes `section_path`, which is in the step 5 request: units whose path changed
     are sent again (and paid for) the next time step 5 runs. `unit_id`s do not change.
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
@@ -715,7 +713,7 @@ They need no API key, database or network.
 | File | Check |
 |------|-------|
 | `output/section_manifest.csv` | `review` rows (Item 1C Cybersecurity); add overrides in `config/sections.yaml` |
-| `output/heading_summary.csv`, `output/heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `maybe_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`)<br>• where `parent_text` differs from `parent_old` |
+| `output/heading_summary.csv`, `output/heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `maybe_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`)<br>• `level_4plus`: deep nesting |
 | `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
 | `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_theme_map.csv`<br>• `not_a_theme` rows<br>• `n_units` of large categories |
 | `config/risk_theme_map.csv` | rows with a `note`: categories that fit more than one theme, or none clearly ([Appendix B](#appendix-b-risk-themes)) |

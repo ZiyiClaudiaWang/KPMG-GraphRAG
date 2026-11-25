@@ -3,7 +3,6 @@
   python run_pipeline.py --steps headings,segment
   python -m src.headings                              the same step on its own (then rerun segment)
   python -m src.headings --no-fetch                   only filings whose HTML is already cached
-  python -m src.headings --compare-with old.jsonl     add the old levels to the review file
 
 Reads the candidate headings of the kept sections (steps 2-3 must have run), the Data-team
 sections (data/sections/) and the primary document of each filing, downloaded once from EDGAR to
@@ -13,6 +12,7 @@ Writes:
   data/interim/heading_levels.jsonl    the levels step 4 reads (candidates.py)
   data/output/heading_review.csv       one row per heading: level, parent, path, reason, flags, style
   data/output/heading_summary.csv      one row per company: match rate, levels, reasons, flags
+Both CSV files open with "# column: meaning" lines (pandas: read_csv(path, comment="#")).
 """
 
 from __future__ import annotations
@@ -31,16 +31,56 @@ from ..ex21 import edgar
 from .candidates import levels_path, section_headings
 from .edgar_primary import atomic_write, cached_path, filing_html
 from .html import align, export_text, html_blocks
-from .levels import infer_section, paths_from_levels
+from .levels import infer_section
 
 STEP = "headings"
 SOURCE = "html"
-REVIEW_COLS = ["ticker", "form", "accession", "section_key", "heading_id", "text", "level",
-               "parent_text", "heading_path", "reason", "flags", "match", "next_text",
-               "size", "bold", "underline", "caps", "italic", "center", "indent", "run_in",
-               "block_text"]
 REASONS = ["typography", "table", "item_title_continuation", "toc", "units_line",
            "inside_paragraph", "plain_style", "unmatched", "missing_html"]
+REASON_HELP = ("typography = level from its style; table = in a table (0); item_title_continuation = "
+               "centred line after the Item title (0); toc = table of contents (0); units_line = "
+               "only a unit such as (In millions) (0); inside_paragraph / plain_style / unmatched / "
+               "missing_html = read as a sibling of the heading before it")
+
+# How to read each file: written as "# column: meaning" lines above the header row.
+REVIEW_HELP = {
+    "ticker": "company", "form": "10-K or 10-Q", "accession": "filing",
+    "section_key": "section of the filing (part-ii-item-7 = MD&A)",
+    "heading_id": "accession|section_key|start of the heading in the Data-team text (the key step 4 reads)",
+    "text": "the heading as step 4 found it",
+    "level": "1 = top heading of the section, 2 = under the nearest 1 above, ...; 0 = not a heading (changes no path)",
+    "parent_text": "the heading this one sits under (empty = top of the section)",
+    "heading_path": "the headings above the text that follows, top first: what goes into section_path",
+    "reason": "why it got this level: " + REASON_HELP,
+    "flags": "for review, never change the level: maybe_sentence = 10+ words, starts like a sentence or inside a "
+             "paragraph (maybe a sentence, not a heading); before_table = the next HTML block is a table "
+             "(maybe a table title)",
+    "match": "where it is in the HTML: standalone = a block of its own; run_in = start of a paragraph; "
+             "inside = middle of a paragraph; unmatched / missing_html = not found",
+    "next_text": "first words of the text below it",
+    "size": "font size in pt", "bold": "bold (True/False)", "underline": "underlined", "caps": "all capitals",
+    "italic": "italic", "center": "centred",
+    "indent": "left indent in 9pt steps (only for companies in settings.yaml headings.indent_tickers, else 0)",
+    "run_in": "a lead-in at the start of a paragraph", "in_table": "inside a table",
+    "block_text": "the HTML block it was found in (first 160 characters)",
+}
+REVIEW_COLS = list(REVIEW_HELP)
+SUMMARY_HELP = {
+    "ticker": "company", "filings": "filings with candidate headings",
+    "filings_no_html": "filings whose HTML could not be read (their headings are siblings); should be 0",
+    "filings_sha_differs": "filings whose EDGAR HTML hash differs from the export's source_sha256 (known: all; ask the Data team)",
+    "headings": "candidate headings", "found_in_html_pct": "% of headings found in the HTML (standalone, run_in or inside)",
+    "level_0": "not headings (table headers, tables of contents, unit lines)",
+    "level_1": "top headings of a section", "level_2": "headings at level 2", "level_3": "at level 3",
+    "level_4plus": "at level 4 or deeper (many = check the nesting)",
+    **{f"reason_{k}": f"headings with reason {k}" for k in REASONS},
+    "flag_maybe_sentence": "headings flagged maybe_sentence (check: sentence or heading?)",
+    "flag_before_table": "headings flagged before_table (check: table title or heading?)",
+}
+
+
+def help_lines(columns: dict[str, str]) -> str:
+    return "".join(f"# {name}: {meaning}\n" for name, meaning in columns.items())
 
 
 def htm_dir() -> Path:
@@ -87,24 +127,18 @@ def write_levels(rows: list[dict]) -> None:
     atomic_write(levels_path(), write)
 
 
-def write_review(rows: list[dict], old: dict[str, int] | None, old_parents: dict[str, str | None]) -> None:
-    cols = REVIEW_COLS + (["level_old", "parent_old"] if old is not None else [])
-
+def write_review(rows: list[dict]) -> None:
     def write(stream):
-        w = csv.DictWriter(stream, fieldnames=cols, extrasaction="ignore")
+        stream.write(help_lines(REVIEW_HELP))
+        w = csv.DictWriter(stream, fieldnames=REVIEW_COLS, extrasaction="ignore")
         w.writeheader()
         for r in rows:
-            out = dict(r, flags=";".join(r["flags"]), heading_path=" > ".join(r["heading_path"]),
-                       **(r["style"] or {}))
-            if old is not None:
-                out["level_old"] = old.get(r["heading_id"])
-                out["parent_old"] = old_parents.get(r["heading_id"])
-            w.writerow(out)
+            w.writerow(dict(r, flags=";".join(r["flags"]), heading_path=" > ".join(r["heading_path"]),
+                            **(r["style"] or {})))
     atomic_write(review_path(), write)
 
 
-def summarise(rows: list[dict], info: dict[str, dict], old: dict[str, int] | None,
-              old_parents: dict[str, str | None]) -> list[dict]:
+def summarise(rows: list[dict], info: dict[str, dict]) -> list[dict]:
     by_ticker: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
         by_ticker[r["ticker"]].append(r)
@@ -124,27 +158,20 @@ def summarise(rows: list[dict], info: dict[str, dict], old: dict[str, int] | Non
                **{f"reason_{k}": reasons.get(k, 0) for k in REASONS},
                "flag_maybe_sentence": flags.get("maybe_sentence", 0),
                "flag_before_table": flags.get("before_table", 0)}
-        if old is not None:
-            both = [r for r in rs if r["heading_id"] in old]
-            row["same_level_as_old"] = f"{sum(old[r['heading_id']] == r['level'] for r in both)}/{len(both)}"
-            real = [r for r in both if r["level"] > 0 and old[r["heading_id"]] > 0]
-            row["same_parent_as_old"] = (f"{sum(old_parents.get(r['heading_id']) == r['parent_text'] for r in real)}"
-                                         f"/{len(real)}")
         out.append(row)
     return out
 
 
 def write_summary(summary: list[dict]) -> None:
     def write(stream):
-        if not summary:
-            return
-        w = csv.DictWriter(stream, fieldnames=list(summary[0]))
+        stream.write(help_lines(SUMMARY_HELP))
+        w = csv.DictWriter(stream, fieldnames=list(SUMMARY_HELP))
         w.writeheader()
         w.writerows(summary)
     atomic_write(summary_path(), write)
 
 
-def run(fetch: bool = True, compare_with: Path | None = None) -> None:
+def run(fetch: bool = True) -> None:
     load_env()
     cfg = settings().get("headings") or {}
     indent_tickers = set(cfg.get("indent_tickers") or [])
@@ -154,6 +181,10 @@ def run(fetch: bool = True, compare_with: Path | None = None) -> None:
     if not groups:
         raise SystemExit("No candidate headings. Run clean and filter first.")
     todo = [f for f in filings() if f["accession"] in groups]
+    not_cleaned = [f for f in filings() if not Paths.cleaned(f).is_file()]
+    if not_cleaned:
+        log(STEP, f"{len(not_cleaned)} filings have no cleaned sections and are skipped "
+                  f"(run fetch, clean and filter first), e.g. {not_cleaned[0]['ticker']} {not_cleaned[0]['accession']}")
     missing = [f for f in todo if not cached_path(f, htm_dir()).is_file()]
     if fetch and missing and not edgar.user_agent():
         raise SystemExit(f"{len(missing)} filings need their HTML from EDGAR: set SEC_USER_AGENT='Name email' "
@@ -180,24 +211,9 @@ def run(fetch: bool = True, compare_with: Path | None = None) -> None:
         if n % 25 == 0:
             log(STEP, f"{n}/{len(todo)} filings")
 
-    backup = levels_path().with_name("heading_levels_llm_backup.jsonl")
-    if levels_path().is_file() and any(r.get("source") != SOURCE for r in read_jsonl(levels_path())):
-        if not backup.exists():               # the old step 4b (LLM) file: keep it, never overwrite
-            backup.write_bytes(levels_path().read_bytes())
-            log(STEP, f"kept the old LLM levels as {backup}")
-        compare_with = compare_with or levels_path()
-    if compare_with is None and backup.exists():
-        compare_with = backup
-    old, old_parents = None, {}
-    if compare_with:
-        log(STEP, f"comparing with {compare_with}")
-        old = {r["heading_id"]: int(r["level"]) for r in read_jsonl(compare_with)}
-        for g in (g for gs in groups.values() for g in gs):
-            old_parents.update(paths_from_levels(g["headings"], old))
-
     write_levels(rows)
-    write_review(rows, old, old_parents)
-    summary = summarise(rows, info, old, old_parents)
+    write_review(rows)
+    summary = summarise(rows, info)
     write_summary(summary)
     reasons = Counter(r["reason"] for r in rows)
     log(STEP, f"{len(rows)} headings -> {levels_path()}")
