@@ -178,14 +178,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
 
 ### 3. Details of each step
 
-- <a id="step-1b-subsidiaries"></a>**[1b] Subsidiaries** reads the Exhibit 21 subsidiary list of every
-  `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's
-  export or the LLM, and changes no label request hash.
-  - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`. Each exhibit is downloaded once
-    into the git-ignored `data/ex21/raw/` (listed in `data/ex21/manifest.csv`); later runs read the
-    saved copy. Everyone downloads with their own `SEC_USER_AGENT="Name email"` (environment or
-    `.env`); an accession's documents on EDGAR do not change, so nothing is stored in the repo.
-    A 10-K that cannot be downloaded is a CHECK row in `subsidiary_qa.csv`, and the run goes on.
+- <a id="step-1b-subsidiaries"></a>**[1b] Subsidiaries** reads the Exhibit 21 subsidiary list of every `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's export or the LLM, and changes no label request hash.
+  - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`.
   - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there. Each row carries `reporting_period_end` (the Data team's and the Filing node's name); the step reads `reporting_period_end` (the name the graph and retrieval use).
   - **Code layout:** `src/subsidiaries.py` runs the step only. `src/ex21/` is a library that imports
     nothing from the pipeline: `edgar.py` downloads, `parse.py` reads an exhibit, `normalize.py`
