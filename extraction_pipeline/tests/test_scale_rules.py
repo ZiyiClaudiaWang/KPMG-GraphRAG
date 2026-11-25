@@ -237,15 +237,6 @@ class HeadingLevels(unittest.TestCase):
         self.assertEqual(us["Costs rose 4%."]["section_path"], "Part II Item 7 > OPERATING EXPENSES")
         self.assertEqual(us["(In millions)"]["heading_level"], 0)
 
-    def test_reply_levels_never_skip_one(self):
-        import json
-        from src import heading_levels
-        plan = {"batch": {"heading_ids": ["a", "b", "c"]}}
-        record = {"raw_response": {"choices": [{"finish_reason": "stop", "message": {"content": json.dumps(
-            {"results": [{"id": "h1", "level": 1}, {"id": "h2", "level": 3}, {"id": "h3", "level": 0}]})}}]}}
-        problems, got = heading_levels.answers(plan, record)
-        self.assertEqual((problems, got), ([], {"a": 1, "b": 2, "c": 0}))
-
 
 class TableNotes(unittest.TestCase):
     def test_basis_points_legend_singular_and_plural(self):

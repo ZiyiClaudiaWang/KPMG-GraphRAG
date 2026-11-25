@@ -1,6 +1,6 @@
-"""Model settings and cost estimates for the small LLM steps (2b page breaks, 4b heading levels).
+"""Model settings and cost estimates for the small LLM steps (now only 2b page breaks).
 
-Each step has its own block in config/settings.yaml (page_breaks:, heading_levels:) with its own
+Each step has its own block in config/settings.yaml (page_breaks:) with its own
 model, reasoning effort and budget_usd, and its own ledger (data/output/usage_<step>.jsonl), so it
 never spends step 5's budget and step 5 never spends its budget. Token prices come from the
 shared `prices:` table, so changing a step's model needs no other edit.

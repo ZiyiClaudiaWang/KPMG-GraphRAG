@@ -1,4 +1,4 @@
-"""Settings, prices and request fields of the small LLM steps (2b, 4b)."""
+"""Settings, prices and request fields of the small LLM steps (2b)."""
 
 import unittest
 
@@ -7,7 +7,7 @@ from src import llm_cost
 
 class LlmCostTest(unittest.TestCase):
     def test_steps_have_their_own_model_and_budget(self):
-        for step in ("page_breaks", "heading_levels"):
+        for step in ("page_breaks",):
             cfg = llm_cost.step_cfg(step)
             self.assertIn("budget_usd", cfg)
             self.assertIsNotNone(cfg["price_input_per_1m"], f"{cfg['model']} missing from prices:")

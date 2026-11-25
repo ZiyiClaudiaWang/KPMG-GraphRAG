@@ -43,7 +43,7 @@ Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCER
 
 ## Data Scope
 
-233 filings from 10 companies based on Data Team's list: every 10-K and 10-Q in the Data team database, listed in `config/filings.yaml`. Here are some examples listed:
+313 filings from 14 companies (`status: passed`), plus 40 filings of CAH and INTC listed as `status: on_hold` until the Data team fixes them and skipped by every step: every 10-K and 10-Q in the Data team database, listed in `config/filings.yaml`. Until 25 Nov 2026 the scope was 233 filings from the first 10 companies. Here are some examples listed:
 
 | Company | Industry | Form | Reporting period end | Accession | Filing |
 |---------|----------|------|------------|-----------|--------|
@@ -103,7 +103,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl` | no |
-| 4b | [Heading levels](#step-4b-heading-levels) (optional, paid) | `heading_levels.py` | `interim/heading_levels.jsonl`, `output/usage_heading_levels.jsonl` | yes |
+| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `edgar/primary/` | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -330,11 +330,12 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       sentence. The ":" is left out of `subheading` and `section_path`.
     - A short title-case sentence ending in a period at the start of a paragraph
       ("Flexible Work.", "Zynga.") is also a heading.
-    - Levels come from `data/interim/heading_levels.jsonl` (step 4b, or the Data team's HTML if
-      they can export it): a heading keeps the headings above it in `section_path` and in the new
+    - Levels come from `data/interim/heading_levels.jsonl` ([step 4b](#step-4b-heading-levels),
+      from the filing's HTML): a heading keeps the headings above it in `section_path` and in the
       `heading_path` field ("Part II Item 7 > SEGMENT RESULTS OF OPERATIONS > Reportable Segments >
-      Intelligent Cloud"); level 0 is not a heading (a table title, "(In millions)") and changes no
-      path. Without the file a heading replaces the one before it, as before.
+      Intelligent Cloud"); level 0 is not a heading (a column header, "(In millions)", a table of
+      contents) and changes no path; level -1 would make the line a sentence (no rule gives it yet).
+      Without the file a heading replaces the one before it.
   - **Item 1A - Risk Factors** ([diagram](#b-risk-factors)).
     - Category headings ("Business Risks", "RISKS RELATING TO …", "Risks related to our
       business and industry") set the unit's `category`.
@@ -359,18 +360,46 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       It is a label only: it is not in the request hash, so changing it alone costs nothing; a
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
-- <a id="step-4b-heading-levels"></a>**[4b] Heading levels** (`src/heading_levels.py`, optional,
-  OpenAI) sends the sub-headings of each kept section, in order, with their typography (capitals,
-  title case, numbering, a trailing ":" or ".") and the first words below each, and the model gives
-  each a level (1-4, 0 for a table title, -1 for a sentence of the text that the rules read as a
-  heading, such as a risk factor whose period was lost: CASY "We may be adversely impacted by
-  increases in the cost of food ingredients ...", TTWO "We may be adversely affected by the effects
-  of inflation"; step 4 then labels it like any sentence). A level more than one deeper than the
-  heading before it is cut back. One request per section: 316 sections, 12,345 headings for the
-  233 filings. Own model, budget and ledger (`heading_levels:` in `config/settings.yaml`,
-  `data/output/usage_heading_levels.jsonl`); `--compare` and `--model` as in 2b. The dry run gives a
-  typical and a worst-case cost; after a `--limit 3` run it also extrapolates from the measured cost. Not needed if the Data team can export heading levels from the HTML: they would
-  write the same file (`heading_id`, `level`, `text`, `source`).
+- <a id="step-4b-heading-levels"></a>**[4b] Heading levels** (`src/headings/`, no LLM) reads
+  how the headings nest from the typography of the filing's own HTML. Plain text cannot show it,
+  and the LLM version of this step (gpt-4.1-mini on the text, removed 25 Nov 2026) agreed with the
+  HTML on only 63% of levels in the 20-filing check; where they differed, the HTML was right in
+  the cases looked at, not a blind check (NKE 18pt "RESULTS OF OPERATIONS" is a top heading; the MSFT Item 1
+  siblings "The Ambitions That Drive Us" / "Our Future Opportunity").
+  - **Input:** the candidate headings step 4 finds in each kept section, the Data-team sections,
+    and the filing's primary document from SEC EDGAR, downloaded once to
+    `data/edgar/primary/<TICKER>_<accession>.htm` (needs `SEC_USER_AGENT` in `.env`, as step 1b).
+    The export text matches the HTML: each HTML block is placed in the export text, and each
+    heading is found by its position (`heading_id`).
+  - **Levels**, per section (`src/headings/levels.py`):
+    - inside a table (a column or row header), a centred line right after the Item title ("For
+      the fiscal year ended …"), a table of contents ("INDEX TO …" and the lines right after it
+      that are links or less prominent), and a line that is only a unit ("(In millions)"): level 0;
+    - otherwise by style: the first style seen is level 1; a style seen before closes the levels
+      under it (a sibling); a new style first closes the open styles less prominent than it
+      (size, then bold / underline / capitals / centred; italic and run-in rank lower), then opens
+      one level deeper;
+    - left indent counts only for the companies in `headings.indent_tickers`
+      (`config/settings.yaml`; MCK);
+    - a heading not found in the HTML, in the middle of an HTML paragraph, or a run-in lead-in
+      without bold or italic is a sibling of the heading before it (`reason` says which).
+  - **Flags** (never change the level), for review:
+    - `maybe_sentence`: 10 or more words, starts like a sentence ("We …", "Our …"), or inside a
+      paragraph. Possibly a sentence the rules read as a heading (CASY "We may be adversely
+      impacted by increases in the cost of food ingredients …", a risk factor whose period was
+      lost). Once checked, a rule can give these level -1, and step 4 labels them like any sentence.
+    - `before_table`: the next HTML block is a table, so it may be a table title
+      (NTAP "Net Revenues (in millions, except percentages)") rather than a heading.
+  - **Output:** `interim/heading_levels.jsonl` (`heading_id`, `text`, `level`, `source: html`,
+    `reason`), read by step 4; `output/heading_review.csv`, one row per heading with its level,
+    parent, path, reason, flags and style; `output/heading_summary.csv`, one row per company
+    (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
+    hash differs from the export's `source_sha256`).
+  - The first run keeps an older LLM file as `interim/heading_levels_llm_backup.jsonl` and adds
+    its levels to the review files (`level_old`, `parent_old`, `same_level_as_old`,
+    `same_parent_as_old`); `python -m src.headings --compare-with <file>` compares with any other.
+  - A new level changes `section_path`, which is in the step 5 request: units whose path changed
+    are sent again (and paid for) the next time step 5 runs. `unit_id`s do not change.
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
   - Batches of up to 15 consecutive sentences per section, with read-only context: the 4 units
     before them, plus the intro of any split list item in the batch whose intro is in neither
@@ -595,10 +624,10 @@ The risk theme library and map are in `config/risk_themes.csv` and `config/risk_
 ## Run
 
 ```bash
-python run_pipeline.py --until segment      # steps 1-4: free, no API
+python run_pipeline.py --until segment      # steps 1-4: no LLM; 1b and 4b download from EDGAR
 python run_pipeline.py --steps page_breaks --dry-run      # step 2b: requests and cost, no API
 python run_pipeline.py --steps page_breaks,clean,filter   # step 2b (paid): once before labelling at scale
-python run_pipeline.py --steps heading_levels,segment     # step 4b (paid, optional)
+python run_pipeline.py --steps headings,segment           # step 4b: free; downloads each filing's HTML once
 python -m src.report_unit_repeats           # repeats across filings, before labelling: data/output/repeats/
 python run_pipeline.py --steps risk_factors # step 7a: free; lists unmapped risk categories
 # review data/output/section_manifest.csv, sentences.jsonl and risk_categories.csv
@@ -632,21 +661,23 @@ pytest tests -q                  # as CI does (pytest.ini puts src/ on the path)
 python -m unittest discover tests
 ```
 
-80 tests. They need no API key or database.
+They need no API key, database or network.
 
 - `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
   fake model in place of OpenAI and its own risk theme map (`tests/fixtures/risk_theme_map.csv`).
+- `test_headings.py` runs step 4b on a small synthetic filing (HTML and export text built from
+  the same lines).
 - `test_sentence_entities.py` started as Claudia's (sentence boundaries and entity matching)
   and now also covers bullets, lists, abbreviations, headings, page breaks, risk categories,
   the risk factor summary and unit ids.
 
 ## Cost tracking
 
-- Every step-5 API call is logged to `data/output/usage.jsonl` (steps 2b and 4b: `usage_page_breaks.jsonl`,
-  `usage_heading_levels.jsonl`, each with its own `budget_usd`), and to `usage.json` in its request
+- Every step-5 API call is logged to `data/output/usage.jsonl` (step 2b: `usage_page_breaks.jsonl`,
+  with its own `budget_usd`), and to `usage.json` in its request
   folder, with its tokens (including cached input tokens), request id, latency and estimated cost.
 - `python -m src.label --report` prints the totals. Step 5's prices are the `price_*` keys in `label:`
-  (published gpt-4.1-mini rates); update them when changing the model. Steps 2b and 4b look up their
+  (published gpt-4.1-mini rates); update them when changing the model. Step 2b looks up its
   model in the `prices:` table (10% added on the US data-residency endpoint for models marked
   `regional_uplift`).
 - `label.budget_usd` (default 3.0) stops the step-5 run before a request could take total estimated spend
@@ -684,6 +715,7 @@ python -m unittest discover tests
 | File | Check |
 |------|-------|
 | `output/section_manifest.csv` | `review` rows (Item 1C Cybersecurity); add overrides in `config/sections.yaml` |
+| `output/heading_summary.csv`, `output/heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `maybe_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`)<br>• where `parent_text` differs from `parent_old` |
 | `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
 | `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_theme_map.csv`<br>• `not_a_theme` rows<br>• `n_units` of large categories |
 | `config/risk_theme_map.csv` | rows with a `note`: categories that fit more than one theme, or none clearly ([Appendix B](#appendix-b-risk-themes)) |
@@ -707,9 +739,11 @@ python -m unittest discover tests
    | Cybersecurity (10-K Item 1C) | How the company governs and manages cyber risk | Answers "how does the company manage cybersecurity?" | The risks themselves are already in Item 1A; mostly process descriptions |
 
 2. Step 4 - Headings:
-   - Without step 4b (or levels from the Data team), headings have one level only. A heading replaces the one above it (AAPL "Products" > "iPhone" keeps only "iPhone").
-     - 872 headings in kept sections of the 233 filings directly follow another heading (so the first is the parent).
-     - Asked the Data team whether the export can carry the HTML tag or style of each heading; until then, step 4b.
+   - Levels now come from the filing's HTML (step 4b, 25 Nov 2026); the LLM version is removed. Open:
+     - `maybe_sentence` rows: decide the rule that gives a real sentence level -1.
+     - `before_table` rows: decide which are table titles (level 0).
+     - Same-size visual nesting can differ from the meaning (MSFT italic "Competition" sits under the last product, not the segment).
+     - The export's `source_sha256` never equals the EDGAR file's hash, although the text matches: ask the Data team what they hash.
    - Some real headings are marked `too_short`, not `heading`.
      - TTWO "Player acquisition costs." (×2) and "International operations risks": a period, or a lower-case word, keeps them from the heading rules. They are not sent to the LLM either way, but the units below them keep the previous heading in `section_path`
 3. Step 6 - Release held units.

@@ -13,7 +13,8 @@ Steps, in order:
   page_breaks   page_break_decisions.jsonl: yes/no for page breaks the rules leave gray (OpenAI)
   clean         remove page headers, repair paragraphs
   filter        section_manifest.csv: which sections to extract from
-  heading_levels heading_levels.jsonl: how the sub-headings of a section nest (OpenAI)
+  headings      heading_levels.jsonl: how the sub-headings of a section nest, from the
+                filing's EDGAR HTML (no LLM; needs SEC_USER_AGENT to download the HTML once)
   segment       sentences.jsonl: numbered sentences and list groups
   label         labels.jsonl: one label per sentence (OpenAI)
   validate      errors.jsonl: every sentence has exactly one valid label
@@ -23,10 +24,9 @@ Steps, in order:
 
   python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
 
-page_breaks and heading_levels are not in a default run: they cost money, and their output
-files, once written, are read by clean and segment on every later run. Run them on purpose:
+page_breaks is not in a default run: it costs money, and its output file, once written, is
+read by clean on every later run. Run it on purpose:
   python run_pipeline.py --steps page_breaks,clean,filter          (clean must have run once)
-  python run_pipeline.py --steps heading_levels,segment
 """
 
 from __future__ import annotations
@@ -35,12 +35,12 @@ import argparse
 import sys
 import time
 
-from src import (build_claims, clean, entity_catalog, fetch, filter_sections, heading_levels, label, load,
+from src import (build_claims, clean, entity_catalog, fetch, filter_sections, headings, label, load,
                  page_breaks, risk_factors, segment, subsidiaries, validate)
 
-STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "heading_levels", "segment", "label",
+STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings", "segment", "label",
          "validate", "risk_factors", "build_claims", "load"]
-OPT_IN = {"page_breaks", "heading_levels"}       # paid; only when named in --steps
+OPT_IN = {"page_breaks"}       # paid; only when named in --steps
 
 
 def main() -> None:
@@ -69,7 +69,7 @@ def main() -> None:
         "page_breaks": lambda: page_breaks.run(dry_run=args.dry_run, limit=args.limit),
         "clean": clean.run,
         "filter": filter_sections.run,
-        "heading_levels": lambda: heading_levels.run(dry_run=args.dry_run, limit=args.limit),
+        "headings": headings.run,
         "segment": segment.run,
         "label": lambda: label.run(dry_run=args.dry_run, filing=args.filing, limit=args.limit),
         "validate": validate.run,

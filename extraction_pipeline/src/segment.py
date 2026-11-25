@@ -364,8 +364,8 @@ def heading_id(sec: dict, paragraph: dict, start: int) -> str:
 
 
 def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) -> list[dict]:
-    """Units of one cleaned section. levels: heading id -> level (heading_levels.py, or the Data
-    team's HTML when it comes), 1 = top. With levels, a heading keeps the headings above it in
+    """Units of one cleaned section. levels: heading id -> level (step 4b, src/headings/, from
+    the filing's HTML), 1 = top. With levels, a heading keeps the headings above it in
     section_path ("Part II Item 7 > Results of Operations > Segment Results > Intelligent Cloud");
     level 0 means "not a heading" (a table title or column header) and changes no path; level -1
     means the line is a sentence of the text (CASY "We may be adversely impacted by increases in
@@ -381,7 +381,7 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     stack: list[tuple[int, str]] = []          # (level, heading text) above the current unit
 
     def is_sentence(p_index: int, start: int) -> bool:
-        """Step 4b said this heading-like line is a sentence of the text (level -1)."""
+        """The levels file says this heading-like line is a sentence of the text (level -1)."""
         return (levels or {}).get(heading_id(sec, paragraphs[p_index], start)) == SENTENCE_LEVEL
 
     def open_heading(name: str, p_index: int, start: int) -> int:
@@ -564,7 +564,7 @@ def mark_risk_summary(units: list[dict]) -> None:
 
 
 def run() -> None:
-    from .heading_levels import load_levels      # heading levels, when step 4b has run
+    from .headings import load_levels            # heading levels, when step 4b has run
     cfg = settings()["segment"]
     kept = kept_section_keys()
     levels = load_levels()

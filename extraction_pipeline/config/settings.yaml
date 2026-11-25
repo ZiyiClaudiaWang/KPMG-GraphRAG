@@ -40,27 +40,24 @@ label:
   price_cached_input_per_1m: 0.10
   price_output_per_1m: 1.60
 
-# Steps 2b and 4b: each has its own model, budget and ledger (data/output/usage_<step>.jsonl),
+# Step 2b has its own model, budget and ledger (data/output/usage_<step>.jsonl),
 # separate from step 5. base_url is label.base_url unless set here. Prices come from prices: below.
 # reasoning_effort and max_reasoning_tokens apply to reasoning models only (gpt-5*, o*):
 # max_reasoning_tokens is extra output room per request; too little ends a reply early
 # ("Missing or incomplete completion"), and that reply is saved and not resent.
-# Compare models before a run:  python -m src.page_breaks --compare   /   python -m src.heading_levels --compare
+# Compare models before a run:  python -m src.page_breaks --compare
 page_breaks:                         # step 2b
   model: gpt-5.4
   reasoning_effort: low              # none | low | medium | high (gpt-5 itself: minimal instead of none)
   max_reasoning_tokens: 2000
   budget_usd: 1.0
 
-heading_levels:                      # step 4b
-  model: gpt-4.1-mini
-  reasoning_effort: low
-  max_reasoning_tokens: 4000
-  budget_usd: 4.0
+headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
+  indent_tickers: [MCK]              # companies whose left indent marks a heading level
 
 # USD per 1M tokens, Standard tier, from https://openai.com/api/pricing (checked 2026-11-18).
 # regional_uplift: true = released on or after 2026-03-05, so 10% more on a data-residency
-# endpoint such as us.api.openai.com (label.base_url). Used by steps 2b and 4b; step 5 still
+# endpoint such as us.api.openai.com (label.base_url). Used by step 2b; step 5 still
 # uses the price_* keys in label:.
 regional_uplift: 0.10
 prices:
