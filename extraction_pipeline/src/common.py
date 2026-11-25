@@ -62,13 +62,21 @@ def settings() -> dict:
     return load_config("settings")
 
 
-def filings() -> list[dict]:
-    """Filings from config/filings.yaml, or from the file named by PIPELINE_FILINGS (used by tests)."""
+def filings(include_on_hold: bool = False) -> list[dict]:
+    """Filings from config/filings.yaml, or from the file named by PIPELINE_FILINGS (used by tests).
+
+    Rows with `status: on_hold` (companies the Data team is still fixing) are left out unless
+    include_on_hold; rows without a status count as passed.
+    """
     override = os.environ.get("PIPELINE_FILINGS")
     if override:
         with open(override, encoding="utf-8") as f:
-            return yaml.safe_load(f)["filings"]
-    return load_config("filings")["filings"]
+            rows = yaml.safe_load(f)["filings"]
+    else:
+        rows = load_config("filings")["filings"]
+    if include_on_hold:
+        return rows
+    return [r for r in rows if r.get("status", "passed") != "on_hold"]
 
 
 def filing_stem(filing: dict) -> str:
