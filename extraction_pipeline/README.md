@@ -3,7 +3,7 @@
 Turns Data-team section text from SEC 10-K and 10-Q filings into `Claim` nodes in Neo4j,
 following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2.4).
 
-> **Last updated:** 4 November 2026, 2pm, by Kelly Zhou (wenyu-kelly-zhou), on branch
+> **Last updated:** 23 Nov 2026 by Kelly Zhou (wenyu-kelly-zhou), on branch
 > `kelly/claim-extraction-pipeline` (PR #35).
 >
 > **Based on** the version merged with Claudia's code (five filings, [Appendix C](#appendix-c-merge-notes-with-claudias-code)), plus:
@@ -13,6 +13,7 @@ following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2
 > - the link from Claims to risk themes (#53)
 > - ids by source position instead of text (#45)
 > - list groups and sentences rejoined across a page break now become Claims (they used to be held for review)
+
 
 ```
 Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCERNS_RISK]-> RiskFactor
@@ -42,9 +43,7 @@ Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCER
 
 ## Data Scope
 
-20 filings from 10 companies based on Data Team's list: every 10-K and 10-Q in the Data team database with
-`validation_status` passed, listed in `config/filings.yaml`. The NTAP 10-Q
-0001193125-26-380207 is left out (`review_required`).
+233 filings from 10 companies based on Data Team's list: every 10-K and 10-Q in the Data team database, listed in `config/filings.yaml`. Here are some examples listed:
 
 | Company | Industry | Form | Reporting period end | Accession | Filing |
 |---------|----------|------|------------|-----------|--------|
@@ -111,7 +110,6 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 7b | [Build Claims](#step-7b-build-claims) | `build_claims.py` | `output/claims.jsonl` | no |
 | 8 | [Load](#step-8-load) | `load.py` | Neo4j | no |
 
-On the 20 filings, steps 1 to 4 give 15,053 units, of which 11,854 go to the LLM.
 
 ### 2. ID workflow
 #### a. unit_id and claim_id
@@ -180,14 +178,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
 
 ### 3. Details of each step
 
-- <a id="step-1b-subsidiaries"></a>**[1b] Subsidiaries** reads the Exhibit 21 subsidiary list of every
-  `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's
-  export or the LLM, and changes no label request hash.
-  - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`. Each exhibit is downloaded once
-    into the git-ignored `data/ex21/raw/` (listed in `data/ex21/manifest.csv`); later runs read the
-    saved copy. Everyone downloads with their own `SEC_USER_AGENT="Name email"` (environment or
-    `.env`); an accession's documents on EDGAR do not change, so nothing is stored in the repo.
-    A 10-K that cannot be downloaded is a CHECK row in `subsidiary_qa.csv`, and the run goes on.
+- <a id="step-1b-subsidiaries"></a>**[1b] Subsidiaries** reads the Exhibit 21 subsidiary list of every `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's export or the LLM, and changes no label request hash.
+  - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`.
   - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there. Each row carries `reporting_period_end` (the Data team's and the Filing node's name); the step reads `reporting_period_end` (the name the graph and retrieval use).
   - **Code layout:** `src/subsidiaries.py` runs the step only. `src/ex21/` is a library that imports
     nothing from the pipeline: `edgar.py` downloads, `parse.py` reads an exhibit, `normalize.py`
