@@ -151,6 +151,7 @@ class PageBreaks(unittest.TestCase):
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Continued)", set()), "continued_header")
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Concluded)", set()), "continued_header")
         self.assertEqual(drop_rule("Table of Contents | MD&A Index |", set()), "toc_link")
+        self.assertEqual(drop_rule("Table of Contents | Alphabet Inc.", set()), "toc_link")      # GOOGL page top
         self.assertIsNone(drop_rule("Fiscal Year 2026 Compared with Fiscal Year 2025", set()))
 
     def test_unaudited_label_is_removed(self):
