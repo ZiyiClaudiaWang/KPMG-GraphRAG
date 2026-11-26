@@ -13,8 +13,9 @@ clean:
 segment:
   min_words: 4                       # shorter sentences are prefiltered as too_short
   max_heading_chars: 500             # longer paragraphs are never risk headings
-  lead_rule: fallback                # lead sentences: fallback = rule_heading only for filings without
-                                     # HTML leads (step 4b); union = also where the HTML has none
+  lead_rule: fallback                # lead sentences from rule_heading: fallback = only in filings without
+                                     # HTML (step 4b); section = also in sections whose HTML shows no
+                                     # lead; union = everywhere
 
 label:
   model: gpt-4.1-mini                # any OpenAI model that supports structured outputs

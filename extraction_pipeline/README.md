@@ -353,7 +353,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     counterparty default risks."; also the Item 1A headings step 4b reads as sentences, level -1),
     or the styled first sentence of a paragraph whose rest is plain (`html_runin`: MSFT). A
     run-in heading such as "Flexible Work." stays a heading. For a filing without HTML,
-    `rule_heading` units are the leads (`rule`; `segment.lead_rule: union` uses them everywhere).
+    `rule_heading` units are the leads (`rule`; `segment.lead_rule: section` also uses them in
+    sections whose HTML shows no lead, `union` everywhere).
     - `lead_source`: html, html_runin or rule when the unit is a lead, else null.
     - `lead_unit_id`: the lead above the unit, until the next lead, the next heading (any level
       but 0) or the end of the section; null for a lead itself and for text under no lead.

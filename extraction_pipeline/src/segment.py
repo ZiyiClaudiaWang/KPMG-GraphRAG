@@ -42,8 +42,9 @@ filing's HTML styles it (step 4b, headings/leads.py: a bold / italic sentence of
 the styled first sentence of a paragraph). It is labelled like any sentence and changes no
 section_path. Every unit keeps:
   lead_source           this unit is a lead: html, html_runin (from the HTML) or rule (the
-                        rule_heading proposal below, used for filings without HTML, or for all
-                        with segment.lead_rule: union); null = not a lead
+                        rule_heading proposal below, used for filings without HTML; with
+                        segment.lead_rule: section also in sections whose HTML shows no lead,
+                        with union everywhere); null = not a lead
   lead_unit_id          the unit_id of the lead above it, until the next lead, the next heading
                         (any level but 0) or the end of the section; null for a lead itself and
                         for text under no lead (directly under its heading or section)
@@ -563,6 +564,16 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
 
 
 LEAD_ROLES = ("body", "list_group")
+LEAD_RULES = ("fallback", "section", "union")
+
+
+def uses_rule(mode: str, has_html: bool, section_leads: list | None) -> bool:
+    """Whether rule_heading units are leads in a section (settings.yaml segment.lead_rule):
+    fallback = only in filings without HTML; section = also in sections whose HTML shows no lead
+    (a filing that styles no lead there, AAPL 10-Q); union = everywhere."""
+    if mode == "union" or not has_html:
+        return True
+    return mode == "section" and not section_leads
 NOT_LEAD = ("cross_reference", "table_residue")   # prefilters that are never a lead ("Refer to Note 7 ...")
 
 
@@ -697,8 +708,8 @@ def run() -> None:
         log(STEP, f"{len(levels)} heading levels from step 4b")
     leads = load_leads()
     rule_mode = cfg.get("lead_rule", "fallback")
-    if rule_mode not in ("fallback", "union"):
-        raise SystemExit(f"settings.yaml segment.lead_rule must be fallback or union, not {rule_mode!r}")
+    if rule_mode not in LEAD_RULES:
+        raise SystemExit(f"settings.yaml segment.lead_rule must be one of {', '.join(LEAD_RULES)}, not {rule_mode!r}")
     all_units = []
     no_html: set[str] = set()
     unmatched: dict[str, int] = {}
@@ -710,8 +721,8 @@ def run() -> None:
             if (sec["accession_number"], sec["section_key"]) not in kept:
                 continue
             units = segment_section(sec, cfg, levels)
-            miss = mark_leads(units, facts["leads"].get(sec["section_key"]),
-                              use_rule=rule_mode == "union" or not facts["html"])
+            section_leads = facts["leads"].get(sec["section_key"])
+            miss = mark_leads(units, section_leads, use_rule=uses_rule(rule_mode, facts["html"], section_leads))
             unmatched[f["accession"]] = unmatched.get(f["accession"], 0) + miss
             all_units += units
             to_label = sum(u["prefilter"] is None for u in units)

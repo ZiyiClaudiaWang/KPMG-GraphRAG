@@ -19,6 +19,7 @@ LINES = [
     # a styled sentence of its own, then plain text: a lead (html)
     (f'<p style="{BOLD}">We are subject to counterparty default risks.</p>',
      "We are subject to counterparty default risks."),
+    ("<p>12</p>", "12"),               # a page number between a lead and its text
     ("<p>We have numerous arrangements with banks. They may fail to pay.</p>",
      "We have numerous arrangements with banks. They may fail to pay."),
     ("<p>Such failures could hurt our results of operations.</p>",
@@ -138,6 +139,14 @@ class RuleFallback(unittest.TestCase):
         self.assertEqual(lead["lead_source"], "rule")
         self.assertEqual(by_text["A failure would hurt us."]["lead_unit_id"], lead["unit_id"])
         self.assertEqual(by_text["They cut prices."]["lead_unit_id"], by_text["Competition is intense."]["unit_id"])
+
+    def test_lead_rule_modes(self):
+        lead = [{"start": 0, "end": 10, "source": "html"}]
+        self.assertEqual([segment.uses_rule("fallback", True, []), segment.uses_rule("fallback", False, None)],
+                         [False, True])
+        self.assertEqual([segment.uses_rule("section", True, []), segment.uses_rule("section", True, lead)],
+                         [True, False])
+        self.assertTrue(segment.uses_rule("union", True, lead))
 
     def test_rule_heading_alone_is_not_a_lead_with_html(self):
         units = self.units()

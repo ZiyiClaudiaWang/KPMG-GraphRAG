@@ -6,6 +6,7 @@ looks count as a lead (source):
 
   html         a block of its own whose whole text is bold, italic or underlined, a full sentence
                (lead_min_words..lead_max_words, ends in . ? !), followed by a plain block of text
+               (blocks without a letter in between, such as a page number, are passed over)
                (MU "We are subject to counterparty default risks." / "We have numerous
                arrangements ..."). The Item 1A headings step 4b reads as sentences (level -1,
                reason lead_sentence: AMZN "Our International Operations Expose Us to a Number of
@@ -47,6 +48,17 @@ def is_full_sentence(text: str, min_words: int, max_words: int) -> bool:
     n = len(text.split())
     return (bool(SENTENCE_END.search(text)) and min_words <= n <= max_words
             and not is_period_heading(text))
+
+
+def neighbour(blocks: list[Block], block: Block, step: int) -> Block | None:
+    """The block before (step -1) or after (step 1), passing over blocks without a letter (a
+    page number, "*") that sit between a lead and its text."""
+    k = block.idx + step
+    while 0 <= k < len(blocks):
+        if HAS_LETTER.search(blocks[k].text):
+            return blocks[k]
+        k += step
+    return None
 
 
 def runin_prefix(block: Block) -> str | None:
@@ -115,10 +127,8 @@ def section_leads(section: dict, blocks: list[Block], text: str, rows: list[dict
         if not HAS_LETTER.search(line):
             continue
         if emphasised(b):
-            nxt = blocks[b.idx + 1] if b.idx + 1 < len(blocks) else None
-            prv = blocks[b.idx - 1] if b.idx > 0 else None
-            plain_next = (nxt is not None and not nxt.in_table and HAS_LETTER.search(nxt.text) is not None
-                          and not emphasised(nxt))
+            nxt, prv = neighbour(blocks, b, 1), neighbour(blocks, b, -1)
+            plain_next = nxt is not None and not nxt.in_table and not emphasised(nxt)
             styled_before = (prv is not None and not prv.in_table and emphasised(prv)
                              and is_full_sentence(" ".join(prv.text.split()), min_words, max_words))
             if plain_next and not styled_before and is_full_sentence(line, min_words, max_words):
