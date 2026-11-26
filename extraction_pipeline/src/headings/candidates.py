@@ -56,11 +56,11 @@ def load_levels() -> dict[str, int]:
 
 def section_headings() -> list[dict]:
     """Headings of every kept section, in order, with the first words of the text under each.
-    Risk category headings are included: their level decides which of them are categories
-    (segment.Levels.is_risk_category). Each section also carries its units in short form (role,
+    Item 1A headings are included: their level decides which of them are risk categories
+    (level 1, segment.Levels.risk_heading_level). Each section also carries its units in short form (role,
     prefilter, rule_heading, start / end and spans in the Data-team content) for the HTML comparison
     (compare.py); a section without headings is listed too, with an empty list."""
-    from ..segment import heading_id, segment_section
+    from ..segment import heading_id, is_category_unit, segment_section
     cfg = settings()["segment"]
     kept = kept_section_keys()
     out = []
@@ -74,12 +74,13 @@ def section_headings() -> list[dict]:
             units = segment_section(sec, cfg)
             heads = []
             for k, u in enumerate(units):
-                if u["role"] not in ("heading", "category_heading"):
+                if u["role"] != "heading":
                     continue
-                after = next((v["text"] for v in units[k + 1:] if v["role"] not in ("heading", "category_heading")), "")
+                after = next((v["text"] for v in units[k + 1:] if v["role"] != "heading"), "")
                 para = sec["paragraphs"][u["paragraph_index"]]
                 heads.append({"heading_id": heading_id(sec, para, u["char_start"]), "text": u["text"],
-                              "role": u["role"], "next_text": " ".join(after.split()[:12])})
+                              "role": u["role"], "category_by_look": is_category_unit(u),
+                              "next_text": " ".join(after.split()[:12])})
             if units:
                 out.append({"ticker": f["ticker"], "form": f["form"], "accession": sec["accession_number"],
                             "section_key": sec["section_key"], "section": units[0]["section_label"],

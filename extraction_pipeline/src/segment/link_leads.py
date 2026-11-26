@@ -59,8 +59,7 @@ def mark_leads(units: list[dict], leads: list[dict] | None, use_rule: bool) -> i
                 u["lead_source"] = "rule"
     current = None
     for u in units:
-        if u["role"] in ("section_title", "category_heading") or (
-                u["role"] == "heading" and u.get("heading_level", 1) != 0):
+        if u["role"] == "section_title" or (u["role"] == "heading" and u.get("heading_level", 1) != 0):
             current = None
         elif u["lead_source"]:
             current = u["unit_id"]

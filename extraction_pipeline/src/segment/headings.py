@@ -19,14 +19,18 @@ Four questions, answered in three places:
                         heading); it is split and labelled like any paragraph
        not listed       the level of the heading before it; without the file, every heading is
                         level 1 and replaces the one before it
-  C. Category or sub-heading?  Item 1A only (is_risk_category): level 1 is a risk category
-                               (`category`); deeper headings are sub-headings. A heading with no
-                               level is a category when it looks like one (is_category).
+  C. Risk category?            Item 1A only (Levels.risk_heading_level): a level-1 heading is the
+                               filing's risk category, the key step 7a maps to risk themes; every
+                               unit under it carries it as `category`. It is an ordinary `heading`
+                               unit (heading_level 1); is_category_unit() finds it. A heading the
+                               file does not list is level 1 when it looks like a category
+                               (is_category), else at least level 2.
   D. Lead sentences are not headings: they change no path. See link_leads.py; the rule that
      proposes them in Item 1A (`rule_heading`) is in risk.py.
 
-`HeadingPath` holds the open headings; every unit copies its `category`, `subheading`
-(the deepest open heading), `heading_path` and `section_path` from it.
+`HeadingPath` holds the open headings; every unit copies its `heading_path` (outermost first),
+`subheading` (the deepest one), `category` (in Item 1A, the level-1 one) and `section_path`
+from it.
 """
 
 from __future__ import annotations
@@ -129,10 +133,16 @@ class Levels:
         """The file says this heading-like line is a sentence of the text (level -1)."""
         return self.of(paragraph, start) == SENTENCE_LEVEL
 
-    def is_risk_category(self, name: str, paragraph: dict, start: int) -> bool:
-        """C: a risk category heading: level 1 in the file, else by its look."""
+    def risk_heading_level(self, name: str, paragraph: dict, start: int, sibling: int) -> int:
+        """C: the level of an Item 1A heading. Level 1 (a risk category) is from the file, or, for a
+        heading the file does not list, by its look (is_category); any other unlisted heading is the
+        sibling's level but at least 2, so that only categories are level 1."""
         level = self.of(paragraph, start)
-        return level == 1 if level is not None else is_category(name)
+        if level is not None:
+            return level
+        if is_category(name):
+            return 1
+        return max(sibling, 2) if self.levels else 2
 
     def heading_level(self, paragraph: dict, start: int, sibling: int) -> int:
         """The level of a sub-heading: from the file; not listed there, the sibling's level;
@@ -145,13 +155,28 @@ class Levels:
 
 # ---------- the heading path ----------
 
-class HeadingPath:
-    """The risk category and the open sub-headings above the current unit."""
+def is_category_unit(unit: dict) -> bool:
+    """A risk category: an Item 1A heading unit at level 1 (step 7a maps its text to risk themes)."""
+    return (unit["role"] == "heading" and unit["section_type"] == "risk_factors"
+            and unit.get("heading_level") == 1)
 
-    def __init__(self) -> None:
-        self.category: str | None = None
-        self.subheading: str | None = None
+
+class HeadingPath:
+    """The open headings above the current unit."""
+
+    def __init__(self, is_risk: bool = False) -> None:
+        self.is_risk = is_risk
         self.stack: list[tuple[int, str]] = []      # (level, heading text), outermost first
+
+    @property
+    def category(self) -> str | None:
+        """Item 1A: the open level-1 heading (the risk category); None elsewhere."""
+        return self.stack[0][1] if self.is_risk and self.stack and self.stack[0][0] == 1 else None
+
+    @property
+    def subheading(self) -> str | None:
+        """The deepest open heading."""
+        return self.stack[-1][1] if self.stack else None
 
     @property
     def sibling(self) -> int:
@@ -162,23 +187,17 @@ class HeadingPath:
         return [h for _, h in self.stack]
 
     def open(self, name: str, level: int) -> int:
-        """Open a sub-heading at `level`, closing those at the same level or deeper. Level 0 (not
+        """Open a heading at `level`, closing those at the same level or deeper. Level 0 (not
         a heading) changes nothing. Returns the level."""
         if level == NOT_A_HEADING:
             return level
         while self.stack and self.stack[-1][0] >= level:
             self.stack.pop()
         self.stack.append((level, name))
-        self.subheading = name
         return level
 
-    def set_category(self, name: str) -> None:
-        """A new risk category closes every sub-heading."""
-        self.category, self.subheading = name, None
-        self.stack.clear()
-
     def close_subheadings(self) -> None:
-        """A rule-proposed lead in Item 1A (risk.rule_lead_strength) ends the sub-headings
-        above it; the category stays."""
-        self.subheading = None
-        self.stack.clear()
+        """A rule-proposed lead in Item 1A (risk.rule_lead_strength) ends the headings below the
+        category; the category stays."""
+        while self.stack and self.stack[-1][0] > 1:
+            self.stack.pop()

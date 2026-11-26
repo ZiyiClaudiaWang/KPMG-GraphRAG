@@ -124,12 +124,11 @@ flowchart TD
     S -->|"4 Segment"| U["Unit<br/>unit_id = uuid5 of accession,<br/>section_key and raw_spans"]
 
     U --> R1["role: section_title"]
-    U --> R2["role: heading"]
-    U --> R3["role: category_heading<br/>(Item 1A only)"]
+    U --> R2["role: heading<br/>(Item 1A level 1 = risk category)"]
     U --> R4["role: body<br/>(a sentence or a split list item)"]
     U --> R5["role: list_group"]
 
-    R1 & R2 & R3 --> NO["prefilter set:<br/>not_a_claim, not sent to the LLM"]
+    R1 & R2 --> NO["prefilter set:<br/>not_a_claim, not sent to the LLM"]
     R4 --> P{"prefilter"}
     P -->|"table_residue, cross_reference,<br/>too_short"| NO
     P -->|"none"| LLM
@@ -149,7 +148,7 @@ the hold rules: [step 6](#step-6-validate).
 #### b. risk factors
 ```mermaid
 flowchart LR
-    U["each Item 1A unit<br/>below the heading"] -.->|"risk_category_id<br/>(7a: the nearest heading above)"| CH["category_heading<br/>'Business Risks'"]
+    U["each Item 1A unit<br/>below the heading"] -.->|"risk_category_id<br/>(7a: the nearest level-1 heading above)"| CH["risk category: Item 1A heading at level 1<br/>'Business Risks'"]
     CH -->|"its text, in<br/>config/risk_theme_map.csv"| RF["risk theme<br/>business_operations<br/>(RiskFactor node)"]
     U -->|"7b"| CL["its Claim<br/>risk_ids = the heading's themes"]
     CL -->|"8 Load: CONCERNS_RISK"| RF
@@ -342,13 +341,16 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       contents) and changes no path; level -1 would make the line a sentence (no rule gives it yet).
       Without the file a heading replaces the one before it.
   - **Item 1A - Risk Factors** ([diagram](#b-risk-factors)).
-    - Category headings ("Business Risks", "RISKS RELATING TO …", "Risks related to our
-      business and industry") set the unit's `category`. With [step 4b](#step-4b-heading-levels),
-      a heading in Item 1A is a category when its level in the filing's HTML is 1; deeper
-      headings are sub-headings under the category (`subheading`, `heading_path`). Without a
-      level, a heading is a category when it looks like one (capitals or title case, "Risks
-      related to …"), which also made title-case sub-headings categories. Categories exist only
-      in risk factors.
+    - A risk category is an Item 1A heading at level 1 ("Business Risks", "RISKS RELATING TO …",
+      "Risks related to our business and industry"): an ordinary `heading` unit with
+      `heading_level` 1, the first entry of `heading_path`, and the unit's `category` for every
+      unit under it. It is the filing's own grouping of its risks: step 7a maps its text to risk
+      themes. Deeper headings sit under it (`subheading`, `heading_path`). The level comes from
+      [step 4b](#step-4b-heading-levels); a heading without one is level 1 when it looks like a
+      category (capitals or title case, "Risks related to …"), which also makes title-case
+      sub-headings categories, and otherwise at least level 2. A run-in heading ("Flexible Work.")
+      is never a category. `category` is set only in risk factors. (Until v8 a category was a
+      separate role, `category_heading`, outside `heading_path`.)
     - Single-sentence paragraphs followed by their discussion are proposed as the sentence that
       opens and sums up a risk (`rule_heading`).
   - **Lead sentences** (every section). A lead sentence sums up the sentences under it; it is
@@ -371,9 +373,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - Step 7b copies them onto every Claim (`is_lead_sentence`, `provenance.lead_unit_id`,
       `provenance.lead_source`); the model's `is_risk_heading` is not used (patch 7c).
     - Units in the risk factor summary that some filings open with (MU, TTWO) carry
-      `risk_summary = true`. The summary ends where a category it listed appears again (as a
-      heading or a category heading: with step 4b levels the categories in the summary are
-      level-2 headings under its title).
+      `risk_summary = true`. The summary ends where a category it listed appears again (with step 4b
+      levels the categories in the summary are level-2 headings under its title, and level 1 in
+      the full text).
   - **Prefilter** ([diagram](#a-unit_id-and-claim_id)). Units marked `not_a_claim` here are not sent to the LLM:
     - `section_title`, `heading`
     - `table_residue`: a table row or cell (`has_table_cells()`: cells joined by " | ", two-column
@@ -387,7 +389,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
       graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v7`) records which splitting rules made the units.
+    - `segmentation_version` (`kelly_sentence_v8`) records which splitting rules made the units.
       It is a label only: it is not in the request hash, so changing it alone costs nothing; a
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
@@ -405,7 +407,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     blocks (CASY 10-Q "Nine Months Ended January 31, 2021 Compared to" / "Nine Months Ended
     January 31, 2020", one line in the export) is matched across them (`joined_blocks`).
   - **Candidates come from step 4.** This step only gives a level to the lines step 4 reads as
-    headings (role `heading` or `category_heading`); it cannot add a heading step 4 missed. Risk
+    headings (role `heading`); it cannot add a heading step 4 missed. Risk
     lead sentences (body units with `rule_heading`) are not candidates. In Item 1A the level
     decides which headings are risk categories (level 1); the review file shows it
     (`risk_category`) next to what the text rule alone would say (`category_by_look`).
@@ -556,7 +558,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       `output/provisional_segment_definitions.json`.
 - <a id="step-7a-risk-factors"></a>**[7a] Risk factors** places every Item 1A unit under a risk category and its risk themes
   ([Appendix B](#appendix-b-risk-themes)). No model call: it needs step 4, and uses step 5 labels when they exist.
-  - **Risk category:** the category heading above the unit in the filing, by position.
+  - **Risk category:** the Item 1A heading at level 1 above the unit in the filing, by position.
     - Its id (`risk_category_id`) is the heading's `unit_id`, so each filing has its own.
     - Units before the first category heading, and filings without categories (Apple's 10-Qs),
       have none.
@@ -905,10 +907,12 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `accession_number`, `ticker`, `form` | Data team | Filing the unit comes from |
 | `section_id`, `section_key`, `section_type` | Data team | Section the unit comes from; `section_type` is the shared Item code (`risk_factors`, `mda`, ...) |
 | `section_label` | segment | `Part I Item 1A`; always with the Part prefix |
-| `category` | segment | Risk category heading above the unit in Item 1A (e.g. `Business Risks`); null elsewhere |
-| `subheading` | segment | Nearest short heading above the unit (e.g. `iPhone` in MD&A) |
-| `section_path` | segment | `section_label > category > subheading` |
-| `role` | segment | `body` (sentence or list item), `list_group` (intro plus fragment list), `heading`, `category_heading`, `section_title` |
+| `category` | segment | Item 1A only: the level-1 heading above the unit, the filing's risk category (e.g. `Business Risks`); null elsewhere |
+| `subheading` | segment | Nearest heading above the unit (e.g. `iPhone` in MD&A); the last entry of `heading_path` |
+| `heading_path` | segment | The open headings above the unit, outermost first (in Item 1A the first is the category) |
+| `section_path` | segment | `section_label > heading_path` joined by ` > ` |
+| `role` | segment | `body` (sentence or list item), `list_group` (intro plus fragment list), `heading`, `section_title` |
+| `heading_level` | segment | Headings only: 1, 2, ... from step 4b (0 = not a heading, changes no path); in Item 1A level 1 is a risk category |
 | `text` | segment | The unit's text, unchanged from the source except whitespace; list-group fragments joined by one space |
 | `char_start`, `char_end` | segment | Position in the cleaned section text |
 | `raw_spans` | segment | Position(s) in the Data team `content`; one `[start, end]` per fragment |
@@ -922,7 +926,7 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `lead_unit_id` | segment | `unit_id` of the lead sentence above, until the next lead or heading; null for a lead and for text under no lead |
 | `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
 | `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v7`) |
+| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v8`) |
 
 ### `risk_categories.csv` (step 7a)
 

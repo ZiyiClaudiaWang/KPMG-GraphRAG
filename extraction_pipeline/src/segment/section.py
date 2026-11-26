@@ -3,9 +3,9 @@
 Each paragraph goes to the first reader in READERS that takes it; the order is the priority:
 
   1. section_title    the Item title opening the section
-  2. heading_line     a heading by its text (headings.is_line_heading), not a sentence by its level;
-                      a risk category in Item 1A, else a sub-heading; bullets right under it are a
-                      list with the heading as intro
+  2. heading_line     a heading by its text (headings.is_line_heading), not a sentence by its level
+                      (in Item 1A, level 1 is a risk category); bullets right under it are a list
+                      with the heading as intro
   3. list_block       an intro (ending in ":" or announcing "the following") and its list items
   4. run_in_heading   a paragraph opening with a period heading ("Flexible Work. ...")
   5. rule_lead        Item 1A: a paragraph the rules propose as a risk lead (rule_heading)
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from .headings import SECTION_TITLE, HeadingPath, Levels, is_line_heading, is_period_heading
+from .headings import NOT_A_HEADING, SECTION_TITLE, HeadingPath, Levels, is_line_heading, is_period_heading
 from .lists import ANNOUNCES_LIST, BULLET, is_bullet, item_marker, list_items_end, merge_list, starts_list
 from .prefilter import prefilter
 from .risk import mark_risk_summary, rule_lead_strength
@@ -33,7 +33,7 @@ class Section:
         self.paragraphs: list[dict] = sec["paragraphs"]
         self.is_risk = sec["section_type"] == "risk_factors"
         self.levels = Levels(sec, levels)
-        self.path = HeadingPath()
+        self.path = HeadingPath(self.is_risk)
         self.units: list[dict] = []
 
     def add(self, role: str, p_index: int, start: int, end: int, rule: str | None,
@@ -80,13 +80,13 @@ def heading_line(s: Section, i: int) -> int | None:
     if not is_line_heading(text, list_follows) or s.levels.is_sentence(para, p0):
         return None
     name = text.rstrip(":").rstrip()          # "Executive Summary:" is shown as "Executive Summary"
-    if s.is_risk and s.levels.is_risk_category(name, para, p0):
-        s.path.set_category(name)
-        heading = s.add("category_heading", i, p0, p0 + len(text), "heading")
+    if s.is_risk:
+        level = s.levels.risk_heading_level(name, para, p0, s.path.sibling)
     else:
-        level = s.path.open(name, s.levels.heading_level(para, p0, s.path.sibling))
-        heading = s.add("heading", i, p0, p0 + len(text), "heading")
-        heading["heading_level"] = level
+        level = s.levels.heading_level(para, p0, s.path.sibling)
+    s.path.open(name, level)
+    heading = s.add("heading", i, p0, p0 + len(text), "heading")
+    heading["heading_level"] = level
     i += 1
     # Bullets right under a heading ("Risks Related to Laws and Regulations" / "•tax
     # expense and tax laws in key jurisdictions; and"): the heading is their intro.
@@ -154,7 +154,10 @@ def run_in_heading(s: Section, i: int) -> int | None:
     a, b = sentences[0]
     if not is_period_heading(text[a:b]) or s.levels.is_sentence(para, p0 + a):
         return None
-    level = s.path.open(text[a:b], s.levels.heading_level(para, p0 + a, s.path.sibling))
+    level = s.levels.heading_level(para, p0 + a, s.path.sibling)
+    if s.is_risk and level != NOT_A_HEADING:
+        level = max(level, 2)                 # a run-in heading is never a risk category
+    s.path.open(text[a:b], level)
     s.add("heading", i, p0 + a, p0 + b, "heading")["heading_level"] = level
     for a, b in sentences[1:]:
         s.add("body", i, p0 + a, p0 + b, s.prefilter(text[a:b]))

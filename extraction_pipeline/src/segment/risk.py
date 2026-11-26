@@ -3,7 +3,7 @@
 rule_heading (unit field): "high" / "medium" when the rules propose a paragraph as the sentence
 that opens and sums up a risk (rule_lead_strength). Since step 4b, these are used as lead
 sentences only where the HTML cannot be read (segment.lead_rule, link_leads.uses_rule). The field
-keeps its old name for now; risk categories and sub-headings are in headings.py.
+keeps its old name for now; risk categories (level-1 headings) are in headings.py.
 
 The risk factor summary some filings open with (MU "Risk Factor Summary", TTWO "Summary of Risk
 Factors") repeats the risks described below it in short form. Its units are labelled as usual and
@@ -53,19 +53,17 @@ def mark_risk_summary(units: list[dict]) -> None:
     """Flag the risk factor summary (risk_summary = true): it repeats the risks described after it.
 
     The summary runs from its heading to the first heading that appears for the second time
-    (where the full text starts again). Both roles count: with heading levels (step 4b) the
-    categories listed in the summary sit under its heading at level 2, so they are `heading`
-    there and `category_heading` in the full text (MU, TTWO). Without such a repeat nothing is
-    marked.
+    (where the full text starts again), at any level: with heading levels (step 4b) the
+    categories listed in the summary sit under its heading at level 2, and are level 1 in the
+    full text (MU, TTWO). Without such a repeat nothing is marked.
     """
-    roles = ("heading", "category_heading")
     start = next((k for k, u in enumerate(units)
-                  if u["role"] in roles and RISK_SUMMARY.match(u["text"])), None)
+                  if u["role"] == "heading" and RISK_SUMMARY.match(u["text"])), None)
     if start is None:
         return
     seen, end = set(), None
     for k in range(start + 1, len(units)):
-        if units[k]["role"] not in roles:
+        if units[k]["role"] != "heading":
             continue
         key = units[k]["text"].lower()
         if key in seen:

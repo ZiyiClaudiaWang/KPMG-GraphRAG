@@ -345,12 +345,12 @@ def run() -> None:
                 if (u["prefilter"] == "too_short" and text.strip() == paras[p]["text"].strip()
                         and text[:1].isupper() and "|" not in text and not TABLE_TITLE.match(text)):
                     hit("S5_missed_heading", text, p, before, after)
-                if (u["role"] in ("heading", "category_heading") and prev_u is not None
-                        and prev_u["role"] in ("heading", "category_heading")
+                if (u["role"] == "heading" and prev_u is not None
+                        and prev_u["role"] == "heading"
                         and prev_u["paragraph_index"] == p - 1
                         and not TABLE_TITLE.match(text) and not TABLE_TITLE.match(prev_u["text"])):
                     hit("S8_heading_after_heading", f"{prev_u['text']}  >  {text}", p, before, after)
-                if u["role"] == "category_heading":
+                if S.is_category_unit(u):
                     n_cat += 1
                     key = text.rstrip(":").strip().lower()
                     if stype == "risk_factors" and key not in mapped:

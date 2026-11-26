@@ -14,9 +14,11 @@ from .headings import HeadingPath
 # v6 (19 Nov 2026): lists after a heading or "the following", lettered items, "• |" and ""
 #     bullets, items whose bullet was lost; heading levels (step 4b); new page-break joins (step 2).
 # v7 (26 Nov 2026): lead_source and lead_unit_id (lead sentences from the HTML, step 4b).
+# v8 (26 Nov 2026): no role category_heading: an Item 1A risk category is a heading at level 1, in
+#     heading_path and subheading like any heading; category and section_path are unchanged.
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v7"
+SEGMENTATION_VERSION = "kelly_sentence_v8"
 
 
 def section_label(sec: dict) -> str:
@@ -36,7 +38,7 @@ def new_unit(sec: dict, path: HeadingPath, role: str, paragraph_index: int, star
         "accession_number": sec["accession_number"], "ticker": sec["ticker"], "form": sec["form"],
         "section_id": sec["section_id"], "section_key": sec["section_key"],
         "section_type": sec["section_type"],
-        "section_path": " > ".join(x for x in (base, path.category, *path.names()) if x),
+        "section_path": " > ".join(x for x in (base, *path.names()) if x),
         "section_label": base, "category": path.category, "subheading": path.subheading,
         "heading_path": path.names(),
         "role": role,

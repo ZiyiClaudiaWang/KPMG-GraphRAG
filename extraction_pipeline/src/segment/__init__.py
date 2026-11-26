@@ -6,7 +6,7 @@ Output: data/output/sentences.jsonl   one row per unit, in source order
         data/output/lead_summary.csv, lead_review.csv
 
 A unit is one sentence, one list item, one list group (an intro ending in ":" plus a short list of
-fragments), a heading, a risk category heading or a section title.
+fragments), a heading (in Item 1A, a level-1 heading is a risk category) or a section title.
 
   sentences.py   where a sentence ends (abbreviations, OPENERS)
   lists.py       bullets and lettered items, list_group or split items
@@ -23,7 +23,7 @@ Everything other modules and the tests use is importable from src.segment direct
 
 from ..common import settings  # noqa: F401
 from ..headings.candidates import NOT_A_HEADING, SENTENCE_LEVEL  # noqa: F401
-from .headings import (HeadingPath, Levels, heading_id, is_category, is_colon_heading,  # noqa: F401
+from .headings import (HeadingPath, Levels, heading_id, is_category, is_category_unit, is_colon_heading,  # noqa: F401
                        is_heading_like, is_line_heading, is_period_heading)
 from .link_leads import lead_report, mark_leads, uses_rule  # noqa: F401
 from .lists import (BULLET, is_bullet, is_fragment, item_marker, list_items_end, merge_list,  # noqa: F401

@@ -265,8 +265,8 @@ class RiskCategories(unittest.TestCase):
              "We depend on a small number of suppliers for our products and services.",
              "Risks Related to Our Industry", "Competition in our industry is intense and may grow."]
 
-    def units(self, levels_by_text=None):
-        content = "\n\n".join(self.LINES)
+    def units(self, levels_by_text=None, lines=None):
+        content = "\n\n".join(lines or self.LINES)
         raw = {"accession_number": "0000000000-26-000001", "ticker": "TEST", "form": "10-K",
                "section_id": "sec-1a", "section_key": "part-i-item-1a", "section_type": "risk_factors",
                "part": "I", "item": "1A", "processing_set_id": "set-1", "source_locator": {},
@@ -283,18 +283,44 @@ class RiskCategories(unittest.TestCase):
 
     def test_without_levels_a_title_case_sub_heading_looks_like_a_category(self):
         units = self.units()
-        self.assertEqual(units["Supply Chain"]["role"], "category_heading")
+        self.assertEqual((units["Supply Chain"]["role"], units["Supply Chain"]["heading_level"]), ("heading", 1))
+        self.assertTrue(segment.is_category_unit(units["Supply Chain"]))
 
     def test_with_levels_only_level_1_is_a_category(self):
         units = self.units({"Risks Related to Our Business": 1, "Supply Chain": 2,
                             "Risks Related to Our Industry": 1})
-        self.assertEqual(units["Risks Related to Our Business"]["role"], "category_heading")
-        self.assertEqual(units["Supply Chain"]["role"], "heading")
+        self.assertTrue(segment.is_category_unit(units["Risks Related to Our Business"]))
+        self.assertEqual(units["Supply Chain"]["heading_level"], 2)
+        self.assertFalse(segment.is_category_unit(units["Supply Chain"]))
         sentence = units["We depend on a small number of suppliers for our products and services."]
         self.assertEqual((sentence["category"], sentence["subheading"]), ("Risks Related to Our Business", "Supply Chain"))
         self.assertEqual(sentence["section_path"], "Part I Item 1A > Risks Related to Our Business > Supply Chain")
         other = units["Competition in our industry is intense and may grow."]
-        self.assertEqual((other["category"], other["heading_path"]), ("Risks Related to Our Industry", []))
+        self.assertEqual((other["category"], other["heading_path"], other["subheading"]),
+                         ("Risks Related to Our Industry", ["Risks Related to Our Industry"], "Risks Related to Our Industry"))
+
+
+    def test_without_levels_other_headings_sit_under_the_category(self):
+        lines = ["Item 1A. Risk Factors", "Risks Related to Our Business", "Competition in the technology sector",
+                 "Our competitors have more resources than we do in many markets. They may also cut prices.",
+                 "Business model competition. Companies compete with us based on many business models."]
+        units = self.units(lines=lines)
+        sub = units["Competition in the technology sector"]
+        self.assertEqual(sub["heading_level"], 2)                  # level 1 is only for categories
+        sentence = units["Our competitors have more resources than we do in many markets."]
+        self.assertEqual((sentence["category"], sentence["heading_path"]),
+                         ("Risks Related to Our Business", ["Risks Related to Our Business",
+                                                            "Competition in the technology sector"]))
+        self.assertEqual(sentence["section_path"],
+                         "Part I Item 1A > Risks Related to Our Business > Competition in the technology sector")
+
+    def test_a_run_in_heading_is_never_a_category(self):
+        lines = ["Item 1A. Risk Factors", "Risks Related to Our Business",
+                 "Flexible Work. Our employees may work from home, which raises security risks."]
+        units = self.units({"Flexible Work.": 1}, lines=lines)
+        self.assertEqual(units["Flexible Work."]["heading_level"], 2)
+        rest = units["Our employees may work from home, which raises security risks."]
+        self.assertEqual(rest["category"], "Risks Related to Our Business")
 
 
 class LeadSentences(unittest.TestCase):
@@ -336,7 +362,7 @@ class LeadSentences(unittest.TestCase):
         units = segment.segment_section(cleaned, settings()["segment"])
         heads = [{"heading_id": segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"]),
                   "text": u["text"], "role": u["role"], "next_text": ""}
-                 for u in units if u["role"] in ("heading", "category_heading")]
+                 for u in units if u["role"] == "heading"]
         group = {"ticker": "TEST", "form": "10-K", "accession": raw["accession_number"],
                  "section_key": raw["section_key"], "section": "Part I Item 1A", "headings": heads,
                  "units": [short_unit(u) for u in units]}
@@ -358,14 +384,14 @@ class LeadSentences(unittest.TestCase):
     def test_level_1_headings_stay_categories(self):
         for text in ("Business Risks", "Risks Relating to the Proposed Separation of Our Diabetes Business From Us"):
             self.assertEqual(self.rows[text]["level"], 1)
-            self.assertEqual(self.units[text]["role"], "category_heading")
+            self.assertTrue(segment.is_category_unit(self.units[text]))
 
     def test_step_4_labels_lead_sentences_like_text(self):
         unit = self.units["We Face Intense Competition"]
         self.assertEqual(unit["role"], "body")
         self.assertEqual(unit["category"], "Business Risks")
         nxt = self.units["Our businesses are rapidly evolving and intensely competitive."]
-        self.assertEqual((nxt["category"], nxt["heading_path"]), ("Business Risks", []))
+        self.assertEqual((nxt["category"], nxt["heading_path"]), ("Business Risks", ["Business Risks"]))
 
 
 class RiskSummary(unittest.TestCase):
@@ -385,7 +411,7 @@ class RiskSummary(unittest.TestCase):
         cleaned = clean.clean_section(dict(raw), set())
         levels, seen = {}, 0
         for u in segment.segment_section(cleaned, settings()["segment"]):
-            if u["role"] in ("heading", "category_heading"):
+            if u["role"] == "heading":
                 hid = segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"])
                 levels[hid] = 1 if u["text"] == "Risk Factor Summary" or seen >= 2 else 2
                 seen += u["text"] != "Risk Factor Summary"
@@ -449,7 +475,7 @@ def section_rows(lines, section_key="part-i-item-2", section_type="mda"):
         units = segment.segment_section(cleaned, settings()["segment"])
         heads = [{"heading_id": segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"]),
                   "text": u["text"], "role": u["role"], "next_text": ""}
-                 for u in units if u["role"] in ("heading", "category_heading")]
+                 for u in units if u["role"] == "heading"]
         group = {"ticker": "TEST", "form": "10-Q", "accession": raw["accession_number"],
                  "section_key": section_key, "section": "Part I Item 2", "headings": heads,
                  "units": [short_unit(u) for u in units]}
