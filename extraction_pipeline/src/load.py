@@ -68,7 +68,7 @@ import argparse
 import json
 import os
 
-from .common import Paths, data_dir, filings, load_env, log, read_jsonl, settings
+from .common import Paths, filings, load_env, log, read_jsonl, settings
 from .risk_factors import theme_library
 from .subsidiaries import read_rows as subsidiary_rows
 
@@ -228,7 +228,7 @@ def flat_provenance(p: dict) -> dict:
 
 def segment_rows() -> list[dict]:
     """One row per segment and filing that reports it (HAS_SEGMENT is keyed by accession)."""
-    path = data_dir() / "entity_catalog.json"
+    path = Paths.entity_catalog()
     if not path.exists():
         return []
     rows = []

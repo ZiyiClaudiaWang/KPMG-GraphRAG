@@ -94,16 +94,19 @@ flowchart TD
 
 Code does everything that must be exact and repeatable. The LLM only judges meaning.
 
+Results the next steps read are in `output/` and `interim/`; files written only for a person to
+review are in `checks/<step>/` (no step reads them).
+
 | # | Step | Module | Output (under `data/`) | LLM |
 |---|------|--------|------------------------|-----|
 | 1 | Fetch | `fetch.py` | `sections/*.jsonl` (from the Data-team database) | no |
-| 1b | [Subsidiaries](#step-1b-subsidiaries) | `subsidiaries.py`, `ex21/` | `output/subsidiaries.jsonl`, `output/subsidiary_qa.csv`, `output/subsidiary_catalog.json`, `ex21/raw/` | no |
+| 1b | [Subsidiaries](#step-1b-subsidiaries) | `subsidiaries.py`, `ex21/` | `output/subsidiaries.jsonl`, `output/subsidiary_catalog.json`, `checks/subsidiaries/` (`subsidiary_qa.csv`, `subsidiary_renames.csv`), `ex21/raw/` | no |
 | 1c | [Entity catalog](#step-1c-entity-catalog) | `entity_catalog.py` | `entity_catalog.json` | no |
 | 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
-| 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
+| 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl`, `checks/page_breaks/page_break_candidates.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
-| 4 | [Segment](#step-4-segment) | `segment/` | `output/sentences.jsonl`, `output/lead_summary.csv`, `output/lead_review.csv` | no |
-| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `interim/html_tables.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
+| 4 | [Segment](#step-4-segment) | `segment/` | `output/sentences.jsonl`, `checks/segment/` (`lead_summary.csv`, `lead_review.csv`) | no |
+| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `interim/html_tables.jsonl`, `checks/headings/` (`heading_review.csv`, `heading_summary.csv`, `heading_html_diff.csv`), `edgar/primary/` (HTML and `urls.json`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -242,7 +245,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - Check the inputs first: `python -m src.report_entity_inputs` reads steps 1b and 1c and
     reports 10-Ks flagged for checking, the same subsidiary twice in one 10-K, row counts that
     jump between years, and the filings and companies offered no segment
-    (`data/output/entity_inputs/`).
+    (`data/checks/entity_inputs/`).
 
 - <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
   rewrites words: every cleaned character maps back to the original `content`, so each Claim's
@@ -365,9 +368,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - `lead_source`: html, html_runin or rule when the unit is a lead, else null.
     - `lead_unit_id`: the lead above the unit, until the next lead, the next heading (any level
       but 0) or the end of the section; null for a lead itself and for text under no lead.
-    - `output/lead_summary.csv`: per company, leads by source, units under a lead, HTML leads
+    - `checks/segment/lead_summary.csv`: per company, leads by source, units under a lead, HTML leads
       that matched no unit, and `rule_heading` against the HTML (`rule_and_html`, `rule_only`,
-      `html_not_rule_1a`). `output/lead_review.csv`: one row per lead (`kind lead`, with
+      `html_not_rule_1a`). `checks/segment/lead_review.csv`: one row per lead (`kind lead`, with
       `units_under` and the next text) and per `rule_heading` unit the HTML did not make a lead
       (`kind rule_only`), to decide `segment.lead_rule`.
     - Step 7b copies them onto every Claim (`is_lead_sentence`, `provenance.lead_unit_id`,
@@ -464,13 +467,13 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     `end`, `source`, `text`), read by step 4 for lead sentences (settings `headings.leads`);
     `interim/html_tables.jsonl` (`src/headings/tables.py`), one row per filing (`accession`, `html`,
     `rows`: `section_key`, `start`, `end`, `kind`, `table`), the HTML table rows in its kept sections,
-    read by step 4's prefilter (settings `headings.tables`); `output/heading_review.csv`, one row per heading with its level,
+    read by step 4's prefilter (settings `headings.tables`); `checks/headings/heading_review.csv`, one row per heading with its level,
     parent, path, reason, flags, style and `open_in_edgar`, a link to the filing on sec.gov that
     scrolls to the heading and highlights it (a `#:~:text=` link; the filing URLs are kept in
-    `data/edgar/primary/urls.json`, looked up once per filing); `output/heading_summary.csv`, one row per company
+    `data/edgar/primary/urls.json`, looked up once per filing); `checks/headings/heading_summary.csv`, one row per company
     (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
     hash differs from the export's `source_sha256`, and `html_covered_pct`: the share of HTML
-    headings that step 4 reads as headings, lead sentences left out, `html_only_lead`); `output/heading_html_diff.csv`, for review only
+    headings that step 4 reads as headings, lead sentences left out, `html_only_lead`); `checks/headings/heading_html_diff.csv`, for review only
     (`src/headings/compare.py`, changes no level or role): `html_only` rows are HTML blocks in a
     kept section styled as headings (standalone, bold / underline / italic / capitals / larger,
     at most `headings.compare.max_words` words) that step 4 did not read as headings, with what
@@ -714,9 +717,10 @@ python run_pipeline.py --until segment      # steps 1-4: no LLM; 1b and 4b downl
 python run_pipeline.py --steps page_breaks --dry-run      # step 2b: requests and cost, no API
 python run_pipeline.py --steps page_breaks,clean,filter   # step 2b (paid): once before labelling at scale
 python run_pipeline.py --steps headings,segment           # step 4b: free; downloads each filing's HTML once
-python -m src.report_unit_repeats           # repeats across filings, before labelling: data/output/repeats/
+python -m src.report_unit_repeats           # repeats across filings, before labelling: data/checks/unit_repeats/
 python run_pipeline.py --steps risk_factors # step 7a: free; lists unmapped risk categories
-# review data/output/section_manifest.csv, sentences.jsonl and risk_categories.csv
+python -m src.report                        # review report of steps 1-4 and 7a (also written at the end
+                                            # of any run of those steps): data/checks/report/report.md
 
 python run_pipeline.py --steps label --dry-run                           # batches, sentences, worst-case cost
 python run_pipeline.py --steps label --filing 0000320193-25-000079 --limit 3   # a first, small paid run
@@ -798,10 +802,32 @@ They need no API key, database or network.
 
 ## What to review
 
+Start with `data/checks/report/report.md` (`python -m src.report`; written at the end of every run
+that includes a step up to segment, or risk_factors). It reads what steps 1-4 and 7a wrote, re-runs
+nothing, opens with a table of contents, and links every check file it names:
+
+1. **Checks**: every number with a limit in `config/settings.yaml` `report.checks` (max or min,
+   and a level: `error` = fix before the label run, `warn` = look at it, `info`), plus two built-in
+   checks: each stale step is an error, and a key number (`report.big_change`) that moves more than
+   `report.big_change_pct` from the last report is a warning. Failing checks first; passed ones
+   are folded. Change a limit there (no step reads the `report:` block, so nothing goes stale).
+2. **Stale steps**: an input (an earlier step's result, the step's code under `src/`, its config
+   file, or its own block of `settings.yaml`) is newer than the step's result. Run them again first.
+3. **Changes since the last report**: every number that moved (`report_previous.json` keeps the
+   one before; `--against FILE` compares with a saved `report.json`, e.g. one kept from before a
+   rule change). This replaces the counting part of a throwaway before / after script.
+4. **Steps**: per step its check files (links), what to look at, its numbers, and tables such as
+   the sections step 3 keeps (types and the titles the filings use) or the unmapped risk
+   categories. Unit checks (examples in `checks/report/samples.csv`) are those of the scale-up
+   diagnostics that can be read from `sentences.jsonl`; `python -m src.diagnose`
+   (`checks/diagnose/`) still re-runs steps 2-4 on every section, also the dropped ones.
+
+`report.json` holds the same numbers for a later dashboard page. What to look for in each file:
+
 | File | Check |
 |------|-------|
 | `output/section_manifest.csv` | `review` rows (Item 1C Cybersecurity); add overrides in `config/sections.yaml` |
-| `output/heading_summary.csv`, `output/heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `risk_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`, `no_letters`)<br>• `joined_blocks` > 1<br>• `level_4plus`: deep nesting |
+| `checks/headings/heading_summary.csv`, `heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `risk_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`, `no_letters`)<br>• `joined_blocks` > 1<br>• `level_4plus`: deep nesting |
 | `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
 | `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_theme_map.csv`<br>• `not_a_theme` rows<br>• `n_units` of large categories |
 | `config/risk_theme_map.csv` | rows with a `note`: categories that fit more than one theme, or none clearly ([Appendix B](#appendix-b-risk-themes)) |

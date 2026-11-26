@@ -32,7 +32,7 @@ import argparse
 
 from . import clean as C
 from . import llm_cost
-from .common import Paths, data_dir, filings, load_config, log, read_jsonl, settings, write_jsonl
+from .common import Paths, filings, load_config, log, read_jsonl, settings, write_jsonl
 from .filter_sections import decide
 
 STEP = "page_breaks"
@@ -51,7 +51,7 @@ Return one result per pair id, in any order."""
 
 
 def decisions_path():
-    return data_dir() / "interim" / "page_break_decisions.jsonl"
+    return Paths.page_break_decisions()
 
 
 def load_decisions() -> dict[str, bool]:
@@ -156,7 +156,7 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
               + (f", reasoning_effort {cfg.get('reasoning_effort')}" if llm_cost.is_reasoning(cfg["model"]) else ""))
     llm_cost.report(STEP, cfg, lambda c: plans(boundaries, c), expected_answer_tokens, log, compare)
     if dry_run:
-        write_jsonl(data_dir() / "interim" / "page_break_candidates.jsonl", boundaries)
+        write_jsonl(Paths.page_break_candidates(), boundaries)
         return
     labeller, sent, decided = Labeller(cfg, Paths.step_usage(STEP)), 0, {}
     try:

@@ -24,6 +24,10 @@ Steps, in order:
 
   python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
 
+A run that includes any step up to segment (or risk_factors) ends with the review report,
+data/checks/report/report.md (python -m src.report): stale steps, numbers changed since the last
+report, and the check files to open.
+
 page_breaks is not in a default run: it costs money, and its output file, once written, is
 read by clean on every later run. Run it on purpose:
   python run_pipeline.py --steps page_breaks,clean,filter          (clean must have run once)
@@ -36,11 +40,14 @@ import sys
 import time
 
 from src import (build_claims, clean, entity_catalog, fetch, filter_sections, headings, label, load,
-                 page_breaks, risk_factors, segment, subsidiaries, validate)
+                 page_breaks, report, risk_factors, segment, subsidiaries, validate)
 
 STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings", "segment", "label",
          "validate", "risk_factors", "build_claims", "load"]
 OPT_IN = {"page_breaks"}       # paid; only when named in --steps
+# Steps the review report covers (no labels needed): a run with any of them ends with the report.
+REPORTED = {"fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings",
+            "segment", "risk_factors"}
 
 
 def main() -> None:
@@ -82,6 +89,11 @@ def main() -> None:
             started = time.time()
             actions[step]()
             print(f"  ({step} took {time.time() - started:.1f}s)\n", flush=True)
+    if REPORTED & set(steps):
+        try:
+            report.run()
+        except Exception as e:            # the report never fails a run
+            print(f"[report] not written: {type(e).__name__}: {e}", flush=True)
 
 
 if __name__ == "__main__":

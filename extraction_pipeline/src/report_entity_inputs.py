@@ -4,10 +4,10 @@ Kelly's open points on #87 / #92: the 233-filing subsidiaries have not been chec
 repeats and review, and some companies seem to have no segments in the fact store. This
 report reads what steps 1b and 1c wrote and says where to look; it changes nothing.
 
-Input : data/output/subsidiaries.jsonl, subsidiary_qa.csv, subsidiary_renames.csv   (step 1b)
+Input : data/output/subsidiaries.jsonl; data/checks/subsidiaries/subsidiary_qa.csv, subsidiary_renames.csv (1b)
         data/entity_catalog.json                                                (step 1c)
         config/filings.yaml
-Output: printed summary, and in data/output/entity_inputs/
+Output: printed summary, and in data/checks/entity_inputs/
           by_filing.csv            per filing: subsidiaries and segments it is offered
           subsidiaries_by_year.csv per company and 10-K: rows, and change from the 10-K before
           repeats.csv              the same subsidiary twice in one 10-K (a parser repeat), or
@@ -26,7 +26,7 @@ import csv
 import json
 from collections import Counter, defaultdict
 
-from .common import Paths, data_dir, filings, log, read_jsonl, write_csv
+from .common import Paths, checks_dir, filings, log, read_jsonl, write_csv
 
 STEP = "report_entity_inputs"
 BIG_CHANGE = 0.5        # a 10-K whose row count moves by more than half from the year before
@@ -96,12 +96,12 @@ def segments_by_company(catalog: list[dict]) -> list[dict]:
 
 
 def run() -> None:
-    out_dir = Paths.subsidiaries().parent / "entity_inputs"
+    out_dir = checks_dir("entity_inputs")
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = list(read_jsonl(Paths.subsidiaries())) if Paths.subsidiaries().exists() else []
     qa = _read_csv(Paths.subsidiary_qa())
     renames = _read_csv(Paths.subsidiary_renames())
-    cat_path = data_dir() / "entity_catalog.json"
+    cat_path = Paths.entity_catalog()
     catalog = json.loads(cat_path.read_text(encoding="utf-8")) if cat_path.exists() else []
     if not rows:
         log(STEP, "no subsidiaries.jsonl: run step 1b (subsidiaries) first")

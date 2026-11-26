@@ -39,7 +39,7 @@ import uuid
 from collections import Counter
 from pathlib import Path
 
-from .common import ROOT, Paths, data_dir, filings, load_config, log, settings
+from .common import ROOT, Paths, filings, load_config, log, settings
 from .entity_annotation import entry_keys, match_key, validate_catalog
 from .ex21.normalize import normalised_name
 
@@ -50,7 +50,7 @@ _WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z][a-z]+|[0-9]+|[a-z]+")    # same as st
 
 
 def catalog_path() -> Path:
-    return data_dir() / "entity_catalog.json"
+    return Paths.entity_catalog()
 
 
 def segment_label(qname: str) -> str:
