@@ -38,14 +38,14 @@
 <text x="64" y="319" font-size="13" fill="#374151" text-anchor="middle">6</text>
 <text x="102" y="320" font-size="15" font-weight="bold" font-style="italic" fill="#111827">Supply disruptions could harm our results.</text>
 <line x1="660" y1="315" x2="700" y2="315" stroke="#7c3aed" stroke-width="1.2"/>
-<text x="708" y="312" font-size="14.5" fill="#7c3aed">body · risk lead sentence</text>
-<text x="708" y="330" font-size="12.5" fill="#7c3aed">bold in the filing; the model's is_risk_heading decides</text>
+<text x="708" y="312" font-size="14.5" fill="#7c3aed">body · lead sentence</text>
+<text x="708" y="330" font-size="12.5" fill="#7c3aed">bold in the filing's HTML: lead_source = html (step 4)</text>
 <rect x="90" y="342" width="570" height="36" rx="5" fill="#f9fafb" stroke="#374151" stroke-width="1.2"/>
 <circle cx="64" cy="360" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
 <text x="64" y="365" font-size="13" fill="#374151" text-anchor="middle">7</text>
 <text x="102" y="366" font-size="15" font-weight="normal" fill="#111827">We rely on a small number of suppliers in Asia.</text>
 <line x1="660" y1="361" x2="700" y2="361" stroke="#374151" stroke-width="1.2"/>
-<text x="708" y="366" font-size="14.5" fill="#374151">body · risk_lead_unit_id = unit_id of 6</text>
+<text x="708" y="366" font-size="14.5" fill="#374151">body · lead_unit_id = unit_id of 6</text>
 <rect x="90" y="388" width="570" height="36" rx="5" fill="#d1fae5" stroke="#047857" stroke-width="1.2"/>
 <circle cx="64" cy="406" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.2"/>
 <text x="64" y="411" font-size="13" fill="#374151" text-anchor="middle">8</text>
@@ -100,7 +100,7 @@
 <text x="1118" y="495.0" font-size="13" font-weight="normal" fill="#1d4ed8">risk_category_id =</text>
 <text x="1118" y="513.0" font-size="13" font-weight="normal" fill="#1d4ed8">unit_id of 5</text>
 <text x="1118" y="531.0" font-size="13" font-weight="normal" fill="#1d4ed8">theme: business_operations</text>
-<text x="40" y="744" font-size="14.5" fill="#374151">Rows 4 and 6 are the same sentence at two places, so they are two Claims (#45). Rows 7–11 all carry the risk_lead_unit_id of row 6.</text>
+<text x="40" y="744" font-size="14.5" fill="#374151">Rows 4 and 6 are the same sentence at two places, so they are two Claims (#45). Rows 7–14 all carry the lead_unit_id of row 6.</text>
 <text x="40" y="768" font-size="14.5" fill="#374151">Row 8 is a merged list (one unit). Rows 9–11 are a split list (three units); each item points to row 9 by list_intro_id (dashed arrows).</text>
 <text x="40" y="792" font-size="14.5" fill="#374151">Every unit under row 5 takes its themes; each of their Claims gets one CONCERNS_RISK edge per theme. Row 1, the headings and rows 12–14 are not sent to the LLM.</text>
 </svg>

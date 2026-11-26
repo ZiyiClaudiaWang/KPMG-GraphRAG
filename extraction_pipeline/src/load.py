@@ -107,7 +107,7 @@ MERGE (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
 SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.accession_number,
     c.section_id = r.section_id, c.extraction_status = r.extraction_status, c.context = r.context,
     c.subject_scope = r.subject_scope, c.annotation_note = r.annotation_note,
-    c.risk_lead_sentence = r.risk_lead_sentence, c.risk_summary = r.risk_summary,
+    c.is_lead_sentence = r.is_lead_sentence, c.risk_summary = r.risk_summary,
     c.multi_fragment = r.multi_fragment
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
@@ -181,20 +181,21 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
             prov["raw_spans"].append(p["raw_spans"])
             claim["multi_fragment"] = claim["multi_fragment"] or bool(occ.get("multi_fragment"))
             claim["risk_ids"] += [x for x in occ.get("risk_ids") or [] if x not in claim["risk_ids"]]
-            claim["risk_lead_sentence"] = claim["risk_lead_sentence"] or bool(occ.get("risk_lead_sentence"))
+            claim["is_lead_sentence"] = claim["is_lead_sentence"] or bool(occ.get("is_lead_sentence"))
             claim["risk_summary"] = claim["risk_summary"] and bool(occ.get("risk_summary"))
             continue
         claims[occ["claim_id"]] = {
             **{k: occ.get(k) for k in ("claim_id", "quote", "claim_type", "accession_number", "section_id",
                                        "extraction_status", "context", "subject_scope", "annotation_note")},
             "risk_ids": list(occ.get("risk_ids") or []),
-            "risk_lead_sentence": bool(occ.get("risk_lead_sentence")),
+            "is_lead_sentence": bool(occ.get("is_lead_sentence")),
             "risk_summary": bool(occ.get("risk_summary")),
             "multi_fragment": bool(occ.get("multi_fragment")),
             "provenance": {
                 "section_key": p["section_key"],
                 "section_path": p["section_path"],
-                "risk_lead_unit_id": p.get("risk_lead_unit_id"),
+                "lead_unit_id": p.get("lead_unit_id"),
+                "lead_source": p.get("lead_source"),
                 "role": roles.get(occ["claim_id"], "body"),
                 "context_unit_ids": p.get("context_unit_ids") or [],
                 "raw_spans": [p["raw_spans"]],
@@ -212,7 +213,8 @@ def flat_provenance(p: dict) -> dict:
     return {
         "section_key": p["section_key"],
         "section_path": p["section_path"],
-        "risk_lead_unit_id": p["risk_lead_unit_id"],
+        "lead_unit_id": p["lead_unit_id"],
+        "lead_source": p["lead_source"],
         "role": p["role"],
         "context_unit_ids": p["context_unit_ids"],
         "raw_spans_json": json.dumps(p["raw_spans"]),

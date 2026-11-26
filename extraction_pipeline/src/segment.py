@@ -37,6 +37,20 @@ TTWO "Summary of Risk Factors") repeats the risks described below it in short fo
 summary ends where a category heading it listed appears for the second time. Units in it
 are labelled as usual and carry risk_summary = true, so later steps can tell them apart.
 
+Lead sentences (every section): a sentence that sums up the sentences under it, as the
+filing's HTML styles it (step 4b, headings/leads.py: a bold / italic sentence of its own, or
+the styled first sentence of a paragraph). It is labelled like any sentence and changes no
+section_path. Every unit keeps:
+  lead_source           this unit is a lead: html, html_runin (from the HTML) or rule (the
+                        rule_heading proposal below, used for filings without HTML; with
+                        segment.lead_rule: section also in sections whose HTML shows no lead,
+                        with union everywhere); null = not a lead
+  lead_unit_id          the unit_id of the lead above it, until the next lead, the next heading
+                        (any level but 0) or the end of the section; null for a lead itself and
+                        for text under no lead (directly under its heading or section)
+Data: data/output/lead_summary.csv (one row per company) and lead_review.csv (one row per
+lead, and per rule_heading the HTML does not confirm).
+
 Risk headings are only proposed here. Apple puts each heading in its own
 paragraph, which the rules catch; Microsoft starts a paragraph with the
 heading sentence, which plain text cannot show. The LLM therefore also flags
@@ -54,10 +68,11 @@ import re
 #     table rows are never joined across a page break (step 2).
 # v6 (19 Nov 2026): lists after a heading or "the following", lettered items, "• |" and "\uf0b7"
 #     bullets, items whose bullet was lost; heading levels (step 4b); new page-break joins (step 2).
-SEGMENTATION_VERSION = "kelly_sentence_v6"
+# v7 (26 Nov 2026): lead_source and lead_unit_id (lead sentences from the HTML, step 4b).
+SEGMENTATION_VERSION = "kelly_sentence_v7"
 
 from .clean import DANGLING_WORDS, ITEM_MARKER, has_table_cells, raw_spans
-from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_jsonl
+from .common import Paths, filings, log, read_jsonl, settings, unit_id, write_csv, write_jsonl
 from .filter_sections import kept_section_keys
 
 STEP = "segment"
@@ -364,14 +379,19 @@ def heading_id(sec: dict, paragraph: dict, start: int) -> str:
 
 
 def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) -> list[dict]:
-    """Units of one cleaned section. levels: heading id -> level (heading_levels.py, or the Data
-    team's HTML when it comes), 1 = top. With levels, a heading keeps the headings above it in
+    """Units of one cleaned section. levels: heading id -> level (step 4b, src/headings/, from
+    the filing's HTML), 1 = top. With levels, a heading keeps the headings above it in
     section_path ("Part II Item 7 > Results of Operations > Segment Results > Intelligent Cloud");
     level 0 means "not a heading" (a table title or column header) and changes no path; level -1
     means the line is a sentence of the text (CASY "We may be adversely impacted by increases in
     the cost of food ingredients and other related costs", a risk heading without its period):
     it is split and labelled like any paragraph. Without levels every heading is level 1, so a
     heading replaces the one before it, as before.
+
+    In risk factors, a heading is a risk category when its level is 1 (the top of Item 1A in the
+    filing's HTML); deeper headings are sub-headings under it. Without a level for it, a heading
+    is a category when it looks like one (is_category: capitals or title case, "Risks related
+    to ..."). Other sections have no categories.
     """
     paragraphs = sec["paragraphs"]
     is_risk = sec["section_type"] == "risk_factors"
@@ -380,8 +400,13 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     category = subheading = None
     stack: list[tuple[int, str]] = []          # (level, heading text) above the current unit
 
+    def is_risk_category(name: str, p_index: int, start: int) -> bool:
+        """A risk category heading: level 1 in the levels file, else by its look."""
+        level = (levels or {}).get(heading_id(sec, paragraphs[p_index], start))
+        return level == 1 if level is not None else is_category(name)
+
     def is_sentence(p_index: int, start: int) -> bool:
-        """Step 4b said this heading-like line is a sentence of the text (level -1)."""
+        """The levels file says this heading-like line is a sentence of the text (level -1)."""
         return (levels or {}).get(heading_id(sec, paragraphs[p_index], start)) == SENTENCE_LEVEL
 
     def open_heading(name: str, p_index: int, start: int) -> int:
@@ -448,7 +473,7 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
         list_follows = starts_list(paragraphs, i + 1, colon)
         if (is_heading_like(text) or (is_colon_heading(text) and not list_follows)) and not is_sentence(i, p0):
             name = text.rstrip(":").rstrip()      # "Executive Summary:" is shown as "Executive Summary"
-            if is_risk and is_category(name):
+            if is_risk and is_risk_category(name, i, p0):
                 category, subheading = name, None
                 stack.clear()
                 heading = add("category_heading", i, p0, p0 + len(text), "heading")
@@ -538,19 +563,130 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     return units
 
 
+LEAD_ROLES = ("body", "list_group")
+LEAD_RULES = ("fallback", "section", "union")
+
+
+def uses_rule(mode: str, has_html: bool, section_leads: list | None) -> bool:
+    """Whether rule_heading units are leads in a section (settings.yaml segment.lead_rule):
+    fallback = only in filings without HTML; section = also in sections whose HTML shows no lead
+    (a filing that styles no lead there, AAPL 10-Q); union = everywhere."""
+    if mode == "union" or not has_html:
+        return True
+    return mode == "section" and not section_leads
+NOT_LEAD = ("cross_reference", "table_residue")   # prefilters that are never a lead ("Refer to Note 7 ...")
+
+
+def mark_leads(units: list[dict], leads: list[dict] | None, use_rule: bool) -> int:
+    """Set lead_source and lead_unit_id on the units of one section (in source order).
+
+    leads: the section's lead spans from step 4b (headings/leads.py), [{start, end, source}]
+    in `content` positions; the first body or list unit that starts inside a span is that lead,
+    unless step 4 prefiltered it as a cross reference or table residue.
+    use_rule: units with rule_heading are leads too (source rule) when the HTML did not already
+    make them one. Returns the number of lead spans no unit starts in.
+    """
+    for u in units:
+        u["lead_source"] = None
+        u["lead_unit_id"] = None
+    unmatched = 0
+    candidates = [u for u in units if u["role"] in LEAD_ROLES and u["raw_spans"]]
+    for lead in sorted(leads or [], key=lambda x: x["start"]):
+        hit = next((u for u in candidates if lead["start"] - 2 <= u["raw_spans"][0][0] < lead["end"]
+                    and not u["lead_source"]), None)
+        if hit is None:
+            unmatched += 1
+        elif hit["prefilter"] not in NOT_LEAD:
+            hit["lead_source"] = lead["source"]
+    if use_rule:
+        for u in candidates:
+            if u.get("rule_heading") and not u["lead_source"] and u["prefilter"] not in NOT_LEAD:
+                u["lead_source"] = "rule"
+    current = None
+    for u in units:
+        if u["role"] in ("section_title", "category_heading") or (
+                u["role"] == "heading" and u.get("heading_level", 1) != 0):
+            current = None
+        elif u["lead_source"]:
+            current = u["unit_id"]
+        elif u["role"] in LEAD_ROLES:
+            u["lead_unit_id"] = current
+    return unmatched
+
+
+LEAD_SUMMARY_FIELDS = ["ticker", "filings", "filings_no_html", "units", "leads", "leads_html", "leads_html_runin",
+                       "leads_rule", "units_under_lead", "under_lead_pct", "leads_unmatched",
+                       "rule_heading", "rule_and_html", "rule_only", "html_not_rule_1a"]
+LEAD_REVIEW_FIELDS = ["kind", "ticker", "form", "accession_number", "section_key", "section_type",
+                      "lead_source", "rule_heading", "units_under", "text", "next_text", "unit_id"]
+
+
+def lead_report(units: list[dict], no_html: set[str], unmatched: dict[str, int]) -> tuple[list[dict], list[dict]]:
+    """Rows of lead_summary.csv (per company) and lead_review.csv (per lead, and per rule_heading
+    unit the HTML did not make a lead). no_html: accessions without HTML leads; unmatched:
+    accession -> lead spans no unit starts in."""
+    under: dict[str, int] = {}
+    for u in units:
+        if u.get("lead_unit_id"):
+            under[u["lead_unit_id"]] = under.get(u["lead_unit_id"], 0) + 1
+    by_ticker: dict[str, list[dict]] = {}
+    for u in units:
+        by_ticker.setdefault(u["ticker"], []).append(u)
+    summary, review = [], []
+    for ticker in sorted(by_ticker):
+        us = by_ticker[ticker]
+        accessions = {u["accession_number"] for u in us}
+        html_units = [u for u in us if u["accession_number"] not in no_html]
+        leads = [u for u in us if u["lead_source"]]
+        rule = [u for u in html_units if u.get("rule_heading")]
+        n_under = sum(bool(u.get("lead_unit_id")) for u in us)
+        summary.append({
+            "ticker": ticker, "filings": len(accessions), "filings_no_html": len(accessions & no_html),
+            "units": len(us), "leads": len(leads),
+            **{f"leads_{k}": sum(u["lead_source"] == k for u in leads) for k in ("html", "html_runin", "rule")},
+            "units_under_lead": n_under, "under_lead_pct": round(100 * n_under / len(us), 1) if us else "",
+            "leads_unmatched": sum(unmatched.get(a, 0) for a in accessions),
+            "rule_heading": len(rule),
+            "rule_and_html": sum(u["lead_source"] in ("html", "html_runin") for u in rule),
+            "rule_only": sum(u["lead_source"] in (None, "rule") for u in rule),
+            "html_not_rule_1a": sum(u["lead_source"] in ("html", "html_runin") and not u.get("rule_heading")
+                                    and u["section_type"] == "risk_factors" for u in html_units),
+        })
+        nexts = {}
+        for k, u in enumerate(us):
+            if u["lead_source"] or u.get("rule_heading"):
+                nxt = next((v["text"] for v in us[k + 1:k + 2]), "")
+                nexts[u["unit_id"]] = " ".join(nxt.split()[:15])
+        for u in us:
+            in_html = u["accession_number"] not in no_html
+            if u["lead_source"]:
+                kind = "lead"
+            elif u.get("rule_heading") and in_html:
+                kind = "rule_only"
+            else:
+                continue
+            review.append({"kind": kind, **{k: u.get(k) for k in LEAD_REVIEW_FIELDS if k in u},
+                           "units_under": under.get(u["unit_id"], 0), "next_text": nexts.get(u["unit_id"], "")})
+    return summary, review
+
+
 def mark_risk_summary(units: list[dict]) -> None:
     """Flag the risk factor summary (risk_summary = true): it repeats the risks described after it.
 
-    The summary runs from its heading to the first category heading that appears for the
-    second time (where the full text starts again). Without such a repeat nothing is marked.
+    The summary runs from its heading to the first heading that appears for the second time
+    (where the full text starts again). Both roles count: with heading levels (step 4b) the
+    categories listed in the summary sit under its heading at level 2, so they are `heading`
+    there and `category_heading` in the full text (MU, TTWO). Without such a repeat nothing is
+    marked.
     """
+    roles = ("heading", "category_heading")
     start = next((k for k, u in enumerate(units)
-                  if u["role"] == "category_heading" and RISK_SUMMARY.match(u["text"])), None)
+                  if u["role"] in roles and RISK_SUMMARY.match(u["text"])), None)
     if start is None:
         return
     seen, end = set(), None
     for k in range(start + 1, len(units)):
-        if units[k]["role"] != "category_heading":
+        if units[k]["role"] not in roles:
             continue
         key = units[k]["text"].lower()
         if key in seen:
@@ -564,18 +700,30 @@ def mark_risk_summary(units: list[dict]) -> None:
 
 
 def run() -> None:
-    from .heading_levels import load_levels      # heading levels, when step 4b has run
+    from .headings import load_leads, load_levels   # heading levels and lead sentences, when step 4b has run
     cfg = settings()["segment"]
     kept = kept_section_keys()
     levels = load_levels()
     if levels:
         log(STEP, f"{len(levels)} heading levels from step 4b")
+    leads = load_leads()
+    rule_mode = cfg.get("lead_rule", "fallback")
+    if rule_mode not in LEAD_RULES:
+        raise SystemExit(f"settings.yaml segment.lead_rule must be one of {', '.join(LEAD_RULES)}, not {rule_mode!r}")
     all_units = []
+    no_html: set[str] = set()
+    unmatched: dict[str, int] = {}
     for f in filings():
+        facts = leads.get(f["accession"], {"html": False, "leads": {}})
+        if not facts["html"]:
+            no_html.add(f["accession"])
         for sec in read_jsonl(Paths.cleaned(f)):
             if (sec["accession_number"], sec["section_key"]) not in kept:
                 continue
             units = segment_section(sec, cfg, levels)
+            section_leads = facts["leads"].get(sec["section_key"])
+            miss = mark_leads(units, section_leads, use_rule=uses_rule(rule_mode, facts["html"], section_leads))
+            unmatched[f["accession"]] = unmatched.get(f["accession"], 0) + miss
             all_units += units
             to_label = sum(u["prefilter"] is None for u in units)
             proposed = sum(bool(u["rule_heading"]) for u in units)
@@ -583,6 +731,16 @@ def run() -> None:
                       f"{to_label} to label, {proposed} proposed risk headings")
     write_jsonl(Paths.sentences(), all_units)
     log(STEP, f"{len(all_units)} units -> {Paths.sentences()}")
+    summary, review = lead_report(all_units, no_html, unmatched)
+    write_csv(Paths.lead_summary(), summary, LEAD_SUMMARY_FIELDS)
+    write_csv(Paths.lead_review(), review, LEAD_REVIEW_FIELDS)
+    n_leads = sum(r["leads"] for r in summary)
+    log(STEP, f"{n_leads} lead sentences ({sum(r['leads_html'] for r in summary)} html, "
+              f"{sum(r['leads_html_runin'] for r in summary)} html_runin, {sum(r['leads_rule'] for r in summary)} rule; "
+              f"segment.lead_rule: {rule_mode}), {sum(r['units_under_lead'] for r in summary)} units under a lead, "
+              f"{sum(r['leads_unmatched'] for r in summary)} HTML leads matched no unit; "
+              f"{len(no_html)} filings without HTML leads")
+    log(STEP, f"leads: {Paths.lead_summary()}  {Paths.lead_review()}")
 
 
 if __name__ == "__main__":

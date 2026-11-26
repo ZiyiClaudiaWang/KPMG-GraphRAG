@@ -3,7 +3,7 @@ from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_p
                          is_category, is_colon_heading, mark_risk_summary, segment_section)
 from src.entity_annotation import annotate_mentions
 from src.clean import drop_rule, has_table_cells, should_join
-from src.risk_factors import assign, category_key, is_lead_sentence
+from src.risk_factors import assign, category_key
 from src.common import source_text, unit_id
 
 
@@ -151,6 +151,7 @@ class PageBreaks(unittest.TestCase):
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Continued)", set()), "continued_header")
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Concluded)", set()), "continued_header")
         self.assertEqual(drop_rule("Table of Contents | MD&A Index |", set()), "toc_link")
+        self.assertEqual(drop_rule("Table of Contents | Alphabet Inc.", set()), "toc_link")      # GOOGL page top
         self.assertIsNone(drop_rule("Fiscal Year 2026 Compared with Fiscal Year 2025", set()))
 
     def test_unaudited_label_is_removed(self):
@@ -303,27 +304,26 @@ class RiskCategories(unittest.TestCase):
         self.assertFalse(units[1]["risk_summary"])
 
     def test_sentences_take_the_themes_of_their_category(self):
-        def unit(n, role, text, rule_heading=None):
+        def unit(n, role, text):
             return {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
                     "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
-                    "rule_heading": rule_heading, "risk_summary": False}
+                    "risk_summary": False}
         units = [unit(1, "body", "The following risks could affect us."),
                  unit(2, "category_heading", "Risks Related to Intellectual Property and Litigation"),
-                 unit(3, "body", "We may be sued for infringement.", "high"),
+                 unit(3, "body", "We may be sued for infringement."),
                  unit(4, "body", "Such claims are costly."),
                  unit(5, "category_heading", "INDEX TO RISK FACTORS")]
         mapping = {category_key("Risks related to intellectual property and litigation"):
                    ["intellectual_property", "legal_regulatory"],
                    category_key("Index to Risk Factors"): []}
-        categories, assignments = assign(units, {}, mapping)
+        categories, assignments = assign(units, mapping)
         self.assertEqual([c["map_status"] for c in categories], ["mapped", "not_a_theme"])
         by_id = {a["unit_id"]: a for a in assignments}
         self.assertEqual(by_id["u1"]["risk_ids"], [])                    # before any category
         self.assertEqual(by_id["u4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
-        self.assertEqual(by_id["u4"]["risk_lead_unit_id"], "u3")           # unit ids (#45)
         self.assertEqual(by_id["u4"]["risk_category_id"], "u2")
-        self.assertEqual(categories[0]["risk_category_id"], "u2")
-        self.assertTrue(by_id["u3"]["risk_lead_sentence"])
+        self.assertEqual(categories[0]["risk_category_id"], "u2")        # unit ids (#45)
+        self.assertEqual(set(by_id["u4"]), {"unit_id", "risk_category_id", "risk_ids"})   # leads: step 4 (7c)
 
 
 class SourceMatching(unittest.TestCase):
@@ -339,12 +339,6 @@ class SourceMatching(unittest.TestCase):
         second = content.index("follow.")
         joined = [[35, 45], [second, second + 7]]                  # the page number is left out
         self.assertEqual(source_text(content, joined), "Delays may follow.")
-
-    def test_repaired_label_counts_as_model_judgement(self):
-        unit = {"unit_id": "x", "rule_heading": None}
-        for source in ("llm", "llm_repair"):
-            self.assertTrue(is_lead_sentence(unit, {"x": {"source": source, "is_risk_heading": True}}))
-        self.assertTrue(is_lead_sentence({"unit_id": "y", "rule_heading": "high"}, {}))
 
 
 class UnitIdentity(unittest.TestCase):

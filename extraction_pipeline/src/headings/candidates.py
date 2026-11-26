@@ -1,0 +1,93 @@
+"""The headings step 4 finds in each kept section (sub-headings, and risk category headings in
+Item 1A), and the levels file it reads back.
+
+The file data/interim/heading_levels.jsonl has one row per heading:
+{"heading_id", "text", "level", "source", "reason"}. heading_id is
+accession|section_key|start of the heading in the Data-team content (segment.heading_id), so a
+level survives a change of the rules elsewhere. Level 1 is the top of a section; level 0 is not a
+heading (a column header, a table of contents) and changes no path. A heading the file does not
+list is read by step 4 as a sibling of the heading before it.
+
+data/interim/lead_sentences.jsonl (leads.py) has one row per filing:
+{"accession", "html", "leads": [{"section_key", "start", "end", "source", "text"}]}, positions in
+the section's Data-team content. Step 4 reads it for lead_source and lead_unit_id.
+"""
+
+from __future__ import annotations
+
+from ..common import Paths, data_dir, filings, read_jsonl, settings
+from ..filter_sections import kept_section_keys
+
+
+def levels_path():
+    return data_dir() / "interim" / "heading_levels.jsonl"
+
+
+def leads_path():
+    return data_dir() / "interim" / "lead_sentences.jsonl"
+
+
+def load_leads() -> dict[str, dict]:
+    """accession -> {"html": bool, "leads": {section_key: [{start, end, source, text}, ...]}};
+    empty when step 4b has not run. A filing it does not list counts as one without HTML."""
+    path = leads_path()
+    if not path.exists():
+        return {}
+    out = {}
+    for r in read_jsonl(path):
+        by_section: dict[str, list[dict]] = {}
+        for x in r["leads"]:
+            by_section.setdefault(x["section_key"], []).append(x)
+        out[r["accession"]] = {"html": bool(r["html"]), "leads": by_section}
+    return out
+
+
+def load_levels() -> dict[str, int]:
+    """heading id -> level; empty when step 4b has not run."""
+    path = levels_path()
+    if not path.exists():
+        return {}
+    return {r["heading_id"]: int(r["level"]) for r in read_jsonl(path)}
+
+
+def section_headings() -> list[dict]:
+    """Headings of every kept section, in order, with the first words of the text under each.
+    Risk category headings are included: their level decides which of them are categories
+    (segment.is_risk_category). Each section also carries its units in short form (role,
+    prefilter, rule_heading, start / end and spans in the Data-team content) for the HTML comparison
+    (compare.py); a section without headings is listed too, with an empty list."""
+    from ..segment import heading_id, segment_section
+    cfg = settings()["segment"]
+    kept = kept_section_keys()
+    out = []
+    for f in filings():
+        path = Paths.cleaned(f)
+        if not path.exists():
+            continue
+        for sec in read_jsonl(path):
+            if (sec["accession_number"], sec["section_key"]) not in kept:
+                continue
+            units = segment_section(sec, cfg)
+            heads = []
+            for k, u in enumerate(units):
+                if u["role"] not in ("heading", "category_heading"):
+                    continue
+                after = next((v["text"] for v in units[k + 1:] if v["role"] not in ("heading", "category_heading")), "")
+                para = sec["paragraphs"][u["paragraph_index"]]
+                heads.append({"heading_id": heading_id(sec, para, u["char_start"]), "text": u["text"],
+                              "role": u["role"], "next_text": " ".join(after.split()[:12])})
+            if units:
+                out.append({"ticker": f["ticker"], "form": f["form"], "accession": sec["accession_number"],
+                            "section_key": sec["section_key"], "section": units[0]["section_label"],
+                            "headings": heads, "units": [short_unit(u) for u in units]})
+    return out
+
+
+def short_unit(unit: dict) -> dict:
+    """start / end cover the whole unit; spans are its pieces. A unit joined across a page break
+    has two or more spans, and the page header or footer that step 2 removed between them lies
+    inside start / end but in no span."""
+    spans = unit["raw_spans"] or [[unit["char_start"], unit["char_end"]]]
+    return {"role": unit["role"], "prefilter": unit["prefilter"], "rule_heading": unit["rule_heading"],
+            "start": min(a for a, _ in spans), "end": max(b for _, b in spans),
+            "spans": [list(sp) for sp in spans]}
