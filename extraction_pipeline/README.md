@@ -155,8 +155,9 @@ flowchart LR
     CL -->|"8 Load: CONCERNS_RISK"| RF
 ```
 
-Details: [step 7a](#step-7a-risk-factors); the themes and the map: [Appendix B](#appendix-b-risk-themes); whether
-only lead sentences should link to a theme: [Remaining issues 2.2](#2-decide-but-can-be-open).
+Details: [step 7a](#step-7a-risk-factors); the themes and the map: [Appendix B](#appendix-b-risk-themes); lead
+sentences (`lead_unit_id`, every section): [step 4](#step-4-segment); whether only lead sentences should link to a
+theme: [Remaining issues 2.2](#2-decide-but-can-be-open).
 
 #### c. lists
 ```mermaid
@@ -363,8 +364,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       `html_not_rule_1a`). `output/lead_review.csv`: one row per lead (`kind lead`, with
       `units_under` and the next text) and per `rule_heading` unit the HTML did not make a lead
       (`kind rule_only`), to decide `segment.lead_rule`.
-    - Step 7a still takes its `risk_lead_*` fields from `rule_heading` and the step 5 labels; it
-      moves to `lead_*` later (patch 7c).
+    - Step 7b copies them onto every Claim (`is_lead_sentence`, `provenance.lead_unit_id`,
+      `provenance.lead_source`); the model's `is_risk_heading` is not used (patch 7c).
     - Units in the risk factor summary that some filings open with (MU, TTWO) carry
       `risk_summary = true`. The summary ends where a category it listed appears again (as a
       heading or a category heading: with step 4b levels the categories in the summary are
@@ -494,6 +495,8 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - The model returns, per number: a label (`stated_fact`, `forward_looking`, `hedged_risk`, or
     the pipeline-only `not_a_claim` and `needs_review`), `context_ids`, `subject_scope`,
     `annotation_note`, `is_risk_heading` and `entity_mentions` (segments and subsidiaries named).
+    `is_risk_heading` is no longer read (lead sentences come from step 4, patch 7c); it stays in
+    the prompt until the next prompt version.
   - The client sends `Accept-Encoding: identity`, so replies are never brotli-compressed: an old
     `brotli` package (below 1.2.0) breaks httpx2's decoding (#46). `openai` is pinned to 3.40.0.
   - A reply fails, and publishes no labels, when it is incomplete or a refusal, is not the
@@ -557,12 +560,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     to zero, one or several themes of `config/risk_themes.csv`.
     - Empty means the heading is not a theme (e.g. MCK "INDEX TO RISK FACTORS").
     - A category missing from the map is reported as `unmapped` and gets no theme.
-  - **Risk lead sentence:** the sentence that opens and sums up one risk.
-    - It is the model's `is_risk_heading`, or without a model label the step 4 proposal
-      (`rule_heading`).
-    - Each unit also records the lead sentence above it (`risk_lead_unit_id`). It is kept as a
-      property on `SUPPORTS`; there is no Claim-to-Claim edge
-      ([Remaining issues 2.2](#2-decide-but-can-be-open)).
+  - Lead sentences are not decided here: step 4 marks them in every section (`lead_source`,
+    `lead_unit_id`, [step 4](#step-4-segment)). In Item 1A a lead's scope ends at the next
+    category heading or sub-heading. The model's `is_risk_heading` is no longer read (patch 7c).
   - On the 20 filings:
     - 78 category headings (46 distinct texts), all in the map: 72 with themes, 6 not a theme
     - 5,071 of the 5,302 Item 1A units sent to the LLM have a theme
@@ -588,12 +588,14 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     data/output/claim_repeats.json` counts Claims whose text repeats in another filing of the same
     company (whitespace normalised; repeats inside one filing are left out).
   - Ids that point at other units (`context_evidence`, `risk_category_id`,
-    `provenance.context_unit_ids`, `provenance.risk_lead_unit_id`) are `unit_id`s.
+    `provenance.context_unit_ids`, `provenance.lead_unit_id`) are `unit_id`s. `lead_unit_id` is
+    only recorded: the lead may not be a Claim itself (`not_a_claim`, or held).
   - Each run compares its `claim_id`s with the `claims.jsonl` it replaces and writes
     `output/claim_id_report.json`: ids added, ids gone, and ids kept whose quote changed, with
     examples. The counts are also logged.
-  - Risk fields from step 7a: `risk_ids`, `risk_category_id`,
-    `risk_lead_sentence` and `risk_summary` ([Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8)).
+  - Lead fields from step 4, in every section: `is_lead_sentence`, `provenance.lead_unit_id`,
+    `provenance.lead_source`. Risk fields from step 7a: `risk_ids`, `risk_category_id`; and
+    `risk_summary` from step 4 ([Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8)).
 - <a id="step-8-load"></a>**[8] Load** writes one Claim node per `claim_id`, with its ids and source spans on `SUPPORTS`,
   and `multi_fragment` on the node.
   - A Claim gets one `CONCERNS_RISK` edge per risk theme of its category.
@@ -779,7 +781,7 @@ They need no API key, database or network.
 | `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
 | `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_theme_map.csv`<br>• `not_a_theme` rows<br>• `n_units` of large categories |
 | `config/risk_theme_map.csv` | rows with a `note`: categories that fit more than one theme, or none clearly ([Appendix B](#appendix-b-risk-themes)) |
-| `output/labels.jsonl` | • units the model labelled `not_a_claim` (`source` is `llm`): they appear neither in the review queue nor in `claims.jsonl`<br>• in Item 1A, `is_risk_heading`, which decides the risk lead sentences |
+| `output/labels.jsonl` | • units the model labelled `not_a_claim` (`source` is `llm`): they appear neither in the review queue nor in `claims.jsonl` |
 | `output/errors.jsonl` | should be empty after step 6 |
 | `output/review_queue.jsonl` | • held units (no `candidate_retained`), their `reason` and `claim_review_flags`<br>• retained Claims with entity `flags` |
 | `output/claims.jsonl` | • sample Claims per section for the type-fit test<br>• `risk_ids` of Item 1A Claims<br>• `multi_fragment` Claims: whether the list or page-break join is right |
@@ -825,7 +827,7 @@ They need no API key, database or network.
      - Apple's 10-Qs (179 units) and the opening paragraphs of each 10-K get no theme.
      - One option is a model pass that picks a theme from the library ([Appendix B](#appendix-b-risk-themes)).
    - the model's `is_risk_heading`
-     - it is kept only for `risk_lead_sentence` and `risk_lead_unit_id`, which [2.2](#2-decide-but-can-be-open) and [1.7](#1-improvement) would use.
+     - no longer read: lead sentences come from step 4 (patch 7c). The field leaves the label prompt with the other prompt changes, before the full step 5 run.
 8. Claims to segments and subsidiaries (#91):
    - P1 (code-only matching, [step 1c](#step-1c-entity-catalog)) is in. On the 20 filings: 402
      of 10,774 Claims link (105 to a subsidiary, 332 to a segment), up from 0.
@@ -921,8 +923,7 @@ One line per unit. "Data team" fields are copied from the section export; the re
 ### `risk_categories.csv` (step 7a)
 
 One row per risk category heading in each filing. `risk_assignments.jsonl` (in `data/interim/`)
-has one line per Item 1A unit (`unit_id`) with its `risk_category_id`, `risk_ids`,
-`risk_lead_sentence` and `risk_lead_unit_id`.
+has one line per Item 1A unit (`unit_id`) with its `risk_category_id` and `risk_ids`.
 
 | Field | Meaning |
 |-------|---------|
@@ -951,9 +952,9 @@ line. "Loaded" shows where a field ends up in Neo4j.
 | `subject_scope`, `annotation_note` | From the model | `Claim` |
 | `risk_ids` | Risk themes of the category the Claim sits under; empty outside Item 1A categories | one `Claim-[:CONCERNS_RISK]->RiskFactor` per theme |
 | `risk_category_id` | `unit_id` of that category heading, or null | no |
-| `risk_lead_sentence` | True if the Claim is the sentence that opens and sums up a risk | `Claim.risk_lead_sentence` |
+| `is_lead_sentence` | True if the Claim is a lead sentence (sums up the sentences under it; step 4 `lead_source`), in any section | `Claim.is_lead_sentence` |
 | `risk_summary` | True if the Claim is in the risk factor summary at the top of Item 1A | `Claim.risk_summary` |
-| `provenance` | Section key and path, XPath, Data team versions (`processing_set_id`, `report_id`, source hashes), section content hash, `raw_spans`, `context_unit_ids`, `risk_lead_unit_id`, `request_hash`, `runner_version`, `model`, `prompt_version` | Part, on `SUPPORTS`: section key and path, `context_unit_ids`, `risk_lead_unit_id`, `raw_spans` (as JSON), XPath, source file, `processing_set_id`, `model`, `prompt_version`; step 8 adds the unit's `role` |
+| `provenance` | Section key and path, XPath, Data team versions (`processing_set_id`, `report_id`, source hashes), section content hash, `raw_spans`, `context_unit_ids`, `lead_unit_id` and `lead_source` (step 4), `request_hash`, `runner_version`, `model`, `prompt_version` | Part, on `SUPPORTS`: section key and path, `context_unit_ids`, `lead_unit_id` and `lead_source` (step 4), `raw_spans` (as JSON), XPath, source file, `processing_set_id`, `model`, `prompt_version`; step 8 adds the unit's `role` |
 | `candidate_occurrence_id` | sha256 of claim id, section content hash and `raw_spans`; one per Claim (Claudia's field name) | no |
 | `claim_identity_version` | How `claim_id` is made: `source_span_position_v1` (before #45: `exact_source_sentence_v1`, by text). Tells anyone holding claim_ids whether two builds' ids are comparable | no |
 | `section_logical_key`, `section_type` | `<accession>/<section_key>`; the section's Item code | no |
