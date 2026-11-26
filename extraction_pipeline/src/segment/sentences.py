@@ -24,7 +24,9 @@ ITEM_NUMBER = re.compile(r"\d{1,2}[a-c]?")   # "1a" in "see Item 1A. Risk Factor
 REFERENCE_WORDS = {"item", "note"}            # "Item 1A. Risk Factors", "Note 9. Debt": the title follows the number
 ROMAN = re.compile(r"x{0,3}(?:ix|iv|v?i{0,3})")   # "iii" of "III."; one letter ("I.", "V.") is an initial below
 QUOTE_OPEN = "\"“‘(["                        # a numbered title in quotes: under the sub-caption "III. Environmental Matters."
-BOUNDARY = re.compile(r"[.?!][\"”’)\]]*(?=\s+[\"“‘(\[]?[A-Z0-9•])")
+# A sentence end before whitespace, or a closing quote straight before a capital (WMT 'Matters."The
+# foregoing matters ...': no space in the export).
+BOUNDARY = re.compile(r"[.?!][\"”’)\]]*(?=\s+[\"“‘(\[]?[A-Z0-9•])|[.?!][\"”](?=[A-Z][a-z])")
 TERMINAL = re.compile(r"[.?!][\"”’)]*$")      # the text ends like a sentence
 
 

@@ -22,9 +22,13 @@ from .headings import HeadingPath
 # v10 (26 Nov 2026): too_short only for fragments: short complete sentences go to the LLM; short
 #     ":" intros are list_intro; run-in headings opening a list intro, and short styled run-ins
 #     from the HTML in any case, are headings; '"III. ...' no longer ends a sentence.
+# v11 (26 Nov 2026): step 2 drops "17." page numbers before page furniture (GOOGL); a short
+#     styled run-in with a verb ("We may experience supply problems.") is not a heading; styled
+#     run-ins inside a paragraph are headings (WMT "Opportunity."); a stray bullet is never
+#     too_short; 'Matters."The' ends a sentence; "* Not meaningful." is a table note.
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v10"
+SEGMENTATION_VERSION = "kelly_sentence_v11"
 
 
 def section_label(sec: dict) -> str:

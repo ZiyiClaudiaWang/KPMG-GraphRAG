@@ -50,6 +50,7 @@ TABLE_NOTES = [
     "Percentages may not add due to rounding",   # NTAP
     "NM - Not Meaningful",                       # NTAP
     "(3)Not meaningful (NM)",                    # MDT
+    "* Not meaningful",                          # MSFT, under its non-GAAP table
     "Shares that May",                           # MCK share-repurchase table header
     "Shares",                                    # MCK 10-Q share-repurchase table header
     # Table cells cut out of a table (one "|" left), README Remaining issues 2.3

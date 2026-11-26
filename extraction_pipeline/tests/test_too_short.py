@@ -7,6 +7,7 @@ import unittest
 
 from src import clean, segment
 from src.common import settings
+from src.headings.leads import is_runin_heading
 from src.segment.prefilter import prefilter
 from src.segment.sentences import split_sentences
 
@@ -34,6 +35,14 @@ class Prefilter(unittest.TestCase):
             self.assertEqual(prefilter(text, 4), "list_intro", text)
 
 
+class RunInHeadings(unittest.TestCase):
+    def test_short_styled_runins(self):
+        for text in ("Player acquisition costs.", "Financial and savings programs.", "Merchandise."):
+            self.assertTrue(is_runin_heading(text), text)
+        for text in ("We may experience supply problems.", "Revenue is seasonal.", "Costs grew"):
+            self.assertFalse(is_runin_heading(text), text)
+
+
 class Sentences(unittest.TestCase):
     def test_quoted_roman_numeral_opens_a_title(self):
         text = ('This is described under the sub-caption "III. Environmental Matters." '
@@ -41,6 +50,11 @@ class Sentences(unittest.TestCase):
         self.assertEqual([text[a:b] for a, b in split_sentences(text)],
                          ['This is described under the sub-caption "III. Environmental Matters."',
                           "We have no other matters to report."])
+
+    def test_closing_quote_without_space(self):
+        text = 'It is under "III. Environmental Matters."The foregoing matters may change.'
+        self.assertEqual([text[a:b] for a, b in split_sentences(text)],
+                         ['It is under "III. Environmental Matters."', "The foregoing matters may change."])
 
     def test_roman_numeral_at_a_real_end(self):
         text = "Our plans are in Phase II. The next phase starts in 2027."
@@ -71,6 +85,53 @@ class RunInHeadingInListIntro(unittest.TestCase):
         self.assertEqual(intro["prefilter"], "list_intro")
         items = [u for u in got.values() if u.get("list_intro_id") == intro["unit_id"]]
         self.assertTrue(items and all(u["prefilter"] is None for u in items))
+
+
+class PageNumbers(unittest.TestCase):
+    def sec(self, content: str) -> dict:
+        return {"accession_number": "0000000000-26-000012", "ticker": "TEST", "form": "10-K",
+                "section_id": "sec-1a", "section_key": "part-i-item-1a", "section_type": "risk_factors",
+                "part": "I", "item": "1A", "processing_set_id": "set-1", "source_locator": {},
+                "content": content, "offset_start": 0}
+
+    def test_dotted_page_number_before_page_header_is_dropped_and_the_sentence_joined(self):
+        content = ("We have been unable to detect and prevent all such abuses or promote\n\n17.\n\n"
+                   "Table of Contents | Alphabet Inc.\n\nuniformly high-quality content. Abuse may grow.")
+        cleaned = clean.clean_section(self.sec(content), set())
+        self.assertEqual([r["rule"] for r in cleaned["removed"]], ["page_number", "toc_link"])
+        self.assertEqual(cleaned["paragraphs"][0]["text"],
+                         "We have been unable to detect and prevent all such abuses or promote "
+                         "uniformly high-quality content. Abuse may grow.")
+
+    def test_numbered_item_on_its_own_line_stays(self):
+        cleaned = clean.clean_section(self.sec("Our steps are:\n\n1.\n\nWe review the plan."), set())
+        self.assertEqual(cleaned["removed"], [])
+
+    def test_table_note(self):
+        self.assertEqual(prefilter("* Not meaningful.", 4), "table_residue")
+
+
+class Paragraphs(unittest.TestCase):
+    def test_stray_bullet_is_never_too_short(self):
+        got = units("Our revenues may vary because of many things.\n\n"
+                    "•new product and service launches; and\n\n•seasonality.")
+        self.assertIsNone(got["seasonality."]["prefilter"])
+
+    def test_styled_runin_inside_a_paragraph(self):
+        text = "Our themes are opportunity and community. Opportunity. Retail can be a powerful engine."
+        sec = {"accession_number": "0000000000-26-000013", "ticker": "TEST", "form": "10-K",
+               "section_id": "sec-1", "section_key": "part-i-item-1", "section_type": "business",
+               "part": "I", "item": "1", "processing_set_id": "set-1", "source_locator": {},
+               "content": text, "offset_start": 0}
+        cleaned = clean.clean_section(sec, set())
+        start = text.index("Opportunity.")
+        runins = [{"start": start, "end": start + len("Opportunity."), "text": "Opportunity."}]
+        got = {u["text"]: u for u in segment.segment_section(cleaned, settings()["segment"], None, None, runins)}
+        self.assertEqual(got["Opportunity."]["role"], "heading")
+        self.assertEqual(got["Retail can be a powerful engine."]["subheading"], "Opportunity.")
+        # without the HTML, a title-case word inside a paragraph stays a sentence
+        plain = {u["text"]: u for u in segment.segment_section(cleaned, settings()["segment"])}
+        self.assertEqual(plain["Opportunity."]["role"], "body")
 
 
 if __name__ == "__main__":

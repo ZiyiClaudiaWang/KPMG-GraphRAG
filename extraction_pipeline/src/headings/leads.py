@@ -21,8 +21,8 @@ heading: segment/headings.is_period_heading), and a styled sentence next to anot
 block (a run of them is emphasis, not a lead).
 
 Run-in headings (runin_headings) are found here too but kept apart from leads: a block whose
-styled first sentence is short (at most RUNIN_HEADING_MAX_WORDS words, ends in ".") and the rest
-plain, in any case (TTWO "Player acquisition costs." then the text). Step 4 opens them as
+styled first sentence is short (at most RUNIN_HEADING_MAX_WORDS words, ends in ".", no finite
+verb such as "may" or "is") and the rest plain, in any case (TTWO "Player acquisition costs." then the text). Step 4 opens them as
 sub-headings (segment/section.py run_in_heading); by its text alone only title case counts.
 
 Each lead is a span in the section's Data-team `content` (start, end), so step 4 matches it to
@@ -40,6 +40,10 @@ LEAD_MIN_WORDS = 4
 LEAD_MAX_WORDS = 100
 RUNIN_MIN_WORDS = 6
 RUNIN_HEADING_MAX_WORDS = 5          # as segment/headings.is_period_heading
+# A short styled sentence with a finite verb is a sentence, not a run-in heading
+# (MSFT "We may experience supply problems."); "Financial and savings programs." is a heading.
+FINITE_VERB = re.compile(r"\b(?:may|might|can|could|will|would|shall|should|must|is|are|was|were|"
+                         r"has|have|had|do|does|did|we|our|it|they)\b", re.IGNORECASE)
 SENTENCE_END = re.compile(r"[.?!][\"'”’)]*$")
 HAS_LETTER = re.compile(r"[A-Za-z]")
 
@@ -148,8 +152,10 @@ def section_leads(section: dict, blocks: list[Block], text: str, rows: list[dict
 
 
 def is_runin_heading(prefix: str) -> bool:
-    """A styled first sentence short enough to be a run-in heading: 1-5 words, ends in "."."""
-    return prefix.endswith(".") and 1 <= len(prefix.split()) <= RUNIN_HEADING_MAX_WORDS
+    """A styled first sentence short enough to be a run-in heading: 1-5 words, ends in ".", and
+    no finite verb or pronoun subject (FINITE_VERB)."""
+    return (prefix.endswith(".") and 1 <= len(prefix.split()) <= RUNIN_HEADING_MAX_WORDS
+            and not FINITE_VERB.search(prefix))
 
 
 def runin_headings(section: dict, blocks: list[Block], text: str) -> list[dict]:

@@ -13,7 +13,11 @@ Each paragraph goes to the first reader in READERS that takes it; the order is t
                       by its text, or, from the filing's HTML, a short styled first sentence in any
                       case (TTWO "Player acquisition costs.", step 4b headings/leads.py)
   5. rule_lead        Item 1A: a paragraph the rules propose as a risk lead (rule_heading)
-  6. paragraph        anything else: split into sentences
+  6. paragraph        anything else: split into sentences; a sentence the HTML styles as a
+                      run-in heading opens one there too (WMT "...ethics and integrity.
+                      Opportunity. Retail can ...", one paragraph in the export). A stray bullet
+                      is never too_short (GOOGL "•seasonality."): an item takes its meaning from
+                      the list
 """
 
 from __future__ import annotations
@@ -67,13 +71,15 @@ class Section:
         pos = spans[0][0] if spans else start
         return any(a - 2 <= pos < b for a, b in self.runin_spans)
 
-    def open_run_in(self, i: int, a: int, b: int) -> bool:
-        """Paragraph i opens with a run-in heading at text[a:b] (positions in the paragraph):
-        open it as a sub-heading and add its heading unit. False when it is not one."""
+    def open_run_in(self, i: int, a: int, b: int, by_text: bool = True) -> bool:
+        """A run-in heading at text[a:b] of paragraph i (positions in the paragraph): open it as
+        a sub-heading and add its heading unit. False when it is not one. by_text: a title-case
+        sentence counts without the HTML (only where it opens the paragraph)."""
         para = self.paragraphs[i]
         text, p0 = para["text"], para["start"]
         head = text[a:b]
-        if not (is_period_heading(head) or self.styled_runin(para, p0 + a, head)) or self.levels.is_sentence(para, p0 + a):
+        if not ((by_text and is_period_heading(head)) or self.styled_runin(para, p0 + a, head)) \
+                or self.levels.is_sentence(para, p0 + a):
             return False
         level = self.levels.heading_level(para, p0 + a, self.path.sibling)
         if self.is_risk and level != NOT_A_HEADING:
@@ -193,7 +199,8 @@ def run_in_heading(s: Section, i: int) -> int | None:
     if not s.open_run_in(i, a, b):
         return None
     for a, b in sentences[1:]:
-        s.add("body", i, p0 + a, p0 + b, AUTO)
+        if not s.open_run_in(i, a, b, by_text=False):
+            s.add("body", i, p0 + a, p0 + b, AUTO)
     return i + 1
 
 
@@ -213,10 +220,16 @@ def rule_lead(s: Section, i: int) -> int | None:
 def paragraph(s: Section, i: int) -> int:
     """An ordinary paragraph (a stray bullet is treated as one): split into sentences."""
     text, p0 = s.paragraphs[i]["text"], s.paragraphs[i]["start"]
-    body_start = p0 + (BULLET.match(text).end() if is_bullet(text) else 0)
+    bullet = is_bullet(text)
+    body_start = p0 + (BULLET.match(text).end() if bullet else 0)
     body = s.sec["text"][body_start:p0 + len(text)]
-    for a, b in split_sentences(body):
-        s.add("body", i, body_start + a, body_start + b, AUTO)
+    for k, (a, b) in enumerate(split_sentences(body)):
+        at = body_start - p0
+        if k and not bullet and s.open_run_in(i, at + a, at + b, by_text=False):
+            continue
+        unit = s.add("body", i, body_start + a, body_start + b, AUTO)
+        if bullet and unit["prefilter"] == "too_short":
+            unit["prefilter"] = None
     return i + 1
 
 
