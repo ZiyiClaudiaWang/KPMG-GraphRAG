@@ -18,6 +18,10 @@ from __future__ import annotations
 from ..common import Paths, data_dir, filings, read_jsonl, settings
 from ..filter_sections import kept_section_keys
 
+# Levels in heading_levels.jsonl that are not a depth (step 4 reads them in segment/headings.py).
+NOT_A_HEADING = 0      # a column header, "(In millions)", a table of contents: changes no path
+SENTENCE_LEVEL = -1    # a sentence of the text, not a heading (a lead sentence styled as a heading)
+
 
 def levels_path():
     return data_dir() / "interim" / "heading_levels.jsonl"
@@ -53,7 +57,7 @@ def load_levels() -> dict[str, int]:
 def section_headings() -> list[dict]:
     """Headings of every kept section, in order, with the first words of the text under each.
     Risk category headings are included: their level decides which of them are categories
-    (segment.is_risk_category). Each section also carries its units in short form (role,
+    (segment.Levels.is_risk_category). Each section also carries its units in short form (role,
     prefilter, rule_heading, start / end and spans in the Data-team content) for the HTML comparison
     (compare.py); a section without headings is listed too, with an empty list."""
     from ..segment import heading_id, segment_section

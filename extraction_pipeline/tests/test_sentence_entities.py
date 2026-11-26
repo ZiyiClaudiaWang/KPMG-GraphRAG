@@ -275,7 +275,7 @@ if __name__ == "__main__": unittest.main()
 
 
 class RiskCategories(unittest.TestCase):
-    """segment.py: Item 1A category headings and the risk factor summary."""
+    """segment (headings.py, risk.py): Item 1A category headings and the risk factor summary."""
 
     def test_lowercase_risks_related_to_is_a_category(self):
         # TTWO writes its categories in sentence case

@@ -1,4 +1,4 @@
-"""Lead sentences: found in the HTML by step 4b (headings/leads.py), linked by step 4 (segment.py)."""
+"""Lead sentences: found in the HTML by step 4b (headings/leads.py), linked by step 4 (segment/link_leads.py)."""
 
 from __future__ import annotations
 

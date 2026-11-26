@@ -102,7 +102,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
-| 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl`, `output/lead_summary.csv`, `output/lead_review.csv` | no |
+| 4 | [Segment](#step-4-segment) | `segment/` | `output/sentences.jsonl`, `output/lead_summary.csv`, `output/lead_review.csv` | no |
 | 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
@@ -292,7 +292,11 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   `--model` tries another model.
 - <a id="step-3-filter"></a>**[3] Filter** keeps Item 1A, MD&A and Business (`config/sections.yaml`). Everything else is
   dropped with a reason, or marked `review` for a person to decide.
-- <a id="step-4-segment"></a>**[4] Segment** splits kept sections into units, written in source order:
+- <a id="step-4-segment"></a>**[4] Segment** (`src/segment/`, no LLM) splits kept sections into units, written in source order:
+  - **Code layout:** one module per part below: `sentences.py`, `lists.py`, `headings.py` (which lines are
+    headings, their levels from step 4b, the heading path), `risk.py` (Item 1A), `prefilter.py`,
+    `link_leads.py` (lead sentences); `section.py` reads a section paragraph by paragraph and holds the
+    order of the rules; `units.py` makes the unit record; `step.py` is `run()`.
   - **Sentences.** Each sentence is one unit.
     - After an abbreviation that can also end a sentence ("U.S.", "Inc.", "plc"), a new sentence
       starts only if the next word is a typical sentence opener (`OPENERS`, e.g. "The", "We",
@@ -881,9 +885,9 @@ They need no API key, database or network.
    - The names duplicate the entity catalog's job (`data/entity_catalog.json`, still empty).
      To do: switch the check to the catalog once it is filled.
 3. **Lists written by hand from these filings.**
-   - `TABLE_NOTES` in `segment.py`: table notes, header pieces and table cells cut out of a
+   - `TABLE_NOTES` in `segment/prefilter.py`: table notes, header pieces and table cells cut out of a
      table (MCK, NTAP, MDT, CASY, MSFT).
-   - `OPENERS` in `segment.py`: sentence openers added for sentences seen in these filings.
+   - `OPENERS` in `segment/sentences.py`: sentence openers added for sentences seen in these filings.
    - `config/risk_theme_map.csv`: the category texts of these ten companies. A new company's
      categories show up as `unmapped` in step 7a until they are added ([Appendix B](#appendix-b-risk-themes)).
 
@@ -893,7 +897,7 @@ They need no API key, database or network.
 ### `sentences.jsonl` (step 4)
 
 One line per unit. "Data team" fields are copied from the section export; the rest are made by
-`segment.py`.
+`src/segment/`.
 
 | Field | Source | Meaning |
 |-------|--------|---------|

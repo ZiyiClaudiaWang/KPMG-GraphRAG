@@ -1,7 +1,7 @@
 """Lead sentences from a filing's EDGAR HTML: one sentence that sums up the sentences under it.
 
 A lead sentence is not a heading: it is labelled like any sentence and changes no section_path.
-Step 4 (segment.py) links each unit to the lead above it (lead_unit_id), in every section. Two
+Step 4 (segment/link_leads.py) links each unit to the lead above it (lead_unit_id), in every section. Two
 looks count as a lead (source):
 
   html         a block of its own whose whole text is bold, italic or underlined, a full sentence
@@ -17,7 +17,7 @@ looks count as a lead (source):
 
 Never a lead: a block in a table or a table of contents, a block step 4b reads as a heading
 (any level but -1), a short title-case line ending in a period ("Flexible Work.", a run-in
-heading: segment.is_period_heading), and a styled sentence next to another styled sentence or
+heading: segment/headings.is_period_heading), and a styled sentence next to another styled sentence or
 block (a run of them is emphasis, not a lead).
 
 Each lead is a span in the section's Data-team `content` (start, end), so step 4 matches it to
@@ -28,12 +28,12 @@ from __future__ import annotations
 
 import re
 
+from .candidates import SENTENCE_LEVEL
 from .html import Block, norm, style_over
 
 LEAD_MIN_WORDS = 4
 LEAD_MAX_WORDS = 100
 RUNIN_MIN_WORDS = 6
-SENTENCE_LEVEL = -1                           # heading_levels.jsonl: a sentence, not a heading
 SENTENCE_END = re.compile(r"[.?!][\"'”’)]*$")
 HAS_LETTER = re.compile(r"[A-Za-z]")
 
@@ -44,7 +44,7 @@ def emphasised(block: Block, n_chars: int | None = None) -> bool:
 
 
 def is_full_sentence(text: str, min_words: int, max_words: int) -> bool:
-    from ..segment import is_period_heading
+    from ..segment.headings import is_period_heading
     n = len(text.split())
     return (bool(SENTENCE_END.search(text)) and min_words <= n <= max_words
             and not is_period_heading(text))
