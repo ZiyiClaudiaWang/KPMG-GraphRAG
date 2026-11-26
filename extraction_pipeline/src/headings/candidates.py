@@ -32,8 +32,10 @@ def leads_path():
 
 
 def load_leads() -> dict[str, dict]:
-    """accession -> {"html": bool, "leads": {section_key: [{start, end, source, text}, ...]}};
-    empty when step 4b has not run. A filing it does not list counts as one without HTML."""
+    """accession -> {"html": bool, "leads": {section_key: [{start, end, source, text}, ...]},
+    "runin_headings": {section_key: [{start, end, text}, ...]}}; empty when step 4b has not run.
+    A filing it does not list counts as one without HTML. A file from before run-in headings
+    has none."""
     path = leads_path()
     if not path.exists():
         return {}
@@ -42,7 +44,30 @@ def load_leads() -> dict[str, dict]:
         by_section: dict[str, list[dict]] = {}
         for x in r["leads"]:
             by_section.setdefault(x["section_key"], []).append(x)
-        out[r["accession"]] = {"html": bool(r["html"]), "leads": by_section}
+        runins: dict[str, list[dict]] = {}
+        for x in r.get("runin_headings", []):
+            runins.setdefault(x["section_key"], []).append(x)
+        out[r["accession"]] = {"html": bool(r["html"]), "leads": by_section, "runin_headings": runins}
+    return out
+
+
+def tables_path():
+    return data_dir() / "interim" / "html_tables.jsonl"
+
+
+def load_tables() -> dict[str, dict]:
+    """accession -> {"html": bool, "rows": {section_key: [{start, end, kind, table}, ...]}};
+    empty when step 4b has not run. A filing it does not list counts as one without HTML
+    (step 4 then keeps its text rule for tables)."""
+    path = tables_path()
+    if not path.exists():
+        return {}
+    out = {}
+    for r in read_jsonl(path):
+        by_section: dict[str, list[dict]] = {}
+        for x in r["rows"]:
+            by_section.setdefault(x["section_key"], []).append(x)
+        out[r["accession"]] = {"html": bool(r["html"]), "rows": by_section}
     return out
 
 

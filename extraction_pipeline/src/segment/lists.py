@@ -70,6 +70,35 @@ def short_item(text: str) -> bool:
     return 0 < len(body.split()) <= 5 and not TERMINAL.search(body) and not body.endswith(":")
 
 
+# A label row of a names table: "Engineered Materials Group: | • Aerospace" (PH Item 1).
+GROUP_ROW = re.compile(r"^([^|:]{2,60}):\s*\|\s*(.+)$")
+
+
+def group_name(cell: str) -> bool:
+    """A cell holding one short name: letters and no digits, so table rows of amounts
+    ("Products | $ | 36,512") are never names."""
+    return short_item(cell) and bool(re.search(r"[A-Za-z]", cell)) and not re.search(r"\d", cell)
+
+
+def group_label(text: str) -> bool:
+    """A label ending in ":" and a cell holding one short name after it."""
+    m = GROUP_ROW.match(text)
+    return bool(m) and group_name(m.group(2))
+
+
+def group_items_end(paragraphs: list[dict], i: int) -> int:
+    """Index after the last row of short names from paragraph i: each row one or more short
+    names (bulleted or not) joined by "|"; the next label row ends the group."""
+    j = i
+    while j < len(paragraphs):
+        text = paragraphs[j]["text"]
+        cells = [c.strip() for c in text.split("|")]
+        if group_label(text) or not all(group_name(c) for c in cells):
+            break
+        j += 1
+    return j
+
+
 def starts_list(paragraphs: list[dict], i: int, colon_intro: bool) -> bool:
     """True when paragraph i opens a list: a bullet, or after a ":" intro a lettered item."""
     if i >= len(paragraphs):

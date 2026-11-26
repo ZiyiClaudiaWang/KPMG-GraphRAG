@@ -83,6 +83,7 @@ class Block:
     align: str = ""
     indent: float = 0.0
     in_table: bool = False
+    table_id: int = -1  # in_table: which outermost <table> of the document (0, 1, ...); else -1
     page_break: bool = False
     start: int = -1     # span in the export text (raw coordinates), -1 = not found
     end: int = -1
@@ -104,6 +105,7 @@ class Walker:
         self.blocks: list[Block] = []
         self.cur: Block | None = None
         self.pending_break = False
+        self.table_no = -1          # outermost <table> elements seen so far, minus one
 
     def style_of(self, el, parent: dict) -> dict:
         st = {k: v for k, v in parent.items() if k in INHERITED or k.startswith("_")}
@@ -136,7 +138,7 @@ class Walker:
             ind += to_pt(st.get(k)) or 0.0
         ti = to_pt(st.get("text-indent")) or 0.0
         b = Block(len(self.blocks), align=st.get("text-align", ""), indent=ind + max(ti, 0.0),
-                  in_table=in_table)
+                  in_table=in_table, table_id=self.table_no if in_table else -1)
         if self.pending_break:
             b.page_break, self.pending_break = True, False
         self.cur = b
@@ -153,7 +155,7 @@ class Walker:
             return
         if self.cur is None:
             self.cur = Block(len(self.blocks), align=st.get("text-align", ""), indent=indent,
-                             in_table=in_table)
+                             in_table=in_table, table_id=self.table_no if in_table else -1)
         caps = st.get("text-transform") == "uppercase" or st.get("font-variant") == "small-caps"
         self.cur.runs.append(Run(text, is_bold(st.get("font-weight")),
                                  st.get("font-style") == "italic",
@@ -176,6 +178,8 @@ class Walker:
             self.pending_break = True
         block = tag in BLOCK_TAGS and not (in_table and tag in ("div", "p"))
         if tag == "table":
+            if not in_table:
+                self.table_no += 1
             in_table = True
         child_indent = indent
         if block and tag not in ("table",):

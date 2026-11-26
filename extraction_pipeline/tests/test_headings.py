@@ -206,7 +206,7 @@ class Step(unittest.TestCase):
         import yaml
         from src import clean as clean_step, filter_sections
         from src.headings import step
-        from src.headings.candidates import levels_path
+        from src.headings.candidates import levels_path, load_tables
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             raw, group, html_path = filing(tmp)
@@ -237,6 +237,7 @@ class Step(unittest.TestCase):
                 summary = list(csv.DictReader(line for line in summary_lines if not line.startswith("#")))
                 diff_lines = step.diff_path().read_text().splitlines()
                 diff = list(csv.DictReader(line for line in diff_lines if not line.startswith("#")))
+                tables = load_tables()
             finally:
                 for k, v in saved.items():
                     if v is None:
@@ -244,6 +245,9 @@ class Step(unittest.TestCase):
                     else:
                         os.environ[k] = v
         self.assertEqual({r["source"] for r in levels}, {"html"})
+        facts = tables["0000000000-26-000001"]                   # the "Fiscal Year / Revenue | 100" table
+        self.assertTrue(facts["html"])
+        self.assertEqual({r["kind"] for r in facts["rows"]["part-ii-item-7"]}, {"data"})
         self.assertEqual(len(levels), len(group["headings"]))
         by_text = {r["text"]: r for r in review}
         self.assertEqual(by_text["Server Products"]["heading_path"], "SEGMENT RESULTS > Intelligent Cloud > Server Products")

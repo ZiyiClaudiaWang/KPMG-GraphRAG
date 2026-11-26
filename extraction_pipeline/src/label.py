@@ -190,7 +190,7 @@ def context_units(section_units: list[dict], pos: int, targets: list[dict], cfg:
 def list_intros(section_units: list[dict], targets: list[dict], near: list[dict]) -> list[dict]:
     """Intro sentences of split list items among targets that are neither among the targets nor
     in the nearby context. Usually the intro is further up than that context; an intro too
-    short to be labelled ("Solutions include:", prefilter too_short) can also sit among the
+    short to be labelled ("Solutions include:", prefilter list_intro) can also sit among the
     batch's own sentences, and is then only visible this way."""
     present = {u["unit_id"] for u in targets} | {u["unit_id"] for u in near}
     wanted = {u["list_intro_id"] for u in targets if u.get("list_intro_id")} - present

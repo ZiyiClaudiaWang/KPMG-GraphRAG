@@ -16,9 +16,23 @@ from .headings import HeadingPath
 # v7 (26 Nov 2026): lead_source and lead_unit_id (lead sentences from the HTML, step 4b).
 # v8 (26 Nov 2026): no role category_heading: an Item 1A risk category is a heading at level 1, in
 #     heading_path and subheading like any heading; category and section_path are unchanged.
+# v9 (26 Nov 2026): tables from the HTML (step 4b): html_table; table_residue only in data tables
+#     (their full sentences go to the LLM); layout tables are text; definition tables; "|" outside a
+#     table is no longer a table.
+# v10 (26 Nov 2026): too_short only for fragments: short complete sentences go to the LLM; short
+#     ":" intros are list_intro; run-in headings opening a list intro, and short styled run-ins
+#     from the HTML in any case, are headings; '"III. ...' no longer ends a sentence.
+# v11 (26 Nov 2026): step 2 drops "17." page numbers before page furniture (GOOGL); a short
+#     styled run-in with a verb ("We may experience supply problems.") is not a heading; styled
+#     run-ins inside a paragraph are headings (WMT "Opportunity."); a stray bullet is never
+#     too_short; 'Matters."The' ends a sentence; "* Not meaningful." is a table note.
+# v12 (26 Nov 2026): a label row and the short names under it are one list_group (PH market
+#     tables).
+# v13 (26 Nov 2026): a stray bullet paragraph opening with a title-case period heading is a
+#     run-in heading (WMT "•Opportunity. Retail can be ...").
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v8"
+SEGMENTATION_VERSION = "kelly_sentence_v13"
 
 
 def section_label(sec: dict) -> str:
@@ -45,7 +59,7 @@ def new_unit(sec: dict, path: HeadingPath, role: str, paragraph_index: int, star
         "text": text if text is not None else sec["text"][start:end],
         "char_start": start, "char_end": end,
         "raw_spans": spans if spans is not None else raw_spans(paragraph, start, end),
-        "paragraph_index": paragraph_index, "prefilter": rule, "rule_heading": rule_heading,
+        "paragraph_index": paragraph_index, "prefilter": rule, "html_table": None, "rule_heading": rule_heading,
         "risk_summary": False,
         "processing_set_id": sec["processing_set_id"], "source_locator": sec["source_locator"],
     }

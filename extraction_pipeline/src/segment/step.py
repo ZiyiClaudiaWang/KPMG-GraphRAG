@@ -3,6 +3,8 @@ lead review files."""
 
 from __future__ import annotations
 
+from collections import Counter
+
 from ..common import Paths, filings, log, read_jsonl, settings, write_csv, write_jsonl
 from ..filter_sections import kept_section_keys
 from .link_leads import LEAD_REVIEW_FIELDS, LEAD_RULES, LEAD_SUMMARY_FIELDS, lead_report, mark_leads, uses_rule
@@ -12,13 +14,14 @@ STEP = "segment"
 
 
 def run() -> None:
-    from ..headings import load_leads, load_levels   # heading levels and lead sentences, when step 4b has run
+    from ..headings import load_leads, load_levels, load_tables   # from step 4b, when it has run
     cfg = settings()["segment"]
     kept = kept_section_keys()
     levels = load_levels()
     if levels:
         log(STEP, f"{len(levels)} heading levels from step 4b")
     leads = load_leads()
+    tables = load_tables()
     rule_mode = cfg.get("lead_rule", "fallback")
     if rule_mode not in LEAD_RULES:
         raise SystemExit(f"settings.yaml segment.lead_rule must be one of {', '.join(LEAD_RULES)}, not {rule_mode!r}")
@@ -29,10 +32,13 @@ def run() -> None:
         facts = leads.get(f["accession"], {"html": False, "leads": {}})
         if not facts["html"]:
             no_html.add(f["accession"])
+        table_facts = tables.get(f["accession"], {"html": False, "rows": {}})
         for sec in read_jsonl(Paths.cleaned(f)):
             if (sec["accession_number"], sec["section_key"]) not in kept:
                 continue
-            units = segment_section(sec, cfg, levels)
+            rows = table_facts["rows"].get(sec["section_key"], []) if table_facts["html"] else None
+            runins = facts.get("runin_headings", {}).get(sec["section_key"])
+            units = segment_section(sec, cfg, levels, rows, runins)
             section_leads = facts["leads"].get(sec["section_key"])
             miss = mark_leads(units, section_leads, use_rule=uses_rule(rule_mode, facts["html"], section_leads))
             unmatched[f["accession"]] = unmatched.get(f["accession"], 0) + miss
@@ -53,3 +59,7 @@ def run() -> None:
               f"{sum(r['leads_unmatched'] for r in summary)} HTML leads matched no unit; "
               f"{len(no_html)} filings without HTML leads")
     log(STEP, f"leads: {Paths.lead_summary()}  {Paths.lead_review()}")
+    no_tables = sum(1 for f in filings() if not tables.get(f["accession"], {}).get("html"))
+    in_tables = Counter((u["html_table"], u["prefilter"] or "to_llm") for u in all_units if u["html_table"])
+    log(STEP, f"HTML tables: {no_tables} filings without (text rule for tables); units in tables: "
+              + ", ".join(f"{k} {v}" for k, v in sorted(in_tables.items(), key=lambda kv: (kv[0][0] or "", kv[0][1]))))

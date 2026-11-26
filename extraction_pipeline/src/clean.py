@@ -32,6 +32,10 @@ KEEP_FIELDS = [
 ]
 
 PAGE_NUMBER = re.compile(r"^\d{1,3}$")
+# Alphabet's page footer is "17." followed by its page header "Table of Contents | Alphabet Inc.":
+# with a period it is a page number only when page furniture (or the section end) follows,
+# so a numbered item "1." on its own line stays.
+PAGE_NUMBER_DOT = re.compile(r"^\d{1,3}\.$")
 PAGE_LABEL = re.compile(r"^(part\s+[ivx]+|item\s+\d{1,2}[a-c]?)\.?$", re.IGNORECASE)
 TOC_LINK = re.compile(r"^table of contents$", re.IGNORECASE)
 # McKesson's page top: "Table of Contents | MD&A Index |" (a link row, not a table); Alphabet's:
@@ -191,9 +195,14 @@ def walk(sec: dict, headers: set[str], decisions: dict[str, bool] | None = None)
     removed: list[dict] = []
     boundaries: list[dict] = []
     pending_bullet: tuple[int, int] | None = None
-    for s, e in split_paragraphs(raw):
+    spans = split_paragraphs(raw)
+    for k, (s, e) in enumerate(spans):
         text = raw[s:e]
         rule = drop_rule(text, headers)
+        if rule is None and PAGE_NUMBER_DOT.match(text):
+            after = raw[spans[k + 1][0]:spans[k + 1][1]] if k + 1 < len(spans) else None
+            if after is None or drop_rule(after, headers):
+                rule = "page_number"
         if rule:
             removed.append({"raw_start": s, "raw_end": e, "rule": rule, "text": text})
             continue

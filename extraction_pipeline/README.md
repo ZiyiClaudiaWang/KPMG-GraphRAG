@@ -103,7 +103,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment/` | `output/sentences.jsonl`, `output/lead_summary.csv`, `output/lead_review.csv` | no |
-| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
+| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `interim/html_tables.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -130,7 +130,7 @@ flowchart TD
 
     R1 & R2 --> NO["prefilter set:<br/>not_a_claim, not sent to the LLM"]
     R4 --> P{"prefilter"}
-    P -->|"table_residue, cross_reference,<br/>too_short"| NO
+    P -->|"table_residue, definition,<br/>cross_reference, list_intro, too_short"| NO
     P -->|"none"| LLM
     R5 --> LLM["5 Label (LLM)<br/>the model sees a short number (fewer tokens),<br/>mapped back to unit_id"]
 
@@ -378,18 +378,33 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       the full text).
   - **Prefilter** ([diagram](#a-unit_id-and-claim_id)). Units marked `not_a_claim` here are not sent to the LLM:
     - `section_title`, `heading`
-    - `table_residue`: a table row or cell (`has_table_cells()`: cells joined by " | ", two-column
-      rows such as "Acquisitions | 47" included, or one cell ending in "|"), over 30% digits, a
-      footnote marker on its own line, or a table note listed in `TABLE_NOTES` (e.g.
-      "NM - Not Meaningful"). A sentence with a stray "|" at one end ("| We derive substantial
-      revenue ...") is not a table row and goes to the LLM.
+    - **Tables come from the filing's HTML** ([step 4b](#step-4b-heading-levels),
+      `interim/html_tables.jsonl`, `src/headings/tables.py`). Each HTML table is a **data** table
+      (numbers, dates, names, ratings), a **layout** table (a table used to lay out text: at least
+      30% of its cells running text, or half its rows opening with a bullet cell; MSFT bullet
+      lists, MU / NKE bios, NTAP critical accounting estimates), or a **definition** table (a layout
+      table of term | definition rows, MSFT metric glossaries). Every unit records the kind of
+      table row it sits in as `html_table` (null outside tables).
+    - `table_residue`: a row of a data table that is not a full sentence (6+ words ending in
+      . ? !); the full sentences, footnotes such as PH "(2) On February 9, 2025, a fire damaged
+      ...", go to the cross-reference check and then the LLM. Also, anywhere: over 30% digits
+      (page numbers), a footnote marker on its own line, or a table note listed in `TABLE_NOTES`
+      (e.g. "NM - Not Meaningful"). Layout tables are ordinary text, and a "|" outside a table is
+      text too (TTWO "Xbox Series X|S"). Filings without HTML keep the text rule: a row or cell
+      with " | " (`has_table_cells()`).
+    - `definition`: a row of a definition table; not sent to the LLM and not a Claim for now,
+      kept for a possible metric glossary.
     - `cross_reference`: "See …", "Refer to …"
-    - `too_short`: under 4 words; never for a split list item, whose meaning comes from its intro
+    - `list_intro`: under 4 words and ending in ":" ("Solutions include:"); split list items
+      point back to it, and the LLM sees it as context
+    - `too_short`: under 4 words and not a sentence (a fragment: "Number of", "Avg."); a short
+      complete sentence ("No material items.") goes to the LLM; never for a split list item,
+      whose meaning comes from its intro
   - **Ids and versions.**
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
       graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v8`) records which splitting rules made the units.
+    - `segmentation_version` (`kelly_sentence_v9`) records which splitting rules made the units.
       It is a label only: it is not in the request hash, so changing it alone costs nothing; a
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
@@ -446,7 +461,10 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
   - **Output:** `interim/heading_levels.jsonl` (`heading_id`, `text`, `level`, `source: html`,
     `reason`), read by step 4; `interim/lead_sentences.jsonl` (`src/headings/leads.py`), one row
     per filing (`accession`, `html`: whether its HTML was read, `leads`: `section_key`, `start`,
-    `end`, `source`, `text`), read by step 4 for lead sentences (settings `headings.leads`); `output/heading_review.csv`, one row per heading with its level,
+    `end`, `source`, `text`), read by step 4 for lead sentences (settings `headings.leads`);
+    `interim/html_tables.jsonl` (`src/headings/tables.py`), one row per filing (`accession`, `html`,
+    `rows`: `section_key`, `start`, `end`, `kind`, `table`), the HTML table rows in its kept sections,
+    read by step 4's prefilter (settings `headings.tables`); `output/heading_review.csv`, one row per heading with its level,
     parent, path, reason, flags, style and `open_in_edgar`, a link to the filing on sec.gov that
     scrolls to the heading and highlights it (a `#:~:text=` link; the filing URLs are kept in
     `data/edgar/primary/urls.json`, looked up once per filing); `output/heading_summary.csv`, one row per company
@@ -919,14 +937,15 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `paragraph_index` | segment | Paragraph number in the cleaned section |
 | `list_paragraphs` | segment | List groups only: the paragraphs the group covers |
 | `list_intro_id` | segment | Split list items only: `unit_id` of the intro's last sentence |
-| `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `cross_reference`, `too_short`; null if sent to the LLM |
+| `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `definition`, `cross_reference`, `list_intro`, `too_short`; null if sent to the LLM |
 | `rule_heading` | segment | Item 1A only: `high` or `medium` if the rules propose the unit as a risk lead sentence; else null |
 | `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
 | `lead_source` | segment | The unit is a lead sentence: `html`, `html_runin` (from the filing's HTML, step 4b) or `rule` (`rule_heading`, filings without HTML); else null |
 | `lead_unit_id` | segment | `unit_id` of the lead sentence above, until the next lead or heading; null for a lead and for text under no lead |
 | `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
 | `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v8`) |
+| `html_table` | segment | The kind of HTML table row the unit sits in: `data`, `layout`, `definition`; null outside tables or without HTML (step 4b) |
+| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v9`) |
 
 ### `risk_categories.csv` (step 7a)
 
