@@ -25,7 +25,7 @@ class TempData(unittest.TestCase):
     def setUp(self):
         self.saved = {k: os.environ.get(k) for k in ("PIPELINE_DATA_DIR", "PIPELINE_FILINGS",
                                                      "SEC_USER_AGENT", "PIPELINE_SUBSIDIARY_ALIASES")}
-        self.tmp = Path(tempfile.mkdtemp())
+        self.tmp = Path(tempfile.mkdtemp()).resolve()
         os.environ["PIPELINE_DATA_DIR"] = str(self.tmp)
         os.environ["PIPELINE_FILINGS"] = str(FIXTURES / "filings.yaml")
 
