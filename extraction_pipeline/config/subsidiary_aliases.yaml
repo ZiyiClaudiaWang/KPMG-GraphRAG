@@ -2,7 +2,7 @@
 #
 # sub_id is parent CIK + normalised name with the legal form kept (docs/schema-ids-operations.md),
 # so one subsidiary written two ways in different 10-Ks becomes two Subsidiary nodes. Pairs like
-# that show up in data/output/subsidiary_renames.csv; once checked, they go here.
+# that show up in data/checks/subsidiaries/subsidiary_renames.csv; once checked, they go here.
 #
 # same_entity: the other spellings get the sub_id of `name`. Use the latest 10-K's spelling as
 #   `name`, since the Subsidiary node keeps the name of the last 10-K loaded. Each OWNS edge still

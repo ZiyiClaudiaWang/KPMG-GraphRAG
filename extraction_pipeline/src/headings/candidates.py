@@ -15,7 +15,7 @@ the section's Data-team content. Step 4 reads it for lead_source and lead_unit_i
 
 from __future__ import annotations
 
-from ..common import Paths, data_dir, filings, read_jsonl, settings
+from ..common import Paths, filings, read_jsonl, settings
 from ..filter_sections import kept_section_keys
 
 # Levels in heading_levels.jsonl that are not a depth (step 4 reads them in segment/headings.py).
@@ -24,11 +24,11 @@ SENTENCE_LEVEL = -1    # a sentence of the text, not a heading (a lead sentence 
 
 
 def levels_path():
-    return data_dir() / "interim" / "heading_levels.jsonl"
+    return Paths.heading_levels()
 
 
 def leads_path():
-    return data_dir() / "interim" / "lead_sentences.jsonl"
+    return Paths.lead_sentences()
 
 
 def load_leads() -> dict[str, dict]:
@@ -52,7 +52,7 @@ def load_leads() -> dict[str, dict]:
 
 
 def tables_path():
-    return data_dir() / "interim" / "html_tables.jsonl"
+    return Paths.html_tables()
 
 
 def load_tables() -> dict[str, dict]:

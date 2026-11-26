@@ -96,3 +96,40 @@ review:
 
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
+
+report:                              # python -m src.report (checks of steps 1-4 and 7a); read by no step
+  big_change_pct: 5                  # warn when one of these moves more than this % from the last report
+  big_change: [clean.paragraphs, filter.sections_keep, headings.headings, headings.level_1,
+               segment.units, segment.to_llm, subsidiaries.rows, risk_factors.categories,
+               risk_factors.item_1a_units_with_theme]
+  checks:                            # number: max or min, level (error / warn / info), why it matters
+    fetch.exports_missing: {max: 0, level: error, why: "passed filings in filings.yaml with no export"}
+    subsidiaries.10k_unchecked: {max: 0, level: error, why: "10-Ks with no Exhibit 21 read: their subsidiaries are missing"}
+    subsidiaries.10k_not_ok: {max: 0, level: error, why: "Exhibit 21 not read cleanly (subsidiary_qa.csv status)"}
+    subsidiaries.renames_not_reviewed: {max: 0, level: warn, why: "possible renames between years, not decided"}
+    subsidiaries.big_year_changes: {max: 0, level: warn, why: "a 10-K's subsidiary count moved by more than half"}
+    entity_catalog.companies_without_segments: {max: 0, level: warn, why: "Claims of these companies cannot link to a segment"}
+    entity_catalog.companies_without_subsidiaries: {max: 0, level: warn, why: "Claims of these companies cannot link to a subsidiary"}
+    page_breaks.not_answered: {max: 0, level: warn, why: "gray page breaks with no answer stay unjoined"}
+    clean.filings_not_cleaned: {max: 0, level: error, why: "exported filings step 2 has not cleaned"}
+    clean.filings_without_paragraphs: {max: 0, level: error, why: "a cleaned filing with no text"}
+    clean.removed_pct: {max: 15, level: warn, why: "share of paragraphs removed as page furniture (10.5% on 26 Nov)"}
+    filter.filings_lacking_a_section: {max: 0, level: error, why: "a 10-K without Item 1, 1A or 7, or a 10-Q without its MD&A"}
+    filter.sections_review: {max: 0, level: info, why: "sections kept out until decided in sections.yaml (Item 1C)"}
+    headings.filings_without_html: {max: 0, level: error, why: "no HTML: every heading of the filing is a sibling"}
+    headings.min_found_in_html_pct: {min: 90, level: warn, why: "a company whose headings are often not found in its HTML"}
+    headings.level_4plus_pct: {max: 3, level: warn, why: "deep nesting is usually a misread level"}
+    headings.sentence_level: {max: 0, level: info, why: "level -1 headings may be sentences: flagged only (25 Nov)"}
+    segment.segmentation_versions: {max: 1, level: error, why: "sentences.jsonl mixes segmentation versions"}
+    segment.filings_without_units: {max: 0, level: error, why: "exported filings with no unit"}
+    segment.filings_without_units_to_llm: {max: 0, level: error, why: "filings with nothing for the LLM to label"}
+    segment.prefilter_too_short: {max: 50, level: warn, why: "too_short is a residual (v10-v13): it should stay near 0"}
+    segment.check_lowercase_start_per_1k: {max: 0.5, level: warn, why: "missed page-break joins or bad splits"}
+    segment.check_no_end_punct_per_1k: {max: 2, level: warn, why: "cut sentences or missed headings sent to the LLM"}
+    segment.check_very_long_per_1k: {max: 0.5, level: warn, why: "missed sentence splits"}
+    segment.check_single_pipe_per_1k: {max: 1, level: warn, why: "table rows sent to the LLM as text"}
+    segment.check_long_heading: {max: 50, level: warn, why: "sentences read as headings never reach the LLM"}
+    segment.check_risk_section_no_category: {max: 0, level: warn, why: "Item 1A sections whose Claims get no risk theme"}
+    segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
+    risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_theme_map.csv"}
+    risk_factors.item_1a_with_theme_pct: {min: 90, level: warn, why: "share of Item 1A units that get a risk theme"}

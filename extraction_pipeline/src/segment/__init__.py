@@ -3,7 +3,7 @@
 Input : data/interim/clean/*.jsonl, data/output/section_manifest.csv,
         data/interim/heading_levels.jsonl and lead_sentences.jsonl (step 4b, when it has run)
 Output: data/output/sentences.jsonl   one row per unit, in source order
-        data/output/lead_summary.csv, lead_review.csv
+        data/checks/segment/lead_summary.csv, lead_review.csv
 
 A unit is one sentence, one list item, one list group (an intro ending in ":" plus a short list of
 fragments), a heading (in Item 1A, a level-1 heading is a risk category) or a section title.
