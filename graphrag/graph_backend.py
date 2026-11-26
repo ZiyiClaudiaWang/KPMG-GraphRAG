@@ -315,8 +315,13 @@ RETURN c.claim_id AS claim_id, c.quote AS quote, c.claim_type AS claim_type,
        // failing. Read both so the pointer back to the source survives the
        // change in either direction.
        sup.sentence_ids AS sentence_ids, sup.context_unit_ids AS context_unit_ids,
-       sup.risk_lead_unit_id AS risk_lead_unit_id,
-       c.risk_lead_sentence AS risk_lead_sentence, c.risk_summary AS risk_summary,
+       // Lead sentences: the loader renamed risk_lead_unit_id / risk_lead_sentence
+       // (Item 1A only) to lead_unit_id / is_lead_sentence (every section). Read
+       // both until no graph holds the old names.
+       coalesce(sup.lead_unit_id, sup.risk_lead_unit_id) AS lead_unit_id,
+       sup.lead_source AS lead_source,
+       coalesce(c.is_lead_sentence, c.risk_lead_sentence) AS is_lead_sentence,
+       c.risk_summary AS risk_summary,
        c.multi_fragment AS multi_fragment,
        fl.accession_number AS accession_number, fl.form AS form,
        fl.filing_date AS filing_date, fl.reporting_period_end AS reporting_period_end,
@@ -382,9 +387,11 @@ def _to_evidence(row: dict, trace_id: str | None) -> dict[str, Any]:
             "source_unit_ids": row.get("sentence_ids") or row.get("context_unit_ids") or [],
             "role": row["role"],
             "model": row["model"],
-            # Only set on Item 1A claims, and only by the newer loader.
-            "risk_lead_unit_id": row.get("risk_lead_unit_id"),
-            "risk_lead_sentence": row.get("risk_lead_sentence"),
+            # Lead sentences in every section (older graphs: Item 1A only, under the
+            # old names, which the query maps to these). risk_summary: Item 1A only.
+            "lead_unit_id": row.get("lead_unit_id"),
+            "lead_source": row.get("lead_source"),
+            "is_lead_sentence": row.get("is_lead_sentence"),
             "risk_summary": row.get("risk_summary"),
             "multi_fragment": row.get("multi_fragment"),
             "hops": TRAVERSAL_HOPS,

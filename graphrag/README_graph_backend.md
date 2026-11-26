@@ -105,8 +105,12 @@ the pointer without anything breaking. The driver also has `UNRECOGNIZED`
 notifications turned off, because one of each renamed pair is always absent
 and Neo4j warns about it on every query.
 
-Three Item 1A fields ride along when the newer loader wrote them and are null
-otherwise: `risk_lead_unit_id`, `risk_lead_sentence` and `risk_summary`.
+Three lead and risk fields ride along when the loader wrote them and are null
+otherwise: `lead_unit_id` (the lead sentence above the Claim, a unit id that may
+not be a Claim itself), `lead_source` (`html`, `html_runin` or `rule` on a lead)
+and `is_lead_sentence`, in every section; `risk_summary` in Item 1A only. Older
+graphs hold the first and last lead fields as `risk_lead_unit_id` /
+`risk_lead_sentence` (Item 1A only); the query reads either name.
 
 `source_url` is built from the CIK and accession rather than stored, because
 the envelope requires a non-null URL and the graph holds no such property.
