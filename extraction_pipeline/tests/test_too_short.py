@@ -156,10 +156,10 @@ class GroupLists(unittest.TestCase):
 
 
 class BulletRunIn(unittest.TestCase):
-    def test_bullet_period_heading_with_text_after(self):
-        got = units("Our themes are opportunity and community.\n\n•Opportunity.\n\n"
-                    "Retail can be a powerful engine for inclusive economic opportunity.\n\n•Community.\n\n"
-                    "Walmart aims to serve and strengthen communities.")
+    def test_bullet_paragraph_opening_with_a_period_heading(self):
+        got = units("Our themes are opportunity and community.\n\n"
+                    "•Opportunity. Retail can be a powerful engine for inclusive economic opportunity.\n\n"
+                    "•Community. Walmart aims to serve and strengthen communities.")
         self.assertEqual(got["Opportunity."]["role"], "heading")
         self.assertEqual(got["Retail can be a powerful engine for inclusive economic opportunity."]["subheading"],
                          "Opportunity.")

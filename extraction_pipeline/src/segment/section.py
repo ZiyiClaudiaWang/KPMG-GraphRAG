@@ -16,9 +16,9 @@ Each paragraph goes to the first reader in READERS that takes it; the order is t
                       by its text, or, from the filing's HTML, a short styled first sentence in any
                       case (TTWO "Player acquisition costs.", step 4b headings/leads.py)
   5. rule_lead        Item 1A: a paragraph the rules propose as a risk lead (rule_heading)
-  6. paragraph        anything else: split into sentences; a bullet line that is only a
-                      title-case period heading, with plain text after it, is a run-in heading
-                      (WMT "•Opportunity." / "Retail can be ..."); a sentence the HTML styles as a
+  6. paragraph        anything else: split into sentences; a stray bullet paragraph opening
+                      with a title-case period heading is a run-in heading too (WMT
+                      "•Opportunity. Retail can be ..."); a sentence the HTML styles as a
                       run-in heading opens one there too (WMT "...ethics and integrity.
                       Opportunity. Retail can ...", one paragraph in the export). A stray bullet
                       is never too_short (GOOGL "•seasonality."): an item takes its meaning from
@@ -252,12 +252,9 @@ def paragraph(s: Section, i: int) -> int:
     body = s.sec["text"][body_start:p0 + len(text)]
     sentences = split_sentences(body)
     at = body_start - p0
-    nxt = s.paragraphs[i + 1]["text"] if i + 1 < len(s.paragraphs) else ""
-    if bullet and len(sentences) == 1 and nxt and not is_bullet(nxt):
-        a, b = sentences[0]
-        if s.open_run_in(i, at + a, at + b):         # WMT "•Opportunity." then its text
-            return i + 1
     for k, (a, b) in enumerate(sentences):
+        if k == 0 and bullet and len(sentences) > 1 and s.open_run_in(i, at + a, at + b):
+            continue                                 # WMT "•Opportunity. Retail can be ..."
         if k and not bullet and s.open_run_in(i, at + a, at + b, by_text=False):
             continue
         unit = s.add("body", i, body_start + a, body_start + b, AUTO)
