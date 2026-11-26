@@ -56,12 +56,13 @@ from __future__ import annotations
 import bisect
 import re
 
+from .candidates import SENTENCE_LEVEL
 from .html import Block, norm, style_over
 
 SIG_COLS = ["size", "bold", "underline", "caps", "italic", "center", "indent", "run_in", "in_table"]
 
 ITEM_TITLE = re.compile(r"^item\s*\d+[a-z]?\b", re.I)
-CONTINUATION = re.compile(r"^(?:for the |ended |as of |and |financial condition and results of operations\b)", re.I)
+TITLE_CONTINUATION = re.compile(r"^(?:for the |ended |as of |and |financial condition and results of operations\b)", re.I)
 PREAMBLE = re.compile(r"forward-looking (?:statements|information)|cautionary (?:note|statement)", re.I)
 TOC_TITLE = re.compile(r"^(?:index to\b|table of contents\b|contents$)", re.I)
 UNITS_LINE = re.compile(r"^\(.*\bin\s+(?:millions|thousands|billions)\b.*\):?$", re.I)
@@ -69,7 +70,6 @@ UNITS_MAX_WORDS = 12                   # "(Dollars and gallons in thousands, exc
 HAS_WORD = re.compile(r"[A-Za-z0-9]")
 RISK_SENTENCE_WORDS = 10
 MAX_JOINED_BLOCKS = 4
-LEAD_LEVEL = -1                        # segment.SENTENCE_LEVEL: a sentence, not a heading
 LEAD_STYLE_SHARE = 0.5                 # a style is a lead-sentence style when this share is risk_sentence
 
 
@@ -197,7 +197,7 @@ def _infer(group: dict, section: dict | None, blocks: list[Block], text: str,
 
         continuation = bool(
             title_run_block is not None and block is not None and block.idx == title_run_block.idx + 1
-            and style and style["center"] and CONTINUATION.match(words))
+            and style and style["center"] and TITLE_CONTINUATION.match(words))
         title_run_block = last if continuation else None
         if stack and stack[-1][4]:              # a preamble heading holds no headings
             stack.pop()
@@ -216,7 +216,7 @@ def _infer(group: dict, section: dict | None, blocks: list[Block], text: str,
 
         sibling = stack[-1][0] if stack else 1
         if key in leads:
-            level, reason = LEAD_LEVEL, "lead_sentence"
+            level, reason = SENTENCE_LEVEL, "lead_sentence"
         elif not HAS_WORD.search(words):
             level, reason = 0, "no_letters"
         elif evidence["match"] in ("missing_html", "unmatched"):

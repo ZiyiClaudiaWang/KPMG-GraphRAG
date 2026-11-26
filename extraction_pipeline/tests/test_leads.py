@@ -1,4 +1,4 @@
-"""Lead sentences: found in the HTML by step 4b (headings/leads.py), linked by step 4 (segment.py)."""
+"""Lead sentences: found in the HTML by step 4b (headings/leads.py), linked by step 4 (segment/link_leads.py)."""
 
 from __future__ import annotations
 
@@ -62,7 +62,7 @@ class Leads(unittest.TestCase):
             heads = [{"heading_id": segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]],
                                                        u["char_start"]),
                       "text": u["text"], "role": u["role"], "next_text": ""}
-                     for u in units if u["role"] in ("heading", "category_heading")]
+                     for u in units if u["role"] == "heading"]
             group = {"ticker": "TEST", "form": "10-K", "accession": raw["accession_number"],
                      "section_key": raw["section_key"], "section": "Part II Item 7", "headings": heads,
                      "units": [short_unit(u) for u in units]}

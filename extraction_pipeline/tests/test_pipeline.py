@@ -281,7 +281,8 @@ class EndToEnd(unittest.TestCase):
 
     def test_segment_roles_and_prefilter(self):
         by_text = {u["text"]: u for u in self.units}
-        self.assertEqual(by_text["Industry Risks"]["role"], "category_heading")
+        self.assertEqual((by_text["Industry Risks"]["role"], by_text["Industry Risks"]["heading_level"]), ("heading", 1))
+        self.assertEqual(by_text["Industry Risks"]["category"], "Industry Risks")
         self.assertEqual(by_text["The Company faces intense competition, which could harm its results."]
                          ["rule_heading"], "high")
         self.assertIsNone(by_text["Such pressures may continue for several years."]["rule_heading"])

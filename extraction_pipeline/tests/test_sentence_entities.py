@@ -275,7 +275,7 @@ if __name__ == "__main__": unittest.main()
 
 
 class RiskCategories(unittest.TestCase):
-    """segment.py: Item 1A category headings and the risk factor summary."""
+    """segment (headings.py, risk.py): Item 1A category headings and the risk factor summary."""
 
     def test_lowercase_risks_related_to_is_a_category(self):
         # TTWO writes its categories in sentence case
@@ -286,17 +286,17 @@ class RiskCategories(unittest.TestCase):
     def test_summary_is_flagged_until_a_category_repeats(self):
         def unit(role, text, rule=None):
             return {"role": role, "text": text, "prefilter": rule, "risk_summary": False}
-        units = [unit("category_heading", "Risk Factor Summary", "heading"),
-                 unit("category_heading", "Risks Related to Our Business", "heading"),
+        units = [unit("heading", "Risk Factor Summary", "heading"),
+                 unit("heading", "Risks Related to Our Business", "heading"),
                  unit("body", "volatility in average selling prices;"),
-                 unit("category_heading", "Risks Related to Our Business", "heading"),
+                 unit("heading", "Risks Related to Our Business", "heading"),
                  unit("body", "Volatility in average selling prices may harm our results.")]
         mark_risk_summary(units)
         self.assertEqual([u["risk_summary"] for u in units], [True, True, True, False, False])
         self.assertIsNone(units[2]["prefilter"])                  # still sent to the LLM
 
     def test_summary_without_a_repeat_is_left_alone(self):
-        units = [{"role": "category_heading", "text": "Summary of Risk Factors", "prefilter": "heading",
+        units = [{"role": "heading", "text": "Summary of Risk Factors", "prefilter": "heading",
                   "risk_summary": False},
                  {"role": "body", "text": "Our industry is highly competitive.", "prefilter": None,
                   "risk_summary": False}]
@@ -304,15 +304,19 @@ class RiskCategories(unittest.TestCase):
         self.assertFalse(units[1]["risk_summary"])
 
     def test_sentences_take_the_themes_of_their_category(self):
-        def unit(n, role, text):
-            return {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
-                    "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
-                    "risk_summary": False}
+        def unit(n, role, text, level=None):
+            u = {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
+                 "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
+                 "risk_summary": False}
+            if level is not None:
+                u["heading_level"] = level
+            return u
         units = [unit(1, "body", "The following risks could affect us."),
-                 unit(2, "category_heading", "Risks Related to Intellectual Property and Litigation"),
+                 unit(2, "heading", "Risks Related to Intellectual Property and Litigation", 1),
                  unit(3, "body", "We may be sued for infringement."),
                  unit(4, "body", "Such claims are costly."),
-                 unit(5, "category_heading", "INDEX TO RISK FACTORS")]
+                 unit(5, "heading", "Patents", 2),                  # a sub-heading: not a category
+                 unit(6, "heading", "INDEX TO RISK FACTORS", 1)]
         mapping = {category_key("Risks related to intellectual property and litigation"):
                    ["intellectual_property", "legal_regulatory"],
                    category_key("Index to Risk Factors"): []}

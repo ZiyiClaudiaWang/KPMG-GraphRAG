@@ -34,7 +34,7 @@ from .levels import ITEM_TITLE, UNITS_LINE, link_words
 MAX_WORDS = 20                 # longer HTML blocks are never heading-like
 SENTENCE_MIN_WORDS = 8         # text_check: "sentence" from this many words, with . ! ? at the end
 SIZE_STEP = 0.5                # pt above the body size that counts as "larger"
-HEADING_ROLES = {"heading", "category_heading", "section_title"}
+HEADING_ROLES = {"heading", "section_title"}
 HAS_LETTER = re.compile(r"[A-Za-z]")   # page numbers ("30") are never heading-like
 
 

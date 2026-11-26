@@ -29,6 +29,7 @@ import re
 from pathlib import Path
 
 from .common import CONFIG_DIR, Paths, log, read_csv, read_jsonl, write_csv, write_jsonl
+from .segment import is_category_unit
 
 STEP = "risk_factors"
 
@@ -75,7 +76,7 @@ def assign(units: list[dict], mapping: dict[str, list[str]]) -> tuple[list[dict]
             continue
         if (u["accession_number"], u["section_key"]) != section:
             section, category = (u["accession_number"], u["section_key"]), None
-        if u["role"] == "category_heading":
+        if is_category_unit(u):
             key = category_key(u["text"])
             ids = mapping.get(key)
             category = {

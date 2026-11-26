@@ -119,7 +119,7 @@ DIFF_HELP = {
     "text": "the line (html_only: the HTML block; step4_plain: the heading as step 4 found it)",
     "html_style": "html_only: what makes it stand out (bold / underline / italic / caps / size N = larger "
                   "than the body text); step4_plain: plain or inside paragraph",
-    "step4_role": "what step 4 made of it: heading / category_heading, or for html_only the role of the units "
+    "step4_role": "what step 4 made of it: heading, or for html_only the role of the units "
                   "it overlaps (body, list_group; none = in no unit: removed in clean, mostly running page headers / footers)",
     "prefilter": "html_only: step 4's prefilter of those units (table_residue, too_short, ...)",
     "rule_heading": "html_only, Item 1A: high / medium = step 4 proposes it as a risk heading (lead sentence)",
@@ -188,6 +188,7 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
                          "section_key": group["section_key"], **row})
     nexts = {h["heading_id"]: h["next_text"] for g in groups for h in g["headings"]}
     roles = {h["heading_id"]: h.get("role") for g in groups for h in g["headings"]}
+    by_look = {h["heading_id"] for g in groups for h in g["headings"] if h.get("category_by_look")}
     risk = {h["heading_id"] for g in groups for h in g["headings"]
             if (sections.get(g["section_key"]) or {}).get("section_type") == "risk_factors"
             or g["section_key"].endswith("item-1a")}
@@ -195,7 +196,7 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
         row["next_text"] = nexts.get(row["heading_id"], "")
         in_risk = row["heading_id"] in risk
         row["risk_category"] = ("yes" if row["level"] == 1 else "no") if in_risk else ""
-        row["category_by_look"] = ("yes" if roles.get(row["heading_id"]) == "category_heading" else "no") if in_risk else ""
+        row["category_by_look"] = ("yes" if row["heading_id"] in by_look else "no") if in_risk else ""
         row["role"] = roles.get(row["heading_id"])
     diff: list[dict] = []
     if blocks:
