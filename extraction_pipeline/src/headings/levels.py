@@ -5,7 +5,11 @@ then:
 
   reason                    level
   table                     0     inside a table: a column or row header
-  item_title_continuation   0     a centred line right after the Item title ("For the fiscal year ended ...")
+  item_title_continuation   0     centred lines right after the Item title, one block after another, that
+                                  go on with it: "For the fiscal year ended ...", "... ended", "As of ...",
+                                  "And ...", or the rest of the MD&A title (PH 10-Q: "FINANCIAL CONDITION
+                                  AND RESULTS OF OPERATIONS" / "FOR THE THREE AND SIX MONTHS ENDED ..." /
+                                  "AND COMPARABLE PERIODS ENDED ...")
   toc                       0     a table of contents inside the section ("INDEX TO ...", and the entries
                                   after it, or a line that is only an internal link)
   units_line                0     only a unit line such as "(In millions)" or "(Dollars and Amounts in Thousands)"
@@ -30,6 +34,11 @@ then:
 "sibling" = the level of the heading before it (1 at the start of a section), as step 4 does for
 a heading the file does not list.
 
+A preamble heading ("CAUTIONARY NOTE ABOUT FORWARD-LOOKING STATEMENTS", "Forward-Looking
+Statements") keeps its own level but holds no headings: it is closed before the next heading, so
+the headings after it do not nest under it (TTWO Item 7 opens with it in a larger style than its
+real top headings, which all sat under it).
+
 A heading the HTML splits over consecutive blocks (CASY "Nine Months Ended January 31, 2021
 Compared to" / "Nine Months Ended January 31, 2020", one line in the export) is matched across
 them (`joined_blocks` > 1); its style is the first block's.
@@ -52,7 +61,8 @@ from .html import Block, norm, style_over
 SIG_COLS = ["size", "bold", "underline", "caps", "italic", "center", "indent", "run_in", "in_table"]
 
 ITEM_TITLE = re.compile(r"^item\s*\d+[a-z]?\b", re.I)
-CONTINUATION = re.compile(r"^(?:for the |ended |as of )", re.I)
+CONTINUATION = re.compile(r"^(?:for the |ended |as of |and |financial condition and results of operations\b)", re.I)
+PREAMBLE = re.compile(r"forward-looking (?:statements|information)|cautionary (?:note|statement)", re.I)
 TOC_TITLE = re.compile(r"^(?:index to\b|table of contents\b|contents$)", re.I)
 UNITS_LINE = re.compile(r"^\(.*\bin\s+(?:millions|thousands|billions)\b.*\):?$", re.I)
 UNITS_MAX_WORDS = 12                   # "(Dollars and gallons in thousands, except per share amounts)"
@@ -165,7 +175,7 @@ def _infer(group: dict, section: dict | None, blocks: list[Block], text: str,
            use_indent: bool, leads: set[str]) -> list[dict]:
     aligned = [b for b in blocks if b.start >= 0]
     starts = [b.start for b in aligned]
-    stack: list[tuple[int, str, tuple | None, str]] = []      # (level, heading_id, style, text)
+    stack: list[tuple[int, str, tuple | None, str, bool]] = []   # (level, heading_id, style, text, preamble)
     first = next((b for b in aligned if section and b.start >= section["offset_start"]), None)
     title_run_block = first if first and ITEM_TITLE.match(first.text.strip()) else None
     toc_block: Block | None = None             # last block of a table of contents still open
@@ -188,7 +198,9 @@ def _infer(group: dict, section: dict | None, blocks: list[Block], text: str,
         continuation = bool(
             title_run_block is not None and block is not None and block.idx == title_run_block.idx + 1
             and style and style["center"] and CONTINUATION.match(words))
-        title_run_block = block if continuation else None
+        title_run_block = last if continuation else None
+        if stack and stack[-1][4]:              # a preamble heading holds no headings
+            stack.pop()
         # A table of contents: its title, then the lines right after it that are links or less
         # prominent than the title (a heading as prominent as the title ends it).
         in_toc = False
@@ -239,7 +251,7 @@ def _infer(group: dict, section: dict | None, blocks: list[Block], text: str,
             while stack and stack[-1][0] >= level:
                 stack.pop()
             parent = stack[-1] if stack else None
-            stack.append((level, key, sig if reason == "typography" else None, words))
+            stack.append((level, key, sig if reason == "typography" else None, words, bool(PREAMBLE.search(words))))
             path = [entry[3] for entry in stack]
         else:
             parent, path = (stack[-1] if stack else None), [entry[3] for entry in stack]

@@ -422,6 +422,86 @@ class Compare(unittest.TestCase):
         self.assertEqual(df.loc[0, "level"], 2)
 
 
+def section_rows(lines, section_key="part-i-item-2", section_type="mda"):
+    """filing_rows for one synthetic section: lines are (html, export text)."""
+    content = "\n\n".join(text for _, text in lines)
+    raw = {"accession_number": "0000000000-26-000001", "ticker": "TEST", "form": "10-Q",
+           "section_id": "sec-x", "section_key": section_key, "section_type": section_type,
+           "part": "I", "item": "2", "processing_set_id": "set-1", "source_locator": {},
+           "content": content, "offset_start": 0, "source_sha256": "0" * 64}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "TEST.htm"
+        path.write_text("<html><body>" + "".join(h for h, _ in lines) + "</body></html>", encoding="utf-8")
+        cleaned = clean.clean_section(dict(raw), set())
+        units = segment.segment_section(cleaned, settings()["segment"])
+        heads = [{"heading_id": segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"]),
+                  "text": u["text"], "role": u["role"], "next_text": ""}
+                 for u in units if u["role"] in ("heading", "category_heading")]
+        group = {"ticker": "TEST", "form": "10-Q", "accession": raw["accession_number"],
+                 "section_key": section_key, "section": "Part I Item 2", "headings": heads,
+                 "units": [short_unit(u) for u in units]}
+        rows, _, _ = filing_rows([group], {section_key: raw}, path, False)
+    return {r["text"]: r for r in rows}
+
+
+class TitleLinesAndPreambles(unittest.TestCase):
+    """PH 10-Q: the MD&A title goes on over three centred lines after the Item title (level 0, so
+    OVERVIEW is level 1). TTWO: a cautionary note in a larger style holds no headings."""
+
+    CENTRED = f"{BOLD};text-transform:uppercase;text-align:center"
+
+    def test_item_title_lines_are_level_0(self):
+        rows = section_rows([
+            (f'<p style="{self.CENTRED}">ITEM 2. MANAGEMENT\'S DISCUSSION AND ANALYSIS OF</p>',
+             "ITEM 2. MANAGEMENT'S DISCUSSION AND ANALYSIS OF"),
+            (f'<p style="{self.CENTRED}">FINANCIAL CONDITION AND RESULTS OF OPERATIONS</p>',
+             "FINANCIAL CONDITION AND RESULTS OF OPERATIONS"),
+            (f'<p style="{self.CENTRED}">FOR THE THREE AND SIX MONTHS ENDED DECEMBER 31, 2020</p>',
+             "FOR THE THREE AND SIX MONTHS ENDED DECEMBER 31, 2020"),
+            (f'<p style="{self.CENTRED}">AND COMPARABLE PERIODS ENDED DECEMBER 31, 2019</p>',
+             "AND COMPARABLE PERIODS ENDED DECEMBER 31, 2019"),
+            (f'<p style="{BOLD}">OVERVIEW</p>', "OVERVIEW"),
+            ("<p>Sales grew 5% in the quarter.</p>", "Sales grew 5% in the quarter."),
+            (f'<p style="{ITALIC}">Net Sales</p>', "Net Sales"),
+            ("<p>Net sales were higher.</p>", "Net sales were higher."),
+        ])
+        for text in ("FINANCIAL CONDITION AND RESULTS OF OPERATIONS",
+                     "FOR THE THREE AND SIX MONTHS ENDED DECEMBER 31, 2020",
+                     "AND COMPARABLE PERIODS ENDED DECEMBER 31, 2019"):
+            self.assertEqual((rows[text]["level"], rows[text]["reason"]), (0, "item_title_continuation"))
+        self.assertEqual(rows["OVERVIEW"]["level"], 1)
+        self.assertEqual(rows["Net Sales"]["heading_path"], ["OVERVIEW", "Net Sales"])
+
+    def test_a_centred_heading_after_a_break_in_the_title_run_is_kept(self):
+        rows = section_rows([
+            (f'<p style="{self.CENTRED}">ITEM 2. MANAGEMENT\'S DISCUSSION AND ANALYSIS</p>',
+             "ITEM 2. MANAGEMENT'S DISCUSSION AND ANALYSIS"),
+            (f'<p style="{self.CENTRED}">OVERVIEW</p>', "OVERVIEW"),
+            ("<p>Sales grew 5% in the quarter.</p>", "Sales grew 5% in the quarter."),
+            (f'<p style="{self.CENTRED}">AND OTHER MATTERS</p>', "AND OTHER MATTERS"),
+            ("<p>Nothing else changed.</p>", "Nothing else changed."),
+        ])
+        self.assertEqual(rows["OVERVIEW"]["level"], 1)
+        self.assertEqual(rows["AND OTHER MATTERS"]["level"], 1)       # not right after the title
+
+    def test_preamble_holds_no_headings(self):
+        rows = section_rows([
+            (f'<p style="{BIG}">CAUTIONARY NOTE ABOUT FORWARD-LOOKING STATEMENTS</p>',
+             "CAUTIONARY NOTE ABOUT FORWARD-LOOKING STATEMENTS"),
+            ("<p>Statements in this report are forward-looking.</p>", "Statements in this report are forward-looking."),
+            (f'<p style="{BOLD}">Overview</p>', "Overview"),
+            ("<p>We publish games.</p>", "We publish games."),
+            (f'<p style="{ITALIC}">Our Business</p>', "Our Business"),
+            ("<p>We sell games in many countries.</p>", "We sell games in many countries."),
+            (f'<p style="{BOLD}">Results of Operations</p>', "Results of Operations"),
+            ("<p>Revenue grew.</p>", "Revenue grew."),
+        ], section_key="part-ii-item-7")
+        self.assertEqual(rows["CAUTIONARY NOTE ABOUT FORWARD-LOOKING STATEMENTS"]["level"], 1)
+        self.assertEqual(rows["Overview"]["level"], 1)
+        self.assertEqual(rows["Our Business"]["heading_path"], ["Overview", "Our Business"])
+        self.assertEqual(rows["Results of Operations"]["level"], 1)
+
+
 class Flags(unittest.TestCase):
     def test_risk_sentence_only_in_item_1a(self):
         long = "We may be adversely impacted by increases in the cost of food ingredients"

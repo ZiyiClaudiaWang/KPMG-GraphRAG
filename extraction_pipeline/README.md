@@ -386,8 +386,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     decides which headings are risk categories (level 1); the review file shows it
     (`risk_category`) next to what the text rule alone would say (`category_by_look`).
   - **Levels**, per section (`src/headings/levels.py`):
-    - inside a table (a column or row header), a centred line right after the Item title ("For
-      the fiscal year ended …"), a table of contents ("INDEX TO …" and the lines right after it
+    - inside a table (a column or row header), centred lines right after the Item title that go
+      on with it ("For the fiscal year ended …", "And …", PH 10-Q "FINANCIAL CONDITION AND RESULTS
+      OF OPERATIONS" / "FOR THE THREE AND SIX MONTHS ENDED …" / "AND COMPARABLE PERIODS ENDED …"), a table of contents ("INDEX TO …" and the lines right after it
       that are links or less prominent), a line that is only a unit in brackets ("(In millions)",
       "(Dollars and Amounts in Thousands)"), and a line without any letter or digit (the rule
       before footnotes, "________", AMZN): level 0;
@@ -399,6 +400,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       (`config/settings.yaml`; MCK);
     - a heading not found in the HTML, in the middle of an HTML paragraph, or a run-in lead-in
       without bold or italic is a sibling of the heading before it (`reason` says which);
+    - a preamble heading ("CAUTIONARY NOTE ABOUT FORWARD-LOOKING STATEMENTS", "Forward-Looking
+      Statements") keeps its level but holds no headings: the headings after it do not nest under
+      it (TTWO Item 7 opens with it in a larger style than its real top headings);
     - in Item 1A, a level-2+ heading that is a risk factor's lead sentence gets level -1
       (`lead_sentence`), and step 4 labels it like any sentence (it becomes a Claim; AMZN "Our
       International Operations Expose Us to a Number of Risks", bold italic, no period): it is

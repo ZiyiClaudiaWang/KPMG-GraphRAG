@@ -45,7 +45,7 @@ SOURCE = "html"
 REASONS = ["typography", "table", "item_title_continuation", "toc", "units_line", "no_letters",
            "inside_paragraph", "plain_style", "unmatched", "missing_html", "lead_sentence"]
 REASON_HELP = ("typography = level from its style; table = in a table (0); item_title_continuation = "
-               "centred line after the Item title (0); toc = table of contents (0); units_line = "
+               "centred lines going on with the Item title (0); toc = table of contents (0); units_line = "
                "only a unit such as (In millions) (0); no_letters = no letter or digit, e.g. a rule "
                "before footnotes (0); inside_paragraph / plain_style / unmatched / "
                "missing_html = read as a sibling of the heading before it; lead_sentence = Item 1A, a "
