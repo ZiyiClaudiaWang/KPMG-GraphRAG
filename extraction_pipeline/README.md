@@ -103,7 +103,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl` | no |
-| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `edgar/primary/` | no |
+| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -338,7 +338,12 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       Without the file a heading replaces the one before it.
   - **Item 1A - Risk Factors** ([diagram](#b-risk-factors)).
     - Category headings ("Business Risks", "RISKS RELATING TO …", "Risks related to our
-      business and industry") set the unit's `category`.
+      business and industry") set the unit's `category`. With [step 4b](#step-4b-heading-levels),
+      a heading in Item 1A is a category when its level in the filing's HTML is 1; deeper
+      headings are sub-headings under the category (`subheading`, `heading_path`). Without a
+      level, a heading is a category when it looks like one (capitals or title case, "Risks
+      related to …"), which also made title-case sub-headings categories. Categories exist only
+      in risk factors.
     - Single-sentence paragraphs followed by their discussion are proposed as the sentence that
       opens and sums up a risk (`rule_heading`).
     - Units in the risk factor summary that some filings open with (MU, TTWO) carry
@@ -370,11 +375,20 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     and the filing's primary document from SEC EDGAR, downloaded once to
     `data/edgar/primary/<TICKER>_<accession>.htm` (needs `SEC_USER_AGENT` in `.env`, as step 1b).
     The export text matches the HTML: each HTML block is placed in the export text, and each
-    heading is found by its position (`heading_id`).
+    heading is found by its position (`heading_id`). A heading the HTML splits over consecutive
+    blocks (CASY 10-Q "Nine Months Ended January 31, 2021 Compared to" / "Nine Months Ended
+    January 31, 2020", one line in the export) is matched across them (`joined_blocks`).
+  - **Candidates come from step 4.** This step only gives a level to the lines step 4 reads as
+    headings (role `heading` or `category_heading`); it cannot add a heading step 4 missed. Risk
+    lead sentences (body units with `rule_heading`) are not candidates. In Item 1A the level
+    decides which headings are risk categories (level 1); the review file shows it
+    (`risk_category`) next to what the text rule alone would say (`category_by_look`).
   - **Levels**, per section (`src/headings/levels.py`):
     - inside a table (a column or row header), a centred line right after the Item title ("For
       the fiscal year ended …"), a table of contents ("INDEX TO …" and the lines right after it
-      that are links or less prominent), and a line that is only a unit ("(In millions)"): level 0;
+      that are links or less prominent), a line that is only a unit in brackets ("(In millions)",
+      "(Dollars and Amounts in Thousands)"), and a line without any letter or digit (the rule
+      before footnotes, "________", AMZN): level 0;
     - otherwise by style: the first style seen is level 1; a style seen before closes the levels
       under it (a sibling); a new style first closes the open styles less prominent than it
       (size, then bold / underline / capitals / centred; italic and run-in rank lower), then opens
@@ -384,15 +398,18 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - a heading not found in the HTML, in the middle of an HTML paragraph, or a run-in lead-in
       without bold or italic is a sibling of the heading before it (`reason` says which).
   - **Flags** (never change the level), for review:
-    - `maybe_sentence`: 10 or more words, starts like a sentence ("We …", "Our …"), or inside a
-      paragraph. Possibly a sentence the rules read as a heading (CASY "We may be adversely
-      impacted by increases in the cost of food ingredients …", a risk factor whose period was
-      lost). Once checked, a rule can give these level -1, and step 4 labels them like any sentence.
+    - `risk_sentence`: in Item 1A, 10 or more words. Possibly a risk factor's lead sentence that
+      lost its period and was read as a heading (CASY "We may be adversely impacted by increases
+      in the cost of food ingredients …" in an earlier export); as a heading it is not labelled
+      and never becomes a Claim. Once checked, a rule can give these level -1, and step 4 labels
+      them like any sentence. (Long headings elsewhere are normal and not flagged.)
     - `before_table`: the next HTML block is a table, so it may be a table title
       (NTAP "Net Revenues (in millions, except percentages)") rather than a heading.
   - **Output:** `interim/heading_levels.jsonl` (`heading_id`, `text`, `level`, `source: html`,
     `reason`), read by step 4; `output/heading_review.csv`, one row per heading with its level,
-    parent, path, reason, flags and style; `output/heading_summary.csv`, one row per company
+    parent, path, reason, flags, style and `open_in_edgar`, a link to the filing on sec.gov that
+    scrolls to the heading and highlights it (a `#:~:text=` link; the filing URLs are kept in
+    `data/edgar/primary/urls.json`, looked up once per filing); `output/heading_summary.csv`, one row per company
     (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
     hash differs from the export's `source_sha256`). Both CSV files start with one
     `# column: meaning` line per column, then the header row (pandas: `read_csv(path, comment="#")`).
@@ -713,7 +730,7 @@ They need no API key, database or network.
 | File | Check |
 |------|-------|
 | `output/section_manifest.csv` | `review` rows (Item 1C Cybersecurity); add overrides in `config/sections.yaml` |
-| `output/heading_summary.csv`, `output/heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `maybe_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`)<br>• `level_4plus`: deep nesting |
+| `output/heading_summary.csv`, `output/heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `risk_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`, `no_letters`)<br>• `joined_blocks` > 1<br>• `level_4plus`: deep nesting |
 | `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
 | `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_theme_map.csv`<br>• `not_a_theme` rows<br>• `n_units` of large categories |
 | `config/risk_theme_map.csv` | rows with a `note`: categories that fit more than one theme, or none clearly ([Appendix B](#appendix-b-risk-themes)) |
@@ -738,8 +755,9 @@ They need no API key, database or network.
 
 2. Step 4 - Headings:
    - Levels now come from the filing's HTML (step 4b, 25 Nov 2026); the LLM version is removed. Open:
-     - `maybe_sentence` rows: decide the rule that gives a real sentence level -1.
-     - `before_table` rows: decide which are table titles (level 0).
+     - `risk_sentence` rows: decide the rule that gives a real sentence level -1.
+     - `before_table` rows: kept as headings for now (they have explanatory text below them); the flag stays for review.
+     - Candidates still come from step 4's text rules: a heading step 4 misses gets no level.
      - Same-size visual nesting can differ from the meaning (MSFT italic "Competition" sits under the last product, not the segment).
      - The export's `source_sha256` never equals the EDGAR file's hash, although the text matches: ask the Data team what they hash.
    - Some real headings are marked `too_short`, not `heading`.
@@ -930,8 +948,9 @@ version reviewed by Kelly, 4 November 2026.
 | Risks related to financial and economic condition | TTWO | `financial_capital`, `macro_industry` |
 | Strategic Transactions Risks | PH | `corporate_transactions`, `strategy_competition` |
 
-**Headings wrongly read as risk categories.** Step 4 takes these lines for category headings,
-but they are not risk categories. They stay in the map with empty `risk_ids`, so they get no
+**Headings wrongly read as risk categories.** Step 4 took these lines for category headings
+(before step 4b's levels decided categories; recheck after the next run: MCK's index is now
+level 0, and new categories may show up as `unmapped`), but they are not risk categories. They stay in the map with empty `risk_ids`, so they get no
 theme and step 7a does not report them as `unmapped`. Fixing step 4 is not needed for the
 theme links:
 

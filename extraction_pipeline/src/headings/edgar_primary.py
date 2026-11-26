@@ -1,14 +1,16 @@
-"""Download a filing's primary document (the 10-K or 10-Q itself) from SEC EDGAR, once.
+"""Download a filing's primary document (the 10-K or 10-Q itself) from SEC EDGAR, once, and
+remember its URL (urls.json next to the cached files) for the review links.
 
 Needs SEC_USER_AGENT, like Exhibit 21 (ex21/edgar.py, whose client this reuses).
 """
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from lxml import html
 
@@ -40,16 +42,53 @@ def cached_path(filing: dict, directory: Path) -> Path:
     return directory / f"{filing_stem(filing)}.htm"
 
 
-def filing_html(filing: dict, directory: Path, fetch: bool) -> Path:
+class Urls:
+    """accession -> primary document URL, kept in <directory>/urls.json."""
+
+    def __init__(self, directory: Path):
+        self.path = directory / "urls.json"
+        self.urls: dict[str, str] = json.loads(self.path.read_text()) if self.path.is_file() else {}
+
+    def get(self, filing: dict, fetch: bool) -> str | None:
+        """The URL, looked up on EDGAR (one index page) when unknown and fetch is on."""
+        if filing["accession"] not in self.urls and fetch:
+            self.urls[filing["accession"]] = primary_url(filing)
+            self.save()
+        return self.urls.get(filing["accession"])
+
+    def save(self) -> None:
+        atomic_write(self.path, lambda stream: json.dump(self.urls, stream, indent=1, sort_keys=True))
+
+
+def filing_html(filing: dict, directory: Path, fetch: bool, urls: Urls | None = None) -> Path:
     """The cached copy, downloaded first when missing and fetch is on."""
     path = cached_path(filing, directory)
     if not path.is_file() and fetch:
-        url = primary_url(filing)
+        url = urls.get(filing, fetch) if urls else primary_url(filing)
         raw = edgar.get(url)
         if not html.fromstring(raw).xpath("//body"):
             raise ValueError(f"No HTML body in {url}")
         atomic_write(path, lambda stream: stream.write(raw), binary=True)
     return path
+
+
+def fragment(text: str) -> str:
+    """Percent-encode a piece of a text-fragment link (also "-", "," and "&", which the syntax uses)."""
+    return quote(" ".join(text.split()), safe="").replace("-", "%2D")
+
+
+def text_link(url: str | None, heading: str, suffix: str = "", split: bool = False) -> str:
+    """A link that opens the filing scrolled to the heading and highlights it (Chrome, Edge,
+    Safari: `#:~:text=`). A long heading, or one the HTML splits over lines (split), is given by
+    its first and last words; the first words of the block after it, when known, pick this copy
+    and not one in a table of contents."""
+    if not url:
+        return ""
+    words = heading.split()
+    n = 4 if len(words) > 8 else len(words) // 2
+    target = (fragment(" ".join(words[:n])) + "," + fragment(" ".join(words[-n:]))
+              if (len(words) > 8 or split) and n else fragment(heading))
+    return f"{url}#:~:text={target}" + (f",-{fragment(suffix)}" if suffix else "")
 
 
 def atomic_write(path: Path, write, *, binary: bool = False) -> None:

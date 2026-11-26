@@ -8,7 +8,8 @@ then:
   item_title_continuation   0     a centred line right after the Item title ("For the fiscal year ended ...")
   toc                       0     a table of contents inside the section ("INDEX TO ...", and the entries
                                   after it, or a line that is only an internal link)
-  units_line                0     only a unit line such as "(In millions)" or "(in thousands, except per share)"
+  units_line                0     only a unit line such as "(In millions)" or "(Dollars and Amounts in Thousands)"
+  no_letters                0     no letter or digit: a rule before footnotes ("________"), "***"
   typography                1..   by style, per section:
                                     - the first style seen is level 1;
                                     - a style seen before closes the levels under it (a sibling);
@@ -23,11 +24,15 @@ then:
 "sibling" = the level of the heading before it (1 at the start of a section), as step 4 does for
 a heading the file does not list.
 
+A heading the HTML splits over consecutive blocks (CASY "Nine Months Ended January 31, 2021
+Compared to" / "Nine Months Ended January 31, 2020", one line in the export) is matched across
+them (`joined_blocks` > 1); its style is the first block's.
+
 `flags` mark rows to review; they never change the level:
-  maybe_sentence   10+ words, starts like a sentence ("We ...", "Our ..."), or inside a paragraph:
-                   possibly a sentence the rules read as a heading (CASY risk factors whose period
-                   was lost). Once checked, a rule can give these level -1 (step 4 then labels the
-                   line like any sentence).
+  risk_sentence    in Item 1A, 10+ words: possibly a risk factor's lead sentence that lost its
+                   period and was read as a heading. As a heading it is not labelled, so it never
+                   becomes a Claim; once checked, a rule can give it level -1 (step 4 then labels
+                   it like any sentence).
   before_table     the next HTML block is a table: possibly a table title, not a heading.
 """
 
@@ -43,10 +48,11 @@ SIG_COLS = ["size", "bold", "underline", "caps", "italic", "center", "indent", "
 ITEM_TITLE = re.compile(r"^item\s*\d+[a-z]?\b", re.I)
 CONTINUATION = re.compile(r"^(?:for the |ended |as of )", re.I)
 TOC_TITLE = re.compile(r"^(?:index to\b|table of contents\b|contents$)", re.I)
-UNITS_LINE = re.compile(
-    r"^\(?\s*(?:\$|dollars|amounts|shares)?\s*in\s+(?:millions|thousands|billions)\b[^)]*\)?:?$", re.I)
-SENTENCE_START = re.compile(r"^(?:we|our|us|if|any|there|it|this|these)\b", re.I)
-SENTENCE_WORDS = 10
+UNITS_LINE = re.compile(r"^\(.*\bin\s+(?:millions|thousands|billions)\b.*\):?$", re.I)
+UNITS_MAX_WORDS = 12                   # "(Dollars and gallons in thousands, except per share amounts)"
+HAS_WORD = re.compile(r"[A-Za-z0-9]")
+RISK_SENTENCE_WORDS = 10
+MAX_JOINED_BLOCKS = 4
 
 
 def signature(h_text: str, block: Block, how: str, use_indent: bool) -> tuple:
@@ -83,21 +89,36 @@ def match_heading(heading: dict, section: dict, aligned: list[Block], starts: li
     block = aligned[index]
     title = norm(heading["text"])
     prefix = norm(text[block.start:position])
-    block_text = norm(block.text)
-    if not title or not block_text[len(prefix):].startswith(title):
+    rest = norm(block.text)[len(prefix):]
+    joined = [block]
+    # A heading split over consecutive blocks: add the next blocks while the heading goes on.
+    while (title and len(rest) < len(title) and title.startswith(rest)
+           and len(joined) < MAX_JOINED_BLOCKS and index + len(joined) < len(aligned)):
+        following = aligned[index + len(joined)]
+        if following.idx != joined[-1].idx + 1:
+            break
+        joined.append(following)
+        rest += norm(following.text)
+    if not title or not rest.startswith(title):
         return {"match": "unmatched"}
-    how = "inside" if prefix else "standalone" if block_text == title else "run_in"
+    how = "inside" if prefix else "standalone" if rest == title else "run_in"
     style = signature(heading["text"], block, how, use_indent) if not prefix else None
-    return {"match": how, "block": block, "style": dict(zip(SIG_COLS, style)) if style else None}
+    return {"match": how, "block": block, "last_block": joined[-1], "joined_blocks": len(joined),
+            "style": dict(zip(SIG_COLS, style)) if style else None}
 
 
-def flags_for(text: str, match: str, before_table: bool) -> list[str]:
+def flags_for(text: str, is_risk: bool, before_table: bool) -> list[str]:
     out = []
-    if (len(text.split()) >= SENTENCE_WORDS or SENTENCE_START.match(text) or match == "inside"):
-        out.append("maybe_sentence")
+    if is_risk and len(text.split()) >= RISK_SENTENCE_WORDS:
+        out.append("risk_sentence")
     if before_table:
         out.append("before_table")
     return out
+
+
+def link_words(block: Block | None) -> str:
+    """The first words of a block, for the text-fragment link (suffix)."""
+    return " ".join((block.text if block is not None else "").split()[:4])
 
 
 def infer_section(group: dict, section: dict | None, blocks: list[Block], text: str,
@@ -111,6 +132,7 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
     title_run_block = first if first and ITEM_TITLE.match(first.text.strip()) else None
     toc_block: Block | None = None             # last block of a table of contents still open
     toc_score = 0.0                            # how prominent its title is
+    is_risk = (section or {}).get("section_type") == "risk_factors" or group["section_key"].endswith("item-1a")
     rows = []
     for candidate in group["headings"]:
         key, words = candidate["heading_id"], candidate["text"]
@@ -121,7 +143,8 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
         block: Block | None = evidence.get("block")
         style = evidence.get("style")
         sig = tuple(style.values()) if style else None
-        after = blocks[block.idx + 1] if block is not None and block.idx + 1 < len(blocks) else None
+        last = evidence.get("last_block", block)
+        after = blocks[last.idx + 1] if last is not None and last.idx + 1 < len(blocks) else None
         before_table = bool(after is not None and after.in_table and block is not None and not block.in_table)
 
         continuation = bool(
@@ -142,7 +165,9 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
             toc_block = None
 
         sibling = stack[-1][0] if stack else 1
-        if evidence["match"] in ("missing_html", "unmatched"):
+        if not HAS_WORD.search(words):
+            level, reason = 0, "no_letters"
+        elif evidence["match"] in ("missing_html", "unmatched"):
             level, reason = sibling, evidence["match"]
         elif block.in_table:
             level, reason = 0, "table"
@@ -150,7 +175,7 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
             level, reason = 0, "item_title_continuation"
         elif in_toc:
             level, reason = 0, "toc"
-        elif UNITS_LINE.match(words.strip()):
+        elif UNITS_LINE.match(words.strip()) and len(words.split()) <= UNITS_MAX_WORDS:
             level, reason = 0, "units_line"
         elif evidence["match"] == "inside":
             level, reason = sibling, "inside_paragraph"
@@ -180,11 +205,19 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
             parent, path = (stack[-1] if stack else None), [entry[3] for entry in stack]
         rows.append({
             "heading_id": key, "text": words, "level": level, "reason": reason,
-            "flags": flags_for(words, evidence["match"], before_table) if level != 0 else [],
+            "flags": flags_for(words, is_risk, before_table) if level != 0 else [],
             "match": evidence["match"],
+            "joined_blocks": evidence.get("joined_blocks", 0),
             "parent_text": parent[3] if parent else None,
             "heading_path": path,
             "style": style,
-            "block_text": block.text[:160] if block is not None else None,
+            "block_text": (" / ".join(b.text for b in
+                                      ([block] if last is block else _span(blocks, block, last)))[:160]
+                           if block is not None else None),
+            "link_suffix": link_words(after) if after is not None and not after.in_table else "",
         })
     return rows
+
+
+def _span(blocks: list[Block], first: Block, last: Block) -> list[Block]:
+    return blocks[first.idx:last.idx + 1]

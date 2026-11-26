@@ -1,4 +1,5 @@
-"""The sub-headings step 4 finds in each kept section, and the levels file it reads back.
+"""The headings step 4 finds in each kept section (sub-headings, and risk category headings in
+Item 1A), and the levels file it reads back.
 
 The file data/interim/heading_levels.jsonl has one row per heading:
 {"heading_id", "text", "level", "source", "reason"}. heading_id is
@@ -27,7 +28,9 @@ def load_levels() -> dict[str, int]:
 
 
 def section_headings() -> list[dict]:
-    """Sub-headings of every kept section, in order, with the first words of the text under each."""
+    """Headings of every kept section, in order, with the first words of the text under each.
+    Risk category headings are included: their level decides which of them are categories
+    (segment.is_risk_category)."""
     from ..segment import heading_id, segment_section
     cfg = settings()["segment"]
     kept = kept_section_keys()
@@ -42,12 +45,12 @@ def section_headings() -> list[dict]:
             units = segment_section(sec, cfg)
             heads = []
             for k, u in enumerate(units):
-                if u["role"] != "heading":
+                if u["role"] not in ("heading", "category_heading"):
                     continue
-                after = next((v["text"] for v in units[k + 1:] if v["role"] != "heading"), "")
+                after = next((v["text"] for v in units[k + 1:] if v["role"] not in ("heading", "category_heading")), "")
                 para = sec["paragraphs"][u["paragraph_index"]]
                 heads.append({"heading_id": heading_id(sec, para, u["char_start"]), "text": u["text"],
-                              "next_text": " ".join(after.split()[:12])})
+                              "role": u["role"], "next_text": " ".join(after.split()[:12])})
             if heads:
                 out.append({"ticker": f["ticker"], "form": f["form"], "accession": sec["accession_number"],
                             "section_key": sec["section_key"], "section": units[0]["section_label"],

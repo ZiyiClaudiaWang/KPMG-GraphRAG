@@ -372,6 +372,11 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     the cost of food ingredients and other related costs", a risk heading without its period):
     it is split and labelled like any paragraph. Without levels every heading is level 1, so a
     heading replaces the one before it, as before.
+
+    In risk factors, a heading is a risk category when its level is 1 (the top of Item 1A in the
+    filing's HTML); deeper headings are sub-headings under it. Without a level for it, a heading
+    is a category when it looks like one (is_category: capitals or title case, "Risks related
+    to ..."). Other sections have no categories.
     """
     paragraphs = sec["paragraphs"]
     is_risk = sec["section_type"] == "risk_factors"
@@ -379,6 +384,11 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
     units: list[dict] = []
     category = subheading = None
     stack: list[tuple[int, str]] = []          # (level, heading text) above the current unit
+
+    def is_risk_category(name: str, p_index: int, start: int) -> bool:
+        """A risk category heading: level 1 in the levels file, else by its look."""
+        level = (levels or {}).get(heading_id(sec, paragraphs[p_index], start))
+        return level == 1 if level is not None else is_category(name)
 
     def is_sentence(p_index: int, start: int) -> bool:
         """The levels file says this heading-like line is a sentence of the text (level -1)."""
@@ -448,7 +458,7 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
         list_follows = starts_list(paragraphs, i + 1, colon)
         if (is_heading_like(text) or (is_colon_heading(text) and not list_follows)) and not is_sentence(i, p0):
             name = text.rstrip(":").rstrip()      # "Executive Summary:" is shown as "Executive Summary"
-            if is_risk and is_category(name):
+            if is_risk and is_risk_category(name, i, p0):
                 category, subheading = name, None
                 stack.clear()
                 heading = add("category_heading", i, p0, p0 + len(text), "heading")

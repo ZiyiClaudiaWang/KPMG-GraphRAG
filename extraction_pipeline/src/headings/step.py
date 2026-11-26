@@ -6,7 +6,8 @@
 
 Reads the candidate headings of the kept sections (steps 2-3 must have run), the Data-team
 sections (data/sections/) and the primary document of each filing, downloaded once from EDGAR to
-data/edgar/primary/<TICKER>_<accession>.htm (needs SEC_USER_AGENT in .env).
+data/edgar/primary/<TICKER>_<accession>.htm (needs SEC_USER_AGENT in .env). The filing URLs
+are kept in data/edgar/primary/urls.json for the links in the review file.
 
 Writes:
   data/interim/heading_levels.jsonl    the levels step 4 reads (candidates.py)
@@ -29,17 +30,18 @@ from lxml import etree
 from ..common import Paths, data_dir, filings, load_env, log, read_jsonl, settings
 from ..ex21 import edgar
 from .candidates import levels_path, section_headings
-from .edgar_primary import atomic_write, cached_path, filing_html
+from .edgar_primary import Urls, atomic_write, cached_path, filing_html, text_link
 from .html import align, export_text, html_blocks
 from .levels import infer_section
 
 STEP = "headings"
 SOURCE = "html"
-REASONS = ["typography", "table", "item_title_continuation", "toc", "units_line",
+REASONS = ["typography", "table", "item_title_continuation", "toc", "units_line", "no_letters",
            "inside_paragraph", "plain_style", "unmatched", "missing_html"]
 REASON_HELP = ("typography = level from its style; table = in a table (0); item_title_continuation = "
                "centred line after the Item title (0); toc = table of contents (0); units_line = "
-               "only a unit such as (In millions) (0); inside_paragraph / plain_style / unmatched / "
+               "only a unit such as (In millions) (0); no_letters = no letter or digit, e.g. a rule "
+               "before footnotes (0); inside_paragraph / plain_style / unmatched / "
                "missing_html = read as a sibling of the heading before it")
 
 # How to read each file: written as "# column: meaning" lines above the header row.
@@ -52,12 +54,18 @@ REVIEW_HELP = {
     "parent_text": "the heading this one sits under (empty = top of the section)",
     "heading_path": "the headings above the text that follows, top first: what goes into section_path",
     "reason": "why it got this level: " + REASON_HELP,
-    "flags": "for review, never change the level: maybe_sentence = 10+ words, starts like a sentence or inside a "
-             "paragraph (maybe a sentence, not a heading); before_table = the next HTML block is a table "
-             "(maybe a table title)",
+    "flags": "for review, never change the level: risk_sentence = in Item 1A, 10+ words (maybe a risk "
+             "factor's lead sentence read as a heading, so it never becomes a Claim); before_table = the next "
+             "HTML block is a table (maybe a table title)",
     "match": "where it is in the HTML: standalone = a block of its own; run_in = start of a paragraph; "
              "inside = middle of a paragraph; unmatched / missing_html = not found",
     "next_text": "first words of the text below it",
+    "risk_category": "Item 1A only: yes = a risk category (level 1), no = a sub-heading under one",
+    "category_by_look": "Item 1A only: yes = step 4's text rule alone would call it a category (capitals or title "
+                        "case, \"Risks related to ...\"); where it differs from risk_category, the level decided",
+    "open_in_edgar": "link to the filing on sec.gov that scrolls to this heading and highlights it "
+                     "(Chrome / Edge / Safari; if nothing is highlighted, search for the text)",
+    "joined_blocks": "number of HTML blocks the heading spans (2+ = the HTML splits it over lines; 0 = not found)",
     "size": "font size in pt", "bold": "bold (True/False)", "underline": "underlined", "caps": "all capitals",
     "italic": "italic", "center": "centred",
     "indent": "left indent in 9pt steps (only for companies in settings.yaml headings.indent_tickers, else 0)",
@@ -74,7 +82,9 @@ SUMMARY_HELP = {
     "level_1": "top headings of a section", "level_2": "headings at level 2", "level_3": "at level 3",
     "level_4plus": "at level 4 or deeper (many = check the nesting)",
     **{f"reason_{k}": f"headings with reason {k}" for k in REASONS},
-    "flag_maybe_sentence": "headings flagged maybe_sentence (check: sentence or heading?)",
+    "risk_categories": "Item 1A headings that are risk categories (level 1)",
+    "risk_categories_by_look": "Item 1A headings step 4's text rule alone would call categories",
+    "flag_risk_sentence": "headings flagged risk_sentence (check: a risk factor's lead sentence or a heading?)",
     "flag_before_table": "headings flagged before_table (check: table title or heading?)",
 }
 
@@ -114,8 +124,15 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
             rows.append({"ticker": group["ticker"], "form": group["form"], "accession": group["accession"],
                          "section_key": group["section_key"], **row})
     nexts = {h["heading_id"]: h["next_text"] for g in groups for h in g["headings"]}
+    roles = {h["heading_id"]: h.get("role") for g in groups for h in g["headings"]}
+    risk = {h["heading_id"] for g in groups for h in g["headings"]
+            if (sections.get(g["section_key"]) or {}).get("section_type") == "risk_factors"
+            or g["section_key"].endswith("item-1a")}
     for row in rows:
         row["next_text"] = nexts.get(row["heading_id"], "")
+        in_risk = row["heading_id"] in risk
+        row["risk_category"] = ("yes" if row["level"] == 1 else "no") if in_risk else ""
+        row["category_by_look"] = ("yes" if roles.get(row["heading_id"]) == "category_heading" else "no") if in_risk else ""
     return rows, info
 
 
@@ -156,7 +173,9 @@ def summarise(rows: list[dict], info: dict[str, dict]) -> list[dict]:
                "headings": len(rs), "found_in_html_pct": round(100 * found / len(rs), 1),
                **{f"level_{k}": levels.get(k, 0) for k in (0, 1, 2, 3)}, "level_4plus": levels.get(4, 0),
                **{f"reason_{k}": reasons.get(k, 0) for k in REASONS},
-               "flag_maybe_sentence": flags.get("maybe_sentence", 0),
+               "risk_categories": sum(r["risk_category"] == "yes" for r in rs),
+               "risk_categories_by_look": sum(r["category_by_look"] == "yes" for r in rs),
+               "flag_risk_sentence": flags.get("risk_sentence", 0),
                "flag_before_table": flags.get("before_table", 0)}
         out.append(row)
     return out
@@ -185,21 +204,24 @@ def run(fetch: bool = True) -> None:
     if not_cleaned:
         log(STEP, f"{len(not_cleaned)} filings have no cleaned sections and are skipped "
                   f"(run fetch, clean and filter first), e.g. {not_cleaned[0]['ticker']} {not_cleaned[0]['accession']}")
+    urls = Urls(htm_dir())
     missing = [f for f in todo if not cached_path(f, htm_dir()).is_file()]
-    if fetch and missing and not edgar.user_agent():
-        raise SystemExit(f"{len(missing)} filings need their HTML from EDGAR: set SEC_USER_AGENT='Name email' "
-                         "in extraction_pipeline/.env (or run with --no-fetch)")
-    log(STEP, f"{len(todo)} filings with candidate headings; {len(missing)} HTML files to download"
-              + ("" if fetch else " (--no-fetch: skipped)"))
+    no_url = [f for f in todo if f["accession"] not in urls.urls]
+    if fetch and (missing or no_url) and not edgar.user_agent():
+        raise SystemExit(f"{len(missing)} filings need their HTML and {len(no_url)} their URL from EDGAR: "
+                         "set SEC_USER_AGENT='Name email' in extraction_pipeline/.env (or run with --no-fetch)")
+    log(STEP, f"{len(todo)} filings with candidate headings; {len(missing)} HTML files to download, "
+              f"{len(no_url)} URLs to look up" + ("" if fetch else " (--no-fetch: skipped)"))
 
     rows, info = [], {}
     for n, filing in enumerate(todo, 1):
         accession = filing["accession"]
-        path = None
+        path = url = None
         try:
-            path = filing_html(filing, htm_dir(), fetch)
+            path = filing_html(filing, htm_dir(), fetch, urls)
+            url = urls.get(filing, fetch)
         except (OSError, ValueError, urllib.error.URLError, etree.LxmlError) as exc:
-            log(STEP, f"{filing['ticker']} {accession}: no HTML ({exc})")
+            log(STEP, f"{filing['ticker']} {accession}: no HTML or URL ({exc})")
         sections = {}
         if Paths.sections(filing).is_file():
             sections = {s["section_key"]: s for s in read_jsonl(Paths.sections(filing))}
@@ -207,6 +229,8 @@ def run(fetch: bool = True) -> None:
             log(STEP, f"{filing['ticker']} {accession}: no section export in data/sections/")
         got, info[accession] = filing_rows(groups[accession], sections, path,
                                            filing["ticker"] in indent_tickers)
+        for row in got:
+            row["open_in_edgar"] = text_link(url, row["text"], row["link_suffix"], row["joined_blocks"] > 1)
         rows += got
         if n % 25 == 0:
             log(STEP, f"{n}/{len(todo)} filings")

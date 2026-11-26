@@ -12,6 +12,7 @@ from pathlib import Path
 
 from src import clean, segment
 from src.common import settings
+from src.headings import levels as L
 from src.headings.step import filing_rows
 
 BIG = "font-size:14pt;font-weight:bold"
@@ -38,6 +39,15 @@ LINES = [
     (f'<p style="{BOLD}">We may be adversely impacted by increases in the cost of food</p>',
      "We may be adversely impacted by increases in the cost of food"),
     ("<p>Costs rose 4% in the year.</p>", "Costs rose 4% in the year."),
+    ("<p>________________</p>", "________________"),
+    ("<p>(1) Excludes fuel.</p>", "(1) Excludes fuel."),
+    # CASY 10-Q: one heading over two HTML blocks, one line in the export; then a unit line.
+    (f'<p style="{BOLD};text-decoration:underline;text-align:center">Nine Months Ended January 31, 2021 Compared to</p>'
+     f'<p style="{BOLD};text-decoration:underline;text-align:center">Nine Months Ended January 31, 2020</p>',
+     "Nine Months Ended January 31, 2021 Compared to Nine Months Ended January 31, 2020"),
+    (f'<p style="{ITALIC};text-align:center">(Dollars and Amounts in Thousands)</p>',
+     "(Dollars and Amounts in Thousands)"),
+    ("<p>Revenue grew 8% in the nine months.</p>", "Revenue grew 8% in the nine months."),
     (f'<p style="{BIG}">INDEX TO NOTES</p>', "INDEX TO NOTES"),
     ('<p><a href="#n1">Revenue Recognition</a></p>', "Revenue Recognition"),
     ("<p>Leases and Commitments</p>", "Leases and Commitments"),
@@ -112,10 +122,25 @@ class HtmlHeadings(unittest.TestCase):
         self.assertEqual(self.level("Revenue Recognition"), (0, "toc"))       # a link
         self.assertEqual(self.level("Leases and Commitments"), (0, "toc"))    # less prominent, right after
 
-    def test_possible_sentence_is_flagged_not_changed(self):
+    def test_long_heading_outside_item_1a_is_not_flagged(self):
         row = self.rows["We may be adversely impacted by increases in the cost of food"]
         self.assertGreater(row["level"], 0)
-        self.assertIn("maybe_sentence", row["flags"])
+        self.assertNotIn("risk_sentence", row["flags"])
+
+    def test_line_without_letters_is_not_a_heading(self):
+        # AMZN: the rule before footnotes is a candidate heading in step 4.
+        self.assertEqual(self.level("________________"), (0, "no_letters"))
+
+    def test_heading_split_over_two_html_blocks_is_matched(self):
+        row = self.rows["Nine Months Ended January 31, 2021 Compared to Nine Months Ended January 31, 2020"]
+        self.assertEqual((row["match"], row["joined_blocks"], row["reason"]), ("standalone", 2, "typography"))
+        self.assertIn(" / ", row["block_text"])
+
+    def test_unit_line_with_more_words(self):
+        self.assertEqual(self.level("(Dollars and Amounts in Thousands)"), (0, "units_line"))
+
+    def test_link_suffix_is_the_next_html_block(self):
+        self.assertEqual(self.rows["Intelligent Cloud"]["link_suffix"], "Azure revenue grew 30%")
 
     def test_sha_differs_from_the_export(self):
         self.assertEqual(self.info, {"html": "ok", "sha_differs": True})
@@ -178,13 +203,87 @@ class Step(unittest.TestCase):
             self.assertEqual(lines[len(guide)].split(","), list(cols))               # then the header
 
 
+class RiskCategories(unittest.TestCase):
+    """In Item 1A a heading is a risk category when its level is 1; without a level, by its look."""
+
+    LINES = ["Item 1A. Risk Factors", "Risks Related to Our Business", "Supply Chain",
+             "We depend on a small number of suppliers for our products and services.",
+             "Risks Related to Our Industry", "Competition in our industry is intense and may grow."]
+
+    def units(self, levels_by_text=None):
+        content = "\n\n".join(self.LINES)
+        raw = {"accession_number": "0000000000-26-000001", "ticker": "TEST", "form": "10-K",
+               "section_id": "sec-1a", "section_key": "part-i-item-1a", "section_type": "risk_factors",
+               "part": "I", "item": "1A", "processing_set_id": "set-1", "source_locator": {},
+               "content": content, "offset_start": 0}
+        cleaned = clean.clean_section(dict(raw), set())
+        levels = None
+        if levels_by_text is not None:
+            levels = {}
+            for u in segment.segment_section(cleaned, settings()["segment"]):
+                if u["text"] in levels_by_text:
+                    para = cleaned["paragraphs"][u["paragraph_index"]]
+                    levels[segment.heading_id(cleaned, para, u["char_start"])] = levels_by_text[u["text"]]
+        return {u["text"]: u for u in segment.segment_section(cleaned, settings()["segment"], levels)}
+
+    def test_without_levels_a_title_case_sub_heading_looks_like_a_category(self):
+        units = self.units()
+        self.assertEqual(units["Supply Chain"]["role"], "category_heading")
+
+    def test_with_levels_only_level_1_is_a_category(self):
+        units = self.units({"Risks Related to Our Business": 1, "Supply Chain": 2,
+                            "Risks Related to Our Industry": 1})
+        self.assertEqual(units["Risks Related to Our Business"]["role"], "category_heading")
+        self.assertEqual(units["Supply Chain"]["role"], "heading")
+        sentence = units["We depend on a small number of suppliers for our products and services."]
+        self.assertEqual((sentence["category"], sentence["subheading"]), ("Risks Related to Our Business", "Supply Chain"))
+        self.assertEqual(sentence["section_path"], "Part I Item 1A > Risks Related to Our Business > Supply Chain")
+        other = units["Competition in our industry is intense and may grow."]
+        self.assertEqual((other["category"], other["heading_path"]), ("Risks Related to Our Industry", []))
+
+
+class Flags(unittest.TestCase):
+    def test_risk_sentence_only_in_item_1a(self):
+        long = "We may be adversely impacted by increases in the cost of food ingredients"
+        self.assertEqual(L.flags_for(long, True, False), ["risk_sentence"])
+        self.assertEqual(L.flags_for(long, False, False), [])
+        self.assertEqual(L.flags_for("Risks Related to Our Industry", True, False), [])
+
+
+class Links(unittest.TestCase):
+    def test_text_fragment_link(self):
+        from src.headings.edgar_primary import text_link
+        url = "https://www.sec.gov/Archives/edgar/data/1/000000000126000001/x.htm"
+        self.assertEqual(text_link(url, "Intelligent Cloud", "Azure revenue grew 30%"),
+                         url + "#:~:text=Intelligent%20Cloud,-Azure%20revenue%20grew%2030%25")
+        self.assertEqual(text_link(url, "Non-GAAP Measures"), url + "#:~:text=Non%2DGAAP%20Measures")
+        long = "Nine Months Ended January 31, 2021 Compared to Nine Months Ended January 31, 2020"
+        self.assertEqual(text_link(url, long),
+                         url + "#:~:text=Nine%20Months%20Ended%20January,Ended%20January%2031%2C%202020")
+        self.assertEqual(text_link(url, "Three Months Ended July 31", split=True),
+                         url + "#:~:text=Three%20Months,July%2031")
+        self.assertEqual(text_link(None, "Intelligent Cloud"), "")
+
+    def test_urls_are_looked_up_once_and_kept(self):
+        from unittest import mock
+        from src.headings import edgar_primary
+        filing = {"accession": "0000000000-26-000001", "cik": "1", "form": "10-K", "ticker": "TEST"}
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(edgar_primary, "primary_url", return_value="https://x/y.htm") as lookup:
+                urls = edgar_primary.Urls(Path(tmp))
+                self.assertIsNone(urls.get(filing, fetch=False))
+                self.assertEqual(urls.get(filing, fetch=True), "https://x/y.htm")
+                self.assertEqual(edgar_primary.Urls(Path(tmp)).get(filing, fetch=True), "https://x/y.htm")
+            self.assertEqual(lookup.call_count, 1)
+
+
 class Fallbacks(unittest.TestCase):
     def test_without_html_every_heading_is_a_sibling(self):
         with tempfile.TemporaryDirectory() as tmp:
             raw, group, _ = filing(Path(tmp))
             rows, info = filing_rows([group], {raw["section_key"]: raw}, None, False)
         self.assertEqual(info["html"], "missing")
-        self.assertEqual({(r["level"], r["reason"]) for r in rows}, {(1, "missing_html")})
+        self.assertEqual({(r["level"], r["reason"]) for r in rows}, {(1, "missing_html"), (0, "no_letters")})
 
 
 if __name__ == "__main__":
