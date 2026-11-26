@@ -91,8 +91,20 @@ def data_dir() -> Path:
     return Path(os.environ.get("PIPELINE_DATA_DIR") or (ROOT / settings()["data_dir"])).resolve()
 
 
+def checks_dir(step: str) -> Path:
+    """data/checks/<step>/: files written for a person to review. The pipeline never reads them."""
+    return data_dir() / "checks" / step
+
+
 class Paths:
-    """Every file the pipeline reads or writes, in one place."""
+    """Every file the pipeline reads or writes, in one place.
+
+    data/sections/   step 1 input (the Data team export)
+    data/interim/    results only later steps read
+    data/output/     results: what later steps, the graph load and the run snapshots use
+    data/checks/     review files, one folder per step (checks_dir); never read by a step
+    data/edgar/, data/ex21/, data/cache/   downloads and saved LLM replies
+    """
 
     @staticmethod
     def sections(filing: dict) -> Path:            # step 1 output (input to the pipeline)
@@ -105,13 +117,23 @@ class Paths:
     ex21_raw = staticmethod(lambda: data_dir() / "ex21" / "raw")                            # step 1b
     ex21_manifest = staticmethod(lambda: data_dir() / "ex21" / "manifest.csv")              # step 1b
     subsidiaries = staticmethod(lambda: data_dir() / "output" / "subsidiaries.jsonl")      # step 1b
-    subsidiary_qa = staticmethod(lambda: data_dir() / "output" / "subsidiary_qa.csv")      # step 1b
+    subsidiary_qa = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_qa.csv")  # step 1b
     subsidiary_catalog = staticmethod(lambda: data_dir() / "output" / "subsidiary_catalog.json")  # step 1b
-    subsidiary_renames = staticmethod(lambda: data_dir() / "output" / "subsidiary_renames.csv")   # step 1b
+    subsidiary_renames = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_renames.csv")  # step 1b
+    entity_catalog = staticmethod(lambda: data_dir() / "entity_catalog.json")              # step 1c
+    page_break_decisions = staticmethod(lambda: data_dir() / "interim" / "page_break_decisions.jsonl")  # step 2b
+    page_break_candidates = staticmethod(lambda: checks_dir("page_breaks") / "page_break_candidates.jsonl")  # step 2b
     manifest = staticmethod(lambda: data_dir() / "output" / "section_manifest.csv")        # step 3
+    edgar_primary = staticmethod(lambda: data_dir() / "edgar" / "primary")                 # step 4b
+    heading_levels = staticmethod(lambda: data_dir() / "interim" / "heading_levels.jsonl")  # step 4b
+    lead_sentences = staticmethod(lambda: data_dir() / "interim" / "lead_sentences.jsonl")  # step 4b
+    html_tables = staticmethod(lambda: data_dir() / "interim" / "html_tables.jsonl")       # step 4b
+    heading_review = staticmethod(lambda: checks_dir("headings") / "heading_review.csv")   # step 4b
+    heading_summary = staticmethod(lambda: checks_dir("headings") / "heading_summary.csv")  # step 4b
+    heading_html_diff = staticmethod(lambda: checks_dir("headings") / "heading_html_diff.csv")  # step 4b
     sentences = staticmethod(lambda: data_dir() / "output" / "sentences.jsonl")            # step 4
-    lead_summary = staticmethod(lambda: data_dir() / "output" / "lead_summary.csv")       # step 4
-    lead_review = staticmethod(lambda: data_dir() / "output" / "lead_review.csv")         # step 4
+    lead_summary = staticmethod(lambda: checks_dir("segment") / "lead_summary.csv")       # step 4
+    lead_review = staticmethod(lambda: checks_dir("segment") / "lead_review.csv")         # step 4
     batches = staticmethod(lambda: data_dir() / "interim" / "label_batches.jsonl")         # step 5
     labels = staticmethod(lambda: data_dir() / "output" / "labels.jsonl")                  # step 5
     usage = staticmethod(lambda: data_dir() / "output" / "usage.jsonl")                    # step 5

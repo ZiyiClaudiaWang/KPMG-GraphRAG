@@ -12,7 +12,7 @@ sentence and changes no section_path. Step 4b finds leads in the filing's HTML
                  level but 0) or the end of the section; null for a lead itself and for text
                  under no lead (directly under its heading or section)
 
-Review files: data/output/lead_summary.csv (one row per company) and lead_review.csv (one row
+Review files: data/checks/segment/lead_summary.csv (one row per company) and lead_review.csv (one row
 per lead, and per rule_heading the HTML does not confirm).
 """
 

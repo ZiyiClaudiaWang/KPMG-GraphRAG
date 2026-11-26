@@ -1,6 +1,6 @@
 """Diagnostics for steps 2-4 at scale: how the hand-written rules behave on every filing.
 
-  python -m src.diagnose            read data/sections/*.jsonl, write data/output/diagnostics/
+  python -m src.diagnose            read data/sections/*.jsonl, write data/checks/diagnose/
 
 No API calls, no database, and no pipeline output is touched: steps 2-4 run in memory on
 EVERY section, not only the kept ones, so the report also shows how the rules would do on
@@ -8,7 +8,7 @@ sections the filter drops today. Four of them are reported on their own as candi
 (CANDIDATES below); financial_statements also gets a profile of what it holds (statement
 tables, the auditor's report, each note).
 
-Outputs (under data/output/diagnostics/):
+Outputs (under data/checks/diagnose/):
   report_steps_2_4.md   the summary: read this first
   samples.csv           examples for each check, kept sections and candidates first
   per_filing.csv        counts per filing (kept sections), to sort and compare
@@ -29,7 +29,7 @@ from pathlib import Path
 
 from . import clean as C
 from . import segment as S
-from .common import Paths, data_dir, filings, load_config, log, read_jsonl, settings, write_csv
+from .common import Paths, checks_dir, filings, load_config, log, read_jsonl, settings, write_csv
 from .filter_sections import decide, text_stats
 
 STEP = "diagnose"
@@ -390,7 +390,7 @@ def run() -> None:
                            "baseline_20": base_group == "baseline 20", "header_patterns": len(headers), **row})
 
     # ------------------------------------------------------------ files ----
-    out_dir = data_dir() / "output" / "diagnostics"
+    out_dir = checks_dir("diagnose")
     out_dir.mkdir(parents=True, exist_ok=True)
     head = ["ticker", "form", "reporting_period_end", "accession", "baseline_20", "header_patterns",
             "units", "to_llm"]

@@ -11,10 +11,10 @@ are kept in data/edgar/primary/urls.json for the links in the review file.
 
 Writes:
   data/interim/heading_levels.jsonl    the levels step 4 reads (candidates.py)
-  data/output/heading_review.csv       one row per heading: level, parent, path, reason, flags, style
-  data/output/heading_summary.csv      one row per company: match rate, levels, reasons, flags,
+  data/checks/headings/heading_review.csv       one row per heading: level, parent, path, reason, flags, style
+  data/checks/headings/heading_summary.csv      one row per company: match rate, levels, reasons, flags,
                                        and how many HTML headings step 4 reads as headings
-  data/output/heading_html_diff.csv    HTML headings step 4 missed, and step-4 headings the HTML
+  data/checks/headings/heading_html_diff.csv    HTML headings step 4 missed, and step-4 headings the HTML
                                        shows as plain text (compare.py); changes nothing
   data/interim/lead_sentences.jsonl    one row per filing: whether its HTML was read, and its lead
                                        sentences (leads.py), which step 4 reads for lead_unit_id
@@ -34,7 +34,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from ..common import Paths, data_dir, filings, load_env, log, read_jsonl, settings
+from ..common import Paths, filings, load_env, log, read_jsonl, settings
 from ..ex21 import edgar
 from .candidates import levels_path, section_headings
 from .compare import body_size, html_only, step4_plain
@@ -148,19 +148,19 @@ def read_output(path):
 
 
 def htm_dir() -> Path:
-    return data_dir() / "edgar" / "primary"
+    return Paths.edgar_primary()
 
 
 def review_path() -> Path:
-    return data_dir() / "output" / "heading_review.csv"
+    return Paths.heading_review()
 
 
 def summary_path() -> Path:
-    return data_dir() / "output" / "heading_summary.csv"
+    return Paths.heading_summary()
 
 
 def diff_path() -> Path:
-    return data_dir() / "output" / "heading_html_diff.csv"
+    return Paths.heading_html_diff()
 
 
 def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path | None,

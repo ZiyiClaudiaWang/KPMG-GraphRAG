@@ -1,6 +1,6 @@
 """Repeated sentences across filings of one company, on step 4's units, before labelling.
 
-  python -m src.report_unit_repeats          read data/output/sentences.jsonl, write data/output/repeats/
+  python -m src.report_unit_repeats          read data/output/sentences.jsonl, write data/checks/unit_repeats/
 
 Only units step 5 would send to the model (prefilter is None) are counted. A repeat is the same
 unit in two or more filings of the same company; repeats inside one filing only are left out.
@@ -15,7 +15,7 @@ Three levels, each stricter than the one before:
 inferred from plain text): two units with the same text and context but different paths are
 most likely the same passage with a heading read differently.
 
-Outputs (data/output/repeats/):
+Outputs (data/checks/unit_repeats/):
   unit_repeats.jsonl    one row per counted unit: its group id and first occurrence at each level
                         (null when the unit is not repeated at that level), to join on unit_id
   summary.csv           per level, company and section type: units, repeated units, groups, and
@@ -32,7 +32,7 @@ import hashlib
 import random
 from collections import Counter, defaultdict
 
-from .common import Paths, data_dir, filings, log, read_jsonl, settings, write_jsonl
+from .common import Paths, checks_dir, filings, log, read_jsonl, settings, write_jsonl
 
 STEP = "repeats"
 LEVELS = ("text", "context", "path")
@@ -43,7 +43,7 @@ def norm(text: str) -> str:
 
 
 def out_dir():
-    return data_dir() / "output" / "repeats"
+    return checks_dir("unit_repeats")
 
 
 def unit_keys(units: list[dict], context_size: int) -> list[tuple[dict, dict[str, tuple]]]:

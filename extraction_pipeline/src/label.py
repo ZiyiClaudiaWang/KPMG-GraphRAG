@@ -164,7 +164,7 @@ def verify_units(units: list[dict], sources: dict) -> None:
 
 
 def entity_catalog() -> list[dict]:
-    path = data_dir() / "entity_catalog.json"
+    path = Paths.entity_catalog()
     catalog = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
     entity_annotation.validate_catalog(catalog)
     return catalog
