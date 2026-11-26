@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import logging
 import os
 import sys
 from pathlib import Path
@@ -36,6 +37,12 @@ from . import contract
 # pyproject.toml would make this an ordinary import.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "structured"))
 import fiscal  # noqa: E402
+
+# Nothing in this package logs yet. A library should not configure logging, and
+# it does not need to here: Python prints WARNING and above to stderr through
+# its last-resort handler even when the application sets nothing up. So the one
+# warning below is visible by default and still silenceable by a caller.
+log = logging.getLogger(__name__)
 
 # Lexical search over the claim text. Neo4j scores the match for us, which is
 # what the envelope's `score` reports.
@@ -62,10 +69,24 @@ INDEX_VERSION = "neo4j-fulltext-v1"
 # large enough guess, and it costs one extra round trip to learn the size of
 # the match set.
 #
-# The match set is bounded by the query, not the corpus - "revenue" matches 548
-# of 10,774 claims. The cap below is a backstop for a query matching most of the
-# graph, where reading everything would cost more than the answer is worth.
-FULLTEXT_MATCH_CAP = 25_000
+# The match set is bounded by the query, not the corpus - but not by much. The
+# query is built by joining every word with OR, and the index analyzer keeps
+# stop words, so a question matches most of the graph. Measured on 10,774
+# claims: "revenue" alone matches 548 (5%), but "total revenue for the three
+# months ended March 31, 2026" matches 7,485 (70%) and the demo question
+# matches 8,305 (77%).
+#
+# So the cap has to clear the whole corpus, not a fraction of it. The 313-filing
+# corpus is around 168,000 claims, and 25,000 - the first value here - would
+# have fired on most questions there, silently returning this defect. A cap that
+# fires is this bug again, so the cap is set above the corpus we are loading and
+# the code says so when it is reached.
+#
+# It stays a cap rather than becoming unbounded because a backstop that can
+# never trigger is not a backstop. Cost at this size is unmeasured: 25,000
+# candidates took 0.18s on 10,774 claims, and nothing has been run against a
+# corpus large enough to need more. Measure after the v2 load.
+FULLTEXT_MATCH_CAP = 250_000
 
 COUNT_MATCHES_CYPHER = """
 CALL db.index.fulltext.queryNodes($index, $lucene, {limit: $limit})
@@ -452,6 +473,16 @@ def search(query: str, filters: dict | None = None, top_k: int = 10,
                     COUNT_MATCHES_CYPHER, index=FULLTEXT_INDEX, lucene=lucene,
                     limit=FULLTEXT_MATCH_CAP,
                 ).single()["matches"]
+                if matched >= FULLTEXT_MATCH_CAP:
+                    # Say it. At the cap the filter is choosing from a prefix
+                    # again, which is the defect this function exists to fix,
+                    # and no count or row total reveals that it happened.
+                    log.warning(
+                        "fulltext match set reached FULLTEXT_MATCH_CAP (%d) for "
+                        "query %r. The filter is choosing from a truncated "
+                        "candidate list and rows may be missing. Raise the cap "
+                        "or narrow the query.", FULLTEXT_MATCH_CAP, query,
+                    )
                 limit = max(matched, top_k)
             else:
                 # Nothing is discarded after the index, so the best top_k the

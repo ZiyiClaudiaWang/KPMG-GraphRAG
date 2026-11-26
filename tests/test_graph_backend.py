@@ -323,6 +323,32 @@ def test_an_unfiltered_search_still_asks_for_only_top_k(monkeypatch):
     assert index.limits == [8]
 
 
+def test_hitting_the_cap_warns_because_nothing_else_would_show_it(monkeypatch, caplog):
+    """At the cap the filter is back to choosing from a prefix, which is the
+    defect this whole path exists to fix. The row count looks ordinary, so the
+    warning is the only thing that says it happened."""
+    index = _FakeIndex(total=600)
+    _use_fake_index(monkeypatch, index)
+    monkeypatch.setattr(graph_backend, "FULLTEXT_MATCH_CAP", 100)
+
+    with caplog.at_level("WARNING", logger=graph_backend.log.name):
+        graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=8)
+
+    assert "FULLTEXT_MATCH_CAP" in caplog.text
+    assert "revenue" in caplog.text
+
+
+def test_a_match_set_under_the_cap_says_nothing(monkeypatch, caplog):
+    index = _FakeIndex(total=600)
+    _use_fake_index(monkeypatch, index)
+    monkeypatch.setattr(graph_backend, "FULLTEXT_MATCH_CAP", 5_000)
+
+    with caplog.at_level("WARNING", logger=graph_backend.log.name):
+        graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=8)
+
+    assert caplog.text == ""
+
+
 # ---- against a real graph -------------------------------------------------
 
 def _graph_available() -> bool:
