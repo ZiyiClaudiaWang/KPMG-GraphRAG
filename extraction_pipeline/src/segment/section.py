@@ -88,9 +88,10 @@ class Section:
                 or self.levels.is_sentence(para, p0 + a):
             return False
         level = self.levels.heading_level(para, p0 + a, self.path.sibling)
-        if self.is_risk and level != NOT_A_HEADING:
-            level = max(level, 2)                 # a run-in heading is never a risk category
-        self.path.open(head, level)
+        if level != NOT_A_HEADING:
+            # below the line heading it sits under; in Item 1A never a risk category
+            level = max(level, self.path.run_in_floor(), 2 if self.is_risk else 1)
+        self.path.open(head, level, run_in=True)
         self.add("heading", i, p0 + a, p0 + b, "heading")["heading_level"] = level
         return True
 

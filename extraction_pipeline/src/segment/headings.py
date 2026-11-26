@@ -167,6 +167,7 @@ class HeadingPath:
     def __init__(self, is_risk: bool = False) -> None:
         self.is_risk = is_risk
         self.stack: list[tuple[int, str]] = []      # (level, heading text), outermost first
+        self.run_ins: list[bool] = []                # per stack entry: a run-in heading ("Flexible Work.")
 
     @property
     def category(self) -> str | None:
@@ -186,14 +187,24 @@ class HeadingPath:
     def names(self) -> list[str]:
         return [h for _, h in self.stack]
 
-    def open(self, name: str, level: int) -> int:
+    def run_in_floor(self) -> int:
+        """The shallowest level a run-in heading may take: one below the deepest open line heading
+        (or 1), so a run-in only ever replaces another run-in, never the line heading above it
+        (NTAP "Financial and savings programs." under "Compensation, Benefits and Wellbeing";
+        WMT "Opportunity." under "Environmental, Social and Governance ("ESG") Priorities")."""
+        lines = [lv for (lv, _), run_in in zip(self.stack, self.run_ins) if not run_in]
+        return (lines[-1] + 1) if lines else 1
+
+    def open(self, name: str, level: int, run_in: bool = False) -> int:
         """Open a heading at `level`, closing those at the same level or deeper. Level 0 (not
         a heading) changes nothing. Returns the level."""
         if level == NOT_A_HEADING:
             return level
         while self.stack and self.stack[-1][0] >= level:
             self.stack.pop()
+            self.run_ins.pop()
         self.stack.append((level, name))
+        self.run_ins.append(run_in)
         return level
 
     def close_subheadings(self) -> None:
@@ -201,3 +212,4 @@ class HeadingPath:
         category; the category stays."""
         while self.stack and self.stack[-1][0] > 1:
             self.stack.pop()
+            self.run_ins.pop()

@@ -155,6 +155,21 @@ class GroupLists(unittest.TestCase):
         self.assertFalse(any(u["role"] == "list_group" for u in got.values()))
 
 
+class RunInLevels(unittest.TestCase):
+    def test_run_in_nests_under_its_line_heading(self):
+        got = units("Environmental, Social and Governance Priorities\n\n"
+                    "We focus on four themes.\n\n"
+                    "•Opportunity. Retail can be a powerful engine for inclusive economic opportunity.\n\n"
+                    "•Community. Walmart aims to serve and strengthen communities.")
+        line = "Environmental, Social and Governance Priorities"
+        self.assertEqual(got["Retail can be a powerful engine for inclusive economic opportunity."]["heading_path"],
+                         [line, "Opportunity."])
+        # the second run-in replaces the first, not the line heading
+        self.assertEqual(got["Walmart aims to serve and strengthen communities."]["heading_path"],
+                         [line, "Community."])
+        self.assertEqual(got["Community."]["heading_level"], 2)
+
+
 class BulletRunIn(unittest.TestCase):
     def test_bullet_paragraph_opening_with_a_period_heading(self):
         got = units("Our themes are opportunity and community.\n\n"
