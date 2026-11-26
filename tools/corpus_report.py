@@ -6,8 +6,8 @@ stores differing by three thousand facts, a default store holding one filing.
 Corpus totals showed nothing wrong in any of those cases. This prints the
 numbers that would have.
 
-    python3 tools/corpus_report.py                         the internal graph
-    python3 tools/corpus_report.py --instance canonical     what Eval is given
+    python3 tools/corpus_report.py                         what Eval is given
+    python3 tools/corpus_report.py --instance internal      the team's own graph
     python3 tools/corpus_report.py --json report.json       machine readable
 
 Run it once per instance to compare the two. This docstring advertised a
@@ -42,8 +42,13 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parents[1]
 
 # Which env file describes which graph. Instance 1 is canonical and is what Eval
-# and Agents are given; instance 2 is the team's internal graph and is where we
-# look first.
+# and Agents are given; instance 2 is the team's internal graph.
+#
+# Canonical is the default, because the question this report answers most often
+# is what the teams reading our graph can see. Internal is also the instance
+# with no claim_quote_fulltext index, so every graph_search against it raises -
+# defaulting there meant the first run of a health report went to the one graph
+# that cannot answer a question. The index check below now says so either way.
 INSTANCES = {
     "internal":  ROOT / "extraction_pipeline" / ".env.internal",
     "canonical": ROOT / "extraction_pipeline" / ".env.canonical",
@@ -856,8 +861,9 @@ def build(instance: str, env_file: str | None, scope: str | None,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--instance", choices=sorted(INSTANCES), default="internal",
-                        help="which graph to read (default: internal, the team's own)")
+    parser.add_argument("--instance", choices=sorted(INSTANCES), default="canonical",
+                        help="which graph to read (default: canonical, what Eval and "
+                             "Agents are given)")
     parser.add_argument("--env-file", help="read credentials from this file instead")
     parser.add_argument("--scope", help="report on this pipeline_scope (default: the only one)")
     parser.add_argument("--json", dest="json_out", help="write the full report here")
