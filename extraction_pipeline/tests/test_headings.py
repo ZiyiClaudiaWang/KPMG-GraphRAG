@@ -297,6 +297,131 @@ class RiskCategories(unittest.TestCase):
         self.assertEqual((other["category"], other["heading_path"]), ("Risks Related to Our Industry", []))
 
 
+class LeadSentences(unittest.TestCase):
+    """Item 1A: risk factors' lead sentences styled as headings (AMZN) get level -1 and are
+    labelled as sentences; level-1 headings stay categories."""
+
+    LEAD = f"{BOLD};{ITALIC}"
+    LINES = [
+        (f'<p style="{BIG}">Item 1A. Risk Factors</p>', "Item 1A. Risk Factors"),
+        (f'<p style="{BIG}">Business Risks</p>', "Business Risks"),
+        (f'<p style="{LEAD}">Our International Operations Expose Us to a Number of Risks in Many Countries</p>',
+         "Our International Operations Expose Us to a Number of Risks in Many Countries"),
+        ("<p>Our international activities are significant to our revenues and profits.</p>",
+         "Our international activities are significant to our revenues and profits."),
+        (f'<p style="{LEAD}">Our Expansion Places a Significant Strain on Our Management and Operations</p>',
+         "Our Expansion Places a Significant Strain on Our Management and Operations"),
+        ("<p>We are expanding into new products and services in many places.</p>",
+         "We are expanding into new products and services in many places."),
+        (f'<p style="{LEAD}">We Face Intense Competition</p>', "We Face Intense Competition"),
+        ("<p>Our businesses are rapidly evolving and intensely competitive.</p>",
+         "Our businesses are rapidly evolving and intensely competitive."),
+        (f'<p style="{BIG}">Risks Relating to the Proposed Separation of Our Diabetes Business From Us</p>',
+         "Risks Relating to the Proposed Separation of Our Diabetes Business From Us"),
+        ("<p>The separation may not be completed on the terms we expect.</p>",
+         "The separation may not be completed on the terms we expect."),
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        content = "\n\n".join(text for _, text in cls.LINES)
+        raw = {"accession_number": "0000000000-26-000001", "ticker": "TEST", "form": "10-K",
+               "section_id": "sec-1a", "section_key": "part-i-item-1a", "section_type": "risk_factors",
+               "part": "I", "item": "1A", "processing_set_id": "set-1", "source_locator": {},
+               "content": content, "offset_start": 0, "source_sha256": "0" * 64}
+        cls.tmp = tempfile.TemporaryDirectory()
+        path = Path(cls.tmp.name) / "TEST.htm"
+        path.write_text("<html><body>" + "".join(h for h, _ in cls.LINES) + "</body></html>", encoding="utf-8")
+        cleaned = clean.clean_section(dict(raw), set())
+        units = segment.segment_section(cleaned, settings()["segment"])
+        heads = [{"heading_id": segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"]),
+                  "text": u["text"], "role": u["role"], "next_text": ""}
+                 for u in units if u["role"] in ("heading", "category_heading")]
+        group = {"ticker": "TEST", "form": "10-K", "accession": raw["accession_number"],
+                 "section_key": raw["section_key"], "section": "Part I Item 1A", "headings": heads,
+                 "units": [short_unit(u) for u in units]}
+        rows, _, _ = filing_rows([group], {raw["section_key"]: raw}, path, False)
+        cls.rows = {r["text"]: r for r in rows}
+        levels = {r["heading_id"]: r["level"] for r in rows}
+        cls.units = {u["text"]: u for u in segment.segment_section(cleaned, settings()["segment"], levels)}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_long_lead_sentences_and_their_style_are_level_minus_1(self):
+        for text in ("Our International Operations Expose Us to a Number of Risks in Many Countries",
+                     "Our Expansion Places a Significant Strain on Our Management and Operations",
+                     "We Face Intense Competition"):                      # short, same style
+            self.assertEqual((self.rows[text]["level"], self.rows[text]["reason"]), (-1, "lead_sentence"))
+
+    def test_level_1_headings_stay_categories(self):
+        for text in ("Business Risks", "Risks Relating to the Proposed Separation of Our Diabetes Business From Us"):
+            self.assertEqual(self.rows[text]["level"], 1)
+            self.assertEqual(self.units[text]["role"], "category_heading")
+
+    def test_step_4_labels_lead_sentences_like_text(self):
+        unit = self.units["We Face Intense Competition"]
+        self.assertEqual(unit["role"], "body")
+        self.assertEqual(unit["category"], "Business Risks")
+        nxt = self.units["Our businesses are rapidly evolving and intensely competitive."]
+        self.assertEqual((nxt["category"], nxt["heading_path"]), ("Business Risks", []))
+
+
+class RiskSummary(unittest.TestCase):
+    """With levels the categories listed in the risk factor summary are level-2 headings under
+    its title; the summary still ends where the first of them appears again (MU, TTWO)."""
+
+    LINES = ["Item 1A. Risk Factors", "Risk Factor Summary", "Risks Related to Our Business",
+             "We face competition.", "Risks Related to Laws", "We face regulation.",
+             "Risks Related to Our Business", "Competition in our industry is intense and may grow over time.",
+             "Risks Related to Laws", "Regulation in many countries could change and harm our business."]
+
+    def test_summary_is_marked_with_levels(self):
+        raw = {"accession_number": "a", "ticker": "T", "form": "10-K", "section_id": "s",
+               "section_key": "part-i-item-1a", "section_type": "risk_factors", "part": "I", "item": "1A",
+               "processing_set_id": "p", "source_locator": {}, "content": "\n\n".join(self.LINES),
+               "offset_start": 0}
+        cleaned = clean.clean_section(dict(raw), set())
+        levels, seen = {}, 0
+        for u in segment.segment_section(cleaned, settings()["segment"]):
+            if u["role"] in ("heading", "category_heading"):
+                hid = segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"])
+                levels[hid] = 1 if u["text"] == "Risk Factor Summary" or seen >= 2 else 2
+                seen += u["text"] != "Risk Factor Summary"
+        units = segment.segment_section(cleaned, settings()["segment"], levels)
+        summary = {u["text"] for u in units if u["risk_summary"]}
+        self.assertIn("We face competition.", summary)
+        self.assertIn("We face regulation.", summary)
+        self.assertNotIn("Competition in our industry is intense and may grow over time.", summary)
+
+
+class Compare(unittest.TestCase):
+    def test_removed_text_and_page_numbers(self):
+        from src.headings.compare import html_heading, html_only
+        from src.headings.html import Block, Run
+        def block(idx, text, start):
+            return Block(idx, [Run(text, True, False, False, 10.0, False)], start=start, end=start + len(text))
+        header, number, kept = block(0, "PART II", 0), block(1, "30", 10), block(2, "Liquidity", 20)
+        self.assertIsNone(html_heading(number, 10.0))                       # a page number
+        group = {"accession": "a", "section_key": "k",
+                 "units": [{"role": "body", "prefilter": None, "rule_heading": None, "start": 20, "end": 29}]}
+        rows, found = html_only(group, {"offset_start": 0, "content": "x" * 40}, [header, number, kept], 10.0)
+        self.assertEqual({r["text"]: r["step4_role"] for r in rows}, {"PART II": "none", "Liquidity": "body"})
+        self.assertEqual(found, 1)                                          # the removed header is not counted
+
+    def test_read_output_keeps_links(self):
+        from src.headings.step import help_lines, read_output
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "x.csv"
+            path.write_text(help_lines({"text": "a", "open_in_edgar": "b", "level": "c"})
+                            + 'text,open_in_edgar,level\n"A, B",https://x/y.htm#:~:text=A%2C%20B,2\n',
+                            encoding="utf-8")
+            df = read_output(path)
+        self.assertEqual(df.loc[0, "open_in_edgar"], "https://x/y.htm#:~:text=A%2C%20B")
+        self.assertEqual(df.loc[0, "level"], 2)
+
+
 class Flags(unittest.TestCase):
     def test_risk_sentence_only_in_item_1a(self):
         long = "We may be adversely impacted by increases in the cost of food ingredients"

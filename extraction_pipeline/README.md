@@ -347,7 +347,9 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - Single-sentence paragraphs followed by their discussion are proposed as the sentence that
       opens and sums up a risk (`rule_heading`).
     - Units in the risk factor summary that some filings open with (MU, TTWO) carry
-      `risk_summary = true`. The summary ends where a category it listed appears again.
+      `risk_summary = true`. The summary ends where a category it listed appears again (as a
+      heading or a category heading: with step 4b levels the categories in the summary are
+      level-2 headings under its title).
   - **Prefilter** ([diagram](#a-unit_id-and-claim_id)). Units marked `not_a_claim` here are not sent to the LLM:
     - `section_title`, `heading`
     - `table_residue`: a table row or cell (`has_table_cells()`: cells joined by " | ", two-column
@@ -396,13 +398,19 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - left indent counts only for the companies in `headings.indent_tickers`
       (`config/settings.yaml`; MCK);
     - a heading not found in the HTML, in the middle of an HTML paragraph, or a run-in lead-in
-      without bold or italic is a sibling of the heading before it (`reason` says which).
+      without bold or italic is a sibling of the heading before it (`reason` says which);
+    - in Item 1A, a level-2+ heading that is a risk factor's lead sentence gets level -1
+      (`lead_sentence`), and step 4 labels it like any sentence (it becomes a Claim; AMZN "Our
+      International Operations Expose Us to a Number of Risks", bold italic, no period): it is
+      flagged `risk_sentence`, or most headings of its style in the section are, so the short
+      ones ("We Face Intense Competition") go with them. Level-1 headings stay categories (MDT
+      "Risks Relating to the Proposed Separation of …").
   - **Flags** (never change the level), for review:
     - `risk_sentence`: in Item 1A, 10 or more words. Possibly a risk factor's lead sentence that
       lost its period and was read as a heading (CASY "We may be adversely impacted by increases
       in the cost of food ingredients …" in an earlier export); as a heading it is not labelled
       and never becomes a Claim. Once checked, a rule can give these level -1, and step 4 labels
-      them like any sentence. (Long headings elsewhere are normal and not flagged.)
+      them like any sentence (`lead_sentence` above). (Long headings elsewhere are normal and not flagged.)
     - `before_table`: the next HTML block is a table, so it may be a table title
       (NTAP "Net Revenues (in millions, except percentages)") rather than a heading.
   - **Output:** `interim/heading_levels.jsonl` (`heading_id`, `text`, `level`, `source: html`,
@@ -418,9 +426,13 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     at most `headings.compare.max_words` words) that step 4 did not read as headings, with what
     step 4 made of them (`step4_role`) and `text_check` (`sentence` = a full sentence of
     `headings.compare.sentence_min_words`+ words ending in . ! ?, so a risk lead sentence or body
-    rather than a heading); `step4_plain` rows are step-4 headings the HTML shows as plain text.
+    rather than a heading; `none` = in no unit: the text was removed in clean, mostly running
+    page headers and footers such as MSFT "PART II", left out of `html_covered_pct` and counted
+    in `html_only_removed`); `step4_plain` rows are step-4 headings the HTML shows as plain text.
     All three CSV files start with one
-    `# column: meaning` line per column, then the header row (pandas: `read_csv(path, comment="#")`).
+    `# column: meaning` line per column, then the header row. Read them with
+    `from src.headings.step import read_output; read_output(path)` (pandas), not
+    `read_csv(comment="#")`, which also cuts the `open_in_edgar` links at their `#`.
   - A new level changes `section_path`, which is in the step 5 request: units whose path changed
     are sent again (and paid for) the next time step 5 runs. `unit_id`s do not change.
 - <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:

@@ -4,8 +4,10 @@ Two kinds of rows (heading_html_diff.csv):
 
   html_only     an HTML block in a kept section that looks like a heading (see html_heading)
                 but no step-4 heading, category heading or section title overlaps it. step4_role
-                says what step 4 made of it (body, list_group, ...; none = not in any unit, so
-                removed by clean or filter). text_check: sentence = ends in . ! ? with
+                says what step 4 made of it (body, list_group, ...; none = no unit overlaps it:
+                the text was removed in clean, mostly running page headers and footers such as
+                MSFT "PART II", MCK "FINANCIAL REVIEW (CONTINUED)", NKE "2022 FORM 10-K 38").
+                html_covered_pct leaves the none rows out. text_check: sentence = ends in . ! ? with
                 sentence_min_words+ words (a risk lead sentence or body, not a heading), else
                 short_line.
   step4_plain   a step-4 heading (level > 0, found in the HTML) that the HTML shows as plain
@@ -23,12 +25,15 @@ from __future__ import annotations
 from collections import Counter
 
 from .html import Block, norm, style_over
-from .levels import HAS_WORD, ITEM_TITLE, UNITS_LINE, link_words
+import re
+
+from .levels import ITEM_TITLE, UNITS_LINE, link_words
 
 MAX_WORDS = 20                 # longer HTML blocks are never heading-like
 SENTENCE_MIN_WORDS = 8         # text_check: "sentence" from this many words, with . ! ? at the end
 SIZE_STEP = 0.5                # pt above the body size that counts as "larger"
 HEADING_ROLES = {"heading", "category_heading", "section_title"}
+HAS_LETTER = re.compile(r"[A-Za-z]")   # page numbers ("30") are never heading-like
 
 
 def body_size(blocks: list[Block]) -> float:
@@ -58,7 +63,7 @@ def emphasis(block: Block, body: float) -> list[str]:
 def html_heading(block: Block, body: float, max_words: int = MAX_WORDS) -> list[str] | None:
     """The emphasis of a block that looks like a heading, or None."""
     text = " ".join(block.text.split())
-    if (block.start < 0 or block.in_table or block.is_link or not HAS_WORD.search(text)
+    if (block.start < 0 or block.in_table or block.is_link or not HAS_LETTER.search(text)
             or len(text.split()) > max_words or UNITS_LINE.match(text)):
         return None
     return emphasis(block, body) or None
@@ -72,7 +77,8 @@ def text_check(text: str, min_words: int = SENTENCE_MIN_WORDS) -> str:
 def html_only(group: dict, section: dict, blocks: list[Block], body: float,
               cfg: dict | None = None) -> tuple[list[dict], int]:
     """Rows for the heading-like blocks of one section that step 4 did not read as headings,
-    and the number of heading-like blocks in the section."""
+    and the number of heading-like blocks in the section that are in a step-4 unit (the ones
+    step 4 could read as headings: removed text, step4_role none, is not counted)."""
     cfg = cfg or {}
     max_words = cfg.get("max_words", MAX_WORDS)
     min_words = cfg.get("sentence_min_words", SENTENCE_MIN_WORDS)
@@ -87,8 +93,9 @@ def html_only(group: dict, section: dict, blocks: list[Block], body: float,
         style = html_heading(b, body, max_words)
         if style is None:
             continue
-        found += 1
         over = [u for u in units if u["start"] < b.end and u["end"] > b.start]
+        if over:
+            found += 1
         if any(u["role"] in HEADING_ROLES for u in over):
             continue
         after = blocks[b.idx + 1] if b.idx + 1 < len(blocks) else None

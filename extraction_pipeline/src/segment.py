@@ -551,16 +551,20 @@ def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) 
 def mark_risk_summary(units: list[dict]) -> None:
     """Flag the risk factor summary (risk_summary = true): it repeats the risks described after it.
 
-    The summary runs from its heading to the first category heading that appears for the
-    second time (where the full text starts again). Without such a repeat nothing is marked.
+    The summary runs from its heading to the first heading that appears for the second time
+    (where the full text starts again). Both roles count: with heading levels (step 4b) the
+    categories listed in the summary sit under its heading at level 2, so they are `heading`
+    there and `category_heading` in the full text (MU, TTWO). Without such a repeat nothing is
+    marked.
     """
+    roles = ("heading", "category_heading")
     start = next((k for k, u in enumerate(units)
-                  if u["role"] == "category_heading" and RISK_SUMMARY.match(u["text"])), None)
+                  if u["role"] in roles and RISK_SUMMARY.match(u["text"])), None)
     if start is None:
         return
     seen, end = set(), None
     for k in range(start + 1, len(units)):
-        if units[k]["role"] != "category_heading":
+        if units[k]["role"] not in roles:
             continue
         key = units[k]["text"].lower()
         if key in seen:

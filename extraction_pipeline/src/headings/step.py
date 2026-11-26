@@ -16,13 +16,15 @@ Writes:
                                        and how many HTML headings step 4 reads as headings
   data/output/heading_html_diff.csv    HTML headings step 4 missed, and step-4 headings the HTML
                                        shows as plain text (compare.py); changes nothing
-All three CSV files open with "# column: meaning" lines (pandas: read_csv(path, comment="#")).
+All three CSV files open with "# column: meaning" lines. Read them with read_output(path)
+(pandas): not read_csv(comment="#"), which also cuts the open_in_edgar links at their "#".
 """
 
 from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
 import urllib.error
 from collections import Counter, defaultdict
@@ -41,12 +43,13 @@ from .levels import infer_section
 STEP = "headings"
 SOURCE = "html"
 REASONS = ["typography", "table", "item_title_continuation", "toc", "units_line", "no_letters",
-           "inside_paragraph", "plain_style", "unmatched", "missing_html"]
+           "inside_paragraph", "plain_style", "unmatched", "missing_html", "lead_sentence"]
 REASON_HELP = ("typography = level from its style; table = in a table (0); item_title_continuation = "
                "centred line after the Item title (0); toc = table of contents (0); units_line = "
                "only a unit such as (In millions) (0); no_letters = no letter or digit, e.g. a rule "
                "before footnotes (0); inside_paragraph / plain_style / unmatched / "
-               "missing_html = read as a sibling of the heading before it")
+               "missing_html = read as a sibling of the heading before it; lead_sentence = Item 1A, a "
+               "risk factor's lead sentence styled as a heading (-1: step 4 labels it as a sentence)")
 
 # How to read each file: written as "# column: meaning" lines above the header row.
 REVIEW_HELP = {
@@ -54,7 +57,8 @@ REVIEW_HELP = {
     "section_key": "section of the filing (part-ii-item-7 = MD&A)",
     "heading_id": "accession|section_key|start of the heading in the Data-team text (the key step 4 reads)",
     "text": "the heading as step 4 found it",
-    "level": "1 = top heading of the section, 2 = under the nearest 1 above, ...; 0 = not a heading (changes no path)",
+    "level": "1 = top heading of the section, 2 = under the nearest 1 above, ...; 0 = not a heading (changes no path); "
+             "-1 = a sentence (lead_sentence): labelled like the text, changes no path",
     "parent_text": "the heading this one sits under (empty = top of the section)",
     "heading_path": "the headings above the text that follows, top first: what goes into section_path",
     "reason": "why it got this level: " + REASON_HELP,
@@ -91,10 +95,13 @@ SUMMARY_HELP = {
     "flag_risk_sentence": "headings flagged risk_sentence (check: a risk factor's lead sentence or a heading?)",
     "flag_before_table": "headings flagged before_table (check: table title or heading?)",
     "html_headings": "HTML blocks in kept sections that look like headings (standalone, styled, short; "
-                     "settings.yaml headings.compare.max_words)",
+                     "settings.yaml headings.compare.max_words) and are in a step-4 unit",
     "html_covered_pct": "% of those that step 4 reads as a heading, category heading or section title",
-    "html_only": "HTML headings step 4 did not read as headings (heading_html_diff.csv kind html_only)",
-    "html_only_sentence": "of those, full sentences (text_check sentence: risk lead sentences or body)",
+    "html_only": "of those, the ones step 4 did not read as headings (heading_html_diff.csv kind html_only, "
+                 "step4_role not none)",
+    "html_only_sentence": "of html_only, full sentences (text_check sentence: risk lead sentences or body)",
+    "html_only_removed": "heading-like HTML blocks in no step-4 unit (step4_role none): removed in clean, "
+                         "mostly running page headers and footers; not in html_headings",
     "step4_plain": "step-4 headings the HTML shows as plain text (heading_html_diff.csv kind step4_plain)",
 }
 DIFF_HELP = {
@@ -105,7 +112,7 @@ DIFF_HELP = {
     "html_style": "html_only: what makes it stand out (bold / underline / italic / caps / size N = larger "
                   "than the body text); step4_plain: plain or inside paragraph",
     "step4_role": "what step 4 made of it: heading / category_heading, or for html_only the role of the units "
-                  "it overlaps (body, list_group; none = in no unit, removed by clean or filter)",
+                  "it overlaps (body, list_group; none = in no unit: removed in clean, mostly running page headers / footers)",
     "prefilter": "html_only: step 4's prefilter of those units (table_residue, too_short, ...)",
     "rule_heading": "html_only, Item 1A: high / medium = step 4 proposes it as a risk heading (lead sentence)",
     "text_check": "sentence = ends in . ! ? with headings.compare.sentence_min_words+ words (a risk lead "
@@ -119,6 +126,15 @@ DIFF_HELP = {
 
 def help_lines(columns: dict[str, str]) -> str:
     return "".join(f"# {name}: {meaning}\n" for name, meaning in columns.items())
+
+
+def read_output(path):
+    """One of this step's CSV files as a pandas DataFrame, without its "# column: meaning" lines.
+    (read_csv(comment="#") would also cut each open_in_edgar link at its "#".)"""
+    import pandas as pd
+    with open(path, encoding="utf-8", newline="") as stream:
+        body = "".join(line for line in stream if not line.startswith("# "))
+    return pd.read_csv(io.StringIO(body))
 
 
 def htm_dir() -> Path:
@@ -141,7 +157,7 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
                 use_indent: bool, compare: dict | None = None) -> tuple[list[dict], dict, list[dict]]:
     """Rows for one filing's candidate headings, facts about the filing for the summary, and the
     rows comparing its HTML headings with step 4's (compare.py)."""
-    info = {"html": "missing", "sha_differs": None, "html_headings": 0, "html_only": 0}
+    info = {"html": "missing", "sha_differs": None, "html_headings": 0, "html_only": 0, "html_removed": 0}
     blocks, text = [], ""
     if html_path is not None and html_path.is_file() and sections:
         text = export_text(list(sections.values()))
@@ -176,7 +192,9 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
                 continue
             got, found = html_only(group, section, blocks, body, compare)
             info["html_headings"] += found
-            info["html_only"] += len(got)
+            removed = sum(r["step4_role"] == "none" for r in got)
+            info["html_only"] += len(got) - removed
+            info["html_removed"] += removed
             diff += [dict(r, ticker=group["ticker"], form=group["form"], accession=group["accession"],
                           section_key=group["section_key"]) for r in got]
         for r in step4_plain(rows, body, compare):
@@ -231,6 +249,7 @@ def summarise(rows: list[dict], info: dict[str, dict], diff: list[dict] | None =
         accessions = accessions_of[ticker] | {r["accession"] for r in rs}
         html_headings = sum(info[a]["html_headings"] for a in accessions_of[ticker])
         html_only_n = sum(info[a]["html_only"] for a in accessions_of[ticker])
+        removed_n = sum(info[a]["html_removed"] for a in accessions_of[ticker])
         reasons = Counter(r["reason"] for r in rs)
         levels = Counter(min(r["level"], 4) for r in rs)
         flags = Counter(f for r in rs for f in r["flags"])
@@ -248,7 +267,9 @@ def summarise(rows: list[dict], info: dict[str, dict], diff: list[dict] | None =
                "html_headings": html_headings,
                "html_covered_pct": round(100 * (html_headings - html_only_n) / html_headings, 1) if html_headings else "",
                "html_only": html_only_n,
-               "html_only_sentence": sum(d["kind"] == "html_only" and d["text_check"] == "sentence" for d in ds),
+               "html_only_sentence": sum(d["kind"] == "html_only" and d["step4_role"] != "none"
+                                         and d["text_check"] == "sentence" for d in ds),
+               "html_only_removed": removed_n,
                "step4_plain": sum(d["kind"] == "step4_plain" for d in ds)}
         out.append(row)
     return out

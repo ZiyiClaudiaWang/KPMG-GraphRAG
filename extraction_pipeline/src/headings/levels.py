@@ -20,6 +20,12 @@ then:
   plain_style               sibling  a run-in lead-in without bold or italic
   unmatched                 sibling  not found in the HTML
   missing_html              sibling  no HTML or no section export for the filing
+  lead_sentence             -1    Item 1A, level 2+: a risk factor's lead sentence styled as a heading
+                                  (AMZN "Our International Operations Expose Us to a Number of Risks",
+                                  bold italic, no period). Either it is flagged risk_sentence, or most
+                                  headings of its style in the section are (so the short ones, "We Face
+                                  Intense Competition", go with them). Step 4 then labels it like any
+                                  sentence; its place in the path is left to the heading before it.
 
 "sibling" = the level of the heading before it (1 at the start of a section), as step 4 does for
 a heading the file does not list.
@@ -53,6 +59,8 @@ UNITS_MAX_WORDS = 12                   # "(Dollars and gallons in thousands, exc
 HAS_WORD = re.compile(r"[A-Za-z0-9]")
 RISK_SENTENCE_WORDS = 10
 MAX_JOINED_BLOCKS = 4
+LEAD_LEVEL = -1                        # segment.SENTENCE_LEVEL: a sentence, not a heading
+LEAD_STYLE_SHARE = 0.5                 # a style is a lead-sentence style when this share is risk_sentence
 
 
 def signature(h_text: str, block: Block, how: str, use_indent: bool) -> tuple:
@@ -121,10 +129,40 @@ def link_words(block: Block | None) -> str:
     return " ".join((block.text if block is not None else "").split()[:4])
 
 
+def is_risk_section(group: dict, section: dict | None) -> bool:
+    return (section or {}).get("section_type") == "risk_factors" or group["section_key"].endswith("item-1a")
+
+
+def lead_sentences(rows: list[dict]) -> set[str]:
+    """heading_ids of the Item 1A headings that are lead sentences (see lead_sentence above):
+    level 2+, styled (typography), and flagged risk_sentence or of a style that mostly is."""
+    deep = [r for r in rows if r["reason"] == "typography" and r["level"] >= 2]
+    by_style: dict[tuple, list[dict]] = {}
+    for r in deep:
+        by_style.setdefault(tuple(r["style"].values()), []).append(r)
+    out = set()
+    for group in by_style.values():
+        share = sum("risk_sentence" in r["flags"] for r in group) / len(group)
+        for r in group:
+            if "risk_sentence" in r["flags"] or share >= LEAD_STYLE_SHARE:
+                out.add(r["heading_id"])
+    return out
+
+
 def infer_section(group: dict, section: dict | None, blocks: list[Block], text: str,
                   use_indent: bool) -> list[dict]:
     """One row per candidate heading of the section, in order. blocks: every block of the
-    filing's HTML (html_blocks), aligned to text (align)."""
+    filing's HTML (html_blocks), aligned to text (align). In Item 1A, lead sentences are found
+    on a first pass and the levels are read again without them."""
+    rows = _infer(group, section, blocks, text, use_indent, set())
+    if not is_risk_section(group, section):
+        return rows
+    leads = lead_sentences(rows)
+    return _infer(group, section, blocks, text, use_indent, leads) if leads else rows
+
+
+def _infer(group: dict, section: dict | None, blocks: list[Block], text: str,
+           use_indent: bool, leads: set[str]) -> list[dict]:
     aligned = [b for b in blocks if b.start >= 0]
     starts = [b.start for b in aligned]
     stack: list[tuple[int, str, tuple | None, str]] = []      # (level, heading_id, style, text)
@@ -132,7 +170,7 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
     title_run_block = first if first and ITEM_TITLE.match(first.text.strip()) else None
     toc_block: Block | None = None             # last block of a table of contents still open
     toc_score = 0.0                            # how prominent its title is
-    is_risk = (section or {}).get("section_type") == "risk_factors" or group["section_key"].endswith("item-1a")
+    is_risk = is_risk_section(group, section)
     rows = []
     for candidate in group["headings"]:
         key, words = candidate["heading_id"], candidate["text"]
@@ -165,7 +203,9 @@ def infer_section(group: dict, section: dict | None, blocks: list[Block], text: 
             toc_block = None
 
         sibling = stack[-1][0] if stack else 1
-        if not HAS_WORD.search(words):
+        if key in leads:
+            level, reason = LEAD_LEVEL, "lead_sentence"
+        elif not HAS_WORD.search(words):
             level, reason = 0, "no_letters"
         elif evidence["match"] in ("missing_html", "unmatched"):
             level, reason = sibling, evidence["match"]
