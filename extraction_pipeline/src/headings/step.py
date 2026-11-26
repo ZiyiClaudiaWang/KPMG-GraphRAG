@@ -16,6 +16,8 @@ Writes:
                                        and how many HTML headings step 4 reads as headings
   data/output/heading_html_diff.csv    HTML headings step 4 missed, and step-4 headings the HTML
                                        shows as plain text (compare.py); changes nothing
+  data/interim/lead_sentences.jsonl    one row per filing: whether its HTML was read, and its lead
+                                       sentences (leads.py), which step 4 reads for lead_unit_id
 All three CSV files open with "# column: meaning" lines. Read them with read_output(path)
 (pandas): not read_csv(comment="#"), which also cuts the open_in_edgar links at their "#".
 """
@@ -36,6 +38,7 @@ from ..common import Paths, data_dir, filings, load_env, log, read_jsonl, settin
 from ..ex21 import edgar
 from .candidates import levels_path, section_headings
 from .compare import body_size, html_only, step4_plain
+from .leads import in_lead, section_leads
 from .edgar_primary import Urls, atomic_write, cached_path, filing_html, text_link
 from .html import align, export_text, html_blocks
 from .levels import infer_section
@@ -96,10 +99,15 @@ SUMMARY_HELP = {
     "flag_before_table": "headings flagged before_table (check: table title or heading?)",
     "html_headings": "HTML blocks in kept sections that look like headings (standalone, styled, short; "
                      "settings.yaml headings.compare.max_words) and are in a step-4 unit",
-    "html_covered_pct": "% of those that step 4 reads as a heading, category heading or section title",
+    "html_covered_pct": "% of those that step 4 reads as a heading, category heading or section title "
+                        "(lead sentences left out: html_only_lead)",
     "html_only": "of those, the ones step 4 did not read as headings (heading_html_diff.csv kind html_only, "
                  "step4_role not none)",
     "html_only_sentence": "of html_only, full sentences (text_check sentence: risk lead sentences or body)",
+    "html_only_lead": "heading-like HTML blocks that are lead sentences (leads.py): not in html_headings "
+                      "or html_only",
+    "leads_html": "lead sentences of their own block (lead_sentences.jsonl source html)",
+    "leads_html_runin": "lead sentences opening a paragraph (source html_runin)",
     "html_only_removed": "heading-like HTML blocks in no step-4 unit (step4_role none): removed in clean, "
                          "mostly running page headers and footers; not in html_headings",
     "step4_plain": "step-4 headings the HTML shows as plain text (heading_html_diff.csv kind step4_plain)",
@@ -120,6 +128,7 @@ DIFF_HELP = {
     "level": "step4_plain: its level in heading_levels.jsonl", "reason": "step4_plain: why it got that level",
     "position": "accession|section_key|start in the Data-team text (step4_plain: the heading_id)",
     "next_text": "first words of what follows",
+    "lead": "html_only: yes = the block is a lead sentence (lead_sentences.jsonl), left out of html_covered_pct",
     "open_in_edgar": "link to the filing on sec.gov that scrolls to the line and highlights it",
 }
 
@@ -154,10 +163,12 @@ def diff_path() -> Path:
 
 
 def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path | None,
-                use_indent: bool, compare: dict | None = None) -> tuple[list[dict], dict, list[dict]]:
+                use_indent: bool, compare: dict | None = None,
+                lead_cfg: dict | None = None) -> tuple[list[dict], dict, list[dict]]:
     """Rows for one filing's candidate headings, facts about the filing for the summary, and the
     rows comparing its HTML headings with step 4's (compare.py)."""
-    info = {"html": "missing", "sha_differs": None, "html_headings": 0, "html_only": 0, "html_removed": 0}
+    info = {"html": "missing", "sha_differs": None, "html_headings": 0, "html_only": 0, "html_removed": 0,
+            "html_only_lead": 0, "leads": {}}
     blocks, text = [], ""
     if html_path is not None and html_path.is_file() and sections:
         text = export_text(list(sections.values()))
@@ -169,7 +180,10 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
     rows = []
     for group in groups:
         section = sections.get(group["section_key"]) if blocks else None
-        for row in infer_section(group, section, blocks, text, use_indent):
+        got = infer_section(group, section, blocks, text, use_indent)
+        if section is not None:
+            info["leads"][group["section_key"]] = section_leads(section, blocks, text, got, lead_cfg)
+        for row in got:
             rows.append({"ticker": group["ticker"], "form": group["form"], "accession": group["accession"],
                          "section_key": group["section_key"], **row})
     nexts = {h["heading_id"]: h["next_text"] for g in groups for h in g["headings"]}
@@ -191,9 +205,14 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
             if section is None:
                 continue
             got, found = html_only(group, section, blocks, body, compare)
-            info["html_headings"] += found
+            leads = info["leads"].get(group["section_key"], [])
+            for r in got:
+                r["lead"] = "yes" if in_lead(int(r["position"].rsplit("|", 1)[1]), leads) else ""
             removed = sum(r["step4_role"] == "none" for r in got)
-            info["html_only"] += len(got) - removed
+            lead = sum(r["step4_role"] != "none" and r["lead"] == "yes" for r in got)
+            info["html_headings"] += found - lead
+            info["html_only"] += len(got) - removed - lead
+            info["html_only_lead"] += lead
             info["html_removed"] += removed
             diff += [dict(r, ticker=group["ticker"], form=group["form"], accession=group["accession"],
                           section_key=group["section_key"]) for r in got]
@@ -201,6 +220,22 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
             source = next(x for x in rows if x["heading_id"] == r["position"])
             diff.append(dict(r, **{k: source[k] for k in ("ticker", "form", "accession", "section_key")}))
     return rows, info, diff
+
+
+def leads_path() -> Path:
+    from .candidates import leads_path as path
+    return path()
+
+
+def write_leads(info: dict[str, dict]) -> None:
+    """One row per filing: {"accession", "html": true when its HTML was read, "leads": [...]}.
+    A filing without HTML has no leads here; step 4 then uses its risk heading rule instead."""
+    def write(stream):
+        for accession, facts in info.items():
+            leads = [dict(x, section_key=k) for k, ls in facts["leads"].items() for x in ls]
+            stream.write(json.dumps({"accession": accession, "html": facts["html"] == "ok", "leads": leads},
+                                    ensure_ascii=False) + "\n")
+    atomic_write(leads_path(), write)
 
 
 def write_levels(rows: list[dict]) -> None:
@@ -268,7 +303,12 @@ def summarise(rows: list[dict], info: dict[str, dict], diff: list[dict] | None =
                "html_covered_pct": round(100 * (html_headings - html_only_n) / html_headings, 1) if html_headings else "",
                "html_only": html_only_n,
                "html_only_sentence": sum(d["kind"] == "html_only" and d["step4_role"] != "none"
-                                         and d["text_check"] == "sentence" for d in ds),
+                                         and d["text_check"] == "sentence" and d.get("lead") != "yes" for d in ds),
+               "html_only_lead": sum(info[a]["html_only_lead"] for a in accessions_of[ticker]),
+               "leads_html": sum(x["source"] == "html" for a in accessions_of[ticker]
+                                 for ls in info[a]["leads"].values() for x in ls),
+               "leads_html_runin": sum(x["source"] == "html_runin" for a in accessions_of[ticker]
+                                       for ls in info[a]["leads"].values() for x in ls),
                "html_only_removed": removed_n,
                "step4_plain": sum(d["kind"] == "step4_plain" for d in ds)}
         out.append(row)
@@ -289,6 +329,7 @@ def run(fetch: bool = True) -> None:
     cfg = settings().get("headings") or {}
     indent_tickers = set(cfg.get("indent_tickers") or [])
     compare = cfg.get("compare") or {}
+    lead_cfg = cfg.get("leads") or {}
     groups: dict[str, list[dict]] = defaultdict(list)
     for group in section_headings():
         groups[group["accession"]].append(group)
@@ -323,7 +364,7 @@ def run(fetch: bool = True) -> None:
         else:
             log(STEP, f"{filing['ticker']} {accession}: no section export in data/sections/")
         got, info[accession], got_diff = filing_rows(groups[accession], sections, path,
-                                                     filing["ticker"] in indent_tickers, compare)
+                                                     filing["ticker"] in indent_tickers, compare, lead_cfg)
         info[accession]["ticker"] = filing["ticker"]
         for row in got:
             row["open_in_edgar"] = text_link(url, row["text"], row["link_suffix"], row["joined_blocks"] > 1)
@@ -335,6 +376,7 @@ def run(fetch: bool = True) -> None:
             log(STEP, f"{n}/{len(todo)} filings")
 
     write_levels(rows)
+    write_leads(info)
     write_review(rows)
     write_diff(diff)
     summary = summarise(rows, info, diff)
@@ -346,6 +388,8 @@ def run(fetch: bool = True) -> None:
     html_headings = sum(i["html_headings"] for i in info.values())
     log(STEP, f"HTML vs step 4: {html_headings} HTML headings, {kinds['html_only']} not read as headings by "
               f"step 4; {kinds['step4_plain']} step-4 headings plain in the HTML")
+    sources = Counter(x["source"] for i in info.values() for ls in i["leads"].values() for x in ls)
+    log(STEP, f"lead sentences: {sources['html']} html, {sources['html_runin']} html_runin -> {leads_path()}")
     log(STEP, f"review: {review_path()}  summary: {summary_path()}  diff: {diff_path()}")
     no_html = sum(i["html"] != "ok" for i in info.values())
     if no_html:

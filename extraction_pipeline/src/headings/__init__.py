@@ -14,7 +14,7 @@ section_path and heading_path.
   step.py           the step: run(), review and summary files
 """
 
-from .candidates import levels_path, load_levels  # noqa: F401
+from .candidates import leads_path, levels_path, load_leads, load_levels  # noqa: F401
 
 
 def run(fetch: bool = True) -> None:

@@ -7,6 +7,10 @@ accession|section_key|start of the heading in the Data-team content (segment.hea
 level survives a change of the rules elsewhere. Level 1 is the top of a section; level 0 is not a
 heading (a column header, a table of contents) and changes no path. A heading the file does not
 list is read by step 4 as a sibling of the heading before it.
+
+data/interim/lead_sentences.jsonl (leads.py) has one row per filing:
+{"accession", "html", "leads": [{"section_key", "start", "end", "source", "text"}]}, positions in
+the section's Data-team content. Step 4 reads it for lead_source and lead_unit_id.
 """
 
 from __future__ import annotations
@@ -17,6 +21,25 @@ from ..filter_sections import kept_section_keys
 
 def levels_path():
     return data_dir() / "interim" / "heading_levels.jsonl"
+
+
+def leads_path():
+    return data_dir() / "interim" / "lead_sentences.jsonl"
+
+
+def load_leads() -> dict[str, dict]:
+    """accession -> {"html": bool, "leads": {section_key: [{start, end, source, text}, ...]}};
+    empty when step 4b has not run. A filing it does not list counts as one without HTML."""
+    path = leads_path()
+    if not path.exists():
+        return {}
+    out = {}
+    for r in read_jsonl(path):
+        by_section: dict[str, list[dict]] = {}
+        for x in r["leads"]:
+            by_section.setdefault(x["section_key"], []).append(x)
+        out[r["accession"]] = {"html": bool(r["html"]), "leads": by_section}
+    return out
 
 
 def load_levels() -> dict[str, int]:

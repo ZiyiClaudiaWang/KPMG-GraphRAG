@@ -102,8 +102,8 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
-| 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl` | no |
-| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
+| 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl`, `output/lead_summary.csv`, `output/lead_review.csv` | no |
+| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -346,6 +346,24 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
       in risk factors.
     - Single-sentence paragraphs followed by their discussion are proposed as the sentence that
       opens and sums up a risk (`rule_heading`).
+  - **Lead sentences** (every section). A lead sentence sums up the sentences under it; it is
+    labelled like any sentence and changes no `section_path`. Leads come from the filing's HTML
+    ([step 4b](#step-4b-heading-levels), `interim/lead_sentences.jsonl`): a bold / italic /
+    underlined sentence of its own followed by plain text (`html`: MU "We are subject to
+    counterparty default risks."; also the Item 1A headings step 4b reads as sentences, level -1),
+    or the styled first sentence of a paragraph whose rest is plain (`html_runin`: MSFT). A
+    run-in heading such as "Flexible Work." stays a heading. For a filing without HTML,
+    `rule_heading` units are the leads (`rule`; `segment.lead_rule: union` uses them everywhere).
+    - `lead_source`: html, html_runin or rule when the unit is a lead, else null.
+    - `lead_unit_id`: the lead above the unit, until the next lead, the next heading (any level
+      but 0) or the end of the section; null for a lead itself and for text under no lead.
+    - `output/lead_summary.csv`: per company, leads by source, units under a lead, HTML leads
+      that matched no unit, and `rule_heading` against the HTML (`rule_and_html`, `rule_only`,
+      `html_not_rule_1a`). `output/lead_review.csv`: one row per lead (`kind lead`, with
+      `units_under` and the next text) and per `rule_heading` unit the HTML did not make a lead
+      (`kind rule_only`), to decide `segment.lead_rule`.
+    - Step 7a still takes its `risk_lead_*` fields from `rule_heading` and the step 5 labels; it
+      moves to `lead_*` later (patch 7c).
     - Units in the risk factor summary that some filings open with (MU, TTWO) carry
       `risk_summary = true`. The summary ends where a category it listed appears again (as a
       heading or a category heading: with step 4b levels the categories in the summary are
@@ -363,7 +381,7 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
       graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v6`) records which splitting rules made the units.
+    - `segmentation_version` (`kelly_sentence_v7`) records which splitting rules made the units.
       It is a label only: it is not in the request hash, so changing it alone costs nothing; a
       rule change that alters what the model sees does.
   - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
@@ -418,13 +436,15 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - `before_table`: the next HTML block is a table, so it may be a table title
       (NTAP "Net Revenues (in millions, except percentages)") rather than a heading.
   - **Output:** `interim/heading_levels.jsonl` (`heading_id`, `text`, `level`, `source: html`,
-    `reason`), read by step 4; `output/heading_review.csv`, one row per heading with its level,
+    `reason`), read by step 4; `interim/lead_sentences.jsonl` (`src/headings/leads.py`), one row
+    per filing (`accession`, `html`: whether its HTML was read, `leads`: `section_key`, `start`,
+    `end`, `source`, `text`), read by step 4 for lead sentences (settings `headings.leads`); `output/heading_review.csv`, one row per heading with its level,
     parent, path, reason, flags, style and `open_in_edgar`, a link to the filing on sec.gov that
     scrolls to the heading and highlights it (a `#:~:text=` link; the filing URLs are kept in
     `data/edgar/primary/urls.json`, looked up once per filing); `output/heading_summary.csv`, one row per company
     (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
     hash differs from the export's `source_sha256`, and `html_covered_pct`: the share of HTML
-    headings that step 4 reads as headings); `output/heading_html_diff.csv`, for review only
+    headings that step 4 reads as headings, lead sentences left out, `html_only_lead`); `output/heading_html_diff.csv`, for review only
     (`src/headings/compare.py`, changes no level or role): `html_only` rows are HTML blocks in a
     kept section styled as headings (standalone, bold / underline / italic / capitals / larger,
     at most `headings.compare.max_words` words) that step 4 did not read as headings, with what
@@ -891,9 +911,11 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `cross_reference`, `too_short`; null if sent to the LLM |
 | `rule_heading` | segment | Item 1A only: `high` or `medium` if the rules propose the unit as a risk lead sentence; else null |
 | `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
+| `lead_source` | segment | The unit is a lead sentence: `html`, `html_runin` (from the filing's HTML, step 4b) or `rule` (`rule_heading`, filings without HTML); else null |
+| `lead_unit_id` | segment | `unit_id` of the lead sentence above, until the next lead or heading; null for a lead and for text under no lead |
 | `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
 | `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v5`) |
+| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v7`) |
 
 ### `risk_categories.csv` (step 7a)
 
