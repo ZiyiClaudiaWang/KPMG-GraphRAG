@@ -410,6 +410,19 @@ class Compare(unittest.TestCase):
         self.assertEqual({r["text"]: r["step4_role"] for r in rows}, {"PART II": "none", "Liquidity": "body"})
         self.assertEqual(found, 1)                                          # the removed header is not counted
 
+    def test_footer_removed_inside_a_joined_sentence_is_none(self):
+        """A sentence joined across a page break spans the footer step 2 removed between its
+        halves; the footer is in neither piece, so it is removed text, not body."""
+        from src.headings.compare import html_only
+        from src.headings.html import Block, Run
+        footer = Block(0, [Run("46 | 2021 Q3 10-Q", False, False, True, 10.0, False)], start=30, end=47)
+        group = {"accession": "a", "section_key": "k",
+                 "units": [{"role": "body", "prefilter": None, "rule_heading": None, "start": 0, "end": 80,
+                            "spans": [[0, 29], [49, 80]]}]}
+        rows, found = html_only(group, {"offset_start": 0, "content": "x" * 90}, [footer], 10.0)
+        self.assertEqual([(r["text"], r["step4_role"]) for r in rows], [("46 | 2021 Q3 10-Q", "none")])
+        self.assertEqual(found, 0)
+
     def test_read_output_keeps_links(self):
         from src.headings.step import help_lines, read_output
         with tempfile.TemporaryDirectory() as tmp:

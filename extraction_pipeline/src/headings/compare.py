@@ -7,6 +7,8 @@ Two kinds of rows (heading_html_diff.csv):
                 says what step 4 made of it (body, list_group, ...; none = no unit overlaps it:
                 the text was removed in clean, mostly running page headers and footers such as
                 MSFT "PART II", MCK "FINANCIAL REVIEW (CONTINUED)", NKE "2022 FORM 10-K 38").
+                Overlap is by the unit's spans, so a footer removed between the two halves of a
+                sentence joined across a page break (MU "46 | 2021 Q3 10-Q") is none, not body.
                 html_covered_pct leaves the none rows out. text_check: sentence = ends in . ! ? with
                 sentence_min_words+ words (a risk lead sentence or body, not a heading), else
                 short_line.
@@ -84,7 +86,8 @@ def html_only(group: dict, section: dict, blocks: list[Block], body: float,
     min_words = cfg.get("sentence_min_words", SENTENCE_MIN_WORDS)
     lo = section["offset_start"]
     hi = lo + len(section["content"])
-    units = [dict(u, start=u["start"] + lo, end=u["end"] + lo) for u in group.get("units", [])]
+    units = [dict(u, spans=[[a + lo, b + lo] for a, b in u.get("spans") or [[u["start"], u["end"]]]])
+             for u in group.get("units", [])]
     inside = [b for b in blocks if b.start >= lo and b.end <= hi]
     rows, found = [], 0
     for k, b in enumerate(inside):
@@ -93,7 +96,7 @@ def html_only(group: dict, section: dict, blocks: list[Block], body: float,
         style = html_heading(b, body, max_words)
         if style is None:
             continue
-        over = [u for u in units if u["start"] < b.end and u["end"] > b.start]
+        over = [u for u in units if any(a < b.end and e > b.start for a, e in u["spans"])]
         if over:
             found += 1
         if any(u["role"] in HEADING_ROLES for u in over):

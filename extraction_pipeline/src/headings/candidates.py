@@ -31,7 +31,7 @@ def section_headings() -> list[dict]:
     """Headings of every kept section, in order, with the first words of the text under each.
     Risk category headings are included: their level decides which of them are categories
     (segment.is_risk_category). Each section also carries its units in short form (role,
-    prefilter, rule_heading, start / end in the Data-team content) for the HTML comparison
+    prefilter, rule_heading, start / end and spans in the Data-team content) for the HTML comparison
     (compare.py); a section without headings is listed too, with an empty list."""
     from ..segment import heading_id, segment_section
     cfg = settings()["segment"]
@@ -61,6 +61,10 @@ def section_headings() -> list[dict]:
 
 
 def short_unit(unit: dict) -> dict:
+    """start / end cover the whole unit; spans are its pieces. A unit joined across a page break
+    has two or more spans, and the page header or footer that step 2 removed between them lies
+    inside start / end but in no span."""
     spans = unit["raw_spans"] or [[unit["char_start"], unit["char_end"]]]
     return {"role": unit["role"], "prefilter": unit["prefilter"], "rule_heading": unit["rule_heading"],
-            "start": min(a for a, _ in spans), "end": max(b for _, b in spans)}
+            "start": min(a for a, _ in spans), "end": max(b for _, b in spans),
+            "spans": [list(sp) for sp in spans]}
