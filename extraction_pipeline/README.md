@@ -719,7 +719,8 @@ python run_pipeline.py --steps page_breaks,clean,filter   # step 2b (paid): once
 python run_pipeline.py --steps headings,segment           # step 4b: free; downloads each filing's HTML once
 python -m src.report_unit_repeats           # repeats across filings, before labelling: data/checks/unit_repeats/
 python run_pipeline.py --steps risk_factors # step 7a: free; lists unmapped risk categories
-# review data/output/section_manifest.csv, sentences.jsonl and risk_categories.csv
+python -m src.report                        # review report of steps 1-4 and 7a (also written at the end
+                                            # of any run of those steps): data/checks/report/report.md
 
 python run_pipeline.py --steps label --dry-run                           # batches, sentences, worst-case cost
 python run_pipeline.py --steps label --filing 0000320193-25-000079 --limit 3   # a first, small paid run
@@ -800,6 +801,24 @@ They need no API key, database or network.
   of it ($0.14 against $0.79; replies averaged 765 output tokens against the 4,000 allowed, #47).
 
 ## What to review
+
+Start with `data/checks/report/report.md` (`python -m src.report`; written at the end of every run
+that includes a step up to segment, or risk_factors). It reads what steps 1-4 and 7a wrote, re-runs
+nothing, and lists:
+
+1. **Stale steps**: an input (an earlier step's result, the step's code under `src/`, its config
+   file, or its own block of `settings.yaml`) is newer than the step's result. Run them again first.
+2. **Changes since the last report**: every number that moved (`report_previous.json` keeps the
+   one before; `--against FILE` compares with a saved `report.json`, e.g. one kept from before a
+   rule change). This replaces the counting part of a throwaway before / after script.
+3. **To look at**: flags such as filings without HTML, unmapped risk categories, 10-Ks not OK in
+   `subsidiary_qa.csv`, renames not reviewed.
+4. **Steps**: the numbers of each step, with its check files and what to look at in them. Unit
+   checks (examples in `checks/report/samples.csv`) are those of the scale-up diagnostics that
+   can be read from `sentences.jsonl`; `python -m src.diagnose` (`checks/diagnose/`) still re-runs
+   steps 2-4 on every section, also the dropped ones, for a deeper look.
+
+`report.json` holds the same numbers for a later dashboard page. What to look for in each file:
 
 | File | Check |
 |------|-------|
