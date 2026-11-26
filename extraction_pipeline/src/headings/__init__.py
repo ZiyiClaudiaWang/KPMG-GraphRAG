@@ -9,12 +9,13 @@ section_path and heading_path.
   candidates.py     the headings step 4 finds, and the levels file step 4 reads
   html.py           HTML -> blocks with typography, aligned to the Data-team text
   levels.py         the level rules (see its docstring)
+  tables.py         HTML table rows and their kind (data / layout / definition), read by step 4
   compare.py        HTML headings vs step 4's headings, a review file only
   edgar_primary.py  download the filing's primary document once
   step.py           the step: run(), review and summary files
 """
 
-from .candidates import leads_path, levels_path, load_leads, load_levels  # noqa: F401
+from .candidates import leads_path, levels_path, load_leads, load_levels, load_tables, tables_path  # noqa: F401
 
 
 def run(fetch: bool = True) -> None:

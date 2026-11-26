@@ -42,6 +42,7 @@ from .leads import in_lead, section_leads
 from .edgar_primary import Urls, atomic_write, cached_path, filing_html, text_link
 from .html import align, export_text, html_blocks
 from .levels import infer_section
+from .tables import section_tables
 
 STEP = "headings"
 SOURCE = "html"
@@ -164,11 +165,11 @@ def diff_path() -> Path:
 
 def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path | None,
                 use_indent: bool, compare: dict | None = None,
-                lead_cfg: dict | None = None) -> tuple[list[dict], dict, list[dict]]:
+                lead_cfg: dict | None = None, table_cfg: dict | None = None) -> tuple[list[dict], dict, list[dict]]:
     """Rows for one filing's candidate headings, facts about the filing for the summary, and the
     rows comparing its HTML headings with step 4's (compare.py)."""
     info = {"html": "missing", "sha_differs": None, "html_headings": 0, "html_only": 0, "html_removed": 0,
-            "html_only_lead": 0, "leads": {}}
+            "html_only_lead": 0, "leads": {}, "tables": {}}
     blocks, text = [], ""
     if html_path is not None and html_path.is_file() and sections:
         text = export_text(list(sections.values()))
@@ -183,6 +184,7 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
         got = infer_section(group, section, blocks, text, use_indent)
         if section is not None:
             info["leads"][group["section_key"]] = section_leads(section, blocks, text, got, lead_cfg)
+            info["tables"][group["section_key"]] = section_tables(section, blocks, table_cfg)
         for row in got:
             rows.append({"ticker": group["ticker"], "form": group["form"], "accession": group["accession"],
                          "section_key": group["section_key"], **row})
@@ -237,6 +239,22 @@ def write_leads(info: dict[str, dict]) -> None:
             stream.write(json.dumps({"accession": accession, "html": facts["html"] == "ok", "leads": leads},
                                     ensure_ascii=False) + "\n")
     atomic_write(leads_path(), write)
+
+
+def tables_path() -> Path:
+    from .candidates import tables_path as path
+    return path()
+
+
+def write_tables(info: dict[str, dict]) -> None:
+    """One row per filing: {"accession", "html": true when its HTML was read, "rows": [...]}: the
+    HTML table rows in its kept sections, with their table's kind (tables.py)."""
+    def write(stream):
+        for accession, facts in info.items():
+            rows = [dict(x, section_key=k) for k, xs in facts["tables"].items() for x in xs]
+            stream.write(json.dumps({"accession": accession, "html": facts["html"] == "ok", "rows": rows},
+                                    ensure_ascii=False) + "\n")
+    atomic_write(tables_path(), write)
 
 
 def write_levels(rows: list[dict]) -> None:
@@ -331,6 +349,7 @@ def run(fetch: bool = True) -> None:
     indent_tickers = set(cfg.get("indent_tickers") or [])
     compare = cfg.get("compare") or {}
     lead_cfg = cfg.get("leads") or {}
+    table_cfg = cfg.get("tables") or {}
     groups: dict[str, list[dict]] = defaultdict(list)
     for group in section_headings():
         groups[group["accession"]].append(group)
@@ -365,7 +384,8 @@ def run(fetch: bool = True) -> None:
         else:
             log(STEP, f"{filing['ticker']} {accession}: no section export in data/sections/")
         got, info[accession], got_diff = filing_rows(groups[accession], sections, path,
-                                                     filing["ticker"] in indent_tickers, compare, lead_cfg)
+                                                     filing["ticker"] in indent_tickers, compare, lead_cfg,
+                                                     table_cfg)
         info[accession]["ticker"] = filing["ticker"]
         for row in got:
             row["open_in_edgar"] = text_link(url, row["text"], row["link_suffix"], row["joined_blocks"] > 1)
@@ -378,12 +398,17 @@ def run(fetch: bool = True) -> None:
 
     write_levels(rows)
     write_leads(info)
+    write_tables(info)
     write_review(rows)
     write_diff(diff)
     summary = summarise(rows, info, diff)
     write_summary(summary)
     reasons = Counter(r["reason"] for r in rows)
     log(STEP, f"{len(rows)} headings -> {levels_path()}")
+    tables = {(a, x["table"]): x["kind"] for a, i in info.items() for xs in i["tables"].values() for x in xs}
+    kinds_t = Counter(tables.values())
+    log(STEP, f"{len(tables)} HTML tables in kept sections ({', '.join(f'{k} {kinds_t[k]}' for k in sorted(kinds_t))})"
+              f" -> {tables_path()}")
     log(STEP, ", ".join(f"{k} {reasons[k]}" for k in REASONS if reasons[k]))
     kinds = Counter(r["kind"] for r in diff)
     html_headings = sum(i["html_headings"] for i in info.values())

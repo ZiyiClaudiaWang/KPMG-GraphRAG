@@ -18,6 +18,7 @@ from typing import Callable
 
 from .headings import NOT_A_HEADING, SECTION_TITLE, HeadingPath, Levels, is_line_heading, is_period_heading
 from .lists import ANNOUNCES_LIST, BULLET, is_bullet, item_marker, list_items_end, merge_list, starts_list
+from .html_tables import TableRows
 from .prefilter import prefilter
 from .risk import mark_risk_summary, rule_lead_strength
 from .sentences import split_sentences
@@ -25,25 +26,31 @@ from .units import new_unit
 from ..clean import raw_spans
 
 
+AUTO = "auto"       # rule for Section.add: prefilter the unit from its text and its HTML table
+
+
 class Section:
     """One section being split: its paragraphs, the units made so far and the open headings."""
 
-    def __init__(self, sec: dict, cfg: dict, levels: dict[str, int] | None):
+    def __init__(self, sec: dict, cfg: dict, levels: dict[str, int] | None, tables: list[dict] | None):
         self.sec, self.cfg = sec, cfg
         self.paragraphs: list[dict] = sec["paragraphs"]
         self.is_risk = sec["section_type"] == "risk_factors"
         self.levels = Levels(sec, levels)
+        self.tables = TableRows(tables)
         self.path = HeadingPath(self.is_risk)
         self.units: list[dict] = []
 
     def add(self, role: str, p_index: int, start: int, end: int, rule: str | None,
             spans: list | None = None, text: str | None = None, rule_heading: str | None = None) -> dict:
+        """A unit; rule AUTO = prefilter it (prefilter.py), else the rule given (None = to the LLM)."""
         unit = new_unit(self.sec, self.path, role, p_index, start, end, rule, spans, text, rule_heading)
+        where = self.tables.where(unit)
+        unit["html_table"] = where if where not in (None, "outside") else None
+        if rule == AUTO:
+            unit["prefilter"] = prefilter(unit["text"], self.cfg["min_words"], where)
         self.units.append(unit)
         return unit
-
-    def prefilter(self, text: str) -> str | None:
-        return prefilter(text, self.cfg["min_words"])
 
     def add_items(self, k0: int, k1: int, intro_unit: dict) -> None:
         """Split list items k0..k1-1: each sentence is a unit pointing back to intro_unit."""
@@ -53,10 +60,9 @@ class Section:
             body_start = q0 + (marker.end() if marker else 0)
             body = self.sec["text"][body_start:q0 + len(item)]
             for s, e in split_sentences(body):
-                rule = self.prefilter(body[s:e])
-                if rule == "too_short":           # meaning comes from the intro, so keep it
-                    rule = None
-                unit = self.add("body", k, body_start + s, body_start + e, rule)
+                unit = self.add("body", k, body_start + s, body_start + e, AUTO)
+                if unit["prefilter"] == "too_short":      # meaning comes from the intro, so keep it
+                    unit["prefilter"] = None
                 unit["list_intro_id"] = intro_unit["unit_id"]
 
 
@@ -120,7 +126,7 @@ def list_block(s: Section, i: int) -> int | None:
     # Earlier sentences of the intro paragraph stay ordinary units;
     # only its last sentence opens the list.
     for a, b in intro[:opener]:
-        s.add("body", i, p0 + a, p0 + b, s.prefilter(text[a:b]))
+        s.add("body", i, p0 + a, p0 + b, AUTO)
     start = p0 + intro[-1][0]
     if colon and merge_list(s.sec["text"][start:p0 + len(text)], bullets, s.cfg):
         # Merge: the intro sentence and every item become one list_group unit.
@@ -137,7 +143,7 @@ def list_block(s: Section, i: int) -> int | None:
         # on its own, pointing back to that intro sentence.
         intro_unit = None
         for a, b in intro[opener:]:
-            unit = s.add("body", i, p0 + a, p0 + b, s.prefilter(text[a:b]))
+            unit = s.add("body", i, p0 + a, p0 + b, AUTO)
             intro_unit = intro_unit or unit
         s.add_items(i + 1, j, intro_unit)
     return j
@@ -160,7 +166,7 @@ def run_in_heading(s: Section, i: int) -> int | None:
     s.path.open(text[a:b], level)
     s.add("heading", i, p0 + a, p0 + b, "heading")["heading_level"] = level
     for a, b in sentences[1:]:
-        s.add("body", i, p0 + a, p0 + b, s.prefilter(text[a:b]))
+        s.add("body", i, p0 + a, p0 + b, AUTO)
     return i + 1
 
 
@@ -183,17 +189,20 @@ def paragraph(s: Section, i: int) -> int:
     body_start = p0 + (BULLET.match(text).end() if is_bullet(text) else 0)
     body = s.sec["text"][body_start:p0 + len(text)]
     for a, b in split_sentences(body):
-        s.add("body", i, body_start + a, body_start + b, s.prefilter(body[a:b]))
+        s.add("body", i, body_start + a, body_start + b, AUTO)
     return i + 1
 
 
 READERS: tuple[Reader, ...] = (section_title, heading_line, list_block, run_in_heading, rule_lead, paragraph)
 
 
-def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None) -> list[dict]:
+def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None,
+                    tables: list[dict] | None = None) -> list[dict]:
     """Units of one cleaned section. levels: heading id -> level from step 4b (headings.Levels);
-    without it every heading is level 1, so a heading replaces the one before it."""
-    s = Section(sec, cfg, levels)
+    without it every heading is level 1, so a heading replaces the one before it. tables: the
+    section's HTML table rows from step 4b (html_tables.TableRows); None = the filing has no HTML,
+    so tables are found from the text ("|")."""
+    s = Section(sec, cfg, levels, tables)
     i = 0
     while i < len(s.paragraphs):
         for read in READERS:

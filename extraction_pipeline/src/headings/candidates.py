@@ -46,6 +46,26 @@ def load_leads() -> dict[str, dict]:
     return out
 
 
+def tables_path():
+    return data_dir() / "interim" / "html_tables.jsonl"
+
+
+def load_tables() -> dict[str, dict]:
+    """accession -> {"html": bool, "rows": {section_key: [{start, end, kind, table}, ...]}};
+    empty when step 4b has not run. A filing it does not list counts as one without HTML
+    (step 4 then keeps its text rule for tables)."""
+    path = tables_path()
+    if not path.exists():
+        return {}
+    out = {}
+    for r in read_jsonl(path):
+        by_section: dict[str, list[dict]] = {}
+        for x in r["rows"]:
+            by_section.setdefault(x["section_key"], []).append(x)
+        out[r["accession"]] = {"html": bool(r["html"]), "rows": by_section}
+    return out
+
+
 def load_levels() -> dict[str, int]:
     """heading id -> level; empty when step 4b has not run."""
     path = levels_path()

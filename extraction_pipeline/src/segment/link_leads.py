@@ -20,7 +20,7 @@ from __future__ import annotations
 
 LEAD_ROLES = ("body", "list_group")
 LEAD_RULES = ("fallback", "section", "union")
-NOT_LEAD = ("cross_reference", "table_residue")   # prefilters that are never a lead ("Refer to Note 7 ...")
+NOT_LEAD = ("cross_reference", "table_residue", "definition")   # prefilters never a lead ("Refer to Note 7 ...")
 
 
 def uses_rule(mode: str, has_html: bool, section_leads: list | None) -> bool:
