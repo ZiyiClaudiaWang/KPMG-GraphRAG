@@ -804,19 +804,23 @@ They need no API key, database or network.
 
 Start with `data/checks/report/report.md` (`python -m src.report`; written at the end of every run
 that includes a step up to segment, or risk_factors). It reads what steps 1-4 and 7a wrote, re-runs
-nothing, and lists:
+nothing, opens with a table of contents, and links every check file it names:
 
-1. **Stale steps**: an input (an earlier step's result, the step's code under `src/`, its config
+1. **Checks**: every number with a limit in `config/settings.yaml` `report.checks` (max or min,
+   and a level: `error` = fix before the label run, `warn` = look at it, `info`), plus two built-in
+   checks: each stale step is an error, and a key number (`report.big_change`) that moves more than
+   `report.big_change_pct` from the last report is a warning. Failing checks first; passed ones
+   are folded. Change a limit there (no step reads the `report:` block, so nothing goes stale).
+2. **Stale steps**: an input (an earlier step's result, the step's code under `src/`, its config
    file, or its own block of `settings.yaml`) is newer than the step's result. Run them again first.
-2. **Changes since the last report**: every number that moved (`report_previous.json` keeps the
+3. **Changes since the last report**: every number that moved (`report_previous.json` keeps the
    one before; `--against FILE` compares with a saved `report.json`, e.g. one kept from before a
    rule change). This replaces the counting part of a throwaway before / after script.
-3. **To look at**: flags such as filings without HTML, unmapped risk categories, 10-Ks not OK in
-   `subsidiary_qa.csv`, renames not reviewed.
-4. **Steps**: the numbers of each step, with its check files and what to look at in them. Unit
-   checks (examples in `checks/report/samples.csv`) are those of the scale-up diagnostics that
-   can be read from `sentences.jsonl`; `python -m src.diagnose` (`checks/diagnose/`) still re-runs
-   steps 2-4 on every section, also the dropped ones, for a deeper look.
+4. **Steps**: per step its check files (links), what to look at, its numbers, and tables such as
+   the sections step 3 keeps (types and the titles the filings use) or the unmapped risk
+   categories. Unit checks (examples in `checks/report/samples.csv`) are those of the scale-up
+   diagnostics that can be read from `sentences.jsonl`; `python -m src.diagnose`
+   (`checks/diagnose/`) still re-runs steps 2-4 on every section, also the dropped ones.
 
 `report.json` holds the same numbers for a later dashboard page. What to look for in each file:
 

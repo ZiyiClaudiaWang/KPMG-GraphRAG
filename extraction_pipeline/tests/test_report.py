@@ -105,12 +105,36 @@ class TestChecksAndChanges(unittest.TestCase):
                  unit(7, "A complete sentence.")]
         risk = [unit(10 + i, f"Risk sentence {i}.", section_type="risk_factors", section_key="r")
                 for i in range(20)]
-        m, flags, _, samples = report.unit_checks(units + risk)
-        self.assertEqual({k: v for k, v in m.items() if v},
-                         {"lowercase_start": 1, "no_end_punct": 1, "single_pipe": 1, "long_heading": 1,
-                          "risk_section_no_category": 1})
-        self.assertEqual({s["check"] for s in samples}, {k for k, v in m.items() if v})
-        self.assertTrue(flags)
+        m, _, _, samples = report.unit_checks(units + risk)
+        counts = {c: m[c] for c, _ in report.UNIT_CHECKS if m[c]}
+        self.assertEqual(counts, {"lowercase_start": 1, "no_end_punct": 1, "single_pipe": 1, "long_heading": 1,
+                                  "risk_section_no_category": 1})
+        self.assertEqual(m["single_pipe_per_1k"], round(1000 / 26, 2))     # 26 units go to the LLM
+        self.assertEqual({s["check"] for s in samples}, set(counts))
+
+    def test_limits_and_big_changes(self):
+        """A number over its max fails at its level, one under its min too, a missing one is
+        'not run', and a key number that moves more than big_change_pct warns."""
+        cfg = {"report": {"big_change_pct": 5, "big_change": ["segment.units"],
+                          "checks": {"segment.to_llm": {"max": 50, "level": "error"},
+                                     "risk_factors.item_1a_with_theme_pct": {"min": 90},
+                                     "headings.filings_without_html": {"max": 0, "level": "error"},
+                                     "fetch.exports_missing": {"max": 0, "level": "error"}}}}
+        fresh = {s["id"]: {"status": "ok", "written": "", "reason": ""} for s in report.STEPS}
+        fresh["clean"] = {"status": "stale", "written": "", "reason": "x is newer"}
+        now = {"fresh": fresh, "metrics": {"segment": {"units": 120, "to_llm": 80},
+                                           "risk_factors": {"item_1a_with_theme_pct": 79.6},
+                                           "fetch": {"exports_missing": 0}}}
+        before = {"metrics": {"segment": {"units": 100}}}
+        real = report.settings
+        report.settings = lambda: cfg
+        try:
+            got = {c["number"]: c["status"] for c in report.evaluate(now, before)}
+        finally:
+            report.settings = real
+        self.assertEqual(got, {"stale": "error", "segment.units": "warn", "segment.to_llm": "error",
+                               "risk_factors.item_1a_with_theme_pct": "warn",
+                               "headings.filings_without_html": "not run", "fetch.exports_missing": "pass"})
 
     def test_changes(self):
         before = {"metrics": {"segment": {"units": 100, "to_llm": 80}, "fetch": {"exports": 3}}}
@@ -143,7 +167,10 @@ class TestRun(TempData):
         self.assertEqual(first["fresh"]["subsidiaries"]["status"], "ok")
         text = (out / "report.md").read_text()
         self.assertIn("No earlier report", text)
-        self.assertIn("checks/subsidiaries/subsidiary_qa.csv", text)
+        self.assertIn("[`data/checks/subsidiaries/subsidiary_qa.csv`](../subsidiaries/subsidiary_qa.csv)", text)
+        self.assertIn('<a id="step-subsidiaries"></a>', text)
+        self.assertIn("(#step-subsidiaries)", text)                          # the contents link to it
+        self.assertTrue(first["checks"])
 
         write_jsonl(Paths.sentences(), [unit(1, "A sentence.", segmentation_version="v")])
         report.run()
