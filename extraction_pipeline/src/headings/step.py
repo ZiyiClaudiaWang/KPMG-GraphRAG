@@ -38,7 +38,7 @@ from ..common import Paths, data_dir, filings, load_env, log, read_jsonl, settin
 from ..ex21 import edgar
 from .candidates import levels_path, section_headings
 from .compare import body_size, html_only, step4_plain
-from .leads import in_lead, section_leads
+from .leads import in_lead, runin_headings, section_leads
 from .edgar_primary import Urls, atomic_write, cached_path, filing_html, text_link
 from .html import align, export_text, html_blocks
 from .levels import infer_section
@@ -169,7 +169,7 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
     """Rows for one filing's candidate headings, facts about the filing for the summary, and the
     rows comparing its HTML headings with step 4's (compare.py)."""
     info = {"html": "missing", "sha_differs": None, "html_headings": 0, "html_only": 0, "html_removed": 0,
-            "html_only_lead": 0, "leads": {}, "tables": {}}
+            "html_only_lead": 0, "leads": {}, "runin_headings": {}, "tables": {}}
     blocks, text = [], ""
     if html_path is not None and html_path.is_file() and sections:
         text = export_text(list(sections.values()))
@@ -184,6 +184,7 @@ def filing_rows(groups: list[dict], sections: dict[str, dict], html_path: Path |
         got = infer_section(group, section, blocks, text, use_indent)
         if section is not None:
             info["leads"][group["section_key"]] = section_leads(section, blocks, text, got, lead_cfg)
+            info["runin_headings"][group["section_key"]] = runin_headings(section, blocks, text)
             info["tables"][group["section_key"]] = section_tables(section, blocks, table_cfg)
         for row in got:
             rows.append({"ticker": group["ticker"], "form": group["form"], "accession": group["accession"],
@@ -231,13 +232,15 @@ def leads_path() -> Path:
 
 
 def write_leads(info: dict[str, dict]) -> None:
-    """One row per filing: {"accession", "html": true when its HTML was read, "leads": [...]}.
-    A filing without HTML has no leads here; step 4 then uses its risk heading rule instead."""
+    """One row per filing: {"accession", "html": true when its HTML was read, "leads": [...],
+    "runin_headings": [...]}. A filing without HTML has no leads here; step 4 then uses its risk
+    heading rule instead."""
     def write(stream):
         for accession, facts in info.items():
             leads = [dict(x, section_key=k) for k, ls in facts["leads"].items() for x in ls]
-            stream.write(json.dumps({"accession": accession, "html": facts["html"] == "ok", "leads": leads},
-                                    ensure_ascii=False) + "\n")
+            runins = [dict(x, section_key=k) for k, ls in facts.get("runin_headings", {}).items() for x in ls]
+            stream.write(json.dumps({"accession": accession, "html": facts["html"] == "ok", "leads": leads,
+                                     "runin_headings": runins}, ensure_ascii=False) + "\n")
     atomic_write(leads_path(), write)
 
 

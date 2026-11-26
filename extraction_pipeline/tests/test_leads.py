@@ -37,6 +37,9 @@ LINES = [
     # a run-in heading ("Flexible Work.") is a heading, not a lead
     (f'<p><span style="{BOLD}">Flexible Work.</span> We let many employees work from home.</p>',
      "Flexible Work. We let many employees work from home."),
+    # a short styled first sentence, not title case: a run-in heading (runin_headings), not a lead
+    (f'<p><span style="{BOLD}">Player acquisition costs.</span> We pay for ads to win new players.</p>',
+     "Player acquisition costs. We pay for ads to win new players."),
     # two styled sentences in a row: neither is a lead
     (f'<p style="{BOLD}">We expect revenue to keep growing next year.</p>',
      "We expect revenue to keep growing next year."),
@@ -68,6 +71,7 @@ class Leads(unittest.TestCase):
                      "units": [short_unit(u) for u in units]}
             rows, cls.info, cls.diff = filing_rows([group], {raw["section_key"]: raw}, path, False)
         cls.leads = cls.info["leads"][raw["section_key"]]
+        cls.runins = cls.info["runin_headings"][raw["section_key"]]
         cls.cleaned, cls.levels = cleaned, {r["heading_id"]: r["level"] for r in rows}
         cls.units = segment.segment_section(cleaned, settings()["segment"], cls.levels)
         cls.unmatched = segment.mark_leads(cls.units, cls.leads, use_rule=False)
@@ -99,6 +103,16 @@ class Leads(unittest.TestCase):
         for text in ("We let many employees work from home.", "We expect revenue to keep growing next year.",
                      "We expect costs to keep growing next year.", "Nothing else changed in the year."):
             self.assertEqual((self.by_text[text]["lead_source"], self.by_text[text]["lead_unit_id"]), (None, None))
+
+    def test_short_styled_runin_is_a_heading(self):
+        self.assertEqual([x["text"] for x in self.runins], ["Flexible Work.", "Player acquisition costs."])
+        units = {u["text"]: u for u in segment.segment_section(self.cleaned, settings()["segment"],
+                                                               self.levels, None, self.runins)}
+        self.assertEqual(units["Player acquisition costs."]["role"], "heading")
+        self.assertEqual(units["We pay for ads to win new players."]["subheading"], "Player acquisition costs.")
+        # by its text alone (no HTML), not title case: a short sentence for the LLM
+        plain = self.by_text["Player acquisition costs."]
+        self.assertEqual((plain["role"], plain["prefilter"]), ("body", None))
 
     def test_leads_change_no_path_and_no_id(self):
         again = segment.segment_section(self.cleaned, settings()["segment"], self.levels)

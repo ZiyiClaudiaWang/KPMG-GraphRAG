@@ -37,7 +37,8 @@ def run() -> None:
             if (sec["accession_number"], sec["section_key"]) not in kept:
                 continue
             rows = table_facts["rows"].get(sec["section_key"], []) if table_facts["html"] else None
-            units = segment_section(sec, cfg, levels, rows)
+            runins = facts.get("runin_headings", {}).get(sec["section_key"])
+            units = segment_section(sec, cfg, levels, rows, runins)
             section_leads = facts["leads"].get(sec["section_key"])
             miss = mark_leads(units, section_leads, use_rule=uses_rule(rule_mode, facts["html"], section_leads))
             unmatched[f["accession"]] = unmatched.get(f["accession"], 0) + miss

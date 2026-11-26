@@ -8,7 +8,12 @@
   definition       a row of an HTML term | definition table (MSFT metric glossaries); kept out of
                    Claims for now, for a possible metric glossary later
   cross_reference  "See ...", "Refer to ...", "incorporated by reference"
-  too_short        under segment.min_words words; never for a split list item (lists.py)
+  list_intro       under segment.min_words words and ending in ":" ("Solutions include:",
+                   "•TAC includes:"): it only opens what follows; split list items point back to it
+                   (list_intro_id), and the LLM sees it as context
+  too_short        under segment.min_words words and not a sentence: a fragment ("Number of",
+                   "During", "Avg."); a short complete sentence ("No material items.", "Revenue
+                   decreased slightly.") goes to the LLM. Never for a split list item (lists.py)
 
 The HTML decides tables when the filing has it (step 4b, headings/tables.py, html_tables.py):
   data table    full sentences (footnotes) go on to the cross_reference check and the LLM; the
@@ -67,6 +72,14 @@ def reads_as_sentence(text: str) -> bool:
     return bool(TERMINAL.search(core)) and len(core.split()) >= SENTENCE_MIN_WORDS
 
 
+def is_short_sentence(text: str) -> bool:
+    """A complete sentence however short: at least 2 words, opens with a capital letter (after
+    a quote) and ends in . ? !. "Avg." and "based considerations)." are not; neither are
+    "** Filed herewith." or "(b)Use of Proceeds.", which open with a marker."""
+    core = text.lstrip("\"“‘")
+    return len(core.split()) >= 2 and core[:1].isupper() and bool(TERMINAL.search(core))
+
+
 def is_cross_reference(text: str) -> bool:
     return bool(CROSS_REFERENCE.search(text)) and not re.search(
         r"\b(?:there have been (?:no )?material changes|have not materially changed)\b", text, re.I)
@@ -92,5 +105,7 @@ def prefilter(text: str, min_words: int, where: str | None = None) -> str | None
     if digits / max(len(text), 1) > 0.3:
         return "table_residue"
     if len(text.split()) < min_words:
-        return "too_short"
+        if text.rstrip().endswith(":"):
+            return "list_intro"
+        return None if is_short_sentence(text) else "too_short"
     return None

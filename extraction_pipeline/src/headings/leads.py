@@ -20,6 +20,11 @@ Never a lead: a block in a table or a table of contents, a block step 4b reads a
 heading: segment/headings.is_period_heading), and a styled sentence next to another styled sentence or
 block (a run of them is emphasis, not a lead).
 
+Run-in headings (runin_headings) are found here too but kept apart from leads: a block whose
+styled first sentence is short (at most RUNIN_HEADING_MAX_WORDS words, ends in ".") and the rest
+plain, in any case (TTWO "Player acquisition costs." then the text). Step 4 opens them as
+sub-headings (segment/section.py run_in_heading); by its text alone only title case counts.
+
 Each lead is a span in the section's Data-team `content` (start, end), so step 4 matches it to
 its unit by position: the first unit that starts inside the span.
 """
@@ -34,6 +39,7 @@ from .html import Block, norm, style_over
 LEAD_MIN_WORDS = 4
 LEAD_MAX_WORDS = 100
 RUNIN_MIN_WORDS = 6
+RUNIN_HEADING_MAX_WORDS = 5          # as segment/headings.is_period_heading
 SENTENCE_END = re.compile(r"[.?!][\"'”’)]*$")
 HAS_LETTER = re.compile(r"[A-Za-z]")
 
@@ -139,6 +145,27 @@ def section_leads(section: dict, blocks: list[Block], text: str, rows: list[dict
             end = raw_end(text, b.start, len(norm(prefix))) - lo
             out.append({"start": s, "end": end, "source": "html_runin", "text": prefix})
     return sorted(out, key=lambda x: x["start"])
+
+
+def is_runin_heading(prefix: str) -> bool:
+    """A styled first sentence short enough to be a run-in heading: 1-5 words, ends in "."."""
+    return prefix.endswith(".") and 1 <= len(prefix.split()) <= RUNIN_HEADING_MAX_WORDS
+
+
+def runin_headings(section: dict, blocks: list[Block], text: str) -> list[dict]:
+    """Run-in headings of one section from the HTML: [{start, end, text}] in `content` positions
+    (see the module docstring). Blocks in tables, links and tables of contents are left out."""
+    lo = section["offset_start"]
+    hi = lo + len(section["content"])
+    out = []
+    for b in blocks:
+        if b.start < lo or b.end > hi or b.in_table or b.is_link or emphasised(b):
+            continue
+        prefix = runin_prefix(b)
+        if prefix and is_runin_heading(prefix):
+            end = raw_end(text, b.start, len(norm(prefix))) - lo
+            out.append({"start": b.start - lo, "end": end, "text": prefix})
+    return out
 
 
 def in_lead(start: int, leads: list[dict]) -> bool:

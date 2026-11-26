@@ -19,9 +19,12 @@ from .headings import HeadingPath
 # v9 (26 Nov 2026): tables from the HTML (step 4b): html_table; table_residue only in data tables
 #     (their full sentences go to the LLM); layout tables are text; definition tables; "|" outside a
 #     table is no longer a table.
+# v10 (26 Nov 2026): too_short only for fragments: short complete sentences go to the LLM; short
+#     ":" intros are list_intro; run-in headings opening a list intro, and short styled run-ins
+#     from the HTML in any case, are headings; '"III. ...' no longer ends a sentence.
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v9"
+SEGMENTATION_VERSION = "kelly_sentence_v10"
 
 
 def section_label(sec: dict) -> str:

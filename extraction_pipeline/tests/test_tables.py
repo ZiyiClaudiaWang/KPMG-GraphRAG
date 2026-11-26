@@ -169,7 +169,7 @@ class Segment(unittest.TestCase):
         self.assertEqual(self.plain[unit["text"]]["prefilter"], "table_residue")      # the old text rule
 
     def test_version(self):
-        self.assertEqual(self.unit("Revenue grew strongly")["segmentation_version"], "kelly_sentence_v9")
+        self.assertEqual(self.unit("Revenue grew strongly")["segmentation_version"], "kelly_sentence_v10")
 
 
 if __name__ == "__main__":

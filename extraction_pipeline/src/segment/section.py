@@ -6,8 +6,12 @@ Each paragraph goes to the first reader in READERS that takes it; the order is t
   2. heading_line     a heading by its text (headings.is_line_heading), not a sentence by its level
                       (in Item 1A, level 1 is a risk category); bullets right under it are a list
                       with the heading as intro
-  3. list_block       an intro (ending in ":" or announcing "the following") and its list items
-  4. run_in_heading   a paragraph opening with a period heading ("Flexible Work. ...")
+  3. list_block       an intro (ending in ":" or announcing "the following") and its list items;
+                      a run-in heading opening the intro paragraph is a heading too (PH "Aerospace
+                      Systems Segment. Our ... products include:")
+  4. run_in_heading   a paragraph opening with a period heading ("Flexible Work. ..."): title case
+                      by its text, or, from the filing's HTML, a short styled first sentence in any
+                      case (TTWO "Player acquisition costs.", step 4b headings/leads.py)
   5. rule_lead        Item 1A: a paragraph the rules propose as a risk lead (rule_heading)
   6. paragraph        anything else: split into sentences
 """
@@ -24,6 +28,7 @@ from .risk import mark_risk_summary, rule_lead_strength
 from .sentences import split_sentences
 from .units import new_unit
 from ..clean import raw_spans
+from ..headings.leads import RUNIN_HEADING_MAX_WORDS
 
 
 AUTO = "auto"       # rule for Section.add: prefilter the unit from its text and its HTML table
@@ -32,8 +37,10 @@ AUTO = "auto"       # rule for Section.add: prefilter the unit from its text and
 class Section:
     """One section being split: its paragraphs, the units made so far and the open headings."""
 
-    def __init__(self, sec: dict, cfg: dict, levels: dict[str, int] | None, tables: list[dict] | None):
+    def __init__(self, sec: dict, cfg: dict, levels: dict[str, int] | None, tables: list[dict] | None,
+                 runin_headings: list[dict] | None = None):
         self.sec, self.cfg = sec, cfg
+        self.runin_spans = [(x["start"], x["end"]) for x in runin_headings or []]
         self.paragraphs: list[dict] = sec["paragraphs"]
         self.is_risk = sec["section_type"] == "risk_factors"
         self.levels = Levels(sec, levels)
@@ -51,6 +58,29 @@ class Section:
             unit["prefilter"] = prefilter(unit["text"], self.cfg["min_words"], where)
         self.units.append(unit)
         return unit
+
+    def styled_runin(self, paragraph: dict, start: int, text: str) -> bool:
+        """The HTML styles this short first sentence as a run-in heading (step 4b)."""
+        if not self.runin_spans or not text.endswith(".") or len(text.split()) > RUNIN_HEADING_MAX_WORDS:
+            return False
+        spans = raw_spans(paragraph, start, start + 1)
+        pos = spans[0][0] if spans else start
+        return any(a - 2 <= pos < b for a, b in self.runin_spans)
+
+    def open_run_in(self, i: int, a: int, b: int) -> bool:
+        """Paragraph i opens with a run-in heading at text[a:b] (positions in the paragraph):
+        open it as a sub-heading and add its heading unit. False when it is not one."""
+        para = self.paragraphs[i]
+        text, p0 = para["text"], para["start"]
+        head = text[a:b]
+        if not (is_period_heading(head) or self.styled_runin(para, p0 + a, head)) or self.levels.is_sentence(para, p0 + a):
+            return False
+        level = self.levels.heading_level(para, p0 + a, self.path.sibling)
+        if self.is_risk and level != NOT_A_HEADING:
+            level = max(level, 2)                 # a run-in heading is never a risk category
+        self.path.open(head, level)
+        self.add("heading", i, p0 + a, p0 + b, "heading")["heading_level"] = level
+        return True
 
     def add_items(self, k0: int, k1: int, intro_unit: dict) -> None:
         """Split list items k0..k1-1: each sentence is a unit pointing back to intro_unit."""
@@ -123,9 +153,11 @@ def list_block(s: Section, i: int) -> int | None:
     lettered = not is_bullet(s.paragraphs[i + 1]["text"])
     j = list_items_end(s.paragraphs, i + 1, lettered)
     bullets = s.paragraphs[i + 1:j]
-    # Earlier sentences of the intro paragraph stay ordinary units;
-    # only its last sentence opens the list.
-    for a, b in intro[:opener]:
+    # Earlier sentences of the intro paragraph stay ordinary units (the first may be a run-in
+    # heading); only its last sentence opens the list.
+    for k, (a, b) in enumerate(intro[:opener]):
+        if k == 0 and not is_bullet(text) and s.open_run_in(i, a, b):
+            continue
         s.add("body", i, p0 + a, p0 + b, AUTO)
     start = p0 + intro[-1][0]
     if colon and merge_list(s.sec["text"][start:p0 + len(text)], bullets, s.cfg):
@@ -158,13 +190,8 @@ def run_in_heading(s: Section, i: int) -> int | None:
         return None
     sentences = split_sentences(text)
     a, b = sentences[0]
-    if not is_period_heading(text[a:b]) or s.levels.is_sentence(para, p0 + a):
+    if not s.open_run_in(i, a, b):
         return None
-    level = s.levels.heading_level(para, p0 + a, s.path.sibling)
-    if s.is_risk and level != NOT_A_HEADING:
-        level = max(level, 2)                 # a run-in heading is never a risk category
-    s.path.open(text[a:b], level)
-    s.add("heading", i, p0 + a, p0 + b, "heading")["heading_level"] = level
     for a, b in sentences[1:]:
         s.add("body", i, p0 + a, p0 + b, AUTO)
     return i + 1
@@ -197,12 +224,13 @@ READERS: tuple[Reader, ...] = (section_title, heading_line, list_block, run_in_h
 
 
 def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None,
-                    tables: list[dict] | None = None) -> list[dict]:
+                    tables: list[dict] | None = None, runin_headings: list[dict] | None = None) -> list[dict]:
     """Units of one cleaned section. levels: heading id -> level from step 4b (headings.Levels);
     without it every heading is level 1, so a heading replaces the one before it. tables: the
     section's HTML table rows from step 4b (html_tables.TableRows); None = the filing has no HTML,
-    so tables are found from the text ("|")."""
-    s = Section(sec, cfg, levels, tables)
+    so tables are found from the text ("|"). runin_headings: the section's styled short run-ins
+    from step 4b (headings/leads.py runin_headings), [{start, end}] in `content` positions."""
+    s = Section(sec, cfg, levels, tables, runin_headings)
     i = 0
     while i < len(s.paragraphs):
         for read in READERS:

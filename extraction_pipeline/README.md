@@ -130,7 +130,7 @@ flowchart TD
 
     R1 & R2 --> NO["prefilter set:<br/>not_a_claim, not sent to the LLM"]
     R4 --> P{"prefilter"}
-    P -->|"table_residue, definition,<br/>cross_reference, too_short"| NO
+    P -->|"table_residue, definition,<br/>cross_reference, list_intro, too_short"| NO
     P -->|"none"| LLM
     R5 --> LLM["5 Label (LLM)<br/>the model sees a short number (fewer tokens),<br/>mapped back to unit_id"]
 
@@ -395,7 +395,11 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - `definition`: a row of a definition table; not sent to the LLM and not a Claim for now,
       kept for a possible metric glossary.
     - `cross_reference`: "See …", "Refer to …"
-    - `too_short`: under 4 words; never for a split list item, whose meaning comes from its intro
+    - `list_intro`: under 4 words and ending in ":" ("Solutions include:"); split list items
+      point back to it, and the LLM sees it as context
+    - `too_short`: under 4 words and not a sentence (a fragment: "Number of", "Avg."); a short
+      complete sentence ("No material items.") goes to the LLM; never for a split list item,
+      whose meaning comes from its intro
   - **Ids and versions.**
     - Each unit gets a `unit_id` from its filing, section and source spans, never its text
       ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
@@ -933,7 +937,7 @@ One line per unit. "Data team" fields are copied from the section export; the re
 | `paragraph_index` | segment | Paragraph number in the cleaned section |
 | `list_paragraphs` | segment | List groups only: the paragraphs the group covers |
 | `list_intro_id` | segment | Split list items only: `unit_id` of the intro's last sentence |
-| `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `definition`, `cross_reference`, `too_short`; null if sent to the LLM |
+| `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `definition`, `cross_reference`, `list_intro`, `too_short`; null if sent to the LLM |
 | `rule_heading` | segment | Item 1A only: `high` or `medium` if the rules propose the unit as a risk lead sentence; else null |
 | `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
 | `lead_source` | segment | The unit is a lead sentence: `html`, `html_runin` (from the filing's HTML, step 4b) or `rule` (`rule_heading`, filings without HTML); else null |

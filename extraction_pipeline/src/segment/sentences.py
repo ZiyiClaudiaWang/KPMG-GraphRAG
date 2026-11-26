@@ -22,6 +22,8 @@ OPENERS = {
 }
 ITEM_NUMBER = re.compile(r"\d{1,2}[a-c]?")   # "1a" in "see Item 1A. Risk Factors", "9" in "Note 9. Debt"
 REFERENCE_WORDS = {"item", "note"}            # "Item 1A. Risk Factors", "Note 9. Debt": the title follows the number
+ROMAN = re.compile(r"x{0,3}(?:ix|iv|v?i{0,3})")   # "iii" of "III."; one letter ("I.", "V.") is an initial below
+QUOTE_OPEN = "\"“‘(["                        # a numbered title in quotes: under the sub-caption "III. Environmental Matters."
 BOUNDARY = re.compile(r"[.?!][\"”’)\]]*(?=\s+[\"“‘(\[]?[A-Z0-9•])")
 TERMINAL = re.compile(r"[.?!][\"”’)]*$")      # the text ends like a sentence
 
@@ -44,6 +46,10 @@ def split_sentences(text: str) -> list[tuple[int, int]]:
         if (len(words) >= 2 and words[-2].lower().lstrip("(\"“") in REFERENCE_WORDS and ITEM_NUMBER.fullmatch(token)
                 and opener not in OPENERS):
             continue                                # "see Item 1A. Risk Factors", "Note 9. Debt": one sentence
+        last = words[-1] if words else ""
+        if (len(token) >= 2 and ROMAN.fullmatch(token) and last[:1] in QUOTE_OPEN
+                and last.lstrip(QUOTE_OPEN)[:1].isupper() and opener not in OPENERS):
+            continue                                # WMT '"III. Environmental Matters."': the number opens a title
         if token in ABBREVIATIONS or dotted:
             ambiguous = token in AMBIGUOUS or (dotted and token not in ABBREVIATIONS)
             if not ambiguous or opener not in OPENERS:
