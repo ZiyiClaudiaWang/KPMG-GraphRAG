@@ -71,12 +71,24 @@ def load_tables() -> dict[str, dict]:
     return out
 
 
+# 4b reasons that only repeat the level of the heading before (levels.py): not evidence of depth.
+SIBLING_REASONS = frozenset({"inside_paragraph", "plain_style", "unmatched", "missing_html"})
+
+
 def load_levels() -> dict[str, int]:
     """heading id -> level; empty when step 4b has not run."""
     path = levels_path()
     if not path.exists():
         return {}
     return {r["heading_id"]: int(r["level"]) for r in read_jsonl(path)}
+
+
+def load_guessed_levels() -> set[str]:
+    """heading ids whose level 4b only guessed from the heading before (SIBLING_REASONS)."""
+    path = levels_path()
+    if not path.exists():
+        return set()
+    return {r["heading_id"] for r in read_jsonl(path) if r.get("reason") in SIBLING_REASONS}
 
 
 def section_headings() -> list[dict]:

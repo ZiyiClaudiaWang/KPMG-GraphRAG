@@ -30,9 +30,9 @@ from .headings import HeadingPath
 #     tables).
 # v13 (26 Nov 2026): a stray bullet paragraph opening with a title-case period heading is a
 #     run-in heading (WMT "•Opportunity. Retail can be ...").
-# v14 (26 Nov 2026): a run-in heading is at least one level below the line heading it sits
-#     under, so it replaces only another run-in (NTAP "Financial and savings programs.", WMT
-#     "Opportunity." were replacing their parent heading).
+# v14 (26 Nov 2026): a run-in heading whose level the HTML does not give (not listed, or only the
+#     sibling's level) is at least one level below the line heading it sits under, so it replaces
+#     only another run-in (NTAP "Financial and savings programs." was replacing its parent heading).
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
 SEGMENTATION_VERSION = "kelly_sentence_v14"

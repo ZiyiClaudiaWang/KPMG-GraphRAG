@@ -170,6 +170,26 @@ class RunInLevels(unittest.TestCase):
         self.assertEqual(got["Community."]["heading_level"], 2)
 
 
+    def test_a_level_from_the_html_stands(self):
+        text = ("Trends and Factors Affecting our Business\n\nOur results vary from year to year.\n\n"
+                "Recent Developments. We signed a merger agreement this year.")
+        sec = {"accession_number": "0000000000-26-000014", "ticker": "TEST", "form": "10-K",
+               "section_id": "sec-1", "section_key": "part-i-item-1", "section_type": "business",
+               "part": "I", "item": "1", "processing_set_id": "set-1", "source_locator": {},
+               "content": text, "offset_start": 0}
+        cleaned = clean.clean_section(sec, set())
+        p_line, p_run = cleaned["paragraphs"][0], cleaned["paragraphs"][2]
+        levels = {segment.heading_id(cleaned, p_line, p_line["start"]): 1,
+                  segment.heading_id(cleaned, p_run, p_run["start"]): 1}
+        got = {u["text"]: u for u in segment.segment_section(cleaned, settings()["segment"], levels)}
+        self.assertEqual(got["We signed a merger agreement this year."]["heading_path"], ["Recent Developments."])
+        guessed = {segment.heading_id(cleaned, p_run, p_run["start"])}
+        got = {u["text"]: u for u in segment.segment_section(cleaned, settings()["segment"], levels,
+                                                             None, None, guessed)}
+        self.assertEqual(got["We signed a merger agreement this year."]["heading_path"],
+                         ["Trends and Factors Affecting our Business", "Recent Developments."])
+
+
 class BulletRunIn(unittest.TestCase):
     def test_bullet_paragraph_opening_with_a_period_heading(self):
         got = units("Our themes are opportunity and community.\n\n"

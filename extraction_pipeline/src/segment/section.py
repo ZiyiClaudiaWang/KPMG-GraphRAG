@@ -48,12 +48,12 @@ class Section:
     """One section being split: its paragraphs, the units made so far and the open headings."""
 
     def __init__(self, sec: dict, cfg: dict, levels: dict[str, int] | None, tables: list[dict] | None,
-                 runin_headings: list[dict] | None = None):
+                 runin_headings: list[dict] | None = None, guessed: set[str] | None = None):
         self.sec, self.cfg = sec, cfg
         self.runin_spans = [(x["start"], x["end"]) for x in runin_headings or []]
         self.paragraphs: list[dict] = sec["paragraphs"]
         self.is_risk = sec["section_type"] == "risk_factors"
-        self.levels = Levels(sec, levels)
+        self.levels = Levels(sec, levels, guessed)
         self.tables = TableRows(tables)
         self.path = HeadingPath(self.is_risk)
         self.units: list[dict] = []
@@ -89,8 +89,10 @@ class Section:
             return False
         level = self.levels.heading_level(para, p0 + a, self.path.sibling)
         if level != NOT_A_HEADING:
-            # below the line heading it sits under; in Item 1A never a risk category
-            level = max(level, self.path.run_in_floor(), 2 if self.is_risk else 1)
+            if self.levels.is_guess(para, p0 + a):
+                level = max(level, self.path.run_in_floor())   # below the line heading above it
+            if self.is_risk:
+                level = max(level, 2)                           # never a risk category
         self.path.open(head, level, run_in=True)
         self.add("heading", i, p0 + a, p0 + b, "heading")["heading_level"] = level
         return True
@@ -268,13 +270,15 @@ READERS: tuple[Reader, ...] = (section_title, heading_line, group_list, list_blo
 
 
 def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None,
-                    tables: list[dict] | None = None, runin_headings: list[dict] | None = None) -> list[dict]:
+                    tables: list[dict] | None = None, runin_headings: list[dict] | None = None,
+                    guessed: set[str] | None = None) -> list[dict]:
     """Units of one cleaned section. levels: heading id -> level from step 4b (headings.Levels);
     without it every heading is level 1, so a heading replaces the one before it. tables: the
     section's HTML table rows from step 4b (html_tables.TableRows); None = the filing has no HTML,
     so tables are found from the text ("|"). runin_headings: the section's styled short run-ins
-    from step 4b (headings/leads.py runin_headings), [{start, end}] in `content` positions."""
-    s = Section(sec, cfg, levels, tables, runin_headings)
+    from step 4b (headings/leads.py runin_headings), [{start, end}] in `content` positions.
+    guessed: heading ids whose 4b level only repeats the heading before (load_guessed_levels)."""
+    s = Section(sec, cfg, levels, tables, runin_headings, guessed)
     i = 0
     while i < len(s.paragraphs):
         for read in READERS:
