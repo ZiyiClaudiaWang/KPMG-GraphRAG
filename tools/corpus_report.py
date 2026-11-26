@@ -732,6 +732,13 @@ def render(report: dict) -> str:
         elif indexes and not indexes.get("analyzer_matches_expected"):
             add(f"  !! fulltext analyzer is {indexes.get('analyzer')!r}, expected "
                 f"{EXPECTED_FULLTEXT_ANALYZER!r} - the arm will rank differently here")
+        elif indexes:
+            # Say so when it is there. A check that is silent when it passes
+            # cannot be told apart from a check that never ran, and this whole
+            # report exists because totals looked fine while something was
+            # missing.
+            add(f"  fulltext index: claim_quote_fulltext present, analyzer "
+                f"{indexes.get('analyzer')!r}")
         identity = graph["identity"]
         add(f"  companies {identity['total']} · no ticker {identity['no_ticker']} "
             f"· no name {identity['no_name']} "
