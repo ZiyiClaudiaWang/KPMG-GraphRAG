@@ -14,10 +14,12 @@ STEP = "segment"
 
 
 def run() -> None:
-    from ..headings import load_leads, load_levels, load_tables   # from step 4b, when it has run
+    from ..headings import load_guessed_levels, load_leads, load_levels, load_tables   # from step 4b
+
     cfg = settings()["segment"]
     kept = kept_section_keys()
     levels = load_levels()
+    guessed = load_guessed_levels()
     if levels:
         log(STEP, f"{len(levels)} heading levels from step 4b")
     leads = load_leads()
@@ -38,7 +40,7 @@ def run() -> None:
                 continue
             rows = table_facts["rows"].get(sec["section_key"], []) if table_facts["html"] else None
             runins = facts.get("runin_headings", {}).get(sec["section_key"])
-            units = segment_section(sec, cfg, levels, rows, runins)
+            units = segment_section(sec, cfg, levels, rows, runins, guessed)
             section_leads = facts["leads"].get(sec["section_key"])
             miss = mark_leads(units, section_leads, use_rule=uses_rule(rule_mode, facts["html"], section_leads))
             unmatched[f["accession"]] = unmatched.get(f["accession"], 0) + miss
