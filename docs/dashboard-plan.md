@@ -17,14 +17,19 @@ nobody being able to see what is loaded.
   that one run, and the only place it was written down was a handover note.
 
   **Corrected 16 Nov, by the tool this document proposed.** The load has since
-  run — on `internal`, which now has 752 `Subsidiary` nodes, 752 `OWNS` edges
-  and all ten 10-K parents covered. `canonical`, the instance Eval and Agents
-  are given, still has no `Subsidiary` label at all, so the nine questions fail
-  for them exactly as described. The claim was never wrong about one graph and
-  never right about both, which is the point: "the live graph" was not a thing
-  that existed, and a sentence that cannot name its instance cannot be checked.
-  Run `tools/corpus_report.py` once per `--instance` to see the difference; the
-  dashboard's sidebar radio does the same thing without a second run.
+  run on **both** instances: each now holds 752 `Subsidiary` nodes, 752 `OWNS`
+  edges and all ten 10-K parents. The nine Exhibit 21 questions are answerable
+  through `canonical`, which is the instance Eval and Agents are given, so the
+  thing Eval asked for twice is done.
+
+  Two corrections in one bullet, which is the argument for the tool better than
+  the bullet itself makes it. The original claim named no instance, so it could
+  not be checked. The first correction named one and was accurate for about six
+  hours: it said `canonical` had no `Subsidiary` label, and by the time anyone
+  read it the load had run there too. Neither error was carelessness — both
+  were a sentence about "the graph" written while two graphs existed and
+  changed independently. Run `tools/corpus_report.py --instance canonical` to
+  see today's answer rather than this paragraph's.
 - Two fact stores on one laptop hold **21,505** and **24,533** facts, and you
   told them apart by the *absence* of a key in `store_meta_v1`. The EDGAR store
   is deprecated as of 13 Nov and the data-API store is what we build on, which

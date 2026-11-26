@@ -258,6 +258,61 @@ def test_duplicates_separate_a_loader_bug_from_a_comparative(store):
     assert dups["comparative_groups"] == 0
 
 
+def test_every_filing_carries_the_four_duplicate_fields(store):
+    """The corpus totals say whether there is a problem; these say where."""
+    for row in cr.store_per_filing(store):
+        for field in ("repeated_fact_id", "statement_duplicates",
+                      "comparative_groups", "restated_groups"):
+            assert field in row, field
+            assert isinstance(row[field], int)
+
+
+def test_a_comparative_counts_against_both_filings_it_spans():
+    """A group spanning two filings is the interesting unit, so dropping either
+    side would hide half of it."""
+    con = duckdb.connect(":memory:")
+    con.execute("""CREATE TABLE filings_v1 (accession_number VARCHAR, cik VARCHAR,
+        ticker VARCHAR, company_name VARCHAR, form VARCHAR, filing_date VARCHAR,
+        loader_version VARCHAR)""")
+    con.execute("""INSERT INTO filings_v1 VALUES
+        ('old','1','AAA','A','10-K','2025-01-01','v1'),
+        ('new','1','AAA','A','10-K','2026-01-01','v1')""")
+    con.execute("""CREATE TABLE financial_facts_v1 (cik VARCHAR, ticker VARCHAR,
+        accession_number VARCHAR, filing_date VARCHAR, concept_name VARCHAR,
+        context_ref VARCHAR, period_start VARCHAR, period_end VARCHAR,
+        period_type VARCHAR, dimensions VARCHAR, raw_value VARCHAR, unit VARCHAR,
+        scale VARCHAR, sign VARCHAR, numeric_value VARCHAR, fact_id VARCHAR)""")
+    # The same fact reported twice, with the later filing revising the value.
+    con.execute("""INSERT INTO financial_facts_v1 VALUES
+        ('1','AAA','old','2025-01-01','us-gaap:Goodwill','c1','','2024-12-31',
+         'instant','[]','100','USD',NULL,NULL,'100','f-old'),
+        ('1','AAA','new','2026-01-01','us-gaap:Goodwill','c2','','2024-12-31',
+         'instant','[]','120','USD',NULL,NULL,'120','f-new')""")
+    counts = cr.store_duplicates_per_filing(con)
+    assert counts["old"]["comparative_groups"] == 1
+    assert counts["new"]["comparative_groups"] == 1
+    assert counts["old"]["restated_groups"] == 1
+    assert counts["new"]["restated_groups"] == 1
+    # One group, counted against each of the two filings it spans.
+    assert cr.store_duplicates(con)["comparative_groups"] == 1
+    con.close()
+
+
+def test_a_comparative_that_agrees_is_not_counted_as_restated():
+    con = duckdb.connect(":memory:")
+    con.execute("""CREATE TABLE financial_facts_v1 (cik VARCHAR, ticker VARCHAR,
+        accession_number VARCHAR, concept_name VARCHAR, context_ref VARCHAR,
+        period_start VARCHAR, period_end VARCHAR, period_type VARCHAR,
+        dimensions VARCHAR, numeric_value VARCHAR, fact_id VARCHAR)""")
+    con.execute("""INSERT INTO financial_facts_v1 VALUES
+        ('1','AAA','old','us-gaap:Goodwill','c1','','2024-12-31','instant','[]','100','f1'),
+        ('1','AAA','new','us-gaap:Goodwill','c2','','2024-12-31','instant','[]','100','f2')""")
+    dups = cr.store_duplicates(con)
+    assert dups["comparative_groups"] == 1
+    assert dups["restated_groups"] == 0
+    con.close()
+
+
 def test_dimension_mix_separates_consolidated_from_sliced(store):
     mix = cr.store_dimension_mix(store)
     revenue = [r for r in mix["by_concept"] if r["concept"] == "us-gaap:Revenues"][0]
@@ -275,3 +330,47 @@ def test_a_store_with_no_meta_table_says_so():
     con.execute("CREATE TABLE financial_facts_v1 (fact_id VARCHAR)")
     assert "__missing__" in cr.store_meta(con)
     con.close()
+
+
+# --------------------------------------------------------------------------
+# waking a cold instance
+
+
+class _Factory:
+    """A driver factory that fails a given number of times before connecting."""
+
+    def __init__(self, failures: int):
+        self.failures = failures
+        self.calls = 0
+
+    def driver(self, uri, auth=None):
+        self.calls += 1
+        factory = self
+
+        class _Driver:
+            def verify_connectivity(self):
+                if factory.calls <= factory.failures:
+                    raise RuntimeError("SessionExpired")
+
+        return _Driver()
+
+
+def test_a_cold_instance_is_woken_rather_than_reported_as_down():
+    """Measured against a sleeping instance: verify_connectivity raised twice and
+    connected on the third attempt. One call meant the first run of the morning
+    failed for everyone."""
+    factory = _Factory(failures=2)
+    slept = []
+    driver = cr._connect_with_retry(factory, "neo4j+s://x", ("u", "p"),
+                                    sleep=slept.append)
+    assert driver is not None
+    assert factory.calls == 3
+    assert slept == [8.0, 8.0]
+
+
+def test_a_graph_that_never_answers_fails_loudly():
+    """Wrong credentials must not look like a slow wake-up."""
+    factory = _Factory(failures=99)
+    with pytest.raises(SystemExit) as caught:
+        cr._connect_with_retry(factory, "neo4j+s://x", ("u", "p"), sleep=lambda _: None)
+    assert "paused" in str(caught.value)

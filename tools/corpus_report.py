@@ -6,8 +6,8 @@ stores differing by three thousand facts, a default store holding one filing.
 Corpus totals showed nothing wrong in any of those cases. This prints the
 numbers that would have.
 
-    python3 tools/corpus_report.py                         the internal graph
-    python3 tools/corpus_report.py --instance canonical     what Eval is given
+    python3 tools/corpus_report.py                         what Eval is given
+    python3 tools/corpus_report.py --instance internal      the team's own graph
     python3 tools/corpus_report.py --json report.json       machine readable
 
 Run it once per instance to compare the two. This docstring advertised a
@@ -42,8 +42,13 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parents[1]
 
 # Which env file describes which graph. Instance 1 is canonical and is what Eval
-# and Agents are given; instance 2 is the team's internal graph and is where we
-# look first.
+# and Agents are given; instance 2 is the team's internal graph.
+#
+# Canonical is the default, because the question this report answers most often
+# is what the teams reading our graph can see. Internal is also the instance
+# with no claim_quote_fulltext index, so every graph_search against it raises -
+# defaulting there meant the first run of a health report went to the one graph
+# that cannot answer a question. The index check below now says so either way.
 INSTANCES = {
     "internal":  ROOT / "extraction_pipeline" / ".env.internal",
     "canonical": ROOT / "extraction_pipeline" / ".env.canonical",
@@ -70,6 +75,16 @@ KEY_CONCEPTS: dict[str, tuple[str, ...]] = {
 # Columns worth reporting population for. The data-API store writes three of
 # these as entirely NULL, which is how we found that it does.
 WATCHED_COLUMNS = ("numeric_value", "unit", "scale", "sign", "format", "decimals")
+
+# What canonical's fulltext index was built with. Recorded here because nothing
+# in this repository creates the index, so this constant is the only written
+# record of how the graph arm's matching is configured.
+EXPECTED_FULLTEXT_ANALYZER = "standard-no-stop-words"
+FULLTEXT_CREATE_STATEMENT = (
+    "CREATE FULLTEXT INDEX `claim_quote_fulltext` FOR (n:`Claim`) ON EACH [n.`quote`] "
+    "OPTIONS {indexConfig: {`fulltext.analyzer`: 'standard-no-stop-words', "
+    "`fulltext.eventually_consistent`: false}}"
+)
 
 
 # --------------------------------------------------------------------------
@@ -106,6 +121,40 @@ def resolve_env(instance: str, env_file: str | None) -> dict[str, str]:
 
 # --------------------------------------------------------------------------
 # graph arm
+
+
+def _connect_with_retry(driver_factory, uri: str, auth, attempts: int = 4,
+                        wait: float = 8.0, sleep=None):
+    """Open a driver, waking the instance if it is cold.
+
+    One verify_connectivity() does not reliably wake a sleeping Aura instance -
+    measured, it raised SessionExpired twice and connected on the third attempt
+    about sixteen seconds in. A single call was what this did before, and it
+    meant the first run of the morning could simply fail for everyone, with an
+    error that reads like the instance is gone rather than asleep.
+
+    The last failure is re-raised rather than swallowed, so wrong credentials
+    still fail loudly instead of looking like a slow wake-up.
+    """
+    import time
+
+    sleep = sleep or time.sleep
+    last = None
+    for attempt in range(1, attempts + 1):
+        try:
+            driver = driver_factory.driver(uri, auth=auth)
+            driver.verify_connectivity()
+            return driver
+        except Exception as exc:
+            last = exc
+            if attempt < attempts:
+                sleep(wait)
+    raise SystemExit(
+        f"Could not reach the graph after {attempts} attempts: "
+        f"{type(last).__name__}: {last}\n"
+        "A cold Aura instance usually answers by the third try. If this keeps "
+        "failing the instance may be paused, which only a console resume fixes."
+    )
 
 
 def graph_scopes(run: Callable) -> list[dict]:
@@ -284,6 +333,46 @@ def graph_status(run: Callable, scope: str) -> dict:
     return out
 
 
+def graph_indexes(run: Callable) -> dict:
+    """The indexes the graph arm needs, and whether they are there.
+
+    `graph_backend.search` is one fulltext query against `claim_quote_fulltext`.
+    Nothing in this repository creates that index - the name appears once, as a
+    constant in the backend - so an instance loaded by the pipeline has every
+    node and edge and still cannot answer a single question. It fails at query
+    time with a procedure error that names Lucene rather than the setup step
+    nobody wrote down, which is a long way from the cause.
+
+    Counts cannot catch this: the graph looks complete either way.
+    """
+    rows = run("SHOW INDEXES YIELD name, type, labelsOrTypes, properties, options, state "
+               "RETURN name, type, labelsOrTypes, properties, options, state")
+    fulltext = [r for r in rows if r.get("type") == "FULLTEXT"]
+    wanted = next((r for r in fulltext if r["name"] == "claim_quote_fulltext"), None)
+
+    analyzer = None
+    if wanted:
+        analyzer = ((wanted.get("options") or {}).get("indexConfig") or {}).get(
+            "fulltext.analyzer")
+
+    return {
+        "all": [{k: r.get(k) for k in ("name", "type", "labelsOrTypes", "properties", "state")}
+                for r in rows],
+        "fulltext": [r["name"] for r in fulltext],
+        # The backend's constant. Kept as a literal rather than imported so the
+        # report does not depend on the arm it is reporting on.
+        "claim_quote_fulltext": wanted is not None,
+        "state": wanted.get("state") if wanted else None,
+        "analyzer": analyzer,
+        # The analyzer is part of retrieval configuration, not a detail of
+        # storage: this one drops stop words and the default does not, so the
+        # same question matches different claims under each. It lives only in
+        # the database, so two instances can both "have the index" and rank
+        # differently with nothing in the repository to compare.
+        "analyzer_matches_expected": analyzer == EXPECTED_FULLTEXT_ANALYZER,
+    }
+
+
 def graph_report(run: Callable, requested_scope: str | None) -> dict:
     scopes = graph_scopes(run)
     scope, warnings = pick_scope(scopes, requested_scope)
@@ -300,6 +389,7 @@ def graph_report(run: Callable, requested_scope: str | None) -> dict:
     report["subsidiaries"] = subsidiary_coverage(run, scope)
     report["identity"] = graph_identity(run, scope)
     report["extraction_status"] = graph_status(run, scope)
+    report["indexes"] = graph_indexes(run)
     return report
 
 
@@ -346,13 +436,21 @@ def store_per_filing(con) -> list[dict]:
         "  ON x.accession_number = f.accession_number "
         "GROUP BY 1, 2, 3, 4 ORDER BY f.ticker"
     ).fetchall()
+    duplicates = store_duplicates_per_filing(con)
     out = []
     for accession, ticker, form, filing_date, facts, concepts, periods, dimensioned in rows:
+        found = duplicates.get(accession, {})
         out.append({
             "accession": accession, "ticker": ticker, "form": form,
             "filing_date": filing_date, "facts": facts, "concepts": concepts,
             "periods": periods, "dimensioned": dimensioned,
             "dimensioned_share": round(dimensioned / facts, 3) if facts else None,
+            # The same four counts the corpus totals carry, so a reader can go
+            # from "32 restated" to which filings they are in without a query.
+            "repeated_fact_id": found.get("repeated_fact_id", 0),
+            "statement_duplicates": found.get("statement_duplicates", 0),
+            "comparative_groups": found.get("comparative_groups", 0),
+            "restated_groups": found.get("restated_groups", 0),
         })
     return out
 
@@ -489,6 +587,46 @@ def store_duplicates(con) -> dict:
     }
 
 
+def store_duplicates_per_filing(con) -> dict[str, dict]:
+    """The four duplicate counts again, attributed to each filing.
+
+    The corpus totals say whether we have a problem. These say where it is,
+    which is the question anyone asks next. A comparative or restated group
+    spans two filings by definition, so it counts against both: the pair is
+    what is interesting, and dropping either side hides half of it.
+    """
+    counts: dict[str, dict] = {}
+
+    def fill(key: str, sql: str) -> None:
+        for accession, count in con.execute(sql).fetchall():
+            counts.setdefault(accession, {})[key] = count
+
+    fill("repeated_fact_id",
+         "SELECT accession_number, count(*) FROM financial_facts_v1 "
+         "WHERE fact_id IN (SELECT fact_id FROM financial_facts_v1 "
+         "                  GROUP BY 1 HAVING count(*) > 1) "
+         "GROUP BY 1")
+    fill("statement_duplicates",
+         "SELECT accession_number, count(*) FROM ("
+         "  SELECT accession_number FROM financial_facts_v1 "
+         "  GROUP BY accession_number, concept_name, period_start, period_end, dimensions "
+         "  HAVING count(DISTINCT context_ref) > 1) GROUP BY 1")
+    fill("comparative_groups",
+         "SELECT accession_number, count(*) FROM ("
+         "  SELECT unnest(list(DISTINCT accession_number)) AS accession_number "
+         "  FROM financial_facts_v1 "
+         "  GROUP BY cik, concept_name, period_start, period_end, period_type, dimensions "
+         "  HAVING count(DISTINCT accession_number) > 1) GROUP BY 1")
+    fill("restated_groups",
+         "SELECT accession_number, count(*) FROM ("
+         "  SELECT unnest(list(DISTINCT accession_number)) AS accession_number "
+         "  FROM financial_facts_v1 WHERE numeric_value IS NOT NULL "
+         "  GROUP BY cik, concept_name, period_start, period_end, period_type, dimensions "
+         "  HAVING count(DISTINCT accession_number) > 1 "
+         "     AND count(DISTINCT numeric_value) > 1) GROUP BY 1")
+    return counts
+
+
 def store_date_checks(con) -> dict:
     """Four cheap date checks. The last one bears on the period ranking bug."""
     def count(where: str) -> int:
@@ -586,6 +724,21 @@ def render(report: dict) -> str:
         if spread.get("n"):
             add(f"  claims per section: min {spread['min']} · median {spread['median']} "
                 f"· max {spread['max']} over {spread['n']} sections")
+        indexes = graph.get("indexes") or {}
+        if indexes and not indexes.get("claim_quote_fulltext"):
+            add("  !! no claim_quote_fulltext index - the graph arm cannot answer "
+                "anything on this instance. Create it with:")
+            add(f"     {FULLTEXT_CREATE_STATEMENT}")
+        elif indexes and not indexes.get("analyzer_matches_expected"):
+            add(f"  !! fulltext analyzer is {indexes.get('analyzer')!r}, expected "
+                f"{EXPECTED_FULLTEXT_ANALYZER!r} - the arm will rank differently here")
+        elif indexes:
+            # Say so when it is there. A check that is silent when it passes
+            # cannot be told apart from a check that never ran, and this whole
+            # report exists because totals looked fine while something was
+            # missing.
+            add(f"  fulltext index: claim_quote_fulltext present, analyzer "
+                f"{indexes.get('analyzer')!r}")
         identity = graph["identity"]
         add(f"  companies {identity['total']} · no ticker {identity['no_ticker']} "
             f"· no name {identity['no_name']} "
@@ -618,10 +771,14 @@ def render(report: dict) -> str:
             add("  every filing has all five key concepts")
 
         dups = store["duplicates"]
-        add(f"  repeated fact_id {dups['repeated_fact_id']} (should be 0) · "
-            f"statement duplicates {dups['statement_duplicates']:,} · "
-            f"comparative groups {dups['comparative_groups']:,} · "
-            f"restated {dups['restated_groups']:,}")
+        add("  duplicates")
+        for field, note in (
+            ("repeated_fact_id", "a loader bug. Should be 0"),
+            ("statement_duplicates", "one fact under more than one context in a filing"),
+            ("comparative_groups", "last year's figure inside this year's filing. Expected"),
+            ("restated_groups", "same fact, different value across filings"),
+        ):
+            add(f"    {field:<22}{dups[field]:>7,}   {note}")
         dates = store["dates"]
         add("  dates: " + " · ".join(f"{k} {v:,}" for k, v in dates.items()))
         add("")
@@ -676,11 +833,9 @@ def build(instance: str, env_file: str | None, scope: str | None,
     if not skip_graph:
         from neo4j import GraphDatabase
 
-        driver = GraphDatabase.driver(
-            env["NEO4J_URI"], auth=(env["NEO4J_USERNAME"], env["NEO4J_PASSWORD"]))
-        # Aura cold-starts. The first call after idle raises, so wake it before
-        # asking it anything or the report reads as an outage.
-        driver.verify_connectivity()
+        driver = _connect_with_retry(
+            GraphDatabase, env["NEO4J_URI"],
+            (env["NEO4J_USERNAME"], env["NEO4J_PASSWORD"]))
         try:
             with driver.session(database=env.get("NEO4J_DATABASE")) as session:
                 def run(cypher: str, **params):
@@ -713,8 +868,9 @@ def build(instance: str, env_file: str | None, scope: str | None,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--instance", choices=sorted(INSTANCES), default="internal",
-                        help="which graph to read (default: internal, the team's own)")
+    parser.add_argument("--instance", choices=sorted(INSTANCES), default="canonical",
+                        help="which graph to read (default: canonical, what Eval and "
+                             "Agents are given)")
     parser.add_argument("--env-file", help="read credentials from this file instead")
     parser.add_argument("--scope", help="report on this pipeline_scope (default: the only one)")
     parser.add_argument("--json", dest="json_out", help="write the full report here")
