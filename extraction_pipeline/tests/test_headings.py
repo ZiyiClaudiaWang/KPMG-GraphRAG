@@ -13,6 +13,7 @@ from pathlib import Path
 from src import clean, segment
 from src.common import settings
 from src.headings import levels as L
+from src.headings.candidates import short_unit
 from src.headings.step import filing_rows
 
 BIG = "font-size:14pt;font-weight:bold"
@@ -53,6 +54,13 @@ LINES = [
     ("<p>Leases and Commitments</p>", "Leases and Commitments"),
     (f'<p style="{BIG}">OPERATING EXPENSES</p>', "OPERATING EXPENSES"),
     ("<p>Expenses rose 3% in the year.</p>", "Expenses rose 3% in the year."),
+    # For the HTML vs step 4 comparison: a bold full sentence and a bold short sentence (both body
+    # in step 4), and a heading step 4 reads from the text that the HTML shows as plain.
+    (f'<p style="{BOLD}">We expect revenue to keep growing in the next fiscal year.</p>',
+     "We expect revenue to keep growing in the next fiscal year."),
+    (f'<p style="{BOLD}">Revenue increased.</p>', "Revenue increased."),
+    ("<p>Other Matters</p>", "Other Matters"),
+    ("<p>Nothing else changed in the year.</p>", "Nothing else changed in the year."),
 ]
 
 
@@ -70,23 +78,29 @@ def filing(tmp: Path) -> tuple[dict, dict, Path]:
     heads = [{"heading_id": segment.heading_id(cleaned, cleaned["paragraphs"][u["paragraph_index"]], u["char_start"]),
               "text": u["text"], "next_text": ""} for u in units if u["role"] == "heading"]
     group = {"ticker": "TEST", "form": "10-K", "accession": raw["accession_number"],
-             "section_key": raw["section_key"], "section": "Part II Item 7", "headings": heads}
+             "section_key": raw["section_key"], "section": "Part II Item 7", "headings": heads,
+             "units": [short_unit(u) for u in units]}
     return raw, group, path
 
 
-class HtmlHeadings(unittest.TestCase):
+class Synthetic(unittest.TestCase):
+    """The synthetic filing, run through filing_rows once per test class."""
+
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
         raw, group, path = filing(Path(cls.tmp.name))
         cls.group = group
-        rows, cls.info = filing_rows([group], {raw["section_key"]: raw}, path, False)
+        rows, cls.info, diff = filing_rows([group], {raw["section_key"]: raw}, path, False)
         cls.rows = {r["text"]: r for r in rows}
+        cls.diff = {(r["kind"], r["text"]): r for r in diff}
 
     @classmethod
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
+
+class HtmlHeadings(Synthetic):
     def level(self, text):
         return self.rows[text]["level"], self.rows[text]["reason"]
 
@@ -143,7 +157,43 @@ class HtmlHeadings(unittest.TestCase):
         self.assertEqual(self.rows["Intelligent Cloud"]["link_suffix"], "Azure revenue grew 30%")
 
     def test_sha_differs_from_the_export(self):
-        self.assertEqual(self.info, {"html": "ok", "sha_differs": True})
+        self.assertEqual((self.info["html"], self.info["sha_differs"]), ("ok", True))
+
+
+class HtmlVsStep4(Synthetic):
+    """compare.py: HTML headings step 4 missed, and step-4 headings the HTML shows as plain."""
+
+    def test_styled_lines_step_4_reads_as_body_are_html_only(self):
+        row = self.diff[("html_only", "We expect revenue to keep growing in the next fiscal year.")]
+        self.assertEqual((row["html_style"], row["step4_role"], row["text_check"]), ("bold", "body", "sentence"))
+        row = self.diff[("html_only", "Revenue increased.")]
+        self.assertEqual((row["step4_role"], row["text_check"]), ("body", "short_line"))
+
+    def test_headings_step_4_reads_are_not_html_only(self):
+        html_only = {text for kind, text in self.diff if kind == "html_only"}
+        for text in ("OVERVIEW", "Intelligent Cloud", "Server Products", "Nine Months Ended January 31, 2020",
+                     "Item 7. Management Discussion", "(Dollars and Amounts in Thousands)", "Fiscal Year"):
+            self.assertNotIn(text, html_only)
+
+    def test_plain_heading_in_the_html_is_step4_plain(self):
+        row = self.diff[("step4_plain", "Other Matters")]
+        self.assertEqual(row["html_style"], "plain")
+        self.assertGreater(row["level"], 0)
+        plain = {text for kind, text in self.diff if kind == "step4_plain"}
+        self.assertNotIn("Leases and Commitments", plain)       # level 0 (toc): not compared
+        self.assertNotIn("OVERVIEW", plain)
+
+    def test_counts_for_the_summary(self):
+        html_only = sum(kind == "html_only" for kind, _ in self.diff)
+        self.assertEqual(self.info["html_only"], html_only)
+        self.assertGreater(self.info["html_headings"], html_only)
+
+    def test_max_words_setting(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw, group, path = filing(Path(tmp))
+            _, _, diff = filing_rows([group], {raw["section_key"]: raw}, path, False, {"max_words": 5})
+        self.assertNotIn("We expect revenue to keep growing in the next fiscal year.",
+                         {r["text"] for r in diff if r["kind"] == "html_only"})
 
 
 class Step(unittest.TestCase):
@@ -185,6 +235,8 @@ class Step(unittest.TestCase):
                 summary_lines = step.summary_path().read_text().splitlines()
                 review = list(csv.DictReader(line for line in review_lines if not line.startswith("#")))
                 summary = list(csv.DictReader(line for line in summary_lines if not line.startswith("#")))
+                diff_lines = step.diff_path().read_text().splitlines()
+                diff = list(csv.DictReader(line for line in diff_lines if not line.startswith("#")))
             finally:
                 for k, v in saved.items():
                     if v is None:
@@ -197,7 +249,10 @@ class Step(unittest.TestCase):
         self.assertEqual(by_text["Server Products"]["heading_path"], "SEGMENT RESULTS > Intelligent Cloud > Server Products")
         self.assertEqual(summary[0]["ticker"], "TEST")
         self.assertEqual(summary[0]["found_in_html_pct"], "100.0")
-        for lines, cols in ((review_lines, step.REVIEW_HELP), (summary_lines, step.SUMMARY_HELP)):
+        self.assertEqual({r["kind"] for r in diff}, {"html_only", "step4_plain"})
+        self.assertEqual(summary[0]["html_only"], str(sum(r["kind"] == "html_only" for r in diff)))
+        for lines, cols in ((review_lines, step.REVIEW_HELP), (summary_lines, step.SUMMARY_HELP),
+                            (diff_lines, step.DIFF_HELP)):
             guide = [line for line in lines if line.startswith("# ")]
             self.assertEqual([line[2:].split(":")[0] for line in guide], list(cols))   # one line per column
             self.assertEqual(lines[len(guide)].split(","), list(cols))               # then the header
@@ -281,7 +336,8 @@ class Fallbacks(unittest.TestCase):
     def test_without_html_every_heading_is_a_sibling(self):
         with tempfile.TemporaryDirectory() as tmp:
             raw, group, _ = filing(Path(tmp))
-            rows, info = filing_rows([group], {raw["section_key"]: raw}, None, False)
+            rows, info, diff = filing_rows([group], {raw["section_key"]: raw}, None, False)
+        self.assertEqual(diff, [])
         self.assertEqual(info["html"], "missing")
         self.assertEqual({(r["level"], r["reason"]) for r in rows}, {(1, "missing_html"), (0, "no_letters")})
 

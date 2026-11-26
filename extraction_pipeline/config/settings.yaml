@@ -54,6 +54,9 @@ page_breaks:                         # step 2b
 
 headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
   indent_tickers: [MCK]              # companies whose left indent marks a heading level
+  compare:                           # heading_html_diff.csv only (HTML headings vs step 4); no level changes
+    max_words: 20                    # an HTML block with more words is never heading-like
+    sentence_min_words: 8            # text_check "sentence": this many words and . ! ? at the end
 
 # USD per 1M tokens, Standard tier, from https://openai.com/api/pricing (checked 2026-11-18).
 # regional_uplift: true = released on or after 2026-03-05, so 10% more on a data-residency

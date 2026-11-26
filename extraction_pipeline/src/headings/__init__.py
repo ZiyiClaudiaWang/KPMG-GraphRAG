@@ -9,6 +9,7 @@ section_path and heading_path.
   candidates.py     the headings step 4 finds, and the levels file step 4 reads
   html.py           HTML -> blocks with typography, aligned to the Data-team text
   levels.py         the level rules (see its docstring)
+  compare.py        HTML headings vs step 4's headings, a review file only
   edgar_primary.py  download the filing's primary document once
   step.py           the step: run(), review and summary files
 """

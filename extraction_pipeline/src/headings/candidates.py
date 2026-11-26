@@ -30,7 +30,9 @@ def load_levels() -> dict[str, int]:
 def section_headings() -> list[dict]:
     """Headings of every kept section, in order, with the first words of the text under each.
     Risk category headings are included: their level decides which of them are categories
-    (segment.is_risk_category)."""
+    (segment.is_risk_category). Each section also carries its units in short form (role,
+    prefilter, rule_heading, start / end in the Data-team content) for the HTML comparison
+    (compare.py); a section without headings is listed too, with an empty list."""
     from ..segment import heading_id, segment_section
     cfg = settings()["segment"]
     kept = kept_section_keys()
@@ -51,8 +53,14 @@ def section_headings() -> list[dict]:
                 para = sec["paragraphs"][u["paragraph_index"]]
                 heads.append({"heading_id": heading_id(sec, para, u["char_start"]), "text": u["text"],
                               "role": u["role"], "next_text": " ".join(after.split()[:12])})
-            if heads:
+            if units:
                 out.append({"ticker": f["ticker"], "form": f["form"], "accession": sec["accession_number"],
                             "section_key": sec["section_key"], "section": units[0]["section_label"],
-                            "headings": heads})
+                            "headings": heads, "units": [short_unit(u) for u in units]})
     return out
+
+
+def short_unit(unit: dict) -> dict:
+    spans = unit["raw_spans"] or [[unit["char_start"], unit["char_end"]]]
+    return {"role": unit["role"], "prefilter": unit["prefilter"], "rule_heading": unit["rule_heading"],
+            "start": min(a for a, _ in spans), "end": max(b for _, b in spans)}

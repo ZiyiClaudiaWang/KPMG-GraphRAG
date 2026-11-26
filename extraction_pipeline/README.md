@@ -103,7 +103,7 @@ Code does everything that must be exact and repeatable. The LLM only judges mean
 | 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl` | yes |
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment.py` | `output/sentences.jsonl` | no |
-| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
+| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `output/heading_review.csv`, `output/heading_summary.csv`, `output/heading_html_diff.csv`, `edgar/primary/` (HTML and `urls.json`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
 | 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
@@ -411,7 +411,15 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     scrolls to the heading and highlights it (a `#:~:text=` link; the filing URLs are kept in
     `data/edgar/primary/urls.json`, looked up once per filing); `output/heading_summary.csv`, one row per company
     (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
-    hash differs from the export's `source_sha256`). Both CSV files start with one
+    hash differs from the export's `source_sha256`, and `html_covered_pct`: the share of HTML
+    headings that step 4 reads as headings); `output/heading_html_diff.csv`, for review only
+    (`src/headings/compare.py`, changes no level or role): `html_only` rows are HTML blocks in a
+    kept section styled as headings (standalone, bold / underline / italic / capitals / larger,
+    at most `headings.compare.max_words` words) that step 4 did not read as headings, with what
+    step 4 made of them (`step4_role`) and `text_check` (`sentence` = a full sentence of
+    `headings.compare.sentence_min_words`+ words ending in . ! ?, so a risk lead sentence or body
+    rather than a heading); `step4_plain` rows are step-4 headings the HTML shows as plain text.
+    All three CSV files start with one
     `# column: meaning` line per column, then the header row (pandas: `read_csv(path, comment="#")`).
   - A new level changes `section_path`, which is in the step 5 request: units whose path changed
     are sent again (and paid for) the next time step 5 runs. `unit_id`s do not change.
