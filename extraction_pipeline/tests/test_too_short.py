@@ -134,5 +134,41 @@ class Paragraphs(unittest.TestCase):
         self.assertEqual(plain["Opportunity."]["role"], "body")
 
 
+class GroupLists(unittest.TestCase):
+    def test_label_row_and_names_are_one_list_group(self):
+        got = units("Our groups serve these markets.\n\n"
+                    "Engineered Materials Group: | • Aerospace\n\n•Agriculture\n\n•Chemical processing\n\n"
+                    "Life sciences | • Microelectronics\n\n•Truck & bus\n\n"
+                    "Filtration Group: | • Aerospace & defense\n\n•Agriculture\n\n•Food & beverage\n\n"
+                    "We sell through distributors.")
+        groups = [u for u in got.values() if u["role"] == "list_group"]
+        self.assertEqual([g["text"] for g in groups],
+                         ["Engineered Materials Group: | • Aerospace •Agriculture •Chemical processing "
+                          "Life sciences | • Microelectronics •Truck & bus",
+                          "Filtration Group: | • Aerospace & defense •Agriculture •Food & beverage"])
+        self.assertTrue(all(g["prefilter"] is None for g in groups))
+        self.assertNotIn("Agriculture", got)
+        self.assertIsNone(got["We sell through distributors."]["prefilter"])
+
+    def test_a_label_row_alone_is_not_a_group(self):
+        got = units("Revenue: | • Services\n\nWe grew in every market this year.")
+        self.assertFalse(any(u["role"] == "list_group" for u in got.values()))
+
+
+class BulletRunIn(unittest.TestCase):
+    def test_bullet_period_heading_with_text_after(self):
+        got = units("Our themes are opportunity and community.\n\n•Opportunity.\n\n"
+                    "Retail can be a powerful engine for inclusive economic opportunity.\n\n•Community.\n\n"
+                    "Walmart aims to serve and strengthen communities.")
+        self.assertEqual(got["Opportunity."]["role"], "heading")
+        self.assertEqual(got["Retail can be a powerful engine for inclusive economic opportunity."]["subheading"],
+                         "Opportunity.")
+        self.assertEqual(got["Walmart aims to serve and strengthen communities."]["subheading"], "Community.")
+
+    def test_bullet_items_stay_items(self):
+        got = units("Our revenues may vary because of many things.\n\n•Pricing.\n\n•Seasonality.")
+        self.assertEqual(got["Pricing."]["role"], "body")
+
+
 if __name__ == "__main__":
     unittest.main()

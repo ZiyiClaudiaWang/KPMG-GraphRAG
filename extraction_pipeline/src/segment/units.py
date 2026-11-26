@@ -26,9 +26,12 @@ from .headings import HeadingPath
 #     styled run-in with a verb ("We may experience supply problems.") is not a heading; styled
 #     run-ins inside a paragraph are headings (WMT "Opportunity."); a stray bullet is never
 #     too_short; 'Matters."The' ends a sentence; "* Not meaningful." is a table note.
+# v12 (26 Nov 2026): a label row and the short names under it are one list_group (PH market
+#     tables); a bullet line that is only a title-case period heading, with text after it, is a
+#     run-in heading (WMT "•Opportunity.").
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v11"
+SEGMENTATION_VERSION = "kelly_sentence_v12"
 
 
 def section_label(sec: dict) -> str:

@@ -6,14 +6,19 @@ Each paragraph goes to the first reader in READERS that takes it; the order is t
   2. heading_line     a heading by its text (headings.is_line_heading), not a sentence by its level
                       (in Item 1A, level 1 is a risk category); bullets right under it are a list
                       with the heading as intro
-  3. list_block       an intro (ending in ":" or announcing "the following") and its list items;
+  3. group_list       a label row and the short names under it (PH Item 1 market tables:
+                      "Engineered Materials Group: | • Aerospace", "•Agriculture", ...,
+                      "Life sciences | • Microelectronics"): one list_group per label
+  3b. list_block      an intro (ending in ":" or announcing "the following") and its list items;
                       a run-in heading opening the intro paragraph is a heading too (PH "Aerospace
                       Systems Segment. Our ... products include:")
   4. run_in_heading   a paragraph opening with a period heading ("Flexible Work. ..."): title case
                       by its text, or, from the filing's HTML, a short styled first sentence in any
                       case (TTWO "Player acquisition costs.", step 4b headings/leads.py)
   5. rule_lead        Item 1A: a paragraph the rules propose as a risk lead (rule_heading)
-  6. paragraph        anything else: split into sentences; a sentence the HTML styles as a
+  6. paragraph        anything else: split into sentences; a bullet line that is only a
+                      title-case period heading, with plain text after it, is a run-in heading
+                      (WMT "•Opportunity." / "Retail can be ..."); a sentence the HTML styles as a
                       run-in heading opens one there too (WMT "...ethics and integrity.
                       Opportunity. Retail can ...", one paragraph in the export). A stray bullet
                       is never too_short (GOOGL "•seasonality."): an item takes its meaning from
@@ -25,7 +30,8 @@ from __future__ import annotations
 from typing import Callable
 
 from .headings import NOT_A_HEADING, SECTION_TITLE, HeadingPath, Levels, is_line_heading, is_period_heading
-from .lists import ANNOUNCES_LIST, BULLET, is_bullet, item_marker, list_items_end, merge_list, starts_list
+from .lists import (ANNOUNCES_LIST, BULLET, group_items_end, group_label, is_bullet, item_marker, list_items_end,
+                    merge_list, starts_list)
 from .html_tables import TableRows
 from .prefilter import prefilter
 from .risk import mark_risk_summary, rule_lead_strength
@@ -139,6 +145,27 @@ def heading_line(s: Section, i: int) -> int | None:
     return i
 
 
+def group_list(s: Section, i: int) -> int | None:
+    """A label row ("Engineered Materials Group: | • Aerospace") and the short names under it,
+    one per paragraph or two in a row ("Life sciences | • Microelectronics"), as one list_group:
+    the names only mean something together with the label (lists.group_label)."""
+    para = s.paragraphs[i]
+    if not group_label(para["text"]):
+        return None
+    j = group_items_end(s.paragraphs, i + 1)
+    if j - i < 3:                                   # the label row and at least two more rows
+        return None
+    members = s.paragraphs[i:j]
+    spans = []
+    for m in members:
+        spans += raw_spans(m, m["start"], m["start"] + len(m["text"]))
+    end = members[-1]["start"] + len(members[-1]["text"])
+    unit = s.add("list_group", i, para["start"], end, None, spans=spans,
+                 text=" ".join(m["text"] for m in members))
+    unit["list_paragraphs"] = list(range(i, j))
+    return j
+
+
 def list_block(s: Section, i: int) -> int | None:
     """An intro ending in ":" (or a sentence announcing "the following") plus the list items
     right after it: one list_group unit, or split items pointing back to the intro sentence."""
@@ -223,8 +250,14 @@ def paragraph(s: Section, i: int) -> int:
     bullet = is_bullet(text)
     body_start = p0 + (BULLET.match(text).end() if bullet else 0)
     body = s.sec["text"][body_start:p0 + len(text)]
-    for k, (a, b) in enumerate(split_sentences(body)):
-        at = body_start - p0
+    sentences = split_sentences(body)
+    at = body_start - p0
+    nxt = s.paragraphs[i + 1]["text"] if i + 1 < len(s.paragraphs) else ""
+    if bullet and len(sentences) == 1 and nxt and not is_bullet(nxt):
+        a, b = sentences[0]
+        if s.open_run_in(i, at + a, at + b):         # WMT "•Opportunity." then its text
+            return i + 1
+    for k, (a, b) in enumerate(sentences):
         if k and not bullet and s.open_run_in(i, at + a, at + b, by_text=False):
             continue
         unit = s.add("body", i, body_start + a, body_start + b, AUTO)
@@ -233,7 +266,7 @@ def paragraph(s: Section, i: int) -> int:
     return i + 1
 
 
-READERS: tuple[Reader, ...] = (section_title, heading_line, list_block, run_in_heading, rule_lead, paragraph)
+READERS: tuple[Reader, ...] = (section_title, heading_line, group_list, list_block, run_in_heading, rule_lead, paragraph)
 
 
 def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None,
