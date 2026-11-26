@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import logging
 import os
 import sys
 from pathlib import Path
@@ -37,12 +38,61 @@ from . import contract
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "structured"))
 import fiscal  # noqa: E402
 
+# Nothing in this package logs yet. A library should not configure logging, and
+# it does not need to here: Python prints WARNING and above to stderr through
+# its last-resort handler even when the application sets nothing up. So the one
+# warning below is visible by default and still silenceable by a caller.
+log = logging.getLogger(__name__)
+
 # Lexical search over the claim text. Neo4j scores the match for us, which is
 # what the envelope's `score` reports.
 FULLTEXT_INDEX = "claim_quote_fulltext"
 
 EXTRACTION_VERSION = "claim-pipeline-v1"
 INDEX_VERSION = "neo4j-fulltext-v1"
+
+# How many claims to ask the index for when a filter is present.
+#
+# The filter runs after the index, not inside it. So the index is asked for the
+# best N claims in the whole graph, and only then are the ones outside the
+# filter thrown away. When the filter selects a small share of the corpus, the
+# rows it wants can sit far down the global score order and never reach the
+# WHERE at all: measured on 10,774 claims, "revenue" filtered to one quarter of
+# one company returned nothing at top_k=8, because its four claims sat at
+# positions 227, 461, 488 and 498. The old rule asked for top_k * 10, which at
+# top_k=8 is 80.
+#
+# So a multiple of top_k cannot be right - top_k says how many rows the caller
+# wants back, and nothing about how far down the list they start. The rule is
+# instead: ask the index for every claim matching the query, and let the filter
+# choose from all of them. That is correct by construction rather than by a
+# large enough guess, and it costs one extra round trip to learn the size of
+# the match set.
+#
+# The match set is bounded by the query, not the corpus - but not by much. The
+# query is built by joining every word with OR, and the index analyzer keeps
+# stop words, so a question matches most of the graph. Measured on 10,774
+# claims: "revenue" alone matches 548 (5%), but "total revenue for the three
+# months ended March 31, 2026" matches 7,485 (70%) and the demo question
+# matches 8,305 (77%).
+#
+# So the cap has to clear the whole corpus, not a fraction of it. The 313-filing
+# corpus is around 168,000 claims, and 25,000 - the first value here - would
+# have fired on most questions there, silently returning this defect. A cap that
+# fires is this bug again, so the cap is set above the corpus we are loading and
+# the code says so when it is reached.
+#
+# It stays a cap rather than becoming unbounded because a backstop that can
+# never trigger is not a backstop. Cost at this size is unmeasured: 25,000
+# candidates took 0.18s on 10,774 claims, and nothing has been run against a
+# corpus large enough to need more. Measure after the v2 load.
+FULLTEXT_MATCH_CAP = 250_000
+
+COUNT_MATCHES_CYPHER = """
+CALL db.index.fulltext.queryNodes($index, $lucene, {limit: $limit})
+YIELD node
+RETURN count(node) AS matches
+"""
 
 # Filters that map onto a property this graph actually stores. Anything in
 # the contract's graph filter set but missing here is refused by name rather
@@ -419,12 +469,33 @@ def search(query: str, filters: dict | None = None, top_k: int = 10,
     cypher = SEARCH_CYPHER.replace("{where}", f"WHERE {where}" if where else "")
 
     driver = connect()
-    # Ask for more than top_k because the WHERE runs after the index, so
-    # filtered-out claims would otherwise eat the result slots.
-    limit = top_k * 10 if where else top_k
 
     try:
         with driver.session(database=_database) as session:
+            if where:
+                # Every claim the query matches, so the filter chooses from all
+                # of them rather than from whichever happened to rank highest
+                # across the whole graph. See FULLTEXT_MATCH_CAP.
+                matched = session.run(
+                    COUNT_MATCHES_CYPHER, index=FULLTEXT_INDEX, lucene=lucene,
+                    limit=FULLTEXT_MATCH_CAP,
+                ).single()["matches"]
+                if matched >= FULLTEXT_MATCH_CAP:
+                    # Say it. At the cap the filter is choosing from a prefix
+                    # again, which is the defect this function exists to fix,
+                    # and no count or row total reveals that it happened.
+                    log.warning(
+                        "fulltext match set reached FULLTEXT_MATCH_CAP (%d) for "
+                        "query %r. The filter is choosing from a truncated "
+                        "candidate list and rows may be missing. Raise the cap "
+                        "or narrow the query.", FULLTEXT_MATCH_CAP, query,
+                    )
+                limit = max(matched, top_k)
+            else:
+                # Nothing is discarded after the index, so the best top_k the
+                # index returns are the best top_k there are.
+                limit = top_k
+
             rows = session.run(
                 cypher, index=FULLTEXT_INDEX, lucene=lucene, limit=limit, **params
             ).data()
