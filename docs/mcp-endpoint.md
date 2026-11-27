@@ -145,6 +145,25 @@ A crash in the server itself is masked to `Error executing tool <name>` with not
 
 **`cypher_search`.** The seam is on `main` since #67, but it raises until something registers a backend. A tool that always fails is worse than one that is not there. It goes in when `graphrag/cypher_backend.py` exists.
 
-**The agent as a tool.** The decision that the GraphRAG team owns its own agent is recorded (#108), and the agent itself is not built. When it is, it joins this server as a fourth tool: the arms stay exposed for Eval, who score them directly, and the agent is there for anyone who wants an answer rather than evidence.
+**Hosting.** Running this still needs the repo and the credentials, so "without our source tree" is only half true today — it removes the Python import, not the deployment. ⚠️ The Aura credential can write and this tier has no read-only user, so a hosted endpoint is a decision about write access, not just uptime.
 
-**Hosting.** Running this still needs the repo and the credentials, so "without our source tree" is only half true today — it removes the Python import, not the deployment. Who hosts it, and whose credentials it runs on, is an open decision and the one thing between this and another team using it for real. ⚠️ The Aura credential can write and this tier has no read-only user, so a hosted endpoint on it is a decision about write access, not just uptime.
+**The agent.** Recorded on #108, not built. See below.
+
+## When the agent lands
+
+It joins this server as a fourth tool, taking a question and returning the same decision envelope plus a composed answer and the evidence behind it. The arms stay exposed beside it, because Eval score them directly.
+
+It will be a **consumer of the arms, not a third arm**. `retrieve._tool_config` knows `graph`, `structured` and `cypher`, and the agent sits beside the tools here, calling `retrieve.search` the same way they do — one validation layer, no MCP calling itself.
+
+The decision vocabulary already has room for it. `contract.SEARCH_STATUSES` holds four values and the arms emit two: no arm returns `clarify` or `block`, which are there for ambiguity an arm cannot resolve and for a policy refusal. Both belong to the agent layer.
+
+Four things change the day it is on this endpoint, and each is cheaper to settle now:
+
+| | What changes |
+|---|---|
+| **Latency** | The arms answer in milliseconds. An agent doing two to four retrieval calls plus reasoning will not, and MCP clients time a call out by default. Tell a consumer the expected shape before they wire a Supervisor around it |
+| **Hosting** | The agent adds an LLM key and a per-call cost to whoever runs the process — the same process already holding a write-capable Aura credential. "Who hosts" stops being about uptime and becomes about keys and spend |
+| **Versioning** | `graphrag_commit` pins the code. An agent's answer also depends on its model and prompt version, and without stamping those, three parties disagree about which *agent* produced a number — the problem `graphrag_commit` exists to prevent, one level up |
+| **Scoring** | Eval score the arms. If the agent becomes the entrypoint, their numbers become agent quality rather than retrieval quality, and the two are not comparable. Someone has to say which one round 2 scores, before it runs |
+
+One structural choice stays open: same server or its own. Same server is simpler for a client and lets the agent share `describe_filters`, but a slow or crashing agent takes the fast arm tools down with it. At this scale one server is right; splitting it later is config, not a rewrite.
