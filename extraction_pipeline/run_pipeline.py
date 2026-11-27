@@ -19,7 +19,9 @@ Steps, in order (the number is the README's):
   6a  subsidiaries   subsidiaries.jsonl: Exhibit 21 of each 10-K in filings.yaml (SEC EDGAR, no LLM)
   6b  entity_catalog entity_catalog.json: subsidiaries + XBRL segments a Claim may link to
   7   label          labels.jsonl: one label per sentence (paid)
-  8   validate       errors.jsonl, review_queue.jsonl
+  8   validate       errors.jsonl, review_queue.jsonl (held: needs_review)
+  8b  extract        extractions.jsonl: entity mentions, metrics, event type of each Claim (paid;
+                     only units that became Claims in steps 7-8 are sent)
   9   build_claims   claims.jsonl
   9b  claim_links    claim_links.jsonl: Claims with the same or similar text in other filings
                      (no LLM; the semantic layer is paid and off unless claim_links.semantic.compute)
@@ -45,14 +47,15 @@ import argparse
 import sys
 import time
 
-from src import (build_claims, claim_links, clean, fetch, filter_sections, headings, label, load, page_breaks,
-                 segment, validate)
+from src import (build_claims, claim_links, clean, extract, fetch, filter_sections, headings, label, load,
+                 page_breaks, segment, validate)
 from src.checks import report, unit_repeats
 from src.entities import catalog as entity_catalog, subsidiaries
 from src.risk import factors as risk_factors, themes as risk_themes
 
 STEPS = ["fetch", "page_breaks", "clean", "filter", "headings", "segment", "risk_factors", "risk_themes",
-         "subsidiaries", "entity_catalog", "label", "validate", "build_claims", "claim_links", "load"]
+         "subsidiaries", "entity_catalog", "label", "validate", "extract", "build_claims",
+         "claim_links", "load"]
 OPT_IN = {"page_breaks"}                  # paid; only when named in --steps
 SEND_WHEN_NAMED = {"risk_themes"}         # paid; in a default run it reads saved replies only
 # Steps the review report covers (no labels needed): a run with any of them ends with the report.
@@ -66,7 +69,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="paid steps and load without API or database")
     parser.add_argument("--filing", metavar="ACCESSION", help="label: only call the API for this filing")
     parser.add_argument("--limit", type=int, help="paid steps: at most this many new API requests")
-    parser.add_argument("--workers", type=int, help="label, risk_themes: requests in flight at once")
+    parser.add_argument("--workers", type=int, help="label, extract, risk_themes: requests in flight at once")
     parser.add_argument("--from-db", metavar="FOLDER", help="fetch: export from the database via this folder")
     args = parser.parse_args()
 
@@ -95,6 +98,7 @@ def main() -> None:
         "label": lambda: label.run(dry_run=args.dry_run, filing=args.filing, limit=args.limit,
                                    workers=args.workers),
         "validate": validate.run,
+        "extract": lambda: extract.run(dry_run=args.dry_run, limit=args.limit, workers=args.workers),
         "risk_factors": risk_factors.run,
         "build_claims": build_claims.run,
         "claim_links": lambda: claim_links.run(dry_run=args.dry_run),

@@ -24,7 +24,7 @@ os.environ["PIPELINE_RISK_CATEGORY_MAP"] = str(FIXTURES / "risk_category_map.csv
 os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
 shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
-from src import build_claims, clean, filter_sections, label, load, segment, validate  # noqa: E402
+from src import build_claims, clean, extract, filter_sections, label, load, segment, validate  # noqa: E402
 from src.risk import factors as risk_factors, themes as risk_themes  # noqa: E402
 from src.clean import ONE_FOR_ONE  # noqa: E402
 from src import common  # noqa: E402
@@ -132,12 +132,12 @@ class ReviewRules(unittest.TestCase):
                 "section_type": "mda", "accession_number": "A"}
 
     def entry(self, unit, label, units=None):
-        result = {"label": label, "context_ids": [], "subject_scope": None, "annotation_note": None,
-                  "is_risk_heading": False, "entity_mentions": []}
+        result = {"label": label, "context_ids": [], "subject_scope": [], "annotation_note": None,
+                  "is_boilerplate": False, "time_reference": None, "entity_mentions": []}
         if units:
             result["context_ids"] = list(units)                       # unit ids
         source = dict(self.source, content=unit["text"])
-        return validate.review_entry(unit, result, source, [], [])
+        return validate.review_entry(unit, result, source)
 
     def test_mixed_tense_flagged_not_held(self):
         got = self.entry(self.unit("Several jurisdictions have passed laws, and others are considering more."),
@@ -220,13 +220,11 @@ class EndToEnd(unittest.TestCase):
         def reply(payload, request):
             """Labels everything stated_fact. The first reply leaves its last sentence out and
             cites a later sentence as context for its first one."""
-            by_text = {u["text"]: u for u in EndToEnd.units}
-            row = {"label": "stated_fact", "context_ids": [], "subject_scope": None, "annotation_note": None,
-                   "is_risk_heading": False, "entity_mentions": []}
+            row = {"label": "stated_fact", "context_ids": [], "subject_scope": ["company"], "annotation_note": None,
+                   "is_boilerplate": False, "time_reference": None}
             if "repair_1" in payload:                                  # the targeted repair request
                 return {"repairs": {key: row for key in payload}}
-            results = [dict(row, id=s["id"], is_risk_heading=bool(by_text[s["text"]]["rule_heading"]))
-                       for s in payload["sentences"]]
+            results = [dict(row, id=s["id"]) for s in payload["sentences"]]
             if len(FakeOpenAI.calls) == 1:
                 EndToEnd.dropped = payload["sentences"][-1]["text"]
                 EndToEnd.bad_context = payload["sentences"][0]["text"]
@@ -250,6 +248,25 @@ class EndToEnd(unittest.TestCase):
             restore()
         cls.errors = validate.run()
 
+        def extracts(payload, request):
+            """Asia is a geography; "Atlantis" is not in any sentence, so code drops it."""
+            EndToEnd.extract_texts += [s["text"] for s in payload["sentences"]]
+            out = []
+            for s in payload["sentences"]:
+                found = [{"mention_text": "Asia", "entity_type": "geography", "role": "location",
+                          "reference_kind": "named", "evidence_quote": "Asia"}] if "Asia" in s["text"] else []
+                found.append({"mention_text": "Atlantis", "entity_type": "geography", "role": "location",
+                              "reference_kind": "named", "evidence_quote": "Atlantis"})
+                out.append({"id": s["id"], "entity_mentions": found, "metrics": [], "event_type": None,
+                            "affected_object": ["revenue", "revenue"]})
+            return out
+        cls.extract_texts = []
+        restore = use_fake_openai(extracts)
+        try:
+            extract.run()
+        finally:
+            restore()
+
         def themes(payload, request):
             """Every risk factor: competition, and costs_pricing_margins on its second sentence."""
             EndToEnd.theme_requests.append(payload["risk_factor"])
@@ -272,6 +289,16 @@ class EndToEnd(unittest.TestCase):
         build_claims.run()
         load.run(dry_run=True)
         cls.claims = list(read_jsonl(Paths.claims()))
+
+    def test_extract_sends_only_claims_and_checks_quotes(self):
+        quotes = {c["quote"] for c in self.claims}
+        self.assertTrue(self.extract_texts)
+        self.assertEqual(set(self.extract_texts), quotes)            # not_a_claim and held: never sent
+        typed = [m for c in self.claims for m in c["typed_mentions"]]
+        self.assertTrue(typed)
+        self.assertEqual({m["mention_text"] for m in typed}, {"Asia"})   # "Atlantis" dropped
+        self.assertTrue(all(c["affected_object"] == ["revenue"] for c in self.claims))
+        self.assertTrue(all(c["subject_scope"] == ["company"] for c in self.claims))
 
     def test_clean_removes_headers_and_joins_page_breaks(self):
         sections = {s["section_key"]: s for s in read_jsonl(Paths.cleaned({"ticker": "TEST",

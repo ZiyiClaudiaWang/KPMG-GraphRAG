@@ -15,7 +15,7 @@ flowchart LR
     CO["<b>Company</b><br/>cik · name · ticker"]
     FI["<b>Filing</b><br/>accession_number · form · filing_date<br/>reporting_period_end · cik"]
     SE["<b>Section</b><br/>section_id · section_key · section_type<br/>title · part · item · xpath"]
-    CL["<b>Claim</b><br/>claim_id · quote · claim_type · multi_fragment<br/>context · subject_scope · annotation_note<br/>is_lead_sentence · risk_summary<br/>risk_factor_id · risk_category_text · risk_category_unit_id<br/>heading_risk_group · risk_theme_status"]
+    CL["<b>Claim</b><br/>claim_id · quote · claim_type · multi_fragment<br/>context · subject_scope · annotation_note<br/>is_boilerplate · time_reference<br/>event_type · affected_object · metrics_json · typed_mentions_json<br/>is_lead_sentence · risk_summary<br/>risk_factor_id · risk_category_text · risk_category_unit_id<br/>heading_risk_group · risk_theme_status"]
     RT["<b>RiskTheme</b> (32)<br/>theme_id · definition · ey_2016_category"]
     RG["<b>RiskGroup</b> (7)<br/>group_id · definition"]
     SU["<b>Subsidiary</b><br/>sub_id · name · entity_key<br/>jurisdiction_raw · country · state_or_region"]
@@ -89,7 +89,8 @@ flowchart TD
     UNITS -->|"7 Label (LLM)"| LAB["Labels"]
     REP -.->|"label reused"| LAB
     LAB -->|"8 Validate"| VAL["Errors, review queue"]
-    VAL -->|"9 Build Claims"| CLM["claims.jsonl"]
+    VAL -->|"8b Extract (LLM, Claims only)"| EXT["Mentions, metrics, events"]
+    EXT -->|"9 Build Claims"| CLM["claims.jsonl"]
     RF --> CLM
     RT --> CLM
     CAT --> CLM
@@ -121,6 +122,7 @@ flowchart TD
 | [6b](#step-6b) | Entity catalog (`entity_catalog`) | [`entities/catalog.py`](src/entities/catalog.py), [`entities/headings.py`](src/entities/headings.py) | `entity_catalog.json`, `interim/heading_entities.jsonl` | no |
 | [7](#step-7) | Label (`label`) | [`label/`](src/label/) | `output/labels.jsonl` | paid |
 | [8](#step-8) | Validate (`validate`) | [`validate.py`](src/validate.py), [`source_review.py`](src/source_review.py) | `output/errors.jsonl`, `review_queue.jsonl` | no |
+| [8b](#step-8b) | Extract (`extract`) | [`extract.py`](src/extract.py) | `output/extractions.jsonl` | paid |
 | [9](#step-9) | Build Claims (`build_claims`) | [`build_claims.py`](src/build_claims.py), [`entities/annotation.py`](src/entities/annotation.py) | `output/claims.jsonl` | no |
 | [9b](#step-9b) | Claim links (`claim_links`) | [`claim_links.py`](src/claim_links.py) | `output/claim_links.jsonl` | semantic layer only: paid, off by default |
 | [10](#step-10) | Load (`load`) | [`load.py`](src/load.py) | Neo4j | no |
@@ -190,7 +192,7 @@ flowchart LR
     SUB --> SC["subsidiary_catalog.json"]
     XB[("XBRL fact store<br/>segment members")] -->|"6b"| CAT["entity_catalog.json<br/>subsidiaries, segments,<br/>registrant names"]
     SC -->|"6b"| CAT
-    LAB["7: model's entity_mentions"] --> M{"9: match_key()"}
+    LAB["8b: model's entity_mentions<br/>(segment, subsidiary, unknown)"] --> M{"9: match_key()"}
     CAT -->|"9: dictionary pass"| M
     M -->|"one exact hit"| LINK["related_subsidiary_ids,<br/>related_segment_ids"]
     M -->|"ambiguous, prior year only"| CAND["candidate (not linked)"]
@@ -215,8 +217,8 @@ flowchart TD
     LLM -->|"not_a_claim"| X["no Claim"]
     LLM -->|"needs_review"| H["8: held (review_queue)"]
     LLM -->|"stated_fact, forward_looking,<br/>hedged_risk"| V{"8 Validate"}
-    V -->|"kept"| C["9: Claim<br/>claim_id = unit_id"]
-    V -->|"rule flags: kept, flagged"| C
+    V -->|"kept (rule flags: kept, flagged)"| E["8b Extract<br/>(Claims only)"]
+    E --> C["9: Claim<br/>claim_id = unit_id"]
 ```
 
 #### f. Illustration
@@ -330,9 +332,11 @@ Each module's docstring has the full rules; below is what each step does and wha
 **[7] Label** (paid; [`src/label/`](src/label/))
 - Batches of up to 15 sentences per section, with 4 context units before them and any missing
   list intro. The model sees short numbers (`s1`, `c1`), mapped back to `unit_id`.
-- Returns a label (`stated_fact`, `forward_looking`, `hedged_risk`, `not_a_claim`,
-  `needs_review`), cited context, `subject_scope`, `annotation_note`, `entity_mentions`.
-  `is_risk_heading` is still asked but no longer read.
+- Prompt [`label_v3`](prompts/label_v3.txt): a label (`stated_fact`, `forward_looking`,
+  `hedged_risk`, `not_a_claim`, `needs_review`), cited context, `subject_scope` (1–3 of company,
+  segment, subsidiary, named_organization, competitors, suppliers, customers, partners, industry,
+  government, macro, other; main first), `annotation_note`, `is_boilerplate`, `time_reference`.
+  List items and list groups are Claims (they cite their intro). No entity mentions: step 8b.
 - Repeats of an earlier filing (same sentence, 4 units before, `section_path`, form and list
   intro: all the model sees) reuse its label (`llm_reused`; [#88][pr-88], [#113][pr-113]).
 - Each sentence is rebuilt from the source before sending; a mismatch stops the step.
@@ -344,7 +348,18 @@ Each module's docstring has the full rules; below is what each step does and wha
 - `errors.jsonl`: every unit has exactly one valid label (should be empty).
 - `review_queue.jsonl`: held units (`needs_review`, no Claim), and retained Claims with rule flags
   (`claim_review_flags`, Claudia's rules in [`source_review.py`](src/source_review.py); flag only,
-  they hold nothing) or doubtful entity mentions. List items and list groups are Claims.
+  they hold nothing). List items and list groups are Claims. Entity mentions are checked in step 9.
+
+<a id="step-8b"></a>
+**[8b] Extract** (paid; [`src/extract.py`](src/extract.py), prompt [`extract_v1`](prompts/extract_v1.txt))
+- Only the units that became Claims in steps 7–8 are sent, so not_a_claim and held units never
+  cost anything here, and a change here never touches step 7's labels.
+- Per Claim: `entity_mentions` (segment, subsidiary, organization, product, geography,
+  regulation, government, person, unknown; each with `role` and `reference_kind`), `metrics`
+  (metric, value, unit, period, direction), `event_type`, `affected_object`. Every quoted field
+  must be part of the sentence; code drops what is not.
+- Step 7's batches and context; repeats copy the first occurrence's extraction (`llm_reused`).
+  Own model, budget and ledger (`extract:` in settings, `output/usage_extract.jsonl`).
 
 <a id="step-9"></a>
 **[9] Build Claims** ([`src/build_claims.py`](src/build_claims.py))
@@ -433,14 +448,16 @@ uv run python -m pytest tests -q
 
 ## Cost tracking
 
-- Paid steps: 2b, 5b, 7. Each has its own `budget_usd` and ledger (`output/usage.jsonl` for 7,
-  `output/usage_<step>.jsonl` for 2b and 5b) and stops before a request could pass the budget.
+- Paid steps: 2b, 5b, 7, 8b, and the semantic layer of 9b. Each has its own `budget_usd` and
+  ledger (`output/usage.jsonl` for 7, `output/usage_<step>.jsonl` for 2b, 5b and 8b,
+  `output/usage_claim_links.jsonl` for 9b) and stops before a request could pass the budget.
 - Prices: the `prices:` table of `config/settings.yaml` ([OpenAI API pricing][openai-pricing], per
   1M tokens); `regional_uplift` models cost more on a regional endpoint ([data residency][openai-data]).
 - A saved reply is never requested again; nothing is resent automatically.
 - The request hash covers only what reaches the model (request + runner version): changing the
   model, prompt, a sentence, its context or `section_path` sends new requests.
-- `--dry-run` shows the worst case (full output allowance); real cost is about a fifth of it
+- `--dry-run` shows the worst case (full output allowance) and, for 7 and 8b, a typical cost
+  (`answer_tokens_per_sentence`); real cost is about a fifth of the worst case
   (MSFT FY2026 10-K: $0.14 against $0.79, [#47][pr-47];
   [`docs/extraction-run-msft-fy2026.md`](../docs/extraction-run-msft-fy2026.md)).
 
@@ -535,7 +552,9 @@ One line per unit; "Data team" fields come from the export.
 | `claim_type` | `stated_fact`, `forward_looking`, `hedged_risk` | `Claim.claim_type` |
 | `accession_number`, `section_id` | Filing and section | `Section-[:SUPPORTS]->Claim` |
 | `extraction_status` | Always `needs_review` | `Claim` |
-| `context`, `subject_scope`, `annotation_note` | Cited context text; from the model | `Claim` |
+| `context`, `subject_scope`, `annotation_note` | Cited context text; step 7 (`subject_scope`: 1–3 values, main first) | `Claim` |
+| `is_boilerplate`, `time_reference` | Step 7: generic language; the words that say when | `Claim` |
+| `typed_mentions`, `metrics`, `event_type`, `affected_object`, `extraction_source` | Step 8b (organization, product, geography, regulation, government, person mentions; numbers) | `Claim` (`typed_mentions_json`, `metrics_json`) |
 | `is_lead_sentence`, `risk_summary` | Lead sentence (step 4); in the risk factor summary | `Claim` |
 | `risk_factor_id`, `risk_category_text`, `risk_category_unit_id`, `heading_risk_group` | Step 5 | `Claim` |
 | `risk_theme_status` | `classified`, `unknown`, `not_classified`, `no_risk_factor`, `risk_summary`; null outside Item 1A | `Claim` |
@@ -546,7 +565,7 @@ One line per unit; "Data team" fields come from the export.
 | `claim_identity_version` | `source_span_position_v1` | no |
 | `context_evidence`, `source_fragments`, `parent_paragraph_context` | Cited units; source pieces and paragraph with positions | no |
 | `claim_review_flags` | Step 8 rule flags (mixed tense, "is subject to laws" as risk, ...): flag only | no |
-| `entity_mentions`, `entity_review_flags`, `proposed_entity_mentions`, `entity_review` | Model mentions checked against sentence and catalog | no |
+| `entity_mentions`, `entity_review_flags`, `proposed_entity_mentions`, `entity_review` | Step 8b's segment / subsidiary / unknown mentions checked against sentence and catalog | no |
 
 ## Appendix B: Risk taxonomy
 

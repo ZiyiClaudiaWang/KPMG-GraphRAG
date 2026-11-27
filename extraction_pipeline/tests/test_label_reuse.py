@@ -19,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURE = HERE / "fixtures" / "sections" / "TEST_0000000000-25-000001.jsonl"
 FIRST, SECOND = "0000000000-25-000001", "0000000000-26-000002"
 
-from src import build_claims, clean, filter_sections, label, load, segment, validate  # noqa: E402
+from src import build_claims, clean, extract, filter_sections, label, load, segment, validate  # noqa: E402
 from src.common import Paths, read_jsonl  # noqa: E402
 
 
@@ -48,8 +48,8 @@ class FakeOpenAI:
 def stated_fact(payload: dict) -> list[dict]:
     """Every sentence stated_fact; each cites the sentence before it in the batch, if any."""
     ids = [s["id"] for s in payload["sentences"]]
-    return [{"id": sid, "label": "stated_fact", "context_ids": ids[k - 1:k], "subject_scope": None,
-             "annotation_note": None, "is_risk_heading": False, "entity_mentions": []}
+    return [{"id": sid, "label": "stated_fact", "context_ids": ids[k - 1:k], "subject_scope": ["company"],
+             "annotation_note": None, "is_boilerplate": False, "time_reference": None}
             for k, sid in enumerate(ids)]
 
 
@@ -92,6 +92,25 @@ class LabelReuse(unittest.TestCase):
             sys.modules.pop("openai", None)
         else:
             sys.modules["openai"] = cls.saved_openai
+
+    def test_extract_sends_the_first_filing_and_copies_the_rest(self):
+        calls = len(FakeOpenAI.calls)
+        reply = FakeOpenAI.reply
+        FakeOpenAI.reply = staticmethod(lambda payload: [
+            {"id": s["id"], "entity_mentions": [], "metrics": [], "event_type": None, "affected_object": []}
+            for s in payload["sentences"]])
+        try:
+            extract.run()
+        finally:
+            FakeOpenAI.reply = reply
+        sent = {s["text"] for r in FakeOpenAI.calls[calls:]
+                for s in json.loads(r["messages"][1]["content"])["sentences"]}
+        rows = {r["unit_id"]: r for r in read_jsonl(Paths.extractions())}
+        self.assertTrue(sent)
+        self.assertTrue(all(self.units[u]["text"] in sent for u, r in rows.items() if r["source"] == "llm"))
+        copied = [r for r in rows.values() if r["source"] == "llm_reused"]
+        self.assertTrue(copied)
+        self.assertTrue(all(self.units[r["unit_id"]]["accession_number"] == SECOND for r in copied))
 
     def test_only_the_first_filing_is_sent(self):
         sent = {s["text"] for r in FakeOpenAI.calls

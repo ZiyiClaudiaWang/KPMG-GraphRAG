@@ -50,6 +50,15 @@ risk_factor_id; step 5b's answers (data/interim/risk_themes.jsonl) are put on th
   risk_themes              the themes from step 5b, each {theme_id, rank, scope, source,
                            agrees_with_heading, model, taxonomy_version}: one HAS_RISK_THEME edge each
   risk_summary             true if it is in the risk factor summary at the top of Item 1A (step 4)
+Step 7 (label_v3) fields: subject_scope (1 to 3 of validate.SUBJECT_SCOPES, main first),
+is_boilerplate, time_reference (words of the sentence, or null).
+Step 8b (extract.py, data/output/extractions.jsonl) fields, empty without its row:
+  entity_mentions          (after matching) the segment / subsidiary / unknown mentions
+  typed_mentions           organization, product, geography, regulation, government, person mentions
+                           [{mention_text, entity_type, role, reference_kind, evidence_quote}]
+  metrics                  [{metric_text, value_text, value, unit, period_text, direction}]
+  event_type, affected_object, extraction_source (llm | llm_reused | null)
+A label_v2 file (step 7 with entity_mentions) without extractions.jsonl still builds as before.
 Entities named in a heading above the Claim (step 6b, entities/headings.py):
   heading_entity_links     [{entity_id, entity_type, mention_text, match_status, heading_unit_id,
                            heading_text}], matched / matched_auto only, leaving out entities the
@@ -86,10 +95,27 @@ def digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+EXTRACT_FIELDS = ("metrics", "event_type", "affected_object")
+
+
+def split_mentions(extraction: dict | None, result: dict) -> tuple[list[dict], list[dict]]:
+    """(catalog mentions: segment, subsidiary, unknown, matched in annotate_mentions; other typed
+    mentions: organization, product, geography, ...). Without a step 8b row, step 7's mentions
+    (label_v2) are the catalog mentions."""
+    from .extract import CATALOG_TYPES
+    if extraction is None:
+        return result["entity_mentions"], []
+    mentions = extraction["entity_mentions"]
+    return ([m for m in mentions if m["entity_type"] in CATALOG_TYPES],
+            [m for m in mentions if m["entity_type"] not in CATALOG_TYPES])
+
+
 def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cleaned: dict,
-              vocabulary: list[dict], catalog: list[dict], risk: dict = NO_RISK) -> dict:
-    """Claudia's candidate record for one occurrence."""
+              vocabulary: list[dict], catalog: list[dict], risk: dict = NO_RISK,
+              extraction: dict | None = None) -> dict:
+    """Claudia's candidate record for one occurrence; extraction is the unit's step 8b row."""
     result = assessment(label)
+    catalog_mentions, typed_mentions = split_mentions(extraction, result)
     spans = unit["raw_spans"]
     fragments = [{"start": a, "end": b, "quote": source["content"][a:b]} for a, b in spans]
     paragraph = cleaned["paragraphs"][unit["paragraph_index"]]
@@ -105,6 +131,10 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
         "extraction_status": "needs_review", "context": " ".join(c["text"] for c in context) or None,
         "context_evidence": context,
         "subject_scope": result["subject_scope"], "annotation_note": result["annotation_note"],
+        "is_boilerplate": result["is_boilerplate"], "time_reference": result["time_reference"],
+        "typed_mentions": typed_mentions,
+        **{k: (extraction or {}).get(k, [] if k != "event_type" else None) for k in EXTRACT_FIELDS},
+        "extraction_source": (extraction or {}).get("source"),
         "section_type": unit["section_type"],
         **{k: risk.get(k, NO_RISK[k]) for k in RISK_FIELDS},
         "is_lead_sentence": bool(unit.get("lead_source")), "risk_summary": unit.get("risk_summary", False),
@@ -125,10 +155,10 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                        "runner_version": label.get("runner_version") or label_runner_version(),
                        "model": label["model"], "prompt_version": label["prompt_version"]},
     }
-    record.update(entity_annotation.annotate_mentions(unit["text"], result["entity_mentions"],
+    record.update(entity_annotation.annotate_mentions(unit["text"], catalog_mentions,
                                                       issuer_cik=source["cik"],
                                                       accession=source["accession_number"], catalog=catalog))
-    reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
+    reviewed = source_review.entity_review(unit, source, catalog_mentions, vocabulary)
     # related_*_ids keep only matched / matched_auto links (entities/annotation.py, #91 P1);
     # anything weaker stays a candidate on the mention. Step 10 does not load them yet (#91 P3).
     record.update(proposed_entity_mentions=reviewed["proposed_entity_mentions"], entity_review=reviewed,
@@ -193,6 +223,7 @@ def run() -> None:
     risks = {a["unit_id"]: a for a in risk_assignments()}
     from .entities import headings
     under_headings = headings.inherited(list(units.values()), headings.read_rows())
+    extractions = {r["unit_id"]: r for r in read_jsonl(Paths.extractions())} if Paths.extractions().exists() else {}
 
     records, skipped = [], Counter()
     for label in read_jsonl(Paths.labels()):
@@ -205,7 +236,9 @@ def run() -> None:
             continue
         key = (unit["accession_number"], unit["section_key"])
         record = candidate(unit, label, units, sources[key], cleaned[key], vocabulary, catalog,
-                           risks.get(unit["unit_id"], NO_RISK))
+                           risks.get(unit["unit_id"], NO_RISK), extractions.get(unit["unit_id"]))
+        if extractions and unit["unit_id"] not in extractions:
+            skipped["no step 8b extraction yet (built without mentions)"] += 1
         direct = set(record["related_segment_ids"]) | set(record["related_subsidiary_ids"])
         record["heading_entity_links"] = [l for l in under_headings.get(unit["unit_id"], [])
                                           if l["entity_id"] not in direct]

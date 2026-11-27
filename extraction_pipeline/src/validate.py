@@ -16,8 +16,10 @@ kinds of queue entry:
                 (also step 7's quarantine). Held units do not become Claims in step 9.
   retained      the Claim is built, but a rule flags it: claim_review_flags
                 (source_review.claim_review_flags(): mixed tense, "causes / has required ...
-                may", "is subject to laws" as hedged_risk) and / or entity flags. The Claim
-                carries claim_review_flags too. Rule flags hold nothing since 27 Nov 2026.
+                may", "is subject to laws" as hedged_risk). The Claim carries
+                claim_review_flags too. Rule flags hold nothing since 27 Nov 2026.
+Entity mentions are not checked here: step 8b extracts them from the Claims this step keeps,
+and step 9 checks them (entity_review_flags on the Claim).
 List items and list groups are Claims like any sentence: a ":" intro among the context is no
 longer a flag, and the MSFT FY2026 product-line prefixes (review.known_list_fragment_prefixes)
 are gone.
@@ -37,7 +39,6 @@ import json
 from collections import Counter
 
 from . import source_review
-from .entities import annotation as entity_annotation
 from .common import Paths, data_dir, log, read_jsonl, write_jsonl
 
 STEP = "validate"
@@ -46,6 +47,12 @@ CLAIM_TYPES = ("stated_fact", "forward_looking", "hedged_risk")   # ontology dec
 # Pipeline-only labels, never Claim types: not_a_claim (not a statement) and
 # needs_review (boundary, subject or type the model could not resolve).
 LABELS = CLAIM_TYPES + ("not_a_claim", "needs_review")
+# Who or what a statement is mainly about (subject_scope, 1 to 3 values, the main one first).
+SUBJECT_SCOPES = ("company", "segment", "subsidiary", "named_organization", "competitors", "suppliers",
+                  "customers", "partners", "industry", "government", "macro", "other")
+# The model's fields of a label (label_v3) besides id, label and context_ids, with the value a
+# label made by code (a prefilter rule, quarantine) gets. labels.jsonl rows carry these keys.
+LABEL_DEFAULTS = {"subject_scope": [], "annotation_note": None, "is_boilerplate": None, "time_reference": None}
 
 
 def check_reply(batch: dict, results: list[dict]) -> list[str]:
@@ -86,46 +93,42 @@ def check_reply(batch: dict, results: list[dict]) -> list[str]:
 # ---------- review ----------
 
 HELD_UNCERTAIN_REASON = "Model uncertainty; preserve for review."
-RETAINED_REASON = "Claim source is valid; rule or entity flags for review."
+RETAINED_REASON = "Claim source is valid; rule flags for review."
 
 
 def assessment(label: dict) -> dict:
-    """The model's row for a unit in Claudia's shape; ids are unit ids."""
+    """The model's row for a unit in Claudia's shape; ids are unit ids. A label_v2 row (string
+    subject_scope, is_risk_heading, entity_mentions) is read too."""
+    scope = label.get("subject_scope")
     return {"id": label["unit_id"], "label": label["label"],
             "context_ids": list(label["context_unit_ids"]),
-            "subject_scope": label["subject_scope"], "annotation_note": label["annotation_note"],
-            "is_risk_heading": label["is_risk_heading"], "entity_mentions": label["entity_mentions"]}
+            **{k: label.get(k, v) for k, v in LABEL_DEFAULTS.items()},
+            "subject_scope": scope if isinstance(scope, list) else ([scope] if scope else []),
+            "entity_mentions": label.get("entity_mentions") or []}
 
 
-def review_entry(unit: dict, result: dict, source: dict, vocabulary: list[dict],
-                 catalog: list[dict]) -> dict | None:
-    """Per-unit decision: held (needs_review), retained with rule or entity flags, or None (clean)."""
+def review_entry(unit: dict, result: dict, source: dict) -> dict | None:
+    """Per-unit decision: held (needs_review), retained with rule flags, or None (clean).
+    Entity flags come later: step 8b extracts the mentions and step 9 checks them."""
     if result["label"] == "not_a_claim":
         return None
     ids = {"unit_id": unit["unit_id"]}
     fragments = [{"start": a, "end": b, "quote": source["content"][a:b]} for a, b in unit["raw_spans"]]
     if result["label"] == "needs_review":
         return {**ids, "assessment": result, "source_fragments": fragments, "reason": HELD_UNCERTAIN_REASON}
-    annotated = entity_annotation.annotate_mentions(unit["text"], result["entity_mentions"],
-                                                    issuer_cik=source["cik"],
-                                                    accession=source["accession_number"], catalog=catalog)
-    reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
-    flags = sorted(set(annotated["entity_review_flags"] + reviewed["review_flags"]))
     rule_flags = source_review.claim_review_flags(unit, result)
-    if flags or rule_flags:
-        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "flags": flags,
-                "claim_review_flags": rule_flags}
+    if rule_flags:
+        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "claim_review_flags": rule_flags}
     return None
 
 
 def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
-    from .label import entity_catalog, source_index     # imported here: the label package imports this module
+    from .label import source_index     # imported here: the label package imports this module
     sources, _ = source_index()
     vocabulary = source_review.source_vocabulary(sources)
     (data_dir() / "output").mkdir(parents=True, exist_ok=True)
     (data_dir() / "output" / "provisional_segment_definitions.json").write_text(
         json.dumps(vocabulary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    catalog = entity_catalog()
 
     queue = []
     for label in labels:
@@ -133,7 +136,7 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
         if unit is None or label.get("source", "").startswith("rule:"):
             continue
         key = (unit["accession_number"], unit["section_key"])
-        entry = review_entry(unit, assessment(label), sources[key], vocabulary, catalog)
+        entry = review_entry(unit, assessment(label), sources[key])
         if entry:
             queue.append(entry)
     return queue

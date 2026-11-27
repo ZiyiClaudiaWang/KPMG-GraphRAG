@@ -1,0 +1,268 @@
+"""Step 8b - Extract: what each Claim names, counts and is about (OpenAI; paid).
+
+Input : data/output/sentences.jsonl, data/output/labels.jsonl (step 7),
+        data/output/review_queue.jsonl (step 8: held units are left out)
+Output: data/output/extractions.jsonl     one row per Claim unit (read by step 9)
+        data/output/usage_extract.jsonl   this step's ledger (budget extract.budget_usd)
+        data/extract/<hash>/              saved requests and replies (never sent twice)
+
+Runs after step 8, on the units that become Claims: labelled stated_fact, forward_looking or
+hedged_risk and not held. not_a_claim and needs_review units are never sent, so a change here
+never touches step 7's labels or their saved replies, and the other way round.
+
+Batches are step 7's (label/requests.py plan_batches: up to batch_max_sentences consecutive
+Claims of a section, the 4 units before them as context), with prompts/extract_v1.txt and its
+own schema. Each result, per sentence:
+  entity_mentions  [{mention_text, entity_type, role, reference_kind, evidence_quote}]
+                   entity_type: segment, subsidiary (matched to the catalog in step 9, as
+                   step 7's mentions were), organization, product, geography, regulation,
+                   government, person, unknown (kept on the Claim, no node yet)
+  metrics          [{metric_text, value_text, value, unit, period_text, direction}]
+  event_type       one of EVENT_TYPES or null
+  affected_object  0 to 3 of AFFECTED_OBJECTS
+Code checks every quoted field against the sentence: a mention whose mention_text or
+evidence_quote is not part of it is dropped (counted in the log), a metric whose metric_text or
+value_text is not part of it is dropped, a period_text that is not part of it becomes null.
+
+Repeats: a Claim whose label step 7 reused (label.reuse_repeats, same text, context, path, form
+and list intro as in an earlier filing) gets a copy of that first occurrence's extraction
+(source llm_reused). A reused Claim whose first occurrence has no extraction yet is sent.
+
+  python -m src.extract --dry-run      plan, count, estimate cost (typical and worst case)
+  python -m src.extract --limit 3      send at most 3 new requests
+  python -m src.extract --workers 8    8 requests in flight at once
+"""
+
+from __future__ import annotations
+
+import argparse
+from concurrent.futures import ThreadPoolExecutor
+
+from .common import PROMPTS_DIR, Paths, log, read_jsonl, settings, write_jsonl
+from .label.requests import plan_batches
+from .label.reuse import reuse_plan
+from .llm.client import Client, StopRun, canonical, parse_reply
+from .llm.cost import step_cfg
+from .validate import CLAIM_TYPES, held_ids
+
+STEP = "extract"
+RUNNER_VERSION = "kelly_extract_v1"
+KIND = "extract"                        # folder of saved requests under data/
+
+ENTITY_TYPES = ("segment", "subsidiary", "organization", "product", "geography", "regulation", "government",
+                "person", "unknown")
+CATALOG_TYPES = ("segment", "subsidiary", "unknown")     # matched to the entity catalog in step 9
+ROLES = ("subject", "customer", "supplier", "competitor", "partner", "acquired_or_divested", "affected",
+         "location", "authority", "other")
+EVENT_TYPES = ("acquisition", "divestiture", "merger", "restructuring", "litigation", "regulatory_action",
+               "product_launch", "investment", "financing", "share_repurchase", "dividend", "impairment",
+               "cyber_incident", "supply_disruption", "labor", "leadership_change", "other")
+AFFECTED_OBJECTS = ("revenue", "margin", "costs", "cash_flow", "liquidity", "demand", "supply_chain",
+                    "operations", "reputation", "legal_or_regulatory", "workforce", "technology",
+                    "financial_condition", "stock_price", "other")
+UNITS = ("USD", "percent", "percentage_points", "shares", "employees", "units", "other")
+DIRECTIONS = ("increase", "decrease", "unchanged", "none")
+EMPTY = {"entity_mentions": [], "metrics": [], "event_type": None, "affected_object": []}
+
+
+def config() -> dict:
+    """extract: settings with prices (llm/cost.py), plus step 7's batching keys."""
+    cfg = {k: v for k, v in settings()["label"].items()
+           if k in ("context_sentences", "batch_max_sentences", "max_request_bytes", "temperature",
+                    "reuse_repeats")}
+    cfg.update(step_cfg(STEP))
+    return cfg
+
+
+def system_prompt(version: str) -> str:
+    template = (PROMPTS_DIR / f"{version}.txt").read_text(encoding="utf-8")
+    return template.format(entity_types=", ".join(ENTITY_TYPES), roles=", ".join(ROLES),
+                           event_types=", ".join(EVENT_TYPES), affected_objects=", ".join(AFFECTED_OBJECTS))
+
+
+def response_schema() -> dict:
+    s = lambda: {"type": "string"}                                   # noqa: E731
+    opt = lambda: {"type": ["string", "null"]}                       # noqa: E731
+    enum = lambda values, null=False: {"type": ["string", "null"] if null else "string",  # noqa: E731
+                                       "enum": list(values) + ([None] if null else [])}
+    obj = lambda props: {"type": "object", "additionalProperties": False,  # noqa: E731
+                         "required": list(props), "properties": props}
+    mention = obj({"mention_text": s(), "entity_type": enum(ENTITY_TYPES), "role": enum(ROLES),
+                   "reference_kind": enum(("named", "generic", "uncertain")), "evidence_quote": s()})
+    metric = obj({"metric_text": s(), "value_text": s(), "value": {"type": ["number", "null"]},
+                  "unit": enum(UNITS, null=True), "period_text": opt(), "direction": enum(DIRECTIONS)})
+    result = obj({"id": s(), "entity_mentions": {"type": "array", "items": mention},
+                  "metrics": {"type": "array", "items": metric}, "event_type": enum(EVENT_TYPES, null=True),
+                  "affected_object": {"type": "array", "items": enum(AFFECTED_OBJECTS)}})
+    return {"name": "claim_extractions", "strict": True,
+            "schema": obj({"results": {"type": "array", "items": result}})}
+
+
+# ---------- checks ----------
+
+def checked(row: dict, text: str) -> tuple[dict, int]:
+    """The fields of one result with every quote checked against the sentence; (fields, dropped)."""
+    mentions, metrics, dropped = [], [], 0
+    for m in row.get("entity_mentions") or []:
+        w, e = m.get("mention_text") or "", m.get("evidence_quote") or ""
+        if w.strip() and w in e and e in text:
+            mentions.append(dict(m))
+        else:
+            dropped += 1
+    for x in row.get("metrics") or []:
+        if (x.get("metric_text") or "") in text and (x.get("value_text") or "").strip() and x["value_text"] in text:
+            x = dict(x)
+            if x.get("period_text") is not None and x["period_text"] not in text:
+                x["period_text"] = None
+            metrics.append(x)
+        else:
+            dropped += 1
+    affected = [a for a in dict.fromkeys(row.get("affected_object") or []) if a in AFFECTED_OBJECTS][:3]
+    event = row.get("event_type") if row.get("event_type") in EVENT_TYPES else None
+    return {"entity_mentions": mentions, "metrics": metrics, "event_type": event, "affected_object": affected}, dropped
+
+
+def check_reply(batch: dict, results: list[dict]) -> list[str]:
+    got = [r.get("id") for r in results]
+    if got != batch["local_ids"]:
+        missing = [i for i in batch["local_ids"] if i not in got]
+        extra = [i for i in got if i not in batch["local_ids"]]
+        return [f"ids differ from the batch (missing: {', '.join(missing) or '-'}; "
+                f"unknown or repeated: {', '.join(map(str, extra)) or '-'})"]
+    return []
+
+
+# ---------- plan ----------
+
+def targets(units: list[dict], labels: list[dict], assume_unlabelled: bool = False) -> set[str]:
+    """Unit ids that become Claims: a Claim label and not held in step 8. assume_unlabelled (dry
+    run before step 7 has run): every unit step 7 would send that has no label yet counts too."""
+    held = held_ids()
+    claim = {l["unit_id"] for l in labels if l["label"] in CLAIM_TYPES and l["unit_id"] not in held}
+    if assume_unlabelled:
+        labelled = {l["unit_id"] for l in labels}
+        claim |= {u["unit_id"] for u in units if u["prefilter"] is None and u["unit_id"] not in labelled}
+    return claim
+
+
+def estimate(plans: list[dict], cfg: dict) -> tuple[float, float]:
+    """(typical, worst case) USD: input about 4 bytes a token; output answer_tokens_per_sentence
+    a sentence (typical) or max_completion_tokens a request (worst)."""
+    p_in, p_out = cfg.get("price_input_per_1m"), cfg.get("price_output_per_1m")
+    if p_in is None or p_out is None:
+        return float("nan"), float("nan")
+    inp = sum(len(canonical(p["request"]).encode("utf-8")) / 4 for p in plans)
+    typical = sum(len(p["batch"]["unit_ids"]) for p in plans) * cfg["answer_tokens_per_sentence"]
+    worst = sum(p["request"]["max_completion_tokens"] for p in plans)
+    return (inp * p_in + typical * p_out) / 1e6, (inp * p_in + worst * p_out) / 1e6
+
+
+# ---------- run ----------
+
+def rows_from(plan: dict, record: dict, results: list[dict], texts: dict[str, str], cfg: dict) -> tuple[list[dict], int]:
+    to_unit = dict(zip(plan["batch"]["local_ids"], plan["batch"]["unit_ids"]))
+    out, dropped = [], 0
+    for r in results:
+        uid = to_unit[r["id"]]
+        fields, d = checked(r, texts[uid])
+        dropped += d
+        out.append({"unit_id": uid, **fields, "source": "llm", "request_hash": plan["request_hash"],
+                    "model": record["raw_response"].get("model"), "prompt_version": cfg["prompt_version"],
+                    "runner_version": RUNNER_VERSION})
+    return out, dropped
+
+
+def run(dry_run: bool = False, limit: int | None = None, workers: int | None = None) -> None:
+    cfg = config()
+    units = list(read_jsonl(Paths.sentences()))
+    labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
+    claims = targets(units, labels, assume_unlabelled=dry_run)
+    if dry_run and len(claims) > len({l["unit_id"] for l in labels if l["label"] in CLAIM_TYPES}):
+        log(STEP, "dry run: units step 7 has not labelled yet are counted as Claims")
+    reuse = {u: f for u, f in reuse_plan(units, cfg).items() if u in claims and f in claims}
+    system, schema = system_prompt(cfg["prompt_version"]), response_schema()
+
+    def plan(only: set[str]) -> list[dict]:
+        return plan_batches(units, cfg, only=only, system=system, schema=schema, runner=RUNNER_VERSION) if only else []
+
+    first_round = plan(claims - set(reuse))
+    typical, worst = estimate(first_round, cfg)
+    log(STEP, f"{len(claims)} Claims: {len(claims) - len(reuse)} to send in {len(first_round)} requests, "
+              f"{len(reuse)} copy an earlier filing's extraction; about ${typical:.2f} typical, "
+              f"${worst:.2f} worst case ({cfg['model']})")
+    if dry_run:
+        return
+
+    texts = {u["unit_id"]: u["text"] for u in units}
+    client = Client(cfg, usage_path=Paths.step_usage(STEP))
+    state = {"sent": 0, "dropped": 0, "stopped": None}
+    rows: dict[str, dict] = {}
+
+    def one(p: dict, send: bool):
+        record = client.cached(p, KIND)
+        if record is None and send:
+            record = client.send(p, KIND)
+            return record, True
+        return record, False
+
+    def handle(p: dict, record: dict | None) -> None:
+        if record is None:
+            return
+        problems, parsed = parse_reply(record["raw_response"], schema["schema"], "results")
+        problems = problems or check_reply(p["batch"], parsed["results"])
+        if problems:
+            log(STEP, f"{p['batch']['batch_id']} rejected: {'; '.join(problems)[:200]}")
+            if cfg.get("stop_on_failure", True):
+                state["stopped"] = p["batch"]["batch_id"]
+            return
+        new, dropped = rows_from(p, record, parsed["results"], texts, cfg)
+        state["dropped"] += dropped
+        rows.update((r["unit_id"], r) for r in new)
+
+    def send_all(plans: list[dict]) -> None:
+        cached = [(p, client.cached(p, KIND)) for p in plans]
+        for p, record in cached:
+            handle(p, record)
+        todo = [p for p, record in cached if record is None]
+        if limit is not None:
+            todo = todo[:max(0, limit - state["sent"])]
+        n = max(1, int(workers or cfg.get("concurrency") or 1))
+        try:
+            with ThreadPoolExecutor(max_workers=n) as pool:
+                for p, (record, sent) in zip(todo, pool.map(lambda q: one(q, not state["stopped"]), todo)):
+                    state["sent"] += sent
+                    handle(p, record)
+        except StopRun as err:
+            state["stopped"] = str(err)
+            log(STEP, f"stopped: {err}")
+
+    send_all(first_round)
+    copied = 0
+    if reuse:
+        waiting = {u for u, f in reuse.items() if f not in rows}
+        for uid, first in reuse.items():
+            if first in rows:
+                rows[uid] = dict(rows[first], unit_id=uid, source="llm_reused", reused_from_unit_id=first)
+                copied += 1
+        if waiting and not state["stopped"]:
+            send_all(plan(waiting))
+    order = {u["unit_id"]: k for k, u in enumerate(units)}
+    out = sorted(rows.values(), key=lambda r: order[r["unit_id"]])
+    write_jsonl(Paths.extractions(), out)
+    log(STEP, f"{state['sent']} new requests; {len(out)}/{len(claims)} Claims extracted ({copied} copied), "
+              f"{state['dropped']} quoted fields not in their sentence dropped -> {Paths.extractions()}")
+    if state["stopped"]:
+        log(STEP, f"stopped at {state['stopped']}; the rest wait for the next run")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--dry-run", action="store_true", help="plan and estimate cost only")
+    parser.add_argument("--limit", type=int, help="send at most this many new requests")
+    parser.add_argument("--workers", type=int, help="requests in flight at once (default extract.concurrency)")
+    args = parser.parse_args()
+    run(dry_run=args.dry_run, limit=args.limit, workers=args.workers)
+
+
+if __name__ == "__main__":
+    main()

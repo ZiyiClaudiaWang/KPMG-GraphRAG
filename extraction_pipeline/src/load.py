@@ -132,7 +132,10 @@ SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.acces
     c.is_lead_sentence = r.is_lead_sentence, c.risk_summary = r.risk_summary,
     c.multi_fragment = r.multi_fragment, c.risk_factor_id = r.risk_factor_id,
     c.risk_category_text = r.risk_category_text, c.risk_category_unit_id = r.risk_category_unit_id,
-    c.heading_risk_group = r.heading_risk_group, c.risk_theme_status = r.risk_theme_status
+    c.heading_risk_group = r.heading_risk_group, c.risk_theme_status = r.risk_theme_status,
+    c.is_boilerplate = r.is_boilerplate, c.time_reference = r.time_reference, c.event_type = r.event_type,
+    c.affected_object = r.affected_object, c.metrics_json = r.metrics_json,
+    c.typed_mentions_json = r.typed_mentions_json
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
 MERGE (s)-[x:SUPPORTS {pipeline_scope: $scope}]->(c)
@@ -225,6 +228,14 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
             **{k: occ.get(k) for k in ("risk_factor_id", "risk_category_text", "risk_category_unit_id",
                                        "risk_theme_status")},
             "heading_risk_group": list(occ.get("heading_risk_group") or []),
+            # step 7 (label_v3) and 8b fields; a label_v2 subject_scope string becomes a list
+            "subject_scope": (occ.get("subject_scope") if isinstance(occ.get("subject_scope"), list)
+                              else [occ["subject_scope"]] if occ.get("subject_scope") else []),
+            "is_boilerplate": occ.get("is_boilerplate"), "time_reference": occ.get("time_reference"),
+            "event_type": occ.get("event_type"), "affected_object": list(occ.get("affected_object") or []),
+            # Neo4j: no maps in lists, so metrics and the typed mentions are JSON text
+            "metrics_json": json.dumps(occ.get("metrics") or [], ensure_ascii=False),
+            "typed_mentions_json": json.dumps(occ.get("typed_mentions") or [], ensure_ascii=False),
             "risk_themes": [dict(t) for t in occ.get("risk_themes") or []],
             "is_lead_sentence": bool(occ.get("is_lead_sentence")),
             "risk_summary": bool(occ.get("risk_summary")),

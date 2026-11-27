@@ -45,8 +45,8 @@ def quarantine(batch: dict, results: list[dict]) -> tuple[list[dict], list[dict]
             row = deepcopy(originals[0])
             row["label"], row["context_ids"] = "needs_review", []
         else:
-            row = {"id": sid, "label": "needs_review", "context_ids": [], "subject_scope": None,
-                   "annotation_note": None, "is_risk_heading": False, "entity_mentions": []}
+            row = {"id": sid, "label": "needs_review", "context_ids": [], "subject_scope": [],
+                   "annotation_note": None, "is_boilerplate": None, "time_reference": None}
         row["annotation_note"] = ("CODE REVIEW ONLY: " + ", ".join(flags) + ". No candidate Claim published; "
                                   "original raw rows retained in unit_quarantine.json. "
                                   "This is not a model classification.")

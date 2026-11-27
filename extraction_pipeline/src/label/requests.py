@@ -10,10 +10,21 @@ from .. import source_review
 from ..common import PROMPTS_DIR, Paths, filings, load_config, read_jsonl, source_text, unit_id
 from ..entities import annotation as entity_annotation
 from ..llm.client import canonical, digest
-from ..validate import LABELS
+from ..validate import LABEL_DEFAULTS, LABELS, SUBJECT_SCOPES  # noqa: F401  (LABEL_DEFAULTS re-exported)
 
 STEP = "label"
 RUNNER_VERSION = "kelly_checked_openai_v3_postchecks"   # Claudia's runner id; part of every request hash
+
+
+def label_fields(row: dict, text: str | None = None) -> dict:
+    """The model's fields of one result, checked: at most 3 known subject scopes (company when
+    none), and a time_reference that is not part of the sentence becomes null."""
+    scopes = [s for s in dict.fromkeys(row.get("subject_scope") or []) if s in SUBJECT_SCOPES][:3]
+    when = row.get("time_reference")
+    if when is not None and (not when.strip() or (text is not None and when not in text)):
+        when = None
+    return {"subject_scope": scopes or ["company"], "annotation_note": row.get("annotation_note"),
+            "is_boilerplate": row.get("is_boilerplate"), "time_reference": when}
 
 
 # ---------- sources ----------
@@ -95,7 +106,8 @@ def system_prompt(prompt_version: str) -> str:
     definitions.append(f"- not_a_claim: {types['not_a_claim']}")
     rules = "\n".join(f"- {r}" for r in types["rules"])
     template = (PROMPTS_DIR / f"{prompt_version}.txt").read_text(encoding="utf-8")
-    return template.format(label_definitions="\n".join(definitions), rules=rules)
+    return template.format(label_definitions="\n".join(definitions), rules=rules,
+                           subject_scopes=", ".join(SUBJECT_SCOPES))
 
 
 def user_payload(batch: dict, units: dict[str, dict]) -> dict:
@@ -110,19 +122,20 @@ def user_payload(batch: dict, units: dict[str, dict]) -> dict:
 
 
 def response_schema() -> dict:
+    """label_v3: no is_risk_heading, no entity_mentions (step 8b extracts those from Claims)."""
     result = {
         "type": "object",
         "additionalProperties": False,
-        "required": ["id", "label", "context_ids", "subject_scope", "annotation_note", "is_risk_heading",
-                     "entity_mentions"],
+        "required": ["id", "label", "context_ids", "subject_scope", "annotation_note", "is_boilerplate",
+                     "time_reference"],
         "properties": {
             "id": {"type": "string"},
             "label": {"type": "string", "enum": list(LABELS)},
             "context_ids": {"type": "array", "items": {"type": "string"}},
-            "subject_scope": {"type": ["string", "null"]},
+            "subject_scope": {"type": "array", "items": {"type": "string", "enum": list(SUBJECT_SCOPES)}},
             "annotation_note": {"type": ["string", "null"]},
-            "is_risk_heading": {"type": "boolean"},
-            "entity_mentions": entity_annotation.SCHEMA,
+            "is_boilerplate": {"type": "boolean"},
+            "time_reference": {"type": ["string", "null"]},
         },
     }
     return {
@@ -135,12 +148,12 @@ def response_schema() -> dict:
     }
 
 
-def build_request(batch: dict, units: dict[str, dict], cfg: dict, system: str) -> dict:
+def build_request(batch: dict, units: dict[str, dict], cfg: dict, system: str, schema: dict | None = None) -> dict:
     request = {
         "model": cfg["model"],
         "messages": [{"role": "system", "content": system},
                      {"role": "user", "content": canonical(user_payload(batch, units))}],
-        "response_format": {"type": "json_schema", "json_schema": response_schema()},
+        "response_format": {"type": "json_schema", "json_schema": schema or response_schema()},
         "max_completion_tokens": cfg["max_completion_tokens"],
         "store": False,                          # OpenAI does not keep the request
     }
@@ -165,7 +178,8 @@ def request_key(request: dict, runner: str = RUNNER_VERSION, retry_of: str | Non
 
 
 def plan_batches(units: list[dict], cfg: dict, skip: set[str] | frozenset = frozenset(),
-                 only: set[str] | None = None) -> list[dict]:
+                 only: set[str] | None = None, system: str | None = None, schema: dict | None = None,
+                 runner: str = RUNNER_VERSION) -> list[dict]:
     """One plan per request: consecutive labelable units of a section, batch_max_sentences at a time.
 
     skip: unit ids not to send (reused labels); only: send just these. A batch never spans a
@@ -175,10 +189,11 @@ def plan_batches(units: list[dict], cfg: dict, skip: set[str] | frozenset = froz
     it depends on, saved in request.json). request_hash = hash of request_key(): only what
     reaches the model; it names the cache folder.
     A batch whose request exceeds max_request_bytes is halved until it fits.
+    system, schema, runner: another step's prompt, reply schema and runner id (step 8b).
     """
     sources, _ = source_index()
     verify_units(units, sources)
-    system = system_prompt(cfg["prompt_version"])
+    system = system or system_prompt(cfg["prompt_version"])
     lookup = {u["unit_id"]: u for u in units}
     vocabulary = source_review.source_vocabulary(sources)
     catalog = entity_catalog()
@@ -222,12 +237,12 @@ def plan_batches(units: list[dict], cfg: dict, skip: set[str] | frozenset = froz
                         "local_ids": numbers,
                         "context_local_ids": context_numbers,
                     }
-                    request = build_request(batch, lookup, cfg, system)
+                    request = build_request(batch, lookup, cfg, system, schema)
                     if len(canonical(request).encode("utf-8")) <= cfg["max_request_bytes"] or size == 1:
                         break
                     size = max(1, size // 2)
                 identity = {
-                    "runner_version": RUNNER_VERSION, "request": request, "batch": batch,
+                    "runner_version": runner, "request": request, "batch": batch,
                     "source_section_sha256": digest(source["content"]),
                     "processing_set_id": source["processing_set_id"],
                     "source_locator": source["source_locator"],
@@ -238,7 +253,7 @@ def plan_batches(units: list[dict], cfg: dict, skip: set[str] | frozenset = froz
                     "entity_catalog": catalog,
                 }
                 plans.append({"batch": batch, "request": request, "identity": identity,
-                              "request_hash": digest(canonical(request_key(request)))})
+                              "request_hash": digest(canonical(request_key(request, runner)))})
                 start += size
     return plans
 

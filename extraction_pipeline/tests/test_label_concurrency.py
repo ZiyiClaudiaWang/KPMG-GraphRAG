@@ -56,8 +56,8 @@ class Fake:
             Fake.in_flight -= 1
         payload = json.loads(request["messages"][1]["content"])
         ids = [s["id"] for s in payload["sentences"]]
-        rows = [{"id": i, "label": "stated_fact", "context_ids": ids[k - 1:k], "subject_scope": None,
-                 "annotation_note": None, "is_risk_heading": False, "entity_mentions": []}
+        rows = [{"id": i, "label": "stated_fact", "context_ids": ids[k - 1:k], "subject_scope": ["company"],
+                 "annotation_note": None, "is_boilerplate": False, "time_reference": None}
                 for k, i in enumerate(ids)]
         raw = {"id": "f", "model": "fake", "choices": [{"finish_reason": "stop", "message": {
             "role": "assistant", "refusal": None, "content": json.dumps({"results": rows})}}],
