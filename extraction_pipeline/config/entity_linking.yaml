@@ -15,6 +15,10 @@ registrant_names:
   NTAP: [NetApp, NetApp Inc.]
   PH: [Parker, Parker-Hannifin, Parker Hannifin Corporation]
   TTWO: [Take-Two, Take-Two Interactive, Take-Two Interactive Software]
+  AMZN: [Amazon, Amazon.com, "Amazon.com, Inc."]
+  GOOGL: [Alphabet, Alphabet Inc.]          # not "Google": Google LLC is a subsidiary
+  WDC: [Western Digital, Western Digital Corporation]
+  WMT: [Walmart, Walmart Inc.]
 
 # Segment names that are also places or everyday words. Such a hit counts only when the
 # sentence says "segment(s)", or the name is followed by one of guard_context_after
