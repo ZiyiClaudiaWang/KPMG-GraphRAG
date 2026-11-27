@@ -202,3 +202,35 @@ def test_library_imports_nothing_from_the_pipeline():
             if isinstance(node, ast.ImportFrom):
                 assert node.level <= 1, f"{path.name} imports from the pipeline package"
                 assert not (node.module or "").startswith("src"), f"{path.name} imports src"
+
+
+def test_header_columns_amazon_split_percent():
+    """Amazon: "Legal Name | Jurisdiction | Percent Owned", the % sign in a cell of its own."""
+    html = """<table>
+<tr><td>Legal Name</td><td></td><td>Jurisdiction</td><td></td><td colspan="2">Percent Owned</td></tr>
+<tr><td>Amazon.com Services LLC</td><td></td><td>Delaware</td><td></td><td>100</td><td>%</td></tr>
+<tr><td>Amazon EU S.a r.l.</td><td></td><td>Luxembourg</td><td></td><td>100</td><td>%</td></tr>
+</table>"""
+    rows = parse_html(html)
+    assert [r["subsidiary_name"] for r in rows] == ["Amazon.com Services LLC", "Amazon EU S.a r.l."]
+    assert [r["jurisdiction_raw"] for r in rows] == ["Delaware", "Luxembourg"]
+    assert [r["ownership_pct"] for r in rows] == [100.0, 100.0]
+
+
+def test_header_columns_walmart_segment_column_is_not_the_jurisdiction():
+    html = """<table>
+<tr><td>Name of Subsidiary</td><td>Organized Under Laws of</td><td>% Owned</td><td>Segment</td></tr>
+<tr><td>Wal-Mart Stores East, LP</td><td>Delaware</td><td>100%</td><td>Walmart</td></tr>
+<tr><td>Wal-Mart Property Company</td><td>Delaware</td><td>100%</td><td>NA</td></tr>
+</table>
+<table>
+<tr><td>Flipkart Private Limited</td><td>Singapore</td><td>85%</td><td>Flipkart</td></tr>
+</table>"""
+    rows = parse_html(html)
+    assert [r["jurisdiction_raw"] for r in rows] == ["Delaware", "Delaware", "Singapore"]
+    assert rows[2]["ownership_pct"] == 85.0
+
+
+def test_split_percent_without_header():
+    rows = parse_html("<table><tr><td>Example LLC</td><td>Delaware</td><td>100</td><td>%</td></tr></table>")
+    assert rows[0]["jurisdiction_raw"] == "Delaware" and rows[0]["ownership_pct"] == 100.0
