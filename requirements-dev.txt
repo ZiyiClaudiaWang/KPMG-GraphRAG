@@ -10,3 +10,7 @@ duckdb>=1.0
 # the report stays importable from CI and the deck builder without them.
 streamlit>=1.40
 pandas>=2.0
+
+# The MCP endpoint (graphrag/mcp_server.py). Without it tests/test_mcp_server.py
+# skips its server half, and the layer that other teams call goes uncovered.
+mcp>=2.0
