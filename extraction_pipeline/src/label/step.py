@@ -65,14 +65,16 @@ Problems with single units are handled as in Claudia's run (her recovery v2 and 
   with its own context (its 4 preceding units, plus its list intro when missing). Their labels
   replace the placeholders.
 
-Repeats (label.reuse_repeats: path): a unit whose text, 4 preceding units and section_path are
-the same as a unit in an earlier filing of the same company (checks/unit_repeats.py, level
-"path") is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
+Repeats (label.reuse_repeats: label): a unit whose text, 4 preceding units, section_path, form
+and list intro are the same as a unit in an earlier filing of the same company
+(checks/unit_repeats.py, level "label": everything the model sees for it) is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
 reused_from_unit_id), with context_unit_ids moved to its own units at the same distance before
 it. Batches are cut at reused units, so every sent sentence still has its own preceding units
 as context. A reused unit falls back to its own request (a second round of batches in the same
 run) when the first occurrence has no model label (held by quarantine) or cites a context unit
-whose counterpart before the reused unit has other text. Set reuse_repeats to null to label
+whose counterpart before the reused unit has other text. With --filing, a reused unit of that
+filing whose first occurrence has no saved label is sent too (#113): its first occurrence is in
+another filing, which --filing does not send. Set reuse_repeats to null to label
 every occurrence.
 
 Usage:
@@ -239,6 +241,12 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
     if reuse:
         # Second round: reused units whose first occurrence gave no label they can copy.
         copies, fallback = reused_labels(labels, reuse, units)
+        if filing is not None:
+            # --filing sends nothing for the first occurrence's filing: label these here (#113).
+            labelled = {row["unit_id"] for row in labels}
+            accession = {u["unit_id"]: u["accession_number"] for u in units}
+            fallback.update(uid for uid, first in reuse.items()
+                            if first not in labelled and accession[uid] == filing)
         second = plan_batches(units, cfg, only=fallback) if fallback else []
         if second:
             log(STEP, f"{len(fallback)} reused units cannot copy their first occurrence's label; "

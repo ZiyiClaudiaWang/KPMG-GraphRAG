@@ -299,8 +299,8 @@ Each module's docstring has the full rules; below is what each step does and wha
 - Returns a label (`stated_fact`, `forward_looking`, `hedged_risk`, `not_a_claim`,
   `needs_review`), cited context, `subject_scope`, `annotation_note`, `entity_mentions`.
   `is_risk_heading` is still asked but no longer read.
-- Repeats of an earlier filing (same sentence, 4 units before, `section_path`) reuse its label
-  (`llm_reused`; [#88][pr-88]).
+- Repeats of an earlier filing (same sentence, 4 units before, `section_path`, form and list
+  intro: all the model sees) reuse its label (`llm_reused`; [#88][pr-88], [#113][pr-113]).
 - Each sentence is rebuilt from the source before sending; a mismatch stops the step.
 - A bad reply stops the run (`stop_on_failure`); single bad sentences become `needs_review`
   (quarantine), and missing ones go into one targeted repair request.
@@ -558,6 +558,7 @@ where they are named).
 [pr-45]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/45
 [pr-47]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/47
 [pr-88]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/88
+[pr-113]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/pull/113
 [pr-91]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/91
 [pr-122]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/122
 [pr-125]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/125

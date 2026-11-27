@@ -13,12 +13,12 @@ def reuse_plan(units: list[dict], cfg: dict) -> dict[str, str]:
     level = cfg.get("reuse_repeats")
     if not level:
         return {}
-    if level != "path":
-        raise ValueError(f"label.reuse_repeats must be path or null, not {level!r}")
+    if level != "label":
+        raise ValueError(f"label.reuse_repeats must be label or null, not {level!r}")
     order = {f["accession"]: k for k, f in enumerate(filings())}
     rows, _ = repeat_groups(units, cfg["context_sentences"], order)
-    return {r["unit_id"]: r["path_first_unit_id"] for r in rows
-            if r["path_first_unit_id"] not in (None, r["unit_id"])}
+    return {r["unit_id"]: r["label_first_unit_id"] for r in rows
+            if r["label_first_unit_id"] not in (None, r["unit_id"])}
 
 
 def units_before(units: list[dict]) -> dict[str, tuple[list[dict], int]]:

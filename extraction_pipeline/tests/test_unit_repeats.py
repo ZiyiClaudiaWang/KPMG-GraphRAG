@@ -43,3 +43,25 @@ def test_repeats_inside_one_filing_only_are_left_out():
     units = section("A1", ["Same sentence.", "Same sentence."])
     rows, _ = build(units, 4, {"A1": 0})
     assert all(r["text_group"] is None for r in rows)
+
+
+def test_label_level_needs_same_form_and_list_intro():
+    def filing(acc, form="10-K", intro="Risks include:"):
+        units = section(acc, [intro, "One.", "Two.", "Three.", "Four.", "Target item."])
+        for u in units:
+            u["form"] = form
+        units[-1]["list_intro_id"] = f"{acc}-0"
+        return units
+    units = filing("A1") + filing("A2") + filing("A3", intro="Other risks include:") + filing("A4", form="10-Q")
+    r = by_id(build(units, 4, {"A1": 0, "A2": 1, "A3": 2, "A4": 3})[0])
+    assert r["A2-5"]["label_first_unit_id"] == "A1-5"
+    assert r["A3-5"]["path_group"] == r["A1-5"]["path_group"] and r["A3-5"]["label_group"] is None
+    assert r["A4-5"]["path_group"] == r["A1-5"]["path_group"] and r["A4-5"]["label_group"] is None
+
+
+def test_missing_list_intro_is_never_a_label_repeat():
+    units = section("A1", ["Target item."]) + section("A2", ["Target item."])
+    for u in units:
+        u["list_intro_id"] = "gone" if u["role"] == "body" else None
+    r = by_id(build(units, 4, {"A1": 0, "A2": 1})[0])
+    assert r["A2-0"]["path_group"] and r["A2-0"]["label_group"] is None
