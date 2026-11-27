@@ -24,8 +24,8 @@ Code checks every quoted field against the sentence: a mention whose mention_tex
 evidence_quote is not part of it is dropped, a metric whose metric_text or value_text is not part
 of it is dropped, a period_text that is not part of it becomes null. There is no separate
 validate step after 8b: an extraction only adds to a Claim and never decides whether it is one.
-A reply that leaves out some sentences (its other ids all from the batch, once, in order) keeps
-the rows it has; a reply cut off at max_completion_tokens keeps none. Either way those Claims are
+A reply whose ids are all from the batch but leaves some out or repeats them keeps the rows of
+the ids given once; a reply cut off at max_completion_tokens keeps none. Either way those Claims are
 sent once more after the first round, in batches of at most RETRY_BATCH (runner id .../retry, so
 they are new requests); what still fails then is in rejected_batches.jsonl and missing.jsonl.
 What code dropped, rejected batches and Claims still without an extraction are review files:
@@ -44,6 +44,7 @@ and list intro as in an earlier filing) gets a copy of that first occurrence's e
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 
 from .common import PROMPTS_DIR, Paths, Progress, checks_dir, log, read_jsonl, settings, write_jsonl
@@ -133,18 +134,22 @@ def checked(row: dict, text: str) -> tuple[dict, list[dict]]:
     return {"entity_mentions": mentions, "metrics": metrics, "event_type": event, "affected_object": affected}, dropped
 
 
-def only_missing(batch: dict, results: list[dict]) -> bool:
-    """True when the reply's ids are batch ids, each once, in batch order, and some are missing."""
-    got = [r.get("id") for r in results]
-    expected = [i for i in batch["local_ids"] if i in set(got)]
-    return bool(got) and got == expected and len(got) < len(batch["local_ids"])
+def salvage(batch: dict, results: list[dict]) -> tuple[set[str], list[str]] | None:
+    """For a reply whose ids are all batch ids but not each exactly once: (ids given once, to keep;
+    ids left out or repeated, in batch order, to send again; empty when only the order differs).
+    None when an id is not in the batch (nothing kept)."""
+    got = Counter(r.get("id") for r in results)
+    if not got or set(got) - set(batch["local_ids"]):
+        return None
+    again = [i for i in batch["local_ids"] if got[i] != 1]
+    return {i for i, n in got.items() if n == 1}, again          # again empty: only the order differs
 
 
 def check_reply(batch: dict, results: list[dict]) -> list[str]:
     got = [r.get("id") for r in results]
     if got != batch["local_ids"]:
         missing = [i for i in batch["local_ids"] if i not in got]
-        extra = [i for i in got if i not in batch["local_ids"]]
+        extra = [i for i in got if i not in batch["local_ids"]] + [i for i, n in Counter(got).items() if n > 1]
         return [f"ids differ from the batch (missing: {', '.join(missing) or '-'}; "
                 f"unknown or repeated: {', '.join(map(str, extra)) or '-'})"]
     return []
@@ -244,17 +249,22 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
             return
         hard, parsed = parse_reply(record["raw_response"], schema["schema"], "results")
         problems = hard or check_reply(p["batch"], parsed["results"])
-        if problems and not hard and only_missing(p["batch"], parsed["results"]):
-            # The model left out some sentences but every row it gave is a batch id, once: keep
-            # those rows, and send the left-out Claims again after the first round.
-            missing = [u for u, n in zip(p["batch"]["unit_ids"], p["batch"]["local_ids"])
-                       if n not in {r["id"] for r in parsed["results"]}]
+        # Every row the model gave is a batch id: keep the rows of ids given once; ids left out or
+        # given more than once are sent again in the retry round (none: only the order differs).
+        split = salvage(p["batch"], parsed["results"]) if problems and not hard else None
+        if split:
+            keep, again = split
+            parsed = {"results": [r for r in parsed["results"] if r["id"] in keep]}
+        if split and again:
+            to_unit = dict(zip(p["batch"]["local_ids"], p["batch"]["unit_ids"]))
+            missing = [to_unit[n] for n in again]
             log(STEP, f"{p['batch']['batch_id']}: {len(missing)} of {len(p['batch']['unit_ids'])} Claims "
-                      f"left out of the reply; kept the rest, the left-out ones are sent again")
+                      f"left out of the reply or repeated in it; kept the rest, those are sent again")
             state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
                                       "problems": problems, "unit_ids": missing, "kept_the_rest": True,
                                       "sent_again": True})
             state["left_out"].update(missing)
+        if split:
             problems = []
         if hard and hard[0].startswith("Missing or incomplete completion"):
             # cut off at max_completion_tokens (a reasoning model can spend it all on reasoning):
@@ -302,7 +312,7 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
         retry = state["left_out"] - set(rows)
         state["left_out"] = set()
         if retry and not state["stopped"]:
-            log(STEP, f"{len(retry)} Claims left out of their batch's reply or cut off: sent again")
+            log(STEP, f"{len(retry)} Claims left out of, repeated in or cut off from their batch's reply: sent again")
             send_all(retry_plan(retry))
 
     send_all(first_round)

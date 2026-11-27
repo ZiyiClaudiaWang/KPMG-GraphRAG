@@ -303,14 +303,16 @@ class EndToEnd(unittest.TestCase):
         self.assertTrue(all(c["affected_object"] == ["revenue"] for c in self.claims))
         self.assertTrue(all(c["subject_scope"] == ["company"] for c in self.claims))
 
-    def test_extract_keeps_a_reply_that_only_leaves_out_sentences(self):
+    def test_extract_keeps_what_it_can_of_a_reply(self):
         batch = {"local_ids": ["s1", "s2", "s3"]}
-        self.assertTrue(extract.only_missing(batch, [{"id": "s1"}, {"id": "s2"}]))      # s3 left out
-        self.assertFalse(extract.only_missing(batch, [{"id": "s1"}, {"id": "s2"}, {"id": "s3"}]))
-        self.assertFalse(extract.only_missing(batch, [{"id": "s2"}, {"id": "s1"}]))      # out of order
-        self.assertFalse(extract.only_missing(batch, [{"id": "s1"}, {"id": "s1"}]))      # repeated
-        self.assertFalse(extract.only_missing(batch, [{"id": "s1"}, {"id": "s9"}]))      # unknown id
-        self.assertFalse(extract.only_missing(batch, []))
+        ids = lambda *x: [{"id": i} for i in x]                                         # noqa: E731
+        self.assertEqual(extract.salvage(batch, ids("s1", "s2")), ({"s1", "s2"}, ["s3"]))       # left out
+        self.assertEqual(extract.salvage(batch, ids("s1", "s2", "s2", "s3")), ({"s1", "s3"}, ["s2"]))  # repeated
+        self.assertEqual(extract.salvage(batch, ids("s2", "s1")), ({"s1", "s2"}, ["s3"]))       # order free
+        self.assertEqual(extract.salvage(batch, ids("s3", "s1", "s2")), ({"s1", "s2", "s3"}, []))  # order only
+        self.assertIsNone(extract.salvage(batch, ids("s1", "s9")))                               # unknown id
+        self.assertIsNone(extract.salvage(batch, []))
+        self.assertIn("s2", extract.check_reply(batch, ids("s1", "s2", "s2", "s3"))[0])        # named as repeated
 
     def test_clean_removes_headers_and_joins_page_breaks(self):
         sections = {s["section_key"]: s for s in read_jsonl(Paths.cleaned({"ticker": "TEST",
