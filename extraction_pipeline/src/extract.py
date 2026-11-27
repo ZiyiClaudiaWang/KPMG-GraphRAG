@@ -25,7 +25,9 @@ evidence_quote is not part of it is dropped, a metric whose metric_text or value
 of it is dropped, a period_text that is not part of it becomes null. There is no separate
 validate step after 8b: an extraction only adds to a Claim and never decides whether it is one.
 A reply that leaves out some sentences (its other ids all from the batch, once, in order) keeps
-the rows it has; the left-out Claims are sent once more in new batches after the first round.
+the rows it has; a reply cut off at max_completion_tokens keeps none. Either way those Claims are
+sent once more after the first round, in batches of at most RETRY_BATCH (runner id .../retry, so
+they are new requests); what still fails then is in rejected_batches.jsonl and missing.jsonl.
 What code dropped, rejected batches and Claims still without an extraction are review files:
 data/checks/extract/dropped.jsonl, rejected_batches.jsonl, missing.jsonl. Step 9 then checks
 the segment / subsidiary mentions against the catalog (entity_review_flags).
@@ -53,6 +55,7 @@ from .validate import CLAIM_TYPES, held_ids, reviewed_labels
 
 STEP = "extract"
 RUNNER_VERSION = "kelly_extract_v1"
+RETRY_BATCH = 5            # Claims a batch in the retry round (left-out or cut-off replies)
 KIND = "extract"                        # folder of saved requests under data/
 
 ENTITY_TYPES = ("segment", "subsidiary", "organization", "product", "geography", "regulation", "government",
@@ -206,6 +209,13 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
     def plan(only: set[str]) -> list[dict]:
         return plan_batches(units, cfg, only=only, system=system, schema=schema, runner=RUNNER_VERSION) if only else []
 
+    def retry_plan(only: set[str]) -> list[dict]:
+        """The retry round: batches of at most RETRY_BATCH Claims, and a runner id of their own, so
+        even a batch the same as before is a new request (its first reply stays saved as it was)."""
+        small = dict(cfg, batch_max_sentences=min(RETRY_BATCH, cfg["batch_max_sentences"]))
+        return plan_batches(units, small, only=only, system=system, schema=schema,
+                            runner=RUNNER_VERSION + "/retry") if only else []
+
     first_round = plan(claims - set(reuse))
     typical, worst = estimate(first_round, cfg)
     log(STEP, f"{len(claims)} Claims: {len(claims) - len(reuse)} to send in {len(first_round)} requests, "
@@ -242,9 +252,19 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
             log(STEP, f"{p['batch']['batch_id']}: {len(missing)} of {len(p['batch']['unit_ids'])} Claims "
                       f"left out of the reply; kept the rest, the left-out ones are sent again")
             state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
-                                      "problems": problems, "unit_ids": missing, "kept_the_rest": True})
+                                      "problems": problems, "unit_ids": missing, "kept_the_rest": True,
+                                      "sent_again": True})
             state["left_out"].update(missing)
             problems = []
+        if hard and hard[0].startswith("Missing or incomplete completion"):
+            # cut off at max_completion_tokens (a reasoning model can spend it all on reasoning):
+            # every Claim of the batch is sent again in the retry round, in smaller batches
+            log(STEP, f"{p['batch']['batch_id']}: reply cut off; its {len(p['batch']['unit_ids'])} Claims "
+                      f"are sent again in smaller batches")
+            state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
+                                      "problems": problems, "unit_ids": p["batch"]["unit_ids"], "sent_again": True})
+            state["left_out"].update(p["batch"]["unit_ids"])
+            return
         if problems:
             log(STEP, f"{p['batch']['batch_id']} rejected: {'; '.join(problems)[:200]}")
             state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
@@ -277,12 +297,16 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
         finally:
             bar.close()
 
-    send_all(first_round)
-    retry = state["left_out"] - set(rows)
-    if retry and not state["stopped"]:              # one more round, in new (smaller) batches
-        log(STEP, f"{len(retry)} Claims left out of their batch's reply: sent again")
+    def send_again() -> None:
+        """One more round for Claims left out of a reply or cut off, in new (smaller) batches."""
+        retry = state["left_out"] - set(rows)
         state["left_out"] = set()
-        send_all(plan(retry))
+        if retry and not state["stopped"]:
+            log(STEP, f"{len(retry)} Claims left out of their batch's reply or cut off: sent again")
+            send_all(retry_plan(retry))
+
+    send_all(first_round)
+    send_again()
     copied = 0
     if reuse:
         waiting = {u for u, f in reuse.items() if f not in rows}
@@ -292,6 +316,7 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
                 copied += 1
         if waiting and not state["stopped"]:
             send_all(plan(waiting))
+            send_again()
     order = {u["unit_id"]: k for k, u in enumerate(units)}
     out = sorted(rows.values(), key=lambda r: order[r["unit_id"]])
     write_jsonl(Paths.extractions(), out)
