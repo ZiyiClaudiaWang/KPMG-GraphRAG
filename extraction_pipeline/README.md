@@ -8,13 +8,41 @@
 - Code does everything that must be exact and repeatable; the LLM only judges meaning.
 - Last updated 27 Nov 2026 by Kelly Zhou (segmentation `kelly_sentence_v16`).
 
+### The graph (what step 10 loads)
+
+```mermaid
+flowchart LR
+    CO["<b>Company</b><br/>cik · name · ticker"]
+    FI["<b>Filing</b><br/>accession_number · form · filing_date<br/>reporting_period_end · cik"]
+    SE["<b>Section</b><br/>section_id · section_key · section_type<br/>title · part · item · xpath"]
+    CL["<b>Claim</b><br/>claim_id · quote · claim_type · multi_fragment<br/>context · subject_scope · annotation_note<br/>is_lead_sentence · risk_summary<br/>risk_factor_id · risk_category_text · risk_category_unit_id<br/>heading_risk_group · risk_theme_status"]
+    RT["<b>RiskTheme</b> (32)<br/>theme_id · definition · ey_2016_category"]
+    RG["<b>RiskGroup</b> (7)<br/>group_id · definition"]
+    SU["<b>Subsidiary</b><br/>sub_id · name · entity_key<br/>jurisdiction_raw · country · state_or_region"]
+    SG["<b>Segment</b><br/>segment_id · name · aliases · xbrl_members"]
+
+    CO -->|FILES| FI
+    FI -->|CONTAINS| SE
+    SE -->|"SUPPORTS<br/>{raw_spans, section_path, context_unit_ids, lead_unit_id,<br/>request_hash, model, prompt_version, ...}"| CL
+    CL -->|"HAS_RISK_THEME<br/>{rank, scope, source, agrees_with_heading, model}"| RT
+    RT -->|IN_RISK_GROUP| RG
+    CO -->|"OWNS {accession_number, name_as_filed, jurisdiction_raw,<br/>ownership_pct, level, immediate_parent, source_url}"| SU
+    CO -->|"HAS_SEGMENT {accession_number, xbrl_members}"| SG
+    CL -->|"MENTIONS {mention_text, match_status,<br/>found_by: dictionary / model / heading}"| SU
+    CL -->|MENTIONS| SG
+    CL -.->|"SAME_TEXT / NEAR_TEXT / SIMILAR_TO (step 9b, off by default)<br/>{layer, same_company, similarity or score}"| CL
 ```
-Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:HAS_RISK_THEME]-> RiskTheme -[:IN_RISK_GROUP]-> RiskGroup
-Company -[:OWNS]-> Subsidiary      Company -[:HAS_SEGMENT]-> Segment      Claim -[:MENTIONS]-> Subsidiary | Segment
-```
+
+- One Claim node per `claim_id` (= `unit_id`: one statement at one place). Every node and edge
+  also has `pipeline_scope`; Claims and the entity edges have `extraction_status: needs_review`.
+- No node per risk factor or heading: those are Claim properties (`risk_factor_id`, …).
+- Dotted: step 9b Claim links, loaded only for the layers switched on in `load.claim_links`.
+- Not in the graph yet: `context_unit_ids` and `lead_unit_id` are properties on SUPPORTS, not
+  Claim→Claim edges.
 
 ## Contents
 
+- [The graph](#the-graph-what-step-10-loads)
 - [Data](#data)
 - [How it works](#how-it-works)
     1. [Workflow](#1-workflow)
@@ -65,7 +93,9 @@ flowchart TD
     RF --> CLM
     RT --> CLM
     CAT --> CLM
+    CLM -.->|"9b Claim links"| LNK["Same / similar Claims"]
     CLM -->|"10 Load"| NEO[("Neo4j")]
+    LNK -.->|"layers switched on"| NEO
     SUB --> NEO
 ```
 
@@ -92,6 +122,7 @@ flowchart TD
 | [7](#step-7) | Label (`label`) | [`label/`](src/label/) | `output/labels.jsonl` | paid |
 | [8](#step-8) | Validate (`validate`) | [`validate.py`](src/validate.py), [`source_review.py`](src/source_review.py) | `output/errors.jsonl`, `review_queue.jsonl` | no |
 | [9](#step-9) | Build Claims (`build_claims`) | [`build_claims.py`](src/build_claims.py), [`entities/annotation.py`](src/entities/annotation.py) | `output/claims.jsonl` | no |
+| [9b](#step-9b) | Claim links (`claim_links`) | [`claim_links.py`](src/claim_links.py) | `output/claim_links.jsonl` | semantic layer only: paid, off by default |
 | [10](#step-10) | Load (`load`) | [`load.py`](src/load.py) | Neo4j | no |
 
 - Run order: 2b runs before 2, 4b before 4 (each feeds the step it belongs to).
@@ -324,6 +355,18 @@ Each module's docstring has the full rules; below is what each step does and wha
 - `claim_id` = `unit_id`; a multi-fragment Claim (list group, page-break join) is matched by
   `source_fragments`, not `quote`.
 - `output/claim_id_report.json`: ids added, gone, or with a changed quote since the last build.
+
+<a id="step-9b"></a>
+**[9b] Claim links** ([`src/claim_links.py`](src/claim_links.py); no LLM except embeddings)
+- Claims with the same or similar text in another filing, of any company: `SAME_TEXT` (same
+  quote), `NEAR_TEXT` (one token changed or token similarity ≥ `claim_links.edit.min_similarity`,
+  difflib, Claudia's [#111][pr-111]), `SIMILAR_TO` (OpenAI embeddings, top-k, cosine ≥
+  `semantic.min_score`; paid, built only with `semantic.compute: true` or `--semantic`).
+- Edges point from the later Claim to the earlier one, with `same_company`. Within a company the
+  links follow the years (each to the one before), so an unchanged sentence is a chain.
+- `checks/claim_links/scores.csv` counts pairs per score, to choose the thresholds;
+  `samples.csv` shows both quotes. Step 10 loads a layer only when `load.claim_links.<layer>` is
+  true (all false).
 
 <a id="step-10"></a>
 **[10] Load** ([`src/load.py`](src/load.py))
@@ -563,6 +606,7 @@ where they are named).
 [pr-47]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/47
 [pr-88]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/88
 [pr-113]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/pull/113
+[pr-111]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/pull/111
 [pr-91]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/91
 [pr-122]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/122
 [pr-125]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/125
