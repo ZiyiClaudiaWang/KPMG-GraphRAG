@@ -61,7 +61,7 @@ risk_themes:                         # step 4c: themes of each Item 1A risk fact
   reasoning_effort: low              # reasoning models only
   max_reasoning_tokens: 2000
   answer_tokens: 300                 # output room for the answer itself
-  max_units: 80                      # units of one risk factor shown at most (lead first)
+  max_units: 120                     # units of one risk factor shown at most (lead first)
   concurrency: 1                     # requests in flight at once (--workers overrides); try 8
   rate_limit_retries: 6
   budget_usd: 10.0                   # this step only; check the dry run's worst case first
