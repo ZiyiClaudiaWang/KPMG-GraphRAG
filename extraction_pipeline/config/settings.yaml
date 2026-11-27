@@ -84,7 +84,7 @@ risk_themes:                         # step 5b: themes of each Item 1A risk fact
   budget_usd: 15.0                   # this step only; check the dry run's worst case first
 
 extract:                             # step 8b: entity mentions, metrics, event type of each Claim
-  model: gpt-4.1-mini                # batching (15 Claims, 4 context units) and reuse as in label:
+  model: gpt-5-mini                  # batching (15 Claims, 4 context units) and reuse as in label:
   prompt_version: extract_v1         # prompts/<prompt_version>.txt
   answer_tokens_per_sentence: 120    # typical output a Claim, for the dry run's typical cost
   max_completion_tokens: 4000        # output limit per request (the dry run's worst case); a reply
@@ -94,7 +94,7 @@ extract:                             # step 8b: entity mentions, metrics, event 
   concurrency: 8                     # requests in flight at once (--workers overrides); 429s wait and retry
   rate_limit_retries: 6
   stop_on_failure: true              # stop at a rejected reply (ids differ from the batch)
-  budget_usd: 35.0                   # this step only (output/usage_extract.jsonl)
+  budget_usd: 60.0                   # this step only (output/usage_extract.jsonl)
 
 headings:                            # step 3b: heading levels from the EDGAR HTML (no LLM)
   indent_tickers: [MCK]              # companies whose left indent marks a heading level

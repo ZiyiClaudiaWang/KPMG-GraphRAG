@@ -24,6 +24,8 @@ Code checks every quoted field against the sentence: a mention whose mention_tex
 evidence_quote is not part of it is dropped, a metric whose metric_text or value_text is not part
 of it is dropped, a period_text that is not part of it becomes null. There is no separate
 validate step after 8b: an extraction only adds to a Claim and never decides whether it is one.
+A reply that leaves out some sentences (its other ids all from the batch, once, in order) keeps
+the rows it has; the left-out Claims are sent once more in new batches after the first round.
 What code dropped, rejected batches and Claims still without an extraction are review files:
 data/checks/extract/dropped.jsonl, rejected_batches.jsonl, missing.jsonl. Step 9 then checks
 the segment / subsidiary mentions against the catalog (entity_review_flags).
@@ -128,6 +130,13 @@ def checked(row: dict, text: str) -> tuple[dict, list[dict]]:
     return {"entity_mentions": mentions, "metrics": metrics, "event_type": event, "affected_object": affected}, dropped
 
 
+def only_missing(batch: dict, results: list[dict]) -> bool:
+    """True when the reply's ids are batch ids, each once, in batch order, and some are missing."""
+    got = [r.get("id") for r in results]
+    expected = [i for i in batch["local_ids"] if i in set(got)]
+    return bool(got) and got == expected and len(got) < len(batch["local_ids"])
+
+
 def check_reply(batch: dict, results: list[dict]) -> list[str]:
     got = [r.get("id") for r in results]
     if got != batch["local_ids"]:
@@ -185,7 +194,7 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
         model: str | None = None, compare: bool = False) -> None:
     cfg = config(model)
     units = list(read_jsonl(Paths.sentences()))
-    labels = reviewed_labels()
+    labels = reviewed_labels(unit_ids={u["unit_id"] for u in units})
     claims = targets(units, labels, assume_unlabelled=dry_run)
     if dry_run and len(claims) > len({l["unit_id"] for l in labels if l["label"] in CLAIM_TYPES}):
         log(STEP, "dry run: units step 7 has not labelled yet are counted as Claims")
@@ -210,7 +219,7 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
 
     texts = {u["unit_id"]: u["text"] for u in units}
     client = Client(cfg, usage_path=Paths.step_usage(STEP))
-    state = {"sent": 0, "dropped": [], "rejected": [], "stopped": None}
+    state = {"sent": 0, "dropped": [], "rejected": [], "stopped": None, "left_out": set()}
     rows: dict[str, dict] = {}
 
     def one(p: dict, send: bool):
@@ -223,8 +232,19 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
     def handle(p: dict, record: dict | None) -> None:
         if record is None:
             return
-        problems, parsed = parse_reply(record["raw_response"], schema["schema"], "results")
-        problems = problems or check_reply(p["batch"], parsed["results"])
+        hard, parsed = parse_reply(record["raw_response"], schema["schema"], "results")
+        problems = hard or check_reply(p["batch"], parsed["results"])
+        if problems and not hard and only_missing(p["batch"], parsed["results"]):
+            # The model left out some sentences but every row it gave is a batch id, once: keep
+            # those rows, and send the left-out Claims again after the first round.
+            missing = [u for u, n in zip(p["batch"]["unit_ids"], p["batch"]["local_ids"])
+                       if n not in {r["id"] for r in parsed["results"]}]
+            log(STEP, f"{p['batch']['batch_id']}: {len(missing)} of {len(p['batch']['unit_ids'])} Claims "
+                      f"left out of the reply; kept the rest, the left-out ones are sent again")
+            state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
+                                      "problems": problems, "unit_ids": missing, "kept_the_rest": True})
+            state["left_out"].update(missing)
+            problems = []
         if problems:
             log(STEP, f"{p['batch']['batch_id']} rejected: {'; '.join(problems)[:200]}")
             state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
@@ -258,6 +278,11 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
             bar.close()
 
     send_all(first_round)
+    retry = state["left_out"] - set(rows)
+    if retry and not state["stopped"]:              # one more round, in new (smaller) batches
+        log(STEP, f"{len(retry)} Claims left out of their batch's reply: sent again")
+        state["left_out"] = set()
+        send_all(plan(retry))
     copied = 0
     if reuse:
         waiting = {u for u, f in reuse.items() if f not in rows}
