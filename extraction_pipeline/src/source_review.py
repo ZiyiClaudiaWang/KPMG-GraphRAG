@@ -1,9 +1,9 @@
-"""Rule review after the LLM (Claudia's source_review.py, used by steps 5 to 7).
+"""Rule review after the LLM (Claudia's source_review.py, used by steps 7 to 9).
 
 source_vocabulary  segment names defined in the Business sections. The two patterns are
                    specific to Apple and Microsoft (README, Open decisions, [Validate]).
-claim_review_flags rules that hold a Claim for review (step 6).
-entity_review      checks of the model's entity mentions against those names (steps 6 and 7).
+claim_review_flags rules that hold a Claim for review (step 8).
+entity_review      checks of the model's entity mentions against those names (steps 8 and 9).
 The functions are hers, unchanged, so outputs match her run.
 """
 

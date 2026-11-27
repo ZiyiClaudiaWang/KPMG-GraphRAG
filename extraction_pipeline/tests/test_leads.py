@@ -106,7 +106,7 @@ class Leads(unittest.TestCase):
         lead = self.by_text["We face intense competition across all of our markets."]
         self.assertEqual(lead["lead_source"], "html")
         self.assertEqual(self.by_text["Competition among platform ecosystems"]["role"], "heading")
-        # step 4's lead_unit_id stops at the sub-heading (decided 26 Nov); step 4c's risk factor does not
+        # step 4's lead_unit_id stops at the sub-heading (decided 26 Nov); step 5b's risk factor does not
         self.assertIsNone(self.by_text["Our rivals build their own platforms."]["lead_unit_id"])
 
     def test_a_heading_ends_the_scope(self):

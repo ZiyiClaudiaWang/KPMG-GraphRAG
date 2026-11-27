@@ -1,9 +1,9 @@
 import unittest
 from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like,
                          is_category, is_colon_heading, mark_risk_summary, segment_section)
-from src.entity_annotation import annotate_mentions
+from src.entities.annotation import annotate_mentions
 from src.clean import drop_rule, has_table_cells, should_join
-from src.risk_factors import assign, category_key
+from src.risk.factors import assign, category_key
 from src.common import source_text, unit_id
 
 
@@ -329,7 +329,8 @@ class RiskCategories(unittest.TestCase):
         self.assertEqual(by_id["u4"]["risk_category_text"], "Risks Related to Intellectual Property and Litigation")
         self.assertEqual(categories[0]["risk_category_unit_id"], "u2")   # unit ids (#45)
         self.assertEqual(set(by_id["u4"]), {"unit_id", "risk_category_unit_id", "risk_category_text",
-                                            "heading_risk_group"})   # leads: step 4 (7c)
+                                            "heading_risk_group", "risk_summary",
+                                            "risk_factor_id"})   # leads: step 4 (7c); themes: step 5b
 
 
 class SourceMatching(unittest.TestCase):

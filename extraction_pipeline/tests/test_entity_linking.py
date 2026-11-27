@@ -1,4 +1,4 @@
-"""#91 P1: Claims linked to subsidiaries and segments by code (entity_annotation.py, step 1c)."""
+"""#91 P1: Claims linked to subsidiaries and segments by code (entities/annotation.py, step 6b)."""
 import json
 import os
 import shutil
@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.entity_annotation import annotate_mentions, match_key
+from src.entities.annotation import annotate_mentions, match_key
 
 MSFT, ACC, PRIOR_ACC = "0000789019", "0000789019-26-000001", "0000789019-26-000002"
 
@@ -178,7 +178,7 @@ class DictionaryPass(unittest.TestCase):
 
 
 class CatalogStep(unittest.TestCase):
-    """Step 1c: subsidiaries from step 1b, segments from the fact store, the registrant."""
+    """Step 6b: subsidiaries from step 6a, segments from the fact store, the registrant."""
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -209,7 +209,7 @@ class CatalogStep(unittest.TestCase):
         return path
 
     def test_catalog_has_subsidiaries_segments_and_registrants(self):
-        from src import entity_catalog
+        from src.entities import catalog as entity_catalog
         from src.common import filings
         f = next(x for x in filings() if x["ticker"] == "MSFT")
         cik, acc = str(f["cik"]).zfill(10), f["accession"]
@@ -235,13 +235,13 @@ class CatalogStep(unittest.TestCase):
         self.assertEqual((out["related_segment_ids"], out["related_subsidiary_ids"]), ([seg["entity_id"]], ["s1"]))
 
     def test_segment_label_from_qname(self):
-        from src.entity_catalog import segment_label
+        from src.entities.catalog import segment_label
         self.assertEqual(segment_label("aapl:GreaterChinaSegmentMember"), "Greater China Segment")
         self.assertEqual(segment_label("mu:CDBUMember"), "CDBU")
         self.assertEqual(match_key(segment_label("aapl:GreaterChinaSegmentMember")), "greater china")
 
     def test_without_inputs_the_catalog_is_registrants_only(self):
-        from src import entity_catalog
+        from src.entities import catalog as entity_catalog
         self.assertEqual({e["entity_type"] for e in entity_catalog.build()}, {"registrant"})
 
 
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
 
 class LoadMentions(unittest.TestCase):
-    """Step 8 (#91 P3): one MENTIONS edge per Claim and linked entity."""
+    """Step 10 (#91 P3): one MENTIONS edge per Claim and linked entity."""
 
     def test_one_edge_per_claim_and_entity(self):
         from src.load import mention_rows

@@ -15,7 +15,7 @@ from urllib.parse import quote, urlsplit
 from lxml import html
 
 from ..common import filing_stem
-from ..ex21 import edgar
+from ..entities.ex21 import edgar
 
 
 def primary_url(filing: dict) -> str:

@@ -1,14 +1,14 @@
-"""Step 1c - Entity catalog: the subsidiaries and segments a Claim may link to (#91 P1).
+"""Step 6b - Entity catalog: the subsidiaries and segments a Claim may link to (#91 P1).
 
-Input : data/output/subsidiary_catalog.json   step 1b (Exhibit 21), already scoped per filing
+Input : data/output/subsidiary_catalog.json   step 6a (Exhibit 21), already scoped per filing
         a fact store (.duckdb with financial_facts_v1), optional: the XBRL segment members.
             Path from --facts, PIPELINE_FACT_STORE, or settings.yaml entity_catalog.fact_store.
             Without one the catalog has no segments, and the log says so.
         config/entity_linking.yaml              the registrant's own names
-Output: data/entity_catalog.json                read by steps 5 (recorded only), 6 and 7b
+Output: data/entity_catalog.json                read by steps 7 (recorded only), 8 and 9
 
 Three kinds of entry (entity_annotation.validate_catalog format):
-  subsidiary   copied from step 1b (source exhibit_21; prior_year_only_accessions kept)
+  subsidiary   copied from step 6a (source exhibit_21; prior_year_only_accessions kept)
   segment      one per (company, segment label) on us-gaap:StatementBusinessSegmentsAxis;
                accessions = the filings whose facts use the member, so a reorganised segment
                is only offered to the years that report it. Labels come from the member QName
@@ -18,11 +18,11 @@ Three kinds of entry (entity_annotation.validate_catalog format):
   registrant   the company itself, so a mention of "Medtronic plc" is recognised and never
                linked. Not a graph entity.
 
-Everything from Exhibit 21 or XBRL is needs_review; step 7b turns a one-entry exact-key hit on
+Everything from Exhibit 21 or XBRL is needs_review; step 9 turns a one-entry exact-key hit on
 such an entry into matched_auto (the team's review policy, #91 P1.5).
 
 No OpenAI calls. The catalog is not part of a label request hash, so rebuilding it never
-makes step 5 pay again.
+makes step 7 pay again.
 
 Usage:
   python run_pipeline.py --steps entity_catalog
@@ -39,8 +39,8 @@ import uuid
 from collections import Counter
 from pathlib import Path
 
-from .common import ROOT, Paths, filings, load_config, log, settings
-from .entity_annotation import entry_keys, match_key, validate_catalog
+from ..common import ROOT, Paths, filings, load_config, log, settings
+from .annotation import entry_keys, match_key, validate_catalog
 from .ex21.normalize import normalised_name
 
 STEP = "entity_catalog"
@@ -142,7 +142,7 @@ def build(facts: str | None = None) -> list[dict]:
     subs = json.loads(Paths.subsidiary_catalog().read_text(encoding="utf-8")) \
         if Paths.subsidiary_catalog().exists() else []
     if not subs:
-        log(STEP, f"no {Paths.subsidiary_catalog()}: run step 1b (subsidiaries) first; no subsidiaries")
+        log(STEP, f"no {Paths.subsidiary_catalog()}: run step 6a (subsidiaries) first; no subsidiaries")
     store = fact_store_path(facts)
     segments = []
     if store and store.exists():

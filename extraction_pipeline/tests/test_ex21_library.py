@@ -1,12 +1,12 @@
-"""src/ex21/: the Exhibit 21 library (parse, normalize), tested on small made-up snippets,
+"""src/entities/ex21/: the Exhibit 21 library (parse, normalize), tested on small made-up snippets,
 with no data folder. Moved from ex21_pipeline/tests/test_parse.py when that folder was retired.
 """
 import ast
 from pathlib import Path
 
-from src.ex21.normalize import (entity_key, is_registrant, normalised_name, normalize_jurisdiction,
+from src.entities.ex21.normalize import (entity_key, is_registrant, normalised_name, normalize_jurisdiction,
                                 sub_id)
-from src.ex21.parse import assign_parents, parse_html, parse_text
+from src.entities.ex21.parse import assign_parents, parse_html, parse_text
 
 NESTED_HTML = """
 <table>
@@ -195,7 +195,7 @@ def test_sub_id_is_parent_cik_and_normalised_name():
 
 
 def test_library_imports_nothing_from_the_pipeline():
-    """src/ex21/ may import its own modules (from .parse) but not the pipeline (from ..common)."""
+    """src/entities/ex21/ may import its own modules (from .parse) but not the pipeline (from ..common)."""
     folder = Path(__file__).resolve().parents[1] / "src" / "ex21"
     for path in folder.glob("*.py"):
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):

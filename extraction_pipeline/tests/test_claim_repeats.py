@@ -1,4 +1,4 @@
-from src.report_claim_repeats import build_report
+from src.checks.claim_repeats import build_report
 
 
 def claim(claim_id, accession, quote, cik="0000000001"):

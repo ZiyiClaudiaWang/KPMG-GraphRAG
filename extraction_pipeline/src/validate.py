@@ -1,4 +1,4 @@
-"""Step 6 - Validate: check labels for completeness, then hold doubtful ones for review.
+"""Step 8 - Validate: check labels for completeness, then hold doubtful ones for review.
 
 Input : data/output/sentences.jsonl, data/output/labels.jsonl, data/sections/*.jsonl,
         data/entity_catalog.json (optional)
@@ -6,9 +6,9 @@ Output: data/output/errors.jsonl         every unit must have exactly one valid 
         data/output/review_queue.jsonl   units for a person to look at
         data/output/provisional_segment_definitions.json   segment names read from the filings
 
-Completeness: the same checks run inside step 5 on each reply (check_reply). A rejected
+Completeness: the same checks run inside step 7 on each reply (check_reply). A rejected
 reply publishes no labels, so its sentences show up here as "no label". Units set aside in
-step 5 (source "code_quarantine", label needs_review) are held here like any needs_review.
+step 7 (source "code_quarantine", label needs_review) are held here like any needs_review.
 
 Review follows Claudia's build_candidates() and source_review.py, with her reasons and
 flag names. Three kinds of queue entry:
@@ -17,12 +17,12 @@ flag names. Three kinds of queue entry:
                        known product-line fragments (review.known_list_fragment_prefixes)
   held, uncertainty    label needs_review: the model could not resolve the boundary, subject or type
   retained             the Claim is built, but its entity mentions need review
-Held units do not become Claims in step 7b; they keep their label.
+Held units do not become Claims in step 9; they keep their label.
 
 A unit made of several source fragments (a list group, or a sentence joined across a page
-break) is not held for that reason: its text is rebuilt exactly from the source in step 5,
+break) is not held for that reason: its text is rebuilt exactly from the source in step 7,
 and whether it was joined correctly is a question for steps 2 and 4, not for the label. Its
-Claim carries multi_fragment = true and every fragment's position (step 7b).
+Claim carries multi_fragment = true and every fragment's position (step 9).
 
 Every record here (errors, queue entries, the intro units they cite) names its unit by unit_id
 (#45), so a review decision still points at the same unit after other sentences are re-split.
@@ -33,7 +33,8 @@ from __future__ import annotations
 import json
 from collections import Counter
 
-from . import entity_annotation, source_review
+from . import source_review
+from .entities import annotation as entity_annotation
 from .common import Paths, data_dir, log, read_jsonl, settings, write_jsonl
 
 STEP = "validate"
@@ -122,7 +123,7 @@ def review_entry(unit: dict, result: dict, units: dict[str, dict], neighbours: l
 
 
 def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
-    from .label import entity_catalog, source_index     # imported here: label.py imports this module
+    from .label import entity_catalog, source_index     # imported here: the label package imports this module
     sources, _ = source_index()
     vocabulary = source_review.source_vocabulary(sources)
     (data_dir() / "output").mkdir(parents=True, exist_ok=True)
@@ -148,7 +149,7 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
 
 
 def held_ids() -> set[str]:
-    """Unit ids held from Claims by the last review (used by step 7b)."""
+    """Unit ids held from Claims by the last review (used by step 9)."""
     if not Paths.review_queue().exists():
         return set()
     return {r["unit_id"] for r in read_jsonl(Paths.review_queue()) if not r.get("candidate_retained")}

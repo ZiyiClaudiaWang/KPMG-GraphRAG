@@ -1,8 +1,8 @@
-"""report_entity_inputs: the checks Kelly asked for on the 233-filing subsidiaries and segments."""
+"""checks.entity_inputs: the checks Kelly asked for on the 233-filing subsidiaries and segments."""
 
 import unittest
 
-from src import report_entity_inputs as rep
+from src.checks import entity_inputs as rep
 
 
 def row(sub_id, name, key, acc, period, ticker="YRS"):

@@ -1,4 +1,4 @@
-"""Step 7a review: are the risk categories complete (category_checks), and why Item 1A units
+"""Step 5 review: are the risk categories complete (category_checks), and why Item 1A units
 have no heading group (no_group_reasons). No network, no API."""
 
 import os
@@ -7,7 +7,7 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
-from src import risk_factors
+from src.risk import factors as risk_factors
 
 FILINGS = """filings:
   - {ticker: TST, form: 10-K, reporting_period_end: "2022-12-31", accession: A1}

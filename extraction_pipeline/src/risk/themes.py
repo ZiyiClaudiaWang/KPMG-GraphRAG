@@ -1,37 +1,38 @@
-"""Step 4c - Risk themes: ask the LLM which themes each Item 1A risk factor is about (paid, run on purpose).
+"""Step 5b - Risk themes: the LLM says which themes each Item 1A risk factor is about (paid).
 
-Input : data/output/sentences.jsonl (step 4), config/risk_taxonomy/themes.csv,
+Input : data/interim/risk_factors.jsonl and risk_assignments.jsonl (step 5),
+        data/output/sentences.jsonl (step 4, the units' text), config/risk_taxonomy/themes.csv,
         prompts/risk_themes_v1.txt
-Output: data/interim/risk_themes.jsonl              one row per risk factor the model answered
-        data/checks/risk_themes/requests.csv        one row per risk factor: its request and whether
-                                                    a reply is saved
-        data/output/usage_risk_themes.jsonl         this step's spend (its own budget_usd)
+Output: data/interim/risk_themes.jsonl                  one row per risk factor the model answered
+        data/output/usage_risk_themes.jsonl             this step's spend (its own budget_usd)
+        data/checks/risk_themes/requests.csv            one row per risk factor: its request, reply saved?
+        data/checks/risk_themes/risk_factor_themes.csv  one row per risk factor, for review
 
-A risk factor is one SEC risk: a lead sentence in Item 1A (step 4 lead_source, outside the
-risk factor summary) and the units after it, sub-headings below the lead included, up to the
-next lead or heading at its level (risk_factors()). Its id, risk_factor_id, is the lead's
-unit_id. Units under no lead are not classified here (step 7a counts them).
+One request per risk factor (step 5 defines them): the lead and its units as s1, s2, ... and the
+32 themes of themes.csv with their definitions. The model returns one primary theme (or
+"unknown") and up to two secondary themes, each with the sentence ids that support it. It picks
+themes only, never groups, and is shown neither the filing's heading nor reference_labels.csv.
 
-One request per risk factor: the lead and its units as s1, s2, ... and the 32 themes of
-themes.csv with their definitions. The model returns one primary theme (or "unknown") and up
-to two secondary themes, each with the sentence ids that support it. It picks themes only,
-never groups, and is shown neither the filing's heading nor reference_labels.csv.
+Separate from step 7 (label) on purpose: the unit is a whole risk factor, not a section batch,
+and a change of the taxonomy changes only these requests, never step 7's request hashes.
 
-Separate from step 5 on purpose: the unit is a whole risk factor, not a section batch, and a
-change of the taxonomy changes only these requests, never step 5's request hashes.
+Sends only when asked: a default run (`run_pipeline.py` without --steps risk_themes) reads the
+saved replies and writes the outputs, but sends nothing. Money rules are the shared client's
+(src/llm/client.py): a request whose reply is saved (data/risk_themes/<hash>/) is never sent
+again, nothing is resent automatically, and the run stops before budget_usd. The request holds
+only text (no accession, no unit_id), so a risk factor repeated word for word in another filing
+has the same request hash and reuses the reply: the cost is paid once per distinct risk text.
 
-Money rules are step 5's (label.Labeller): a request whose reply is saved
-(data/risk_themes/<hash>/) is never sent again, nothing is resent automatically, and the run
-stops before budget_usd. The request holds only text (no accession, no unit_id), so a risk
-factor repeated word for word in another filing has the same request hash and reuses the reply:
-the cost is paid once per distinct risk text.
+Themes reach the Claims in step 9 (build_claims), by risk_factor_id: apply() puts the primary
+theme on every unit of the risk factor (scope risk_factor) and a secondary only on the units
+the model gave for it (scope sentence). An answer whose unit list differs from the risk factor's
+now (step 4 or 5 changed it since) is not used: those units are not_classified.
 
 Usage:
-  python -m src.risk_themes --dry-run              requests, how many are saved, estimated cost
-  python -m src.risk_themes --dry-run --compare    cost with every model in settings prices:
-  python -m src.risk_themes --limit 3              send at most 3 new requests
-  python -m src.risk_themes --workers 8            8 requests in flight at once
-then step 7a (risk_factors) puts the themes on every unit, and step 7b on every Claim.
+  python run_pipeline.py --steps risk_themes --dry-run     requests, saved replies, estimated cost
+  python -m src.risk.themes --dry-run --compare            cost with every model in settings prices:
+  python run_pipeline.py --steps risk_themes --limit 3     send at most 3 new requests
+  python run_pipeline.py --steps risk_themes --workers 8   8 requests in flight at once
 """
 
 from __future__ import annotations
@@ -39,72 +40,24 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 
-from . import llm_cost, risk_taxonomy
-from .common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, write_jsonl
+from . import factors as risk_factors, taxonomy as risk_taxonomy
+from ..llm import cost as llm_cost
+from ..common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, write_jsonl
+from .taxonomy import category_key
 
 STEP = "risk_themes"
 RUNNER_VERSION = "kelly_risk_themes_v1"
 PROMPT_VERSION = "risk_themes_v1"
 SHOWN_PREFILTERS = (None, "list_intro", "heading")   # shown to the model; cross references, tables etc. are not
-UNIT_ROLES = ("body", "list_group")          # besides headings, the roles a risk factor covers
 MAX_SECONDARY = 2
 
+THEME_SOURCE = "llm"           # HAS_RISK_THEME.source: themes come from this step
+THEME_STATUSES = ["classified", "unknown", "not_classified", "no_risk_factor", "risk_summary"]
+FACTOR_FIELDS = ["risk_factor_id", "ticker", "form", "accession_number", "category_text", "heading_risk_group",
+                 "lead_text", "n_units", "primary_theme", "primary_group", "secondary_themes",
+                 "agrees_with_heading", "reference_theme", "review"]
 REQUEST_FIELDS = ["risk_factor_id", "ticker", "form", "accession_number", "section_key", "n_units", "n_shown",
                   "truncated", "lead_text", "request_hash", "reply_saved"]
-
-
-# ---------- risk factors ----------
-
-def risk_factors(units: list[dict]) -> list[dict]:
-    """One entry per Item 1A lead outside the risk factor summary, with the units it covers, in order.
-
-    A risk factor runs from its lead to the next lead, the next heading at its own level or above,
-    or the end of the section. Its own level is that of the heading above the lead (at least 1,
-    so a category heading always ends it); a lead that follows another open risk factor is its
-    sibling and takes the same level. So a sub-heading below the lead, such as Microsoft's italic
-    sub-topics ("Competition in the technology sector") under a bold lead, stays inside the risk
-    factor, and so do the sentences under it.
-
-    This is wider than step 4's lead_unit_id, which stops at any heading (kept as decided on
-    26 Nov: the sentences under a sub-topic need no link to the lead). risk_factor_id is only
-    the risk factor's id, used for its themes.
-
-    units: the entry's units, the lead first (unit_ids of every unit that takes its themes).
-    """
-    out, current, section, heading_level = [], None, None, 0
-    for u in units:
-        if u["section_type"] != "risk_factors":
-            continue
-        if (u["accession_number"], u["section_key"]) != section:
-            section, current, heading_level = (u["accession_number"], u["section_key"]), None, 0
-        if u.get("risk_summary") or u["role"] == "section_title":
-            current = None
-            continue
-        if u["role"] == "heading":
-            level = u.get("heading_level")
-            if isinstance(level, int) and level > 0:
-                if current is not None and level <= current["level"]:
-                    current = None
-                heading_level = level
-            if current is not None:
-                current["units"].append(u)
-            continue
-        if u["role"] not in UNIT_ROLES:
-            continue
-        if u.get("lead_source"):
-            level = current["level"] if current is not None else max(heading_level, 1)
-            current = {"risk_factor_id": u["unit_id"], "accession_number": u["accession_number"],
-                       "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
-                       "lead_text": u["text"], "level": level, "units": [u]}
-            out.append(current)
-        elif current is not None:
-            current["units"].append(u)
-    return out
-
-
-def risk_factor_of(units: list[dict]) -> dict[str, str]:
-    """unit_id -> risk_factor_id, for the lead itself and every unit under it."""
-    return {u["unit_id"]: rf["risk_factor_id"] for rf in risk_factors(units) for u in rf["units"]}
 
 
 # ---------- requests ----------
@@ -127,14 +80,14 @@ def schema(theme_ids: list[str]) -> dict:
 
 
 def shown(rf: dict, max_units: int) -> list[dict]:
-    """The units the model reads: the lead, then the units step 5 would label and the sub-headings."""
+    """The units the model reads: the lead, then the units step 7 would label and the sub-headings."""
     lead, rest = rf["units"][0], [u for u in rf["units"][1:] if u.get("prefilter") in SHOWN_PREFILTERS]
     return ([lead] + rest)[:max_units]
 
 
 def plans(factors: list[dict], cfg: dict) -> list[dict]:
     """One request per risk factor. The request has text only, so identical risk text shares a hash."""
-    from .label import canonical, digest
+    from ..llm.client import canonical, digest
     system, ids = system_prompt(), list(risk_taxonomy.themes())
     version = risk_taxonomy.version()
     out = []
@@ -181,7 +134,7 @@ def answer(plan: dict, record: dict) -> tuple[list[str], list[str], dict | None]
     Dropped, with a note: a secondary equal to the primary or to an earlier secondary, more than
     two, sentence ids that were not sent, a secondary left with no sentence.
     """
-    from .label import parse_reply
+    from ..llm.client import parse_reply
     problems, parsed = parse_reply(record["raw_response"], schema(list(risk_taxonomy.themes()))["schema"],
                                    "result", duplicate_keys_ok=False)
     if problems:
@@ -214,16 +167,103 @@ def load_results() -> dict[str, dict]:
     return {r["risk_factor_id"]: r for r in read_jsonl(path)} if path.exists() else {}
 
 
+
+# ---------- themes on the units (used by step 9 and the report) ----------
+
+def current(factors: list[dict], results: dict[str, dict]) -> dict[str, dict]:
+    """risk_factor_id -> this step's answer, only where it still fits: the same units as the risk
+    factor now (step 4 or 5 did not change it since) and themes of the current taxonomy."""
+    themes = risk_taxonomy.themes()
+    out = {}
+    for rf in factors:
+        r = results.get(rf["risk_factor_id"])
+        fits = r and r["unit_ids"] == rf["unit_ids"]
+        known = r and (r["primary_theme"] in themes or r["primary_theme"] == risk_taxonomy.UNKNOWN) \
+            and all(x["theme_id"] in themes for x in r["secondary_themes"])     # not from an older taxonomy
+        if fits and known:
+            out[rf["risk_factor_id"]] = r
+    return out
+
+
+def apply(assignments: list[dict], factors: list[dict], results: dict[str, dict]) -> list[dict]:
+    """Put risk_theme_status and risk_themes on each step-5 assignment (in place; also returned).
+
+    assignments: step 5 rows (risk_factor_id, heading_risk_group, risk_summary); factors: step 5
+    risk factors (unit_ids); results: this step's rows by risk_factor_id (load_results()).
+    """
+    themes, answered = risk_taxonomy.themes(), current(factors, results)
+    for a in assignments:
+        a["risk_themes"] = []
+        if a.get("risk_factor_id") is None:
+            a["risk_theme_status"] = "risk_summary" if a.get("risk_summary") else "no_risk_factor"
+            continue
+        r = answered.get(a["risk_factor_id"])
+        if r is None:
+            a["risk_theme_status"] = "not_classified"
+            continue
+        edge = {"source": THEME_SOURCE, "model": r["model"], "taxonomy_version": r["taxonomy_version"]}
+        primary = r["primary_theme"]
+        a["risk_theme_status"] = "unknown" if primary == risk_taxonomy.UNKNOWN else "classified"
+        if primary != risk_taxonomy.UNKNOWN:
+            heading = a["heading_risk_group"]
+            agrees = (themes[primary]["group_id"] in heading) if heading else None
+            a["risk_themes"].append({"theme_id": primary, "rank": "primary", "scope": "risk_factor",
+                                     "agrees_with_heading": agrees, **edge})
+        for s in r["secondary_themes"]:
+            if a["unit_id"] in s["unit_ids"]:
+                a["risk_themes"].append({"theme_id": s["theme_id"], "rank": "secondary", "scope": "sentence",
+                                         "agrees_with_heading": None, **edge})
+    return assignments
+
+
+def review_rows(factors: list[dict], assignments: list[dict], results: dict[str, dict]) -> list[dict]:
+    """One row per risk factor for risk_factor_themes.csv; review: not_classified, unknown,
+    differs_from_reference (reference_labels.csv), overrules_heading."""
+    themes, answered = risk_taxonomy.themes(), current(factors, results)
+    by_unit = {a["unit_id"]: a for a in assignments}
+    reference = risk_taxonomy.reference_labels()
+    rows = []
+    for rf in factors:
+        r, lead = answered.get(rf["risk_factor_id"]), by_unit.get(rf["risk_factor_id"], {})
+        primary = r["primary_theme"] if r else None
+        heading = lead.get("heading_risk_group") or []
+        agrees = (themes[primary]["group_id"] in heading) if heading and primary in themes else None
+        ref = reference.get(category_key(rf["lead_text"]), "")
+        review = ([] if r else ["not_classified"]) + (["unknown"] if primary == risk_taxonomy.UNKNOWN else []) \
+            + (["differs_from_reference"] if r and ref and primary != ref else []) \
+            + (["overrules_heading"] if agrees is False else [])
+        rows.append({"risk_factor_id": rf["risk_factor_id"], "ticker": rf["ticker"], "form": rf["form"],
+                     "accession_number": rf["accession_number"], "category_text": lead.get("risk_category_text"),
+                     "heading_risk_group": ";".join(heading), "lead_text": rf["lead_text"],
+                     "n_units": len(rf["unit_ids"]), "primary_theme": primary,
+                     "primary_group": themes[primary]["group_id"] if primary in themes else None,
+                     "secondary_themes": ";".join(f"{s['theme_id']}({len(s['unit_ids'])})"
+                                                  for s in (r["secondary_themes"] if r else [])),
+                     "agrees_with_heading": agrees, "reference_theme": ref, "review": ";".join(review)})
+    return rows
+
+
+def factors_path():
+    return checks_dir(STEP) / "risk_factor_themes.csv"
+
+
 # ---------- run ----------
 
+def with_units(factors: list[dict], units: list[dict]) -> list[dict]:
+    """Step 5's risk factors with their unit records (units), as plans() needs them."""
+    by_id = {u["unit_id"]: u for u in units}
+    return [dict(rf, units=[by_id[i] for i in rf["unit_ids"]]) for rf in factors]
+
+
 def run(dry_run: bool = False, limit: int | None = None, model: str | None = None,
-        compare: bool = False, workers: int | None = None) -> None:
-    from .label import Labeller, StopRun
+        compare: bool = False, workers: int | None = None, send: bool = True) -> None:
+    """send=False (a default run): only the saved replies are read, nothing is sent."""
+    from ..llm.client import Client, StopRun
     cfg = llm_cost.step_cfg(STEP, model)
-    factors = risk_factors(list(read_jsonl(Paths.sentences())))
+    factors = with_units(risk_factors.load_factors(), list(read_jsonl(Paths.sentences())))
     todo = plans(factors, cfg)
     distinct = unique(todo)
-    labeller = Labeller(cfg, Paths.step_usage(STEP))
+    labeller = Client(cfg, Paths.step_usage(STEP))
     saved = {p["request_hash"] for p in distinct if labeller.cached(p, STEP) is not None}
     log(STEP, f"{len(factors)} risk factors, {len(distinct)} distinct requests ({len(saved)} with a saved "
               f"reply), model {cfg['model']}"
@@ -239,6 +279,11 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     write_requests(todo, saved)
     if dry_run:
         return
+    if not send:
+        limit = 0
+        if new:
+            log(STEP, f"{len(new)} requests without a saved reply not sent (a default run sends nothing): "
+                      "run `python run_pipeline.py --steps risk_themes` to send them")
 
     workers = max(1, int(workers or cfg.get("concurrency") or 1))
     send = new if limit is None else new[:limit]
@@ -289,6 +334,11 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
                      "taxonomy_version": plan["identity"]["taxonomy_version"],
                      "model": record["raw_response"].get("model") or cfg["model"]})
     write_jsonl(Paths.risk_themes(), rows)
+    results = {r["risk_factor_id"]: r for r in rows}
+    review = review_rows(factors, list(read_jsonl(Paths.risk_assignments())), results)
+    write_csv(factors_path(), review, FACTOR_FIELDS)
+    log(STEP, f"risk factors to review {dict(Counter(x for r in review for x in r['review'].split(';') if x))} "
+              f"-> {factors_path()}")
     write_requests(todo, {p["request_hash"] for p in distinct if labeller.cached(p, STEP) is not None})
     primary = Counter(r["primary_theme"] for r in rows)
     log(STEP, f"{state['sent']} requests sent (about ${labeller.spent:.4f} spent by this step in all); "

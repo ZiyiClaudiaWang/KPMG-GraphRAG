@@ -1,11 +1,11 @@
-"""Step 7b - Build Claims: one candidate record per Claim occurrence, in Claudia's format.
+"""Step 9 - Build Claims: one candidate record per Claim occurrence, in Claudia's format.
 
 Input : data/output/sentences.jsonl, data/output/labels.jsonl, data/output/review_queue.jsonl,
-        data/sections/*.jsonl, data/interim/clean/*.jsonl, data/entity_catalog.json (optional, step 1c)
+        data/sections/*.jsonl, data/interim/clean/*.jsonl, data/entity_catalog.json (optional, step 6b)
 Output: data/output/claims.jsonl   one line per occurrence: a Claim sentence at one place in a section
 
 Follows her build_candidates() field by field. Units labelled not_a_claim or needs_review,
-and units held in step 6, are left out.
+and units held in step 8, are left out.
 
 quote: the unit's source text, every fragment joined by one space, so a multi-span unit (a list
 group, or a sentence joined across a page break) is never cut to its first fragment.
@@ -36,16 +36,18 @@ Lead sentences come from step 4 (sentences.jsonl), in every section:
   provenance.lead_source   html, html_runin or rule for a lead, else null
   provenance.lead_unit_id  the lead above the sentence (step 4), or null. A unit_id, only
                            recorded: the lead itself may not be a Claim (not_a_claim, held).
-Risk fields come from step 7a (data/interim/risk_assignments.jsonl), by unit id:
+Risk fields, by unit id: step 5 (data/interim/risk_assignments.jsonl) gives the heading fields and
+risk_factor_id; step 5b's answers (data/interim/risk_themes.jsonl) are put on them here
+(risk.themes.apply()):
   risk_factor_id           the lead's unit_id of the risk factor (one SEC risk) the sentence is
                            in, or null; a unit_id. Can differ from lead_unit_id: a risk factor
-                           also covers the sub-headings below its lead (risk_themes.py)
+                           also covers the sub-headings below its lead (risk/factors.py)
   risk_category_text       the filing's own level-1 Item 1A heading above it ("Business Risks")
   risk_category_unit_id    that heading's unit_id, or null outside a category
   heading_risk_group       the groups that heading names (config/risk_taxonomy/risk_category_map.csv)
   risk_theme_status        classified | unknown | not_classified | no_risk_factor | risk_summary
-                           (null outside Item 1A); see risk_factors.py
-  risk_themes              the themes from step 4c, each {theme_id, rank, scope, source,
+                           (null outside Item 1A); see risk/themes.py
+  risk_themes              the themes from step 5b, each {theme_id, rank, scope, source,
                            agrees_with_heading, model, taxonomy_version}: one HAS_RISK_THEME edge each
   risk_summary             true if it is in the risk factor summary at the top of Item 1A (step 4)
 """
@@ -56,7 +58,8 @@ import hashlib
 import json
 from collections import Counter
 
-from . import entity_annotation, source_review
+from . import source_review
+from .entities import annotation as entity_annotation
 from .common import UNIT_IDENTITY_VERSION, Paths, log, read_jsonl, write_jsonl
 
 from .validate import CLAIM_TYPES, assessment, held_ids
@@ -122,8 +125,8 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                                                       issuer_cik=source["cik"],
                                                       accession=source["accession_number"], catalog=catalog))
     reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
-    # related_*_ids keep only matched / matched_auto links (entity_annotation.py, #91 P1);
-    # anything weaker stays a candidate on the mention. Step 8 does not load them yet (#91 P3).
+    # related_*_ids keep only matched / matched_auto links (entities/annotation.py, #91 P1);
+    # anything weaker stays a candidate on the mention. Step 10 does not load them yet (#91 P3).
     record.update(proposed_entity_mentions=reviewed["proposed_entity_mentions"], entity_review=reviewed,
                   postcheck_policy_version=POSTCHECK_POLICY_VERSION)
     record["entity_review_flags"] = sorted(set(record["entity_review_flags"] + reviewed["review_flags"]))
@@ -161,8 +164,17 @@ def id_report(records: list[dict], examples: int = 20) -> dict:
     return report
 
 
+def risk_assignments() -> list[dict]:
+    """Step 5's Item 1A rows with step 5b's themes put on them; empty when step 5 has not run."""
+    from .risk import factors as risk_factors, themes as risk_themes
+    if not Paths.risk_assignments().exists():
+        return []
+    return risk_themes.apply(list(read_jsonl(Paths.risk_assignments())), risk_factors.load_factors(),
+                             risk_themes.load_results())
+
+
 def label_runner_version() -> str:
-    from .label import RUNNER_VERSION       # imported here: label.py imports validate, which this imports
+    from .label import RUNNER_VERSION       # imported here: the label package imports validate, which this imports
     return RUNNER_VERSION
 
 
@@ -173,8 +185,7 @@ def run() -> None:
     catalog = entity_catalog()
     units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
     held = held_ids()
-    risks = {a["unit_id"]: a for a in read_jsonl(Paths.risk_assignments())} \
-        if Paths.risk_assignments().exists() else {}
+    risks = {a["unit_id"]: a for a in risk_assignments()}
 
     records, skipped = [], Counter()
     for label in read_jsonl(Paths.labels()):

@@ -1,4 +1,4 @@
-"""The review report (src/report.py): stale steps, settings blocks, changes, unit checks, and a
+"""The review report (src/checks/report.py): stale steps, settings blocks, changes, unit checks, and a
 whole run on the Exhibit 21 fixture. Reads files only, so no network and no API."""
 
 import json
@@ -9,7 +9,8 @@ import time
 import unittest
 from pathlib import Path
 
-from src import report, subsidiaries
+from src.checks import report
+from src.entities import subsidiaries
 from src.common import Paths, write_jsonl
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ex21"

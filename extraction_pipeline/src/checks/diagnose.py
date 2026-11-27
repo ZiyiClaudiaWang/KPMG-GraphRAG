@@ -1,6 +1,6 @@
 """Diagnostics for steps 2-4 at scale: how the hand-written rules behave on every filing.
 
-  python -m src.diagnose            read data/sections/*.jsonl, write data/checks/diagnose/
+  python -m src.checks.diagnose            read data/sections/*.jsonl, write data/checks/diagnose/
 
 No API calls, no database, and no pipeline output is touched: steps 2-4 run in memory on
 EVERY section, not only the kept ones, so the report also shows how the rules would do on
@@ -25,10 +25,10 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
-from . import clean as C
-from . import segment as S
-from .common import Paths, checks_dir, filings, load_config, log, read_jsonl, settings, write_csv
-from .filter_sections import decide, text_stats
+from .. import clean as C
+from .. import segment as S
+from ..common import Paths, checks_dir, filings, load_config, log, read_jsonl, settings, write_csv
+from ..filter_sections import decide, text_stats
 
 STEP = "diagnose"
 
@@ -101,7 +101,7 @@ CHECKS = [
     Check("S13_fragment_bullet_no_intro", "S13", "Same, and the item is cut ('tariffs;', lower case, no end punctuation): it cannot be read alone."),
     Check("S13_colon_list_without_bullets", "S6, S13", "Paragraph ends in ':' and the next is prose, not a bullet or a table: an unbulleted list."),
     Check("S9_risk_section_no_category", "S9", "Item 1A with 20+ units and no category heading: its Claims get no heading group."),
-    Check("S9_unmapped_category", "S9", "Category heading not in config/risk_taxonomy/risk_category_map.csv: step 7a reports it unmapped."),
+    Check("S9_unmapped_category", "S9", "Category heading not in config/risk_taxonomy/risk_category_map.csv: step 5 reports it unmapped."),
     Check("S2_split_after_abbr", "S2", "Split right after U.S./Inc./... because the next word is in OPENERS. Check that these are real sentence ends.", "info"),
 ]
 CHECK_IDS = [c.id for c in CHECKS]
@@ -203,10 +203,10 @@ def run() -> None:
     random.seed(0)
     cfg_clean, cfg_seg = settings()["clean"], settings()["segment"]
     rules = load_config("sections")
-    from .risk_taxonomy import category_key, category_map
+    from ..risk.taxonomy import category_key, category_map
     mapped = set(category_map())
 
-    from .page_breaks import load_decisions
+    from ..page_breaks import load_decisions
     decisions = load_decisions()
     col = Collector()
     hits: dict[str, Counter] = defaultdict(Counter)        # bucket -> check -> n

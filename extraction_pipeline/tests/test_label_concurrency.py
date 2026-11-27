@@ -1,4 +1,4 @@
-"""Step 5 with several requests in flight (--workers): same labels as one at a time, a 429 is
+"""Step 7 with several requests in flight (--workers): same labels as one at a time, a 429 is
 waited out and not left as an uncertain attempt, and the budget counts requests in flight."""
 
 from __future__ import annotations
@@ -89,13 +89,13 @@ class Concurrency(unittest.TestCase):
         os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
         cls.saved_openai = sys.modules.get("openai")
         sys.modules["openai"] = types.SimpleNamespace(OpenAI=Fake, RateLimitError=RateLimitError)
-        cls.saved_settings = label.settings
+        cls.saved_settings = label.step.settings
 
         def without_reuse():
             s = dict(cls.saved_settings())                          # settings() is cached: copy it
             s["label"] = dict(s["label"], reuse_repeats=None)       # both filings sent: more batches
             return s
-        label.settings = without_reuse
+        label.step.settings = without_reuse
 
         def one_run(workers, refuse_first=False):
             setup_data(Path(tempfile.mkdtemp(prefix="label-conc-")), reuse=False)
@@ -111,7 +111,7 @@ class Concurrency(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        label.settings = cls.saved_settings
+        label.step.settings = cls.saved_settings
         for k, v in cls.saved_env.items():
             if v is None:
                 os.environ.pop(k, None)

@@ -1,8 +1,8 @@
-"""Review report for the steps that need no labelling (1-4 and 7a): which checks fail, what is
-stale, what changed since the last report, and which check files to open.
+"""Review report for the steps before labelling (1-6): which checks fail, what is stale, what
+changed since the last report, and which check files to open.
 
-  python -m src.report                  read what the steps wrote, write data/checks/report/
-  python -m src.report --against FILE   compare with a saved report.json instead of the last one
+  python -m src.checks.report           read what the steps wrote, write data/checks/report/
+  python -m src.checks.report --against FILE   compare with a saved report.json instead of the last one
 
 Reads files only: no step is re-run, nothing in output/ or interim/ is written, no API, no
 database. run_pipeline.py runs it at the end of every run that includes one of these steps.
@@ -32,7 +32,7 @@ Outputs (data/checks/report/):
   samples.csv           examples for each unit check (up to SAMPLES_PER_CHECK per company)
 
 Unit checks (step 4, units the LLM would see) are those of the 18 Nov scale-up diagnostics
-(src/diagnose.py) that can be read from sentences.jsonl alone. diagnose.py still runs steps 2-4
+(src/checks/diagnose.py) that can be read from sentences.jsonl alone. diagnose.py still runs steps 2-4
 in memory on every section, also the ones the filter drops; run it for a deeper look.
 """
 
@@ -52,13 +52,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
-from . import risk_factors, risk_taxonomy
-from .clean import ITEM_MARKER
-from .common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
+from ..risk import factors as risk_factors, taxonomy as risk_taxonomy, themes as risk_themes
+from ..clean import ITEM_MARKER
+from ..common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
 from .diagnose import BRAND, TABLE_TITLE, md_table
-from .report_entity_inputs import subsidiaries_by_year
-from .segment import is_category_unit
-from .segment.sentences import TERMINAL
+from .entity_inputs import subsidiaries_by_year
+from ..segment import is_category_unit
+from ..segment.sentences import TERMINAL
 
 STEP = "report"
 SRC = ROOT / "src"
@@ -88,20 +88,6 @@ STEPS = [
      "results": lambda: per_filing(Paths.sections),
      "inputs": lambda: [],
      "checks": []},
-    {"id": "subsidiaries", "name": "1b Subsidiaries",
-     "results": lambda: [Paths.subsidiaries(), Paths.subsidiary_catalog()],
-     "inputs": lambda: [CONFIG / "filings.yaml", CONFIG / "subsidiary_aliases.yaml",
-                        SRC / "subsidiaries.py", SRC / "ex21"],
-     "checks": [(Paths.subsidiary_qa, "rows whose `status` is not OK; `duplicate_names`, `unmapped_jurisdiction`"),
-                (Paths.subsidiary_renames, "rows with an empty `review`: same entity renamed, or two entities? "
-                                           "Reviewed pairs go to config/subsidiary_aliases.yaml"),
-                (lambda: checks_dir("entity_inputs"), "`python -m src.report_entity_inputs`: big year-to-year "
-                                                      "changes, repeats, companies without segments")]},
-    {"id": "entity_catalog", "name": "1c Entity catalog",
-     "results": lambda: [Paths.entity_catalog()],
-     "inputs": lambda: [Paths.subsidiary_catalog(), CONFIG / "entity_linking.yaml", SRC / "entity_catalog.py"],
-     "settings": ["entity_catalog"],
-     "checks": [(Paths.entity_catalog, "entries by `entity_type`; segments come from the fact store")]},
     {"id": "page_breaks", "name": "2b Page breaks (paid, run on purpose)",
      "results": lambda: [Paths.page_break_decisions()],
      "inputs": lambda: [],            # never re-run by a default run: not reported stale
@@ -135,25 +121,39 @@ STEPS = [
                 (Paths.sentences, "the units themselves"),
                 (Paths.lead_summary, "per company: leads by source, units under a lead"),
                 (Paths.lead_review, "one row per lead; `rule_heading` rows the HTML does not confirm"),
-                (lambda: checks_dir("unit_repeats"), "`python -m src.report_unit_repeats`: repeats across "
-                                                     "filings, before labelling")]},
-    {"id": "risk_themes", "name": "4c Risk themes (paid, run on purpose)",
-     "results": lambda: [Paths.risk_themes()],
-     "inputs": lambda: [],            # never re-run by a default run: 7a reports risk factors it lacks
-     "checks": [(lambda: checks_dir("risk_themes") / "requests.csv",
-                 "one row per risk factor: its request, `reply_saved`, `truncated`"),
-                (Paths.risk_themes, "the model's primary and secondary themes per risk factor")]},
-    {"id": "risk_factors", "name": "7a Risk categories and themes (needs no labels)",
-     "results": lambda: [Paths.risk_categories(), Paths.risk_assignments()],
-     "inputs": lambda: [Paths.sentences(), Paths.risk_themes(), risk_taxonomy.folder(),
-                        SRC / "risk_factors.py", SRC / "risk_taxonomy.py"],
+                (lambda: checks_dir("unit_repeats"), "repeats across filings, before labelling (written after "
+                                                     "segment by `src/checks/unit_repeats.py`)")]},
+    {"id": "risk_factors", "name": "5 Risk factors and categories",
+     "results": lambda: [Paths.risk_categories(), Paths.risk_factors(), Paths.risk_assignments()],
+     "inputs": lambda: [Paths.sentences(), risk_taxonomy.folder(), SRC / "risk" / "factors.py",
+                        SRC / "risk" / "taxonomy.py"],
      "computed": "risk_categories.csv not written yet; the numbers here are computed from sentences.jsonl",
      "checks": [(risk_taxonomy.category_map_path, "add the unmapped category texts listed in this section"),
-                (Paths.risk_categories, "one row per category heading (written by step 7a)"),
+                (Paths.risk_categories, "one row per category heading"),
                 (risk_factors.checks_path, "are the categories complete? filter on `check` (year_gap, "
-                                           "summary_mismatch, risk_heading_below_1, suspect_category)"),
-                (risk_factors.factors_path, "one row per risk factor; filter on `review` (differs_from_reference, "
-                                            "overrules_heading, unknown, not_classified)")]},
+                                           "summary_mismatch, risk_heading_below_1, suspect_category)")]},
+    {"id": "risk_themes", "name": "5b Risk themes (paid: sends only when named)",
+     "results": lambda: [Paths.risk_themes()],
+     "inputs": lambda: [Paths.risk_factors(), risk_taxonomy.folder(), SRC / "risk" / "themes.py"],
+     "checks": [(risk_themes.factors_path, "one row per risk factor; filter on `review` (not_classified, unknown, "
+                                           "differs_from_reference, overrules_heading)"),
+                (lambda: checks_dir("risk_themes") / "requests.csv",
+                 "one row per risk factor: its request, `reply_saved`, `truncated`"),
+                (Paths.risk_themes, "the model's primary and secondary themes per risk factor")]},
+    {"id": "subsidiaries", "name": "6a Subsidiaries (Exhibit 21)",
+     "results": lambda: [Paths.subsidiaries(), Paths.subsidiary_catalog()],
+     "inputs": lambda: [CONFIG / "filings.yaml", CONFIG / "subsidiary_aliases.yaml",
+                        SRC / "entities" / "subsidiaries.py", SRC / "entities" / "ex21"],
+     "checks": [(Paths.subsidiary_qa, "rows whose `status` is not OK; `duplicate_names`, `unmapped_jurisdiction`"),
+                (Paths.subsidiary_renames, "rows with an empty `review`: same entity renamed, or two entities? "
+                                           "Reviewed pairs go to config/subsidiary_aliases.yaml"),
+                (lambda: checks_dir("entity_inputs"), "`python -m src.checks.entity_inputs`: big year-to-year "
+                                                      "changes, repeats, companies without segments")]},
+    {"id": "entity_catalog", "name": "6b Entity catalog (subsidiaries and segments)",
+     "results": lambda: [Paths.entity_catalog()],
+     "inputs": lambda: [Paths.subsidiary_catalog(), CONFIG / "entity_linking.yaml", SRC / "entities" / "catalog.py"],
+     "settings": ["entity_catalog"],
+     "checks": [(Paths.entity_catalog, "entries by `entity_type`; segments come from the fact store")]},
 ]
 STEP_IDS = [s["id"] for s in STEPS]
 STEP_NAME = {s["id"]: s["name"] for s in STEPS}
@@ -271,7 +271,7 @@ def subsidiaries_numbers() -> tuple[dict, list, list]:
                      + ", ".join(f"{q['ticker']} {q['accession']} ({q['status']})" for q in not_ok[:8]))
     if unchecked:
         by_t = Counter(f["ticker"] for f in unchecked)
-        notes.append("10-Ks in filings.yaml not in subsidiary_qa.csv (run step 1b): "
+        notes.append("10-Ks in filings.yaml not in subsidiary_qa.csv (run step 6a): "
                      + ", ".join(f"{t} ({n})" for t, n in sorted(by_t.items())))
     lines = []
     if big:
@@ -300,22 +300,6 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     if no_sub:
         notes.append(f"companies with no subsidiary in the catalog: {', '.join(no_sub)}")
     return m, notes, []
-
-
-def risk_themes_numbers() -> tuple[dict, list, list]:
-    m = {}
-    requests = checks_dir("risk_themes") / "requests.csv"
-    if requests.exists():
-        rows = list(csv.DictReader(open(requests, encoding="utf-8")))
-        m["risk_factors"] = len(rows)
-        m["distinct_requests"] = len({r["request_hash"] for r in rows})
-        m["truncated"] = sum(r["truncated"] == "True" for r in rows)
-    if Paths.risk_themes().exists():
-        m["answered"] = sum(1 for _ in read_jsonl(Paths.risk_themes()))
-    ledger = Paths.step_usage("risk_themes")
-    if ledger.exists():
-        m["cost_usd"] = round(sum(r.get("estimated_cost_usd") or 0 for r in read_jsonl(ledger)), 4)
-    return m, [], []
 
 
 def page_breaks_numbers() -> tuple[dict, list, list]:
@@ -434,7 +418,7 @@ def headings_numbers() -> tuple[dict, list, list]:
         kinds = Counter(x["kind"] for r in read_jsonl(Paths.html_tables()) for x in r["rows"])
         m.update({f"table_rows_{k}": v for k, v in kinds.items()})
     notes, lines = [], []
-    from .headings.step import read_output
+    from ..headings.step import read_output
     if Paths.heading_html_diff().exists():
         diff = read_output(Paths.heading_html_diff())
         if "kind" in diff:
@@ -499,46 +483,72 @@ def segment_numbers(units: list[dict]) -> tuple[dict, list, list]:
 
 
 def risk_numbers(units: list[dict]) -> tuple[dict, list, list]:
+    """Step 5: categories, heading groups, risk factors (computed from sentences.jsonl)."""
     if not units:
         return {}, [], []
     categories, assignments, factors = risk_factors.build(units)
     status = Counter(c["map_status"] for c in categories)
     unmapped = Counter((c["ticker"], c["category_text"]) for c in categories if c["map_status"] == "unmapped")
     with_group = sum(bool(a["heading_risk_group"]) for a in assignments)
-    themed = Counter(a["risk_theme_status"] for a in assignments)
     in_factor = sum(bool(a["risk_factor_id"]) for a in assignments)
-    review = Counter(x for f in factors for x in f["review"].split(";") if x)
     m = {"categories": len(categories), **{f"categories_{k}": status[k] for k in risk_taxonomy.MAP_STATUSES},
          "unmapped": status["unmapped"], "unmapped_texts": len(unmapped),
          "item_1a_units": len(assignments), "item_1a_units_with_group": with_group,
          "item_1a_with_group_pct": pct(with_group, len(assignments)),
          "item_1a_in_risk_factor_pct": pct(in_factor, len(assignments)),
-         "risk_factors": len(factors),
-         **{f"risk_factors_{k}": review[k] for k in ("not_classified", "unknown", "differs_from_reference",
-                                                      "overrules_heading")},
-         **{f"units_{k}": themed[k] for k in risk_factors.THEME_STATUSES}}
+         "risk_factors": len(factors)}
     checks = Counter(r["check"] for r in risk_factors.category_checks(units, categories))
     reasons = risk_factors.no_group_reasons(units, categories, assignments)
     m.update({f"check_{k}": checks[k] for k, _ in risk_factors.CATEGORY_CHECKS})
     m.update({f"no_group_{k}": reasons[k] for k in risk_factors.NO_GROUP_REASONS})
-    primary = Counter(f["primary_theme"] for f in factors if f["primary_theme"])
-    lines = ["**Item 1A units by risk theme status** (themes come from step 4c)", "",
-             md_table(["status", "units", "% of Item 1A units"],
-                      [[k, f"{themed[k]:,}", pct(themed[k], len(assignments))] for k in risk_factors.THEME_STATUSES]),
-             "", "**Why Item 1A units have no heading group**", "",
+    lines = ["**Why Item 1A units have no heading group**", "",
              md_table(["reason", "units", "% of Item 1A units"],
                       [[k, f"{reasons[k]:,}", pct(reasons[k], len(assignments))]
                        for k in risk_factors.NO_GROUP_REASONS]), "",
              "**Are the categories complete?** (cases in `category_checks.csv`)", "",
              md_table(["check", "cases", "what it means"],
                       [[k, checks[k], why] for k, why in risk_factors.CATEGORY_CHECKS]), ""]
-    if primary:
-        lines += ["**Primary themes** (risk factors)", "",
-                  md_table(["theme", "risk factors"], [[t, n] for t, n in primary.most_common()]), ""]
     if unmapped:
         lines += ["Unmapped category texts (add them to `config/risk_taxonomy/risk_category_map.csv`):", "",
                   md_table(["ticker", "category text", "filings"],
                            [[t, x, n] for (t, x), n in sorted(unmapped.items())]), ""]
+    return m, [], lines
+
+
+def risk_themes_numbers(units: list[dict]) -> tuple[dict, list, list]:
+    """Step 5b: requests, answers, cost, and the theme status of every Item 1A unit (as step 9 will
+    put it on the Claims: step 5's risk factors with the saved answers that still fit)."""
+    m = {}
+    requests = checks_dir("risk_themes") / "requests.csv"
+    if requests.exists():
+        rows = list(csv.DictReader(open(requests, encoding="utf-8")))
+        m["requests"] = len(rows)
+        m["distinct_requests"] = len({r["request_hash"] for r in rows})
+        m["truncated"] = sum(r["truncated"] == "True" for r in rows)
+    results = risk_themes.load_results()
+    if Paths.risk_themes().exists():
+        m["answered"] = len(results)
+    ledger = Paths.step_usage("risk_themes")
+    if ledger.exists():
+        m["cost_usd"] = round(sum(r.get("estimated_cost_usd") or 0 for r in read_jsonl(ledger)), 4)
+    if not units:
+        return m, [], []
+    _, assignments, factors = risk_factors.build(units)
+    risk_themes.apply(assignments, factors, results)
+    review = Counter(x for r in risk_themes.review_rows(factors, assignments, results)
+                     for x in r["review"].split(";") if x)
+    themed = Counter(a["risk_theme_status"] for a in assignments)
+    m.update({f"risk_factors_{k}": review[k] for k in ("not_classified", "unknown", "differs_from_reference",
+                                                       "overrules_heading")})
+    m.update({f"units_{k}": themed[k] for k in risk_themes.THEME_STATUSES})
+    primary = Counter(r["primary_theme"] for r in results.values() if r["primary_theme"])
+    lines = ["**Item 1A units by risk theme status**", "",
+             md_table(["status", "units", "% of Item 1A units"],
+                      [[k, f"{themed[k]:,}", pct(themed[k], len(assignments))] for k in risk_themes.THEME_STATUSES]),
+             ""]
+    if primary:
+        lines += ["**Primary themes** (risk factors)", "",
+                  md_table(["theme", "risk factors"], [[t, n] for t, n in primary.most_common()]), ""]
     return m, [], lines
 
 
@@ -632,7 +642,7 @@ def unit_checks(units: list[dict]) -> tuple[dict, list, list, list[dict]]:
 
 
 def repeats_numbers() -> dict:
-    """Pre-label repeats, from python -m src.report_unit_repeats (summary.csv), when it has run."""
+    """Pre-label repeats, from src/checks/unit_repeats.py (summary.csv), when it has run."""
     path = checks_dir("unit_repeats") / "summary.csv"
     if not path.exists():
         return {}
@@ -712,9 +722,9 @@ def build(last: dict | None, before: dict | None) -> tuple[dict, dict, list[dict
     numbers = {
         "fetch": fetch_numbers(), "subsidiaries": subsidiaries_numbers(),
         "entity_catalog": entity_catalog_numbers(), "page_breaks": page_breaks_numbers(),
-        "risk_themes": risk_themes_numbers(),
         "clean": clean_numbers(), "filter": filter_numbers(), "headings": headings_numbers(),
         "segment": segment_numbers(units), "risk_factors": risk_numbers(units),
+        "risk_themes": risk_themes_numbers(units),
     }
     checks_m, checks_notes, checks_lines, samples = unit_checks(units) if units else ({}, [], [], [])
     seg_m, seg_notes, seg_lines = numbers["segment"]
@@ -726,9 +736,9 @@ def build(last: dict | None, before: dict | None) -> tuple[dict, dict, list[dict
         numbers["segment"] = ({**seg[0], **{f"repeats_{k}": v for k, v in rep.items()}}, seg[1], seg[2])
     # Check folders written by their own scripts, not by a step: say when they are older than their input.
     for step_id, folder, inputs, script in (
-            ("segment", checks_dir("unit_repeats"), [Paths.sentences()], "report_unit_repeats"),
+            ("segment", checks_dir("unit_repeats"), [Paths.sentences()], "checks.unit_repeats"),
             ("subsidiaries", checks_dir("entity_inputs"), [Paths.subsidiaries(), Paths.entity_catalog()],
-             "report_entity_inputs")):
+             "checks.entity_inputs")):
         written, _ = newest([folder])
         if written and newest(inputs)[0] > written + 1:
             numbers[step_id][1].append(f"{rel(folder)} is older than {', '.join(p.name for p in inputs)}: "

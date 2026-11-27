@@ -187,7 +187,7 @@ def walk(sec: dict, headers: set[str], decisions: dict[str, bool] | None = None)
       removed     [{raw_start, raw_end, rule, text}]
       boundaries  one record per boundary between two kept paragraphs, in order:
                   {class, prev, next, next_start, joined, prev_is_item}
-    diagnose.py and page_breaks.py read the boundaries, so the three never disagree.
+    checks/diagnose.py and page_breaks.py read the boundaries, so the three never disagree.
     """
     raw = sec["content"] or ""
     paragraphs: list[list[list[int]]] = []
@@ -263,7 +263,7 @@ def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | Non
 #
 # Every boundary between two kept paragraphs gets a class. The class decides the join:
 # JOIN_CLASSES are joined, GRAY_CLASSES are joined only when step 2b (page_breaks.py, an LLM
-# yes/no) said so, every other class is never joined. diagnose.py reports the same classes.
+# yes/no) said so, every other class is never joined. checks/diagnose.py reports the same classes.
 
 JOIN_CLASSES = ("join_lowercase", "join_dangling_word", "join_dangling_quote", "join_dangling_digit",
                 "join_amount_paren", "join_comma", "join_open_quote")

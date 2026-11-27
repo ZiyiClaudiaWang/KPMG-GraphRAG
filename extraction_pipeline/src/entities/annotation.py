@@ -1,8 +1,8 @@
 """Entity mentions: segments and subsidiaries named in a Claim (Claudia's module, P1 of #91).
 
-The LLM returns mentions in step 5 (instructions are in prompts/label_v2.txt); step 7b checks
+The LLM returns mentions in step 7 (instructions are in prompts/label_v2.txt); step 9 checks
 them against the sentence and matches them to the entity catalog (data/entity_catalog.json,
-built by step 1c, src/entity_catalog.py). Catalog IDs are assigned by code only, and nothing
+built by step 6b, src/entities/catalog.py). Catalog IDs are assigned by code only, and nothing
 here writes to the graph.
 
 Matching (docs/claim-entity-linking.md, P1):
@@ -84,7 +84,7 @@ def match_key(name: str) -> str:
 @functools.lru_cache(maxsize=1)
 def settings() -> dict:
     """config/entity_linking.yaml, with guard terms as match keys."""
-    from .common import load_config     # imported here so the module stays importable alone
+    from ..common import load_config     # imported here so the module stays importable alone
     try:
         cfg = load_config("entity_linking") or {}
     except FileNotFoundError:

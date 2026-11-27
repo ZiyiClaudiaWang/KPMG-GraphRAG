@@ -16,10 +16,10 @@ Usage:
   python -m src.page_breaks               ask, then rerun steps 2-4 (python run_pipeline.py --from clean)
   python -m src.page_breaks --limit 3     send at most 3 new requests
 
-Money rules are label.py's: a request whose reply is saved (data/page_breaks/<hash>/) is never
+Money rules are the shared client's (src/llm/client.py): a request whose reply is saved (data/page_breaks/<hash>/) is never
 sent again, nothing is resent automatically, and the run stops before budget_usd. The model,
 reasoning effort and budget are this step's own (settings.yaml page_breaks:), and its spend is
-logged to data/output/usage_page_breaks.jsonl, separate from step 5.
+logged to data/output/usage_page_breaks.jsonl, separate from step 7.
   python -m src.page_breaks --dry-run --compare        cost with every model in settings prices:
   python -m src.page_breaks --model gpt-5.5 --limit 1  try another model than the configured one
 A boundary's id is accession|section_key|start of the second paragraph in the Data-team content
@@ -31,7 +31,7 @@ from __future__ import annotations
 import argparse
 
 from . import clean as C
-from . import llm_cost
+from .llm import cost as llm_cost
 from .common import Paths, filings, load_config, log, read_jsonl, settings, write_jsonl
 from .filter_sections import decide
 
@@ -100,7 +100,7 @@ def plans(boundaries: list[dict], cfg: dict) -> list[dict]:
     A request holds the boundaries of one section only, so adding, removing or changing a section
     leaves every other section's request (and its saved reply) as it was.
     """
-    from .label import canonical, digest
+    from .llm.client import canonical, digest
     by_section: dict[str, list[dict]] = {}
     for b in boundaries:                          # boundary_id = accession|section_key|start
         by_section.setdefault(b["boundary_id"].rsplit("|", 1)[0], []).append(b)
@@ -124,7 +124,7 @@ def plans(boundaries: list[dict], cfg: dict) -> list[dict]:
 
 def answers(plan: dict, record: dict) -> tuple[list[str], dict[str, bool]]:
     """Problems with a reply, and boundary id -> same_sentence for the ids it answered once."""
-    from .label import parse_reply
+    from .llm.client import parse_reply
     problems, parsed = parse_reply(record["raw_response"], schema()["schema"], "results",
                                    duplicate_keys_ok=False)
     if problems:
@@ -148,7 +148,7 @@ def expected_answer_tokens(todo: list[dict]) -> list[int]:
 
 def run(dry_run: bool = False, limit: int | None = None, model: str | None = None,
         compare: bool = False) -> None:
-    from .label import Labeller, StopRun
+    from .llm.client import Client, StopRun
     cfg = llm_cost.step_cfg(STEP, model)
     boundaries = gray_boundaries()
     todo = plans(boundaries, cfg)
@@ -158,7 +158,7 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     if dry_run:
         write_jsonl(Paths.page_break_candidates(), boundaries)
         return
-    labeller, sent, decided = Labeller(cfg, Paths.step_usage(STEP)), 0, {}
+    labeller, sent, decided = Client(cfg, Paths.step_usage(STEP)), 0, {}
     try:
         for plan in todo:
             record = labeller.cached(plan, "page_breaks")
