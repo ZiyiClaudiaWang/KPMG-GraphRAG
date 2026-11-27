@@ -5,6 +5,11 @@ entity_catalog:                      # step 6b
   fact_store: null                   # .duckdb with financial_facts_v1, for XBRL segments; relative to
                                      # extraction_pipeline/. --facts or PIPELINE_FACT_STORE override it
 
+subsidiaries:                        # step 6a
+  # 10-Ks whose Exhibit 21 is incorporated by reference to an earlier 10-K (no EX-21 attached):
+  # accession -> the 10-K it points to. Not flagged in the report; no rows are copied over.
+  ex21_by_reference:
+    0001628280-26-057139: 0000106040-25-000038   # WDC FY2026 -> FY2025 10-K (exhibit index, checked 27 Nov)
 clean:
   repeated_paragraph_min_count: 5   # a short paragraph seen this often in one filing is a page header
   repeated_paragraph_max_chars: 90

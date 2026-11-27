@@ -36,7 +36,7 @@ from pathlib import Path
 
 import yaml
 
-from ..common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, write_csv, write_jsonl
+from ..common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, settings, write_csv, write_jsonl
 from .ex21 import edgar
 from .ex21.normalize import entity_key, is_registrant, normalised_name, normalize_jurisdiction, sub_id
 from .ex21.parse import assign_parents, parse_file
@@ -66,6 +66,9 @@ def ten_ks() -> list[dict]:
     return rows
 
 
+BY_REFERENCE = "BY_REFERENCE"     # a known 10-K with no EX-21 attached: not a problem
+
+
 def _check(target: dict, status: str) -> dict:
     return {**target, "local_file": "", "rows_parsed": 0, "status": status}
 
@@ -77,9 +80,14 @@ def fetch(targets: list[dict]) -> tuple[dict[str, dict], list[dict]]:
     saved = {r["accession"]: r for r in read_csv(Paths.ex21_manifest())} \
         if Paths.ex21_manifest().exists() else {}
     checks = []
+    by_reference = (settings().get("subsidiaries") or {}).get("ex21_by_reference") or {}
     for t in targets:
         row = saved.get(t["accession"])
         if row and (Paths.ex21_raw().parent / row["local_file"]).exists():
+            continue
+        if t["accession"] in by_reference:
+            checks.append(_check(t, f"{BY_REFERENCE}: EX-21 incorporated by reference to 10-K "
+                                    f"{by_reference[t['accession']]} (settings.yaml subsidiaries)"))
             continue
         load_env()
         if not edgar.user_agent():

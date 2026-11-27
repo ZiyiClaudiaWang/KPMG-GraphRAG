@@ -236,6 +236,27 @@ class CatalogStep(unittest.TestCase):
         out = annotate_mentions(text, [], issuer_cik=cik, accession=acc, catalog=catalog)
         self.assertEqual((out["related_segment_ids"], out["related_subsidiary_ids"]), ([seg["entity_id"]], ["s1"]))
 
+    def test_reviewed_segment_names_and_skipped_members(self):
+        # config/entity_linking.yaml segment_names / segment_member_skip, on Walmart's members
+        from src.entities import catalog as entity_catalog
+        wmt, acc = "0000104169", "0000104169-26-000001"
+        (self.tmp / "filings.yaml").write_text(
+            "filings:\n"
+            f"  - {{ticker: WMT, cik: \"{wmt}\", form: 10-K, reporting_period_end: \"2026-01-31\", accession: \"{acc}\"}}\n")
+        dims = lambda m: json.dumps([{"axis": entity_catalog.SEGMENT_AXIS, "member": m}])
+        store = self.store([(wmt, acc, dims(m)) for m in
+                            ("wmt:SamsClubSegmentMember", "wmt:SamsClubMember", "wmt:CorporateAndSupportMember")])
+        segs = [e for e in entity_catalog.build(str(store)) if e["entity_type"] == "segment"]
+        self.assertEqual([(e["name"], e["review_status"], len(e["members"])) for e in segs],
+                         [("Sam's Club", "reviewed", 2)])
+        out = annotate_mentions("Sam's Club comparable sales grew.", [], issuer_cik=wmt, accession=acc,
+                                catalog=segs)
+        self.assertEqual(out["related_segment_ids"], [segs[0]["entity_id"]])
+
+    def test_single_segment_companies_are_listed(self):
+        from src.common import load_config
+        self.assertEqual(set(load_config("entity_linking")["single_segment_companies"]), {"CASY", "TTWO"})
+
     def test_segment_label_from_qname(self):
         from src.entities.catalog import segment_label
         self.assertEqual(segment_label("aapl:GreaterChinaSegmentMember"), "Greater China Segment")

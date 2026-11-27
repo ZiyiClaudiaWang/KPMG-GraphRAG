@@ -47,6 +47,8 @@ guard_terms:
   - Neuroscience
   - Diabetes              # Medtronic's Diabetes segment vs "patients with diabetes"
   - Medical Surgical
+  - Flash                 # Western Digital: "flash memory", "NAND flash"
+  - HDD                   # Western Digital: also the product ("HDD shipments")
 guard_context_after:
   - net sales
   - net revenues?
@@ -70,6 +72,50 @@ segment_member_skip:
   - ^ReportableSegmentMember$
   - ^OtherOperatingSegment
   - RevenuesMember$
+  - ^Other(Segment)?Member$                        # Medtronic "Other": not a reportable segment
+  - ^Corporate                                     # corporate costs: WMT CorporateAndSupport, MCK Corporate
+  - AndCorporateMember$                            # MCK "North American Pharmaceutical and Corporate"
+  - JointVentureMember$                            # MCK German pharmaceutical wholesale joint venture
+  - ^NorthAmericaAndInternationalSegmentMember$    # AMZN: North America + International subtotal
+  - ^GoogleInc\.Member$                            # GOOGL: Google Inc. before the 2015 Alphabet reorganisation
+
+# Companies with one reportable segment: no segment in the catalog, their Claims link to the
+# registrant (decided). Casey's tags only us-gaap ReportableSegmentMember; Take-Two has no
+# segment axis. The report does not count them under companies_without_segments.
+single_segment_companies: [CASY, TTWO]
+
+# Reviewed names for segment members, per ticker and member local name. The name built from
+# the member loses punctuation ("SamsClubSegmentMember" -> "Sams Club Segment"), which never
+# matches the text ("Sam's Club"). Members given the same name become one entry. Renamed or
+# reorganised segments stay separate entries (decided): Sam's Club / Sam's Club U.S.
+segment_names:
+  AMZN:
+    AmazonWebServicesSegmentMember: {name: Amazon Web Services, aliases: [AWS]}
+  MCK:
+    USPharmaceuticalSegmentMember: U.S. Pharmaceutical
+    U.S.PharmaceuticalandSpecialtySolutionsMember: U.S. Pharmaceutical and Specialty Solutions
+    PrescriptionTechnologySolutionsSegmentMember: {name: Prescription Technology Solutions, aliases: [RxTS]}
+    PrescriptionTechnologySolutionsMember: {name: Prescription Technology Solutions, aliases: [RxTS]}
+    RxTsSegmentMember: {name: Prescription Technology Solutions, aliases: [RxTS]}
+    MedicalSurgicalSolutionsSegmentMember: Medical-Surgical Solutions
+    OncologyAndMultispecialtySegmentMember: Oncology & Multispecialty
+  MU:                                              # the text uses both the acronym and the full name
+    CNBUMember: {name: CNBU, aliases: [Compute and Networking Business Unit]}
+    MBUMember: {name: MBU, aliases: [Mobile Business Unit]}
+    SBUMember: {name: SBU, aliases: [Storage Business Unit]}
+    EBUMember: {name: EBU, aliases: [Embedded Business Unit]}
+    CMBUMember: {name: CMBU, aliases: [Cloud Memory Business Unit]}
+    CDBUMember: {name: CDBU, aliases: [Core Data Center Business Unit]}
+    MCBUMember: {name: MCBU, aliases: [Mobile and Client Business Unit]}
+    AEBUMember: {name: AEBU, aliases: [Automotive and Embedded Business Unit]}
+  WMT:
+    SamsClubSegmentMember: Sam's Club
+    SamsClubMember: Sam's Club
+    SamsClubUSMember: Sam's Club U.S.
+    WalmartUSSegmentMember: Walmart U.S.
+    WalmartUSMember: Walmart U.S.
+    WalmartInternationalSegmentMember: Walmart International
+    WalmartInternationalMember: Walmart International
 
 # The dictionary pass (a catalog name found in a Claim the model did not tag) skips keys
 # shorter than this, and the keys listed under dictionary_skip (too common as words).
@@ -77,4 +123,4 @@ dictionary_min_key_length: 4
 dictionary_skip: []
 # Short names searched all the same (whole word, capital or digit first, and not right after
 # a capitalised word: "NBA 2K" is a game series).
-dictionary_short_names: [2K]   # Take-Two's 2K label (2K, Inc.)
+dictionary_short_names: [2K, AWS, MBU, SBU, EBU]   # Take-Two's 2K label (2K, Inc.); Amazon Web Services; Micron business units

@@ -59,9 +59,10 @@ from urllib.parse import quote
 
 from ..risk import factors as risk_factors, taxonomy as risk_taxonomy, themes as risk_themes
 from ..clean import ITEM_MARKER
-from ..common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
+from ..common import ROOT, Paths, checks_dir, data_dir, filings, load_config, log, read_csv, read_jsonl, settings, write_csv
 from .diagnose import BRAND, TABLE_TITLE, md_table
 from .entity_inputs import subsidiaries_by_year
+from ..entities.subsidiaries import BY_REFERENCE
 from ..segment import is_category_unit
 from ..segment.sentences import TERMINAL
 
@@ -288,7 +289,8 @@ def subsidiaries_numbers() -> tuple[dict, list, list]:
     catalog = json.loads(Paths.subsidiary_catalog().read_text(encoding="utf-8")) \
         if Paths.subsidiary_catalog().exists() else []
     ten_ks = {f["accession"]: f for f in filings() if f["form"] == "10-K"}
-    not_ok = [q for q in qa if q["status"] != "OK"]
+    not_ok = [q for q in qa if q["status"] != "OK" and not q["status"].startswith(BY_REFERENCE)]
+    by_ref = [q for q in qa if q["status"].startswith(BY_REFERENCE)]
     unchecked = [f for a, f in ten_ks.items() if a not in {q["accession"] for q in qa}]
     big = [r for r in subsidiaries_by_year(rows) if r["flag"]]
     m = {"10k_in_filings": len(ten_ks), "10k_checked": len(qa), "10k_unchecked": len(unchecked),
@@ -296,6 +298,9 @@ def subsidiaries_numbers() -> tuple[dict, list, list]:
          "renames": len(renames), "renames_not_reviewed": sum(1 for r in renames if not r["review"]),
          "big_year_changes": len(big)}
     notes = []
+    if by_ref:
+        notes.append("10-Ks with Exhibit 21 incorporated by reference (no rows; settings.yaml "
+                     "subsidiaries.ex21_by_reference): " + ", ".join(f"{q['ticker']} {q['accession']}" for q in by_ref))
     if not_ok:
         notes.append("10-Ks not OK in subsidiary_qa.csv: "
                      + ", ".join(f"{q['ticker']} {q['accession']} ({q['status']})" for q in not_ok[:8]))
@@ -320,7 +325,8 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     ticker = {str(f["cik"]).zfill(10): f["ticker"] for f in filings()}
     with_segments = {e["issuer_cik"] for e in catalog if e["entity_type"] == "segment"}
     with_subs = {e["issuer_cik"] for e in catalog if e["entity_type"] == "subsidiary"}
-    no_seg = sorted({t for c, t in ticker.items() if c not in with_segments})
+    single = {t.upper() for t in load_config("entity_linking").get("single_segment_companies") or []}
+    no_seg = sorted({t for c, t in ticker.items() if c not in with_segments and t.upper() not in single})
     no_sub = sorted({t for c, t in ticker.items() if c not in with_subs})
     m = {f"entries_{k}": v for k, v in sorted(kinds.items())}
     m["companies_without_segments"], m["companies_without_subsidiaries"] = len(no_seg), len(no_sub)
