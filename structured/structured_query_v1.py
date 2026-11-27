@@ -369,8 +369,21 @@ def rank_records(records, query, filters, top_k):
     # net loss" matches every filer's profit exactly as well as the one loss,
     # and the concept name cannot separate them. The value can.
     wanted_sign = concept_match.asked_sign(query)
+    #
+    # Below the score, not above it: among facts the question matches equally
+    # well, one that carries a number beats one that does not. This arm
+    # answers value questions out of a fact table, and 13% of the rows in a
+    # Postgres-sourced store have no numeric value — a trading symbol, a flag,
+    # a street address.
+    #
+    # It ranks under the score on purpose. A reader who asks for a street
+    # address should get the street address, and that row scores highest when
+    # they do. Sorting on the number first put a share count above the address
+    # it asked for, which is the same fault the other way round. Overriding a
+    # correct score is as wrong as deleting the evidence.
     scored.sort(key=lambda pair: (
         -pair[0],
+        0 if pair[1].get("numeric_value") is not None else 1,
         0 if concept_match.duration_matches(
             asked, concept_match.duration_days(pair[1].get("period_start"),
                                                pair[1].get("period_end"))) else 1,
