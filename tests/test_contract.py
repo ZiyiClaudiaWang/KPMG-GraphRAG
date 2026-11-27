@@ -116,11 +116,14 @@ def test_structured_populates_fact_id_only():
         assert item["metadata"]["fact_id"]
 
 
-def test_max_hops_narrows_the_graph():
-    wide = graph_search(QUERY, filters={"max_hops": 3})
-    narrow = graph_search(QUERY, filters={"max_hops": 1})
-    assert len(narrow) <= len(wide)
-    assert all(i["metadata"]["hops"] <= 1 for i in narrow)
+def test_max_hops_is_refused_by_name():
+    """The mock used to narrow on it, and the real arm cannot.
+
+    These tests exist so code built on the mock keeps working after the
+    swap, which means the mock has to refuse what the arm refuses.
+    """
+    with pytest.raises(contract.FilterNotSupportedError, match="max_hops"):
+        graph_search(QUERY, filters={"max_hops": 3})
 
 
 def test_section_filter_is_whole_word_prefix():

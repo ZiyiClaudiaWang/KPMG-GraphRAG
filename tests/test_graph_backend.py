@@ -176,14 +176,20 @@ def test_a_quarter_without_a_year_is_refused(monkeypatch):
         graph_backend._where_clause({"fiscal_period": "Q3"})
 
 
-def test_max_hops_below_the_traversal_is_refused():
-    with pytest.raises(contract.FilterNotSupportedError, match="max_hops=1"):
-        graph_backend._check_filters({"max_hops": 1})
+def test_max_hops_is_refused_at_every_value():
+    """It used to pass at 3 and above, and the query never read it.
+
+    Three and four returned the same rows, which a caller had no way to
+    discover. The depth is structural, so there is nothing to set.
+    """
+    for value in (1, 2, graph_backend.TRAVERSAL_HOPS, 10):
+        with pytest.raises(contract.FilterNotSupportedError, match="max_hops"):
+            graph_backend._check_filters({"max_hops": value})
 
 
-def test_max_hops_at_or_above_the_traversal_is_fine():
-    graph_backend._check_filters({"max_hops": graph_backend.TRAVERSAL_HOPS})
-    graph_backend._check_filters({"max_hops": 10})
+def test_the_reason_says_what_to_use_instead():
+    with pytest.raises(contract.FilterNotSupportedError, match="neighbours"):
+        graph_backend._check_filters({"max_hops": 3})
 
 
 # ---- the error taxonomy ---------------------------------------------------

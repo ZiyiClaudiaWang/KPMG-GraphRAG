@@ -138,7 +138,7 @@ def _overlap(query, text):
 def _matches(active, row_section, extra=None):
     """Apply the filters a mock can honestly honour."""
     for key, want in active.items():
-        if key in ("max_hops", "is_table", "fiscal_year", "fiscal_period"):
+        if key in ("is_table", "fiscal_year", "fiscal_period"):
             continue
         if key == "section":
             # Whole-word prefix on the canonical key, as RAG does.
@@ -203,13 +203,22 @@ def graph_search(
     trace_id: str | None = None,
 ) -> list[dict]:
     active = _validate(query, filters, top_k, GRAPH_FILTERS, trace_id)
-    max_hops = active.get("max_hops", 3)
+    # The mock used to narrow on hops, because its rows carry a made-up hop
+    # count. The real arm cannot: it walks a fixed three hops upward to fill
+    # the evidence envelope. A mock that honours a filter the arm refuses is
+    # how code gets written against a capability that does not exist.
+    if "max_hops" in active:
+        raise contract.FilterNotSupportedError(
+            "the graph arm cannot filter on max_hops: it walks a fixed three "
+            "hops, Claim to Section to Filing to Company, and they run upward "
+            "to fill the evidence envelope rather than outward to find "
+            "anything. See graph_backend._UNSUPPORTED_FILTERS for the full "
+            "reason"
+        )
 
     out = []
     for row in _GRAPH_ROWS:
         if not _matches(active, row["section"]):
-            continue
-        if row["hops"] > max_hops:
             continue
         score = _overlap(query, row["text"] + " " + row["section_title"])
         if score <= 0:

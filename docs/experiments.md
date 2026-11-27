@@ -103,7 +103,7 @@ About three years of filings, roughly twelve documents. Company follows whicheve
 | **E4b** | Numeric source | XBRL facts loaded via Cypher / LLM-extracted numbers | Accuracy on 20–30 facts |
 | **E6** | Filing linkage | Risk factors tracked across filings | Accuracy on "what is new or changed" questions |
 | **E7** | Retriever comparison | Vector / VectorCypher / Hybrid / HybridCypher / Text2Cypher | Accuracy by question type, latency |
-| **E8** | Expansion depth | 1 / 2 / 3 hops in the VectorCypher retrieval query | Answer quality vs. context size. Tunes `max_hops`, already in the tool contract |
+| **E8** | Expansion depth | 1 / 2 / 3 hops in the VectorCypher retrieval query | Answer quality vs. context size. ⚠️ **Cannot run on our graph arm as it stands.** `max_hops` is refused by name: the arm walks a fixed three hops upward to fill the evidence envelope, so there is no depth to sweep. A varying depth needs `neighbours()` (#95) or `neo4j-graphrag`'s VectorCypher, which is not installed |
 
 E6 kept, and cheaper than it looks: it is M06 in `eval-ask.md` — "which risk factors appear in X's FY2023 10-K that were absent in FY2021" — and the `Section -[:SUPPORTS]-> Claim -[:CONCERNS_RISK]-> RiskFactor` structure that answers it is exactly what decisions 2.3 and 2.4 settled. It is a set difference across two Item 1As once two years of one company are loaded.
 

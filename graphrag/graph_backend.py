@@ -128,17 +128,24 @@ _YEAR_SPAN = 364
 _QUARTER_SPAN = 90
 _CALENDAR = None
 
+# Claim -> Section -> Filing -> Company, and every search walks all three.
+TRAVERSAL_HOPS = 3
+
 # Why each of the rest is refused, so the caller gets a reason and not a shrug.
 _UNSUPPORTED_FILTERS = {
     "is_table": (
         "Claims are extracted from prose only, so every result would match "
         "is_table=False and nothing would match is_table=True"
     ),
+    "max_hops": (
+        f"this arm walks exactly {TRAVERSAL_HOPS} hops, Claim to Section to "
+        "Filing to Company, and they run upward to fill the evidence "
+        "envelope rather than outward to find anything. Fewer cannot name "
+        "the filing a claim came from; more has nowhere to go. Depth is "
+        "structural here, not a setting. A traversal whose depth can vary "
+        "is neighbours(), which is not built yet"
+    ),
 }
-
-# Claim -> Section -> Filing -> Company. A caller asking for fewer than this
-# is asking for an envelope the graph cannot fill.
-TRAVERSAL_HOPS = 3
 
 _driver = None
 _database: str | None = None
@@ -212,20 +219,13 @@ def ensure_index(driver=None) -> None:
 def _check_filters(filters: dict) -> None:
     """Refuse a filter this graph cannot serve, by name and with a reason."""
     for key in filters:
-        if (key in _FILTER_TO_PROPERTY or key == "max_hops"
-                or key in _IGNORED_FILTERS or key in _DERIVED_FILTERS):
+        if (key in _FILTER_TO_PROPERTY or key in _IGNORED_FILTERS
+                or key in _DERIVED_FILTERS):
             continue
         reason = _UNSUPPORTED_FILTERS.get(key)
         if reason:
             raise FilterNotSupportedError(f"the graph arm cannot filter on {key}: {reason}")
         raise FilterNotSupportedError(f"the graph arm cannot filter on {key}")
-
-    max_hops = filters.get("max_hops")
-    if max_hops is not None and max_hops < TRAVERSAL_HOPS:
-        raise FilterNotSupportedError(
-            f"max_hops={max_hops} is below the {TRAVERSAL_HOPS} hops from Claim to Company "
-            "that the evidence envelope needs"
-        )
 
 
 def _calendar(driver=None) -> dict:
