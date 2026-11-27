@@ -85,9 +85,7 @@ def fetch(targets: list[dict]) -> tuple[dict[str, dict], list[dict]]:
         row = saved.get(t["accession"])
         if row and (Paths.ex21_raw().parent / row["local_file"]).exists():
             continue
-        if t["accession"] in by_reference:
-            checks.append(_check(t, f"{BY_REFERENCE}: EX-21 incorporated by reference to 10-K "
-                                    f"{by_reference[t['accession']]} (settings.yaml subsidiaries)"))
+        if t["accession"] in by_reference:      # run() reads the 10-K it points to
             continue
         load_env()
         if not edgar.user_agent():
@@ -320,11 +318,24 @@ def run() -> None:
     saved, qa_rows = fetch(targets)
     skipped = {q["accession"] for q in qa_rows}
     alias = aliases()
+    by_reference = (settings().get("subsidiaries") or {}).get("ex21_by_reference") or {}
     rows = []
     for t in targets:
-        if t["accession"] in skipped or t["accession"] not in saved:
+        ref = by_reference.get(t["accession"])
+        source = ref or t["accession"]
+        if t["accession"] in skipped or source not in saved:
+            if ref:
+                qa_rows.append(_check(t, f"CHECK: EX-21 incorporated by reference to 10-K {ref}, "
+                                         "which is not downloaded (run step 6a for it first)"))
             continue
-        found, qa = parse(t, saved[t["accession"]], alias)
+        # Exhibit 21 incorporated by reference: the same list as the 10-K it points to, filed
+        # again for this year (rows carry this 10-K's accession and period)
+        found, qa = parse(t, saved[source], alias)
+        if ref:
+            for r in found:
+                r["flags"] = ";".join(f for f in [r["flags"], f"ex21_by_reference:{ref}"] if f)
+            if qa["status"] == "OK":
+                qa["status"] = f"{BY_REFERENCE}: rows from the Exhibit 21 of 10-K {ref} (settings.yaml subsidiaries)"
         rows += found
         qa_rows.append(qa)
     write_jsonl(Paths.subsidiaries(), rows)
@@ -348,7 +359,7 @@ def run() -> None:
     log(STEP, f"{len(targets)} 10-Ks -> {len(rows)} subsidiary rows, {len(entries)} distinct "
               f"subsidiaries -> {Paths.subsidiaries()}")
     for q in qa_rows:
-        if q["status"] != "OK":
+        if q["status"] != "OK" and not q["status"].startswith(BY_REFERENCE):
             log(STEP, f"CHECK {q['ticker']} {q['accession']}: {q['status']}")
 
 

@@ -300,7 +300,7 @@ def subsidiaries_numbers() -> tuple[dict, list, list]:
          "big_year_changes": len(big)}
     notes = []
     if by_ref:
-        notes.append("10-Ks with Exhibit 21 incorporated by reference (no rows; settings.yaml "
+        notes.append("10-Ks with Exhibit 21 incorporated by reference (rows of the 10-K it points to; settings.yaml "
                      "subsidiaries.ex21_by_reference): " + ", ".join(f"{q['ticker']} {q['accession']}" for q in by_ref))
     if not_ok:
         notes.append("10-Ks not OK in subsidiary_qa.csv: "
