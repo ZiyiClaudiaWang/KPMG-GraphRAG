@@ -586,6 +586,20 @@ class LabelOverrides(unittest.TestCase):
         self.assertEqual((got["c"]["label"], got["c"]["model_source"]), ("forward_looking", "rule:too_short"))
         self.assertEqual(got["d"]["source"], "llm")                    # same label: unchanged
 
+    def test_override_fills_a_unit_with_no_label(self):
+        labels = [{"unit_id": "a", "label": "stated_fact", "source": "llm"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "overrides.csv"
+            path.write_text("unit_id,label,reviewer,note\nz,stated_fact,KZ,reply rejected\n", encoding="utf-8")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = str(path)
+            try:
+                got = {l["unit_id"]: l for l in validate.reviewed_labels(labels)}
+            finally:
+                os.environ.pop("PIPELINE_LABEL_OVERRIDES")
+        self.assertEqual(set(got), {"a", "z"})
+        self.assertEqual((got["z"]["label"], got["z"]["source"], got["z"]["model_label"], got["z"]["reviewer"]),
+                         ("stated_fact", "manual", None, "KZ"))
+
     def test_no_file_changes_nothing(self):
         labels = [{"unit_id": "a", "label": "not_a_claim"}]
         os.environ["PIPELINE_LABEL_OVERRIDES"] = str(TMP / "none.csv")

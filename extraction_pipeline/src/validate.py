@@ -180,7 +180,9 @@ def read_overrides() -> dict[str, dict]:
 
 def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
     """labels.jsonl with label_overrides.csv applied: what steps 8, 8b and 9 read. An overridden
-    row keeps the model's label and source (model_label, model_source)."""
+    row keeps the model's label and source (model_label, model_source). An override for a unit
+    with no label at all (its batch's reply was rejected, stop_on_failure: false) adds a manual
+    row with no model label, so a person can fill that gap."""
     if labels is None:
         labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
     overrides = read_overrides()
@@ -194,6 +196,10 @@ def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
             continue
         out.append(dict(l, label=o["label"], source="manual", model_label=l["label"],
                         model_source=l.get("source"), reviewer=o["reviewer"], override_note=o["note"]))
+    labelled = {l["unit_id"] for l in labels}
+    out += [{"unit_id": uid, "label": o["label"], "source": "manual", "context_unit_ids": [], **LABEL_DEFAULTS,
+             "model_label": None, "model_source": None, "reviewer": o["reviewer"], "override_note": o["note"]}
+            for uid, o in overrides.items() if uid not in labelled]
     return out
 
 
