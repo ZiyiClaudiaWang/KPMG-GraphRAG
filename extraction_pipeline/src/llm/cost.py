@@ -2,10 +2,10 @@
 
 Each step has its own block in config/settings.yaml (page_breaks:) with its own
 model, reasoning effort and budget_usd, and its own ledger (data/output/usage_<step>.jsonl), so it
-never spends step 5's budget and step 5 never spends its budget. Token prices come from the
+never spends step 7's budget and step 7 never spends its budget. Token prices come from the
 shared `prices:` table, so changing a step's model needs no other edit.
 
-Step 5 (label.py) is not changed by this module: its request, and so its request hashes, are
+Step 7 (label.py) is not changed by this module: its request, and so its request hashes, are
 built from the label: block as before.
 """
 

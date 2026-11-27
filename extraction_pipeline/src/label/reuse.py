@@ -23,7 +23,7 @@ def reuse_plan(units: list[dict], cfg: dict) -> dict[str, str]:
 
 def units_before(units: list[dict]) -> dict[str, tuple[list[dict], int]]:
     """unit id -> (its section's units without section titles, how many of them come before it),
-    as in report_unit_repeats.unit_keys. seq[n - d] is the unit d places before it."""
+    as in checks.unit_repeats.unit_keys. seq[n - d] is the unit d places before it."""
     out, sections = {}, defaultdict(list)
     for u in units:
         seq = sections[(u["accession_number"], u["section_key"])]

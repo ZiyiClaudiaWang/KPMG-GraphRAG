@@ -1,13 +1,13 @@
 """Repeated sentences across filings of one company, on step 4's units, before labelling.
 
-  python -m src.report_unit_repeats          read data/output/sentences.jsonl, write data/checks/unit_repeats/
+  python -m src.checks.unit_repeats          read data/output/sentences.jsonl, write data/checks/unit_repeats/
 
-Only units step 5 would send to the model (prefilter is None) are counted. A repeat is the same
+Only units step 7 would send to the model (prefilter is None) are counted. A repeat is the same
 unit in two or more filings of the same company; repeats inside one filing only are left out.
 Three levels, each stricter than the one before:
 
   text          the sentence itself (whitespace normalised), as in report_claim_repeats.py
-  context       the sentence and the 4 units before it (step 5's context_sentences: section
+  context       the sentence and the 4 units before it (step 7's context_sentences: section
                 titles left out, headings and prefiltered units kept)
   path          the sentence, those 4 units, and section_path
 
@@ -47,7 +47,7 @@ def out_dir():
 
 
 def unit_keys(units: list[dict], context_size: int) -> list[tuple[dict, dict[str, tuple]]]:
-    """(unit, {level: key}) for every unit step 5 would label, in source order."""
+    """(unit, {level: key}) for every unit step 7 would label, in source order."""
     by_section: dict[tuple, list[dict]] = defaultdict(list)
     for u in units:
         by_section[(u["accession_number"], u["section_key"])].append(u)
@@ -138,7 +138,7 @@ def run() -> None:
     write_jsonl(out_dir() / "unit_repeats.jsonl", rows)
     write_csv(out_dir() / "summary.csv", table)
     write_csv(out_dir() / "samples.csv", samples(units, rows))
-    log(STEP, f"{len(rows)} units step 5 would label (context: {context_size} units before)")
+    log(STEP, f"{len(rows)} units step 7 would label (context: {context_size} units before)")
     for level in LEVELS:
         lv = [t for t in table if t["level"] == level]
         rep, reuse = sum(t["repeated_units"] for t in lv), sum(t["reusable_units"] for t in lv)

@@ -1,4 +1,4 @@
-"""Prefilter: units marked not_a_claim by rule, before the LLM (step 5) sees them.
+"""Prefilter: units marked not_a_claim by rule, before the LLM (step 7) sees them.
 
   section_title    the Item title at the top of a section (set where the unit is made)
   heading          a heading (set where the unit is made)

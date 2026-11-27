@@ -1,10 +1,10 @@
-"""Step 4c requests and the risk taxonomy files. No network, no API."""
+"""Step 5b requests and the risk taxonomy files. No network, no API."""
 
 import os
 import unittest
 
 from src.llm import cost as llm_cost
-from src.risk import taxonomy as risk_taxonomy, themes as risk_themes
+from src.risk import factors as risk_factors, taxonomy as risk_taxonomy, themes as risk_themes
 from src.risk.taxonomy import category_key
 
 
@@ -26,7 +26,7 @@ class TestRiskFactors(unittest.TestCase):
                     unit(9, "A1", "Under no lead."), unit(10, "A1", "Summary.", risk_summary=True,
                                                           lead_source="html")])
         units[2]["prefilter"] = "cross_reference"
-        [rf] = risk_themes.risk_factors(units)
+        [rf] = risk_factors.risk_factors(units)
         self.assertEqual(rf["risk_factor_id"], "A1-u1")
         self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u1", "A1-u2", "A1-u3"])
         self.assertEqual([u["text"] for u in risk_themes.shown(rf, 80)],          # no cross reference
@@ -43,7 +43,7 @@ class TestRiskFactors(unittest.TestCase):
                  unit(7, "A1", "Our focus on AI may not succeed.", lead_source="html"),
                  h(8, "AI investments", 2), unit(9, "A1", "Costs are high."),
                  h(10, "OPERATIONAL RISKS", 1), unit(11, "A1", "Text under no lead.")]
-        a, b = risk_themes.risk_factors(units)
+        a, b = risk_factors.risk_factors(units)
         self.assertEqual([u["unit_id"] for u in a["units"]], [f"A1-u{n}" for n in (2, 3, 4, 5, 6)])
         self.assertEqual([u["unit_id"] for u in b["units"]], [f"A1-u{n}" for n in (7, 8, 9)])
         self.assertIn("Competition in the technology sector", [u["text"] for u in risk_themes.shown(a, 80)])
@@ -55,14 +55,14 @@ class TestRiskFactors(unittest.TestCase):
         units = [h(1, "Business Risks", 1), h(2, "Risks Related to Our Products", 2),
                  unit(3, "A1", "Demand may fall.", lead_source="html"), unit(4, "A1", "Prices drop."),
                  h(5, "Risks Related to Our Stock", 2), unit(6, "A1", "Intro under no lead.")]
-        [rf] = risk_themes.risk_factors(units)
+        [rf] = risk_factors.risk_factors(units)
         self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u3", "A1-u4"])
 
     def test_identical_risk_text_shares_one_request(self):
         cfg = llm_cost.step_cfg("risk_themes")
         units = factor("A1", ["Rivals cut prices."]) + factor("A2", ["Rivals cut prices."]) \
             + factor("A3", ["Rivals cut prices sharply."])
-        plans = risk_themes.plans(risk_themes.risk_factors(units), cfg)
+        plans = risk_themes.plans(risk_factors.risk_factors(units), cfg)
         self.assertEqual(len(plans), 3)
         self.assertEqual(plans[0]["request_hash"], plans[1]["request_hash"])
         self.assertNotEqual(plans[0]["request_hash"], plans[2]["request_hash"])
@@ -74,7 +74,7 @@ class TestRiskFactors(unittest.TestCase):
 
     def test_answer_drops_bad_parts(self):
         cfg = llm_cost.step_cfg("risk_themes")
-        [plan] = risk_themes.plans(risk_themes.risk_factors(factor("A1", ["Rivals cut prices.", "Costs rise."])),
+        [plan] = risk_themes.plans(risk_factors.risk_factors(factor("A1", ["Rivals cut prices.", "Costs rise."])),
                                    cfg)
         content = ('{"result": {"primary_theme": "competition", "secondary_themes": ['
                    '{"theme_id": "costs_pricing_margins", "sentence_ids": ["s3", "s9"]},'
@@ -116,3 +116,30 @@ class TestTaxonomyFiles(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestApply(unittest.TestCase):
+    """Step 5b's answers on step 5's units (what step 9 puts on the Claims)."""
+
+    def setUp(self):
+        units = factor("A1", ["Rivals cut prices.", "Costs rise."]) + [
+            unit(8, "A1", "Legal Risks", role="heading", heading_level=1, prefilter="heading"),
+            unit(9, "A1", "Under no lead.")]
+        _, self.assignments = risk_factors.assign(units, {})
+        self.factors = risk_factors.factor_rows(risk_factors.risk_factors(units))
+        theme = next(iter(risk_taxonomy.themes()))
+        self.answer = {"risk_factor_id": "A1-u1", "unit_ids": ["A1-u1", "A1-u2", "A1-u3"], "primary_theme": theme,
+                       "secondary_themes": [], "model": "m", "taxonomy_version": "v"}
+
+    def status(self, results):
+        risk_themes.apply(self.assignments, self.factors, results)
+        return {a["unit_id"]: a["risk_theme_status"] for a in self.assignments}
+
+    def test_answer_on_every_unit_of_the_risk_factor(self):
+        status = self.status({"A1-u1": self.answer})
+        self.assertEqual(status, {"A1-u1": "classified", "A1-u2": "classified", "A1-u3": "classified",
+                                  "A1-u9": "no_risk_factor"})
+
+    def test_answer_for_other_units_is_not_used(self):           # step 4 or 5 changed the risk factor since
+        status = self.status({"A1-u1": dict(self.answer, unit_ids=["A1-u1", "A1-u2"])})
+        self.assertEqual(status["A1-u1"], "not_classified")

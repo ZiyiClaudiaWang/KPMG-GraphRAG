@@ -2,22 +2,22 @@
 
 Kelly's open points on #87 / #92: the 233-filing subsidiaries have not been checked for
 repeats and review, and some companies seem to have no segments in the fact store. This
-report reads what steps 1b and 1c wrote and says where to look; it changes nothing.
+report reads what steps 6a and 6b wrote and says where to look; it changes nothing.
 
-Input : data/output/subsidiaries.jsonl; data/checks/subsidiaries/subsidiary_qa.csv, subsidiary_renames.csv (1b)
-        data/entity_catalog.json                                                (step 1c)
+Input : data/output/subsidiaries.jsonl; data/checks/subsidiaries/subsidiary_qa.csv, subsidiary_renames.csv (6a)
+        data/entity_catalog.json                                                (step 6b)
         config/filings.yaml
 Output: printed summary, and in data/checks/entity_inputs/
           by_filing.csv            per filing: subsidiaries and segments it is offered
           subsidiaries_by_year.csv per company and 10-K: rows, and change from the 10-K before
           repeats.csv              the same subsidiary twice in one 10-K (a parser repeat), or
                                    several legal entities with one core name in one 10-K
-                                   ("Example Asia LLC" and "Example Asia Limited"), which step 7b
+                                   ("Example Asia LLC" and "Example Asia Limited"), which step 9
                                    can only report as ambiguous_catalog_match
           segments_by_company.csv  every segment, with the first and last period it is offered
 
 Usage:
-  python -m src.report_entity_inputs
+  python -m src.checks.entity_inputs
 """
 
 from __future__ import annotations
@@ -104,9 +104,9 @@ def run() -> None:
     cat_path = Paths.entity_catalog()
     catalog = json.loads(cat_path.read_text(encoding="utf-8")) if cat_path.exists() else []
     if not rows:
-        log(STEP, "no subsidiaries.jsonl: run step 1b (subsidiaries) first")
+        log(STEP, "no subsidiaries.jsonl: run step 6a (subsidiaries) first")
     if not catalog:
-        log(STEP, f"no {cat_path}: run step 1c (entity_catalog) first")
+        log(STEP, f"no {cat_path}: run step 6b (entity_catalog) first")
 
     years = subsidiaries_by_year(rows)
     reps = repeats(rows)
@@ -120,7 +120,7 @@ def run() -> None:
 
     ten_ks = [f for f in filings() if f["form"] == "10-K"]
     checks = [q for q in qa if q.get("status") != "OK"]
-    print("SUBSIDIARIES (step 1b)")
+    print("SUBSIDIARIES (step 6a)")
     print(f"  10-Ks in filings.yaml: {len(ten_ks)}; read: {len(qa)}; flagged for checking: {len(checks)}")
     for q in checks:
         print(f"    {q['ticker']:5} {q['reporting_period_end']} {q['accession']}  {q['status']}")
@@ -134,7 +134,7 @@ def run() -> None:
     for y in big:
         print(f"    {y['ticker']:5} {y['reporting_period_end']}  {y['rows_10k_before']} -> {y['rows']}")
 
-    print("\nCATALOG (step 1c)")
+    print("\nCATALOG (step 6b)")
     types = Counter(e["entity_type"] for e in catalog)
     print(f"  subsidiaries: {types['subsidiary']}; segments: {types['segment']}; registrants: {types['registrant']}")
     no_seg = defaultdict(list)

@@ -1,4 +1,4 @@
-"""Step 1b (subsidiaries) and how step 8 loads it. No network: the fixture exhibits are
+"""Step 6a (subsidiaries) and how step 10 loads it. No network: the fixture exhibits are
 already saved, and the download tests use a fake SEC."""
 
 import json

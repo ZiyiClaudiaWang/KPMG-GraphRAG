@@ -1,4 +1,4 @@
-"""Step 5 - Label: the only step that calls the LLM (OpenAI).
+"""Step 7 - Label: the LLM labels each sentence (OpenAI).
 
 Follows Claudia's checked_pilot.py: the same request layout, identity fields and cache folders
 as her run.
@@ -66,7 +66,7 @@ Problems with single units are handled as in Claudia's run (her recovery v2 and 
   replace the placeholders.
 
 Repeats (label.reuse_repeats: path): a unit whose text, 4 preceding units and section_path are
-the same as a unit in an earlier filing of the same company (report_unit_repeats.py, level
+the same as a unit in an earlier filing of the same company (checks/unit_repeats.py, level
 "path") is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
 reused_from_unit_id), with context_unit_ids moved to its own units at the same distance before
 it. Batches are cut at reused units, so every sent sentence still has its own preceding units

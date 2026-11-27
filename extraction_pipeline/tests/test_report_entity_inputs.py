@@ -1,4 +1,4 @@
-"""report_entity_inputs: the checks Kelly asked for on the 233-filing subsidiaries and segments."""
+"""checks.entity_inputs: the checks Kelly asked for on the 233-filing subsidiaries and segments."""
 
 import unittest
 

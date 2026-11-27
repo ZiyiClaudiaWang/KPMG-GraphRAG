@@ -1,4 +1,4 @@
-"""Step 5 label reuse (label.reuse_repeats: path) on two filings of one company: the second is
+"""Step 7 label reuse (label.reuse_repeats: path) on two filings of one company: the second is
 the fixture filing again under another accession, so every unit repeats the first filing."""
 
 from __future__ import annotations

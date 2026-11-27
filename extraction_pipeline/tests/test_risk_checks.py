@@ -1,4 +1,4 @@
-"""Step 7a review: are the risk categories complete (category_checks), and why Item 1A units
+"""Step 5 review: are the risk categories complete (category_checks), and why Item 1A units
 have no heading group (no_group_reasons). No network, no API."""
 
 import os

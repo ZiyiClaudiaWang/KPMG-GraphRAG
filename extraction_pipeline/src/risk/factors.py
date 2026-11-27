@@ -1,34 +1,24 @@
-"""Step 7a - Risk factors: the filing's risk category and the risk themes of every Item 1A unit.
+"""Step 5 - Risk factors: the risk factors and risk categories of every Item 1A unit (no LLM).
 
 Input : data/output/sentences.jsonl (step 4),
         config/risk_taxonomy/risk_category_map.csv   heading text -> groups (reviewed by hand)
-        config/risk_taxonomy/themes.csv              the 32 themes and their groups
-        data/interim/risk_themes.jsonl               step 4c, the classifier (optional)
 Output: data/output/risk_categories.csv      one row per risk category heading in each filing
-        data/interim/risk_assignments.jsonl  one row per Item 1A unit, read by step 7b
-        data/checks/risk_factors/category_checks.csv     are the categories complete?
-        data/checks/risk_factors/risk_factor_themes.csv  one row per risk factor, for review
+        data/interim/risk_factors.jsonl      one row per risk factor (its units), read by step 5b
+        data/interim/risk_assignments.jsonl  one row per Item 1A unit, read by steps 5b and 9
+        data/checks/risk_factors/category_checks.csv   are the categories complete?
 
-Names: a "risk factor" is one SEC risk, a lead sentence and the units after it up to the next
-lead or heading at its level, sub-headings below the lead included (risk_themes.risk_factors();
-wider than step 4's lead_unit_id); its id, risk_factor_id, is the lead's unit_id. A "risk category" is the filing's
-own level-1 heading in Item 1A ("Business Risks"); its id, risk_category_unit_id, is that
-heading's unit_id. Every id here is a unit_id.
+Names (every id here is a unit_id):
+  risk factor    one SEC risk: a lead sentence (step 4 lead_source) and the units after it, up to
+                 the next lead or heading at its level, sub-headings below the lead included
+                 (risk_factors(); wider than step 4's lead_unit_id). risk_factor_id = the lead's
+                 unit_id. Step 5b gives each risk factor its themes.
+  risk category  the filing's own level-1 heading in Item 1A ("Business Risks").
+                 risk_category_unit_id = that heading's unit_id.
 
-Two sources, kept apart:
-  heading_risk_group  the groups the category heading names, from risk_category_map.csv (no
-                      LLM). Every unit takes the category above it, by position. Empty for a
-                      broad heading ("General Risks"), outside a category, or an unmapped text.
-  risk_themes         from step 4c: the risk factor's primary theme on every unit of it
-                      (scope risk_factor), a secondary theme only on the units the model gave
-                      for it (scope sentence). On the primary, agrees_with_heading says whether
-                      the theme's group is one the heading names (null when it names none).
-risk_theme_status: classified | unknown (the model found no theme) | not_classified (step 4c
-has no answer for this risk factor, or one from before its units changed) | no_risk_factor
-(an Item 1A unit under no lead) | risk_summary; null outside Item 1A.
-
-A category text missing from risk_category_map.csv is listed as "unmapped" and gets no group;
-add it to the map. no_group_reasons() says why units have no group; the review report gives it.
+heading_risk_group: the groups the category heading names, from risk_category_map.csv. Every
+unit takes the category above it, by position. Empty for a broad heading ("General Risks"),
+outside a category, or an unmapped text: add a text listed as "unmapped" to the map.
+no_group_reasons() says why units have no group; the review report gives it.
 """
 
 from __future__ import annotations
@@ -37,7 +27,7 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from . import taxonomy as risk_taxonomy, themes as risk_themes
+from . import taxonomy as risk_taxonomy
 from ..common import Paths, checks_dir, filings, log, read_jsonl, write_csv, write_jsonl
 from .taxonomy import category_key
 from ..segment import is_category_unit
@@ -45,15 +35,67 @@ from ..segment.headings import RISK_CATEGORY_START
 from ..segment.risk import RISK_SUMMARY
 
 STEP = "risk_factors"
-THEME_SOURCE = "llm"           # HAS_RISK_THEME.source: themes come from the classifier (step 4c)
+UNIT_ROLES = ("body", "list_group")          # besides headings, the roles a risk factor covers
 
 CATEGORY_FIELDS = ["risk_category_unit_id", "accession_number", "ticker", "form", "section_key",
                    "category_text", "risk_summary", "n_units", "heading_risk_group", "map_status"]
-THEME_STATUSES = ["classified", "unknown", "not_classified", "no_risk_factor", "risk_summary"]
-FACTOR_FIELDS = ["risk_factor_id", "ticker", "form", "accession_number", "category_text", "heading_risk_group",
-                 "lead_text", "n_units", "primary_theme", "primary_group", "secondary_themes",
-                 "agrees_with_heading", "reference_theme", "review"]
 
+
+# ---------- risk factors ----------
+
+def risk_factors(units: list[dict]) -> list[dict]:
+    """One entry per Item 1A lead outside the risk factor summary, with the units it covers, in order.
+
+    A risk factor runs from its lead to the next lead, the next heading at its own level or above,
+    or the end of the section. Its own level is that of the heading above the lead (at least 1,
+    so a category heading always ends it); a lead that follows another open risk factor is its
+    sibling and takes the same level. So a sub-heading below the lead, such as Microsoft's italic
+    sub-topics ("Competition in the technology sector") under a bold lead, stays inside the risk
+    factor, and so do the sentences under it.
+
+    This is wider than step 4's lead_unit_id, which stops at any heading (kept as decided on
+    26 Nov: the sentences under a sub-topic need no link to the lead). risk_factor_id is only
+    the risk factor's id, used for its themes.
+
+    units: the entry's units, the lead first (unit_ids of every unit that takes its themes).
+    """
+    out, current, section, heading_level = [], None, None, 0
+    for u in units:
+        if u["section_type"] != "risk_factors":
+            continue
+        if (u["accession_number"], u["section_key"]) != section:
+            section, current, heading_level = (u["accession_number"], u["section_key"]), None, 0
+        if u.get("risk_summary") or u["role"] == "section_title":
+            current = None
+            continue
+        if u["role"] == "heading":
+            level = u.get("heading_level")
+            if isinstance(level, int) and level > 0:
+                if current is not None and level <= current["level"]:
+                    current = None
+                heading_level = level
+            if current is not None:
+                current["units"].append(u)
+            continue
+        if u["role"] not in UNIT_ROLES:
+            continue
+        if u.get("lead_source"):
+            level = current["level"] if current is not None else max(heading_level, 1)
+            current = {"risk_factor_id": u["unit_id"], "accession_number": u["accession_number"],
+                       "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
+                       "lead_text": u["text"], "level": level, "units": [u]}
+            out.append(current)
+        elif current is not None:
+            current["units"].append(u)
+    return out
+
+
+def risk_factor_of(units: list[dict]) -> dict[str, str]:
+    """unit_id -> risk_factor_id, for the lead itself and every unit under it."""
+    return {u["unit_id"]: rf["risk_factor_id"] for rf in risk_factors(units) for u in rf["units"]}
+
+
+# ---------- risk categories ----------
 
 def assign(units: list[dict], mapping: dict[str, dict]) -> tuple[list[dict], list[dict]]:
     """Return one row per category heading and one assignment per Item 1A unit (heading fields only)."""
@@ -82,72 +124,12 @@ def assign(units: list[dict], mapping: dict[str, dict]) -> tuple[list[dict], lis
             "risk_category_unit_id": category["risk_category_unit_id"] if category else None,
             "risk_category_text": category["category_text"] if category else None,
             "heading_risk_group": list(category["heading_risk_group"]) if category else [],
+            "risk_summary": bool(u.get("risk_summary")),
         })
-    return categories, assignments
-
-
-def add_themes(units: list[dict], assignments: list[dict], results: dict[str, dict]) -> list[dict]:
-    """Put risk_factor_id, risk_theme_status and risk_themes on each assignment; return one row per risk factor.
-
-    results: step 4c rows by risk_factor_id. A row whose unit_ids differ from the risk factor's
-    units now (step 4 ran again since) is not used.
-    """
-    themes = risk_taxonomy.themes()
-    factors = risk_themes.risk_factors(units)
-    of = {u["unit_id"]: rf for rf in factors for u in rf["units"]}
-    by_id = {u["unit_id"]: u for u in units}
-    answered = {}
-    for rf in factors:
-        r = results.get(rf["risk_factor_id"])
-        current = r and r["unit_ids"] == [u["unit_id"] for u in rf["units"]]
-        known = r and (r["primary_theme"] in themes or r["primary_theme"] == risk_taxonomy.UNKNOWN) \
-            and all(x["theme_id"] in themes for x in r["secondary_themes"])     # not from an older taxonomy
-        if current and known:
-            answered[rf["risk_factor_id"]] = r
+    of = risk_factor_of(units)
     for a in assignments:
-        rf = of.get(a["unit_id"])
-        a["risk_factor_id"] = rf["risk_factor_id"] if rf else None
-        a["risk_themes"] = []
-        if rf is None:
-            a["risk_theme_status"] = "risk_summary" if by_id[a["unit_id"]].get("risk_summary") else "no_risk_factor"
-            continue
-        r = answered.get(rf["risk_factor_id"])
-        if r is None:
-            a["risk_theme_status"] = "not_classified"
-            continue
-        edge = {"source": THEME_SOURCE, "model": r["model"], "taxonomy_version": r["taxonomy_version"]}
-        primary = r["primary_theme"]
-        a["risk_theme_status"] = "unknown" if primary == risk_taxonomy.UNKNOWN else "classified"
-        if primary != risk_taxonomy.UNKNOWN:
-            heading = a["heading_risk_group"]
-            agrees = (themes[primary]["group_id"] in heading) if heading else None
-            a["risk_themes"].append({"theme_id": primary, "rank": "primary", "scope": "risk_factor",
-                                     "agrees_with_heading": agrees, **edge})
-        for s in r["secondary_themes"]:
-            if a["unit_id"] in s["unit_ids"]:
-                a["risk_themes"].append({"theme_id": s["theme_id"], "rank": "secondary", "scope": "sentence",
-                                         "agrees_with_heading": None, **edge})
-    by_unit = {a["unit_id"]: a for a in assignments}
-    reference = risk_taxonomy.reference_labels()
-    rows = []
-    for rf in factors:
-        r, lead = answered.get(rf["risk_factor_id"]), by_unit.get(rf["risk_factor_id"], {})
-        primary = r["primary_theme"] if r else None
-        heading = lead.get("heading_risk_group") or []
-        agrees = (themes[primary]["group_id"] in heading) if heading and primary in themes else None
-        ref = reference.get(category_key(rf["lead_text"]), "")
-        review = ([] if r else ["not_classified"]) + (["unknown"] if primary == risk_taxonomy.UNKNOWN else []) \
-            + (["differs_from_reference"] if r and ref and primary != ref else []) \
-            + (["overrules_heading"] if agrees is False else [])
-        rows.append({"risk_factor_id": rf["risk_factor_id"], "ticker": rf["ticker"], "form": rf["form"],
-                     "accession_number": rf["accession_number"], "category_text": lead.get("risk_category_text"),
-                     "heading_risk_group": ";".join(heading), "lead_text": rf["lead_text"],
-                     "n_units": len(rf["units"]), "primary_theme": primary,
-                     "primary_group": themes[primary]["group_id"] if primary in themes else None,
-                     "secondary_themes": ";".join(f"{s['theme_id']}({len(s['unit_ids'])})"
-                                                  for s in (r["secondary_themes"] if r else [])),
-                     "agrees_with_heading": agrees, "reference_theme": ref, "review": ";".join(review)})
-    return rows
+        a["risk_factor_id"] = of.get(a["unit_id"])
+    return categories, assignments
 
 
 # ---------- review: are the categories complete? ----------
@@ -268,15 +250,23 @@ def checks_path() -> Path:
     return checks_dir(STEP) / "category_checks.csv"
 
 
-def factors_path() -> Path:
-    return checks_dir(STEP) / "risk_factor_themes.csv"
+def factor_rows(factors: list[dict]) -> list[dict]:
+    """risk_factors.jsonl: one row per risk factor, its units by unit_id (the lead first)."""
+    return [{k: rf[k] for k in ("risk_factor_id", "accession_number", "ticker", "form", "section_key",
+                                "lead_text", "level")} | {"unit_ids": [u["unit_id"] for u in rf["units"]]}
+            for rf in factors]
+
+
+def load_factors() -> list[dict]:
+    """Step 5's risk factors (risk_factors.jsonl); empty when the step has not run."""
+    path = Paths.risk_factors()
+    return list(read_jsonl(path)) if path.exists() else []
 
 
 def build(units: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
-    """categories, assignments (with themes) and one row per risk factor, from step 4 and step 4c."""
+    """categories, assignments (heading fields and risk_factor_id) and risk factor rows, from step 4."""
     categories, assignments = assign(units, risk_taxonomy.category_map())
-    factors = add_themes(units, assignments, risk_themes.load_results())
-    return categories, assignments, factors
+    return categories, assignments, factor_rows(risk_factors(units))
 
 
 def run() -> None:
@@ -285,20 +275,19 @@ def run() -> None:
 
     write_csv(Paths.risk_categories(), [dict(c, heading_risk_group=";".join(c["heading_risk_group"]))
                                         for c in categories], CATEGORY_FIELDS)
+    write_jsonl(Paths.risk_factors(), factors)
     write_jsonl(Paths.risk_assignments(), assignments)
     checks = category_checks(units, categories)
     checks_path().parent.mkdir(parents=True, exist_ok=True)
     write_csv(checks_path(), checks, CHECK_FIELDS)
-    write_csv(factors_path(), factors, FACTOR_FIELDS)
     log(STEP, f"category checks {dict(Counter(r['check'] for r in checks))} -> {checks_path()}")
     status = Counter(c["map_status"] for c in categories)
     with_group = sum(bool(a["heading_risk_group"]) for a in assignments)
     log(STEP, f"{len(categories)} risk categories ({dict(status)}); {with_group} of {len(assignments)} "
               f"Item 1A units have a heading group -> {Paths.risk_categories()}")
-    themed = Counter(a["risk_theme_status"] for a in assignments)
-    review = Counter(x for f in factors for x in f["review"].split(";") if x)
-    log(STEP, f"{len(factors)} risk factors; units by theme status {dict(themed)} -> {Paths.risk_assignments()}")
-    log(STEP, f"risk factors to review {dict(review)} -> {factors_path()}")
+    in_factor = sum(bool(a["risk_factor_id"]) for a in assignments)
+    log(STEP, f"{len(factors)} risk factors; {in_factor} of {len(assignments)} Item 1A units are in one "
+              f"-> {Paths.risk_factors()}, {Paths.risk_assignments()}")
     for c in categories:
         if c["map_status"] == "unmapped":
             log(STEP, f"unmapped category, add it to {risk_taxonomy.category_map_path().name}: "

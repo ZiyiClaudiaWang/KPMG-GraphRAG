@@ -68,7 +68,7 @@ class FakeResponse:
 
 
 def use_fake_openai(reply):
-    """Replace the openai package for label.py; works without the package installed."""
+    """Replace the openai package for the label package; works without the package installed."""
     import sys
     import types
     FakeOpenAI.reply, FakeOpenAI.calls = staticmethod(reply), []
@@ -123,7 +123,7 @@ class CheckReply(unittest.TestCase):
 
 
 class ReviewRules(unittest.TestCase):
-    """Step 6 rules (Claudia's source_review and review_entry)."""
+    """Step 8 rules (Claudia's source_review and review_entry)."""
     source = {"content": "", "cik": "0000320193", "accession_number": "A", "section_type": "mda",
               "source_locator": None, "processing_set_id": "p"}
 
@@ -183,7 +183,7 @@ class ReviewRules(unittest.TestCase):
 
 
 class ListIntroContext(unittest.TestCase):
-    """README Remaining issues 2.3: a split list item always sees its intro in step 5."""
+    """README Remaining issues 2.3: a split list item always sees its intro in step 7."""
     cfg = {"context_sentences": 4}
 
     def section(self):
@@ -217,7 +217,7 @@ class ListIntroContext(unittest.TestCase):
 
 
 class EndToEnd(unittest.TestCase):
-    """Runs every step on the fixture; step 5 uses a fake model instead of OpenAI."""
+    """Runs every step on the fixture; step 7 uses a fake model instead of OpenAI."""
 
     @classmethod
     def setUpClass(cls):
@@ -267,15 +267,17 @@ class EndToEnd(unittest.TestCase):
                 {"theme_id": "costs_pricing_margins", "sentence_ids": second},
                 {"theme_id": "competition", "sentence_ids": ["s1"]}]}}       # repeats the primary: dropped
         cls.theme_requests = []
+        risk_factors.run()
         restore = use_fake_openai(themes)
         try:
+            risk_themes.run(send=False)                     # a default run: sends nothing
+            cls.theme_calls_unnamed = len(FakeOpenAI.calls)
             risk_themes.run()
             cls.theme_calls = len(FakeOpenAI.calls)
             risk_themes.run()                               # second run: from the saved replies
             cls.theme_rerun_calls = len(FakeOpenAI.calls) - cls.theme_calls
         finally:
             restore()
-        risk_factors.run()
         build_claims.run()
         load.run(dry_run=True)
         cls.claims = list(read_jsonl(Paths.claims()))
@@ -387,6 +389,7 @@ class EndToEnd(unittest.TestCase):
     def test_risk_themes_requests(self):
         self.assertTrue(self.theme_calls)
         self.assertEqual(self.theme_rerun_calls, 0)                       # saved replies are reused
+        self.assertEqual(self.theme_calls_unnamed, 0)                     # not named: nothing sent
         for sentences in self.theme_requests:                              # text only, no unit ids
             self.assertEqual([s["id"] for s in sentences], [f"s{k + 1}" for k in range(len(sentences))])
         rows = list(read_jsonl(Paths.risk_themes()))
@@ -421,7 +424,7 @@ class EndToEnd(unittest.TestCase):
         self.assertNotIn("RiskFactor", cypher)
         categories = list(csv.DictReader(open(Paths.risk_categories(), encoding="utf-8")))
         self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "group")])
-        factors = list(csv.DictReader(open(risk_factors.factors_path(), encoding="utf-8")))
+        factors = list(csv.DictReader(open(risk_themes.factors_path(), encoding="utf-8")))
         self.assertEqual(len(factors), len(leads))
 
     def test_claims_take_leads_from_step_4(self):

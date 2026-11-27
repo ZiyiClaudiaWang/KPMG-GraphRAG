@@ -1,7 +1,7 @@
 # Paths are relative to the pipeline folder.
 data_dir: ../data            # holds sections/ (input) and all pipeline outputs
 
-entity_catalog:                      # step 1c
+entity_catalog:                      # step 6b
   fact_store: null                   # .duckdb with financial_facts_v1, for XBRL segments; relative to
                                      # extraction_pipeline/. --facts or PIPELINE_FACT_STORE override it
 
@@ -35,7 +35,7 @@ label:
   max_completion_tokens: 4000        # output limit per request
   max_retries: 0                     # per batch, when the reply fails validation
   stop_on_failure: true              # stop the run at a failed batch for a person to look
-  budget_usd: 30.0                    # step 5 only: stop before a request could take its spend past this
+  budget_usd: 30.0                    # step 7 only: stop before a request could take its spend past this
   # USD per 1M tokens for the model above (published gpt-4.1-mini rates).
   # Check https://openai.com/api/pricing when changing the model. Left empty, only tokens are
   # reported and budget_usd is not enforced (the run logs a warning).
@@ -43,19 +43,19 @@ label:
   price_cached_input_per_1m: 0.10
   price_output_per_1m: 1.60
 
-# Steps 2b and 4c each have their own model, budget and ledger (data/output/usage_<step>.jsonl),
-# separate from step 5. base_url is label.base_url unless set here. Prices come from prices: below.
+# Steps 2b and 5b each have their own model, budget and ledger (data/output/usage_<step>.jsonl),
+# separate from step 7. base_url is label.base_url unless set here. Prices come from prices: below.
 # reasoning_effort and max_reasoning_tokens apply to reasoning models only (gpt-5*, o*):
 # max_reasoning_tokens is extra output room per request; too little ends a reply early
 # ("Missing or incomplete completion"), and that reply is saved and not resent.
-# Compare models before a run:  python -m src.page_breaks --compare  (or src.risk_themes)
+# Compare models before a run:  python -m src.page_breaks --compare  (or src.risk.themes)
 page_breaks:                         # step 2b
   model: gpt-5.4
   reasoning_effort: low              # none | low | medium | high (gpt-5 itself: minimal instead of none)
   max_reasoning_tokens: 2000
   budget_usd: 1.0
 
-risk_themes:                         # step 4c: themes of each Item 1A risk factor (one request each)
+risk_themes:                         # step 5b: themes of each Item 1A risk factor (one request each)
   model: gpt-4.1-mini                # per request about $0.001 typical / $0.005 worst (gpt-5.4-mini: 0.005 / 0.02);
                                      # try both with --model ... --limit 20 against reference_labels.csv
   reasoning_effort: low              # reasoning models only
@@ -83,7 +83,7 @@ headings:                            # step 4b: heading levels from the EDGAR HT
 
 # USD per 1M tokens, Standard tier, from https://openai.com/api/pricing (checked 2026-11-18).
 # regional_uplift: true = released on or after 2026-03-05, so 10% more on a data-residency
-# endpoint such as us.api.openai.com (label.base_url). Used by step 2b; step 5 still
+# endpoint such as us.api.openai.com (label.base_url). Used by step 2b; step 7 still
 # uses the price_* keys in label:.
 regional_uplift: 0.10
 prices:
@@ -99,7 +99,7 @@ prices:
   gpt-5.5:      {input: 5.00, cached_input: 0.50,  output: 30.00, regional_uplift: true}
 
 review:
-  # Step 6 holds a Claim that starts with one of these names when a ":" intro is among the
+  # Step 8 holds a Claim that starts with one of these names when a ":" intro is among the
   # 4 units before it. Specific to Microsoft's FY2026 10-K Business section (README, [Validate]).
   known_list_fragment_prefixes:
     - "Windows and Devices,"
@@ -108,7 +108,7 @@ review:
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
 
-report:                              # python -m src.report (checks of steps 1-4 and 7a); read by no step
+report:                              # python -m src.checks.report (checks of steps 1-6); read by no step
   big_change_pct: 5                  # warn when one of these moves more than this % from the last report
   big_change: [clean.paragraphs, filter.sections_keep, headings.headings, headings.level_1,
                segment.units, segment.to_llm, subsidiaries.rows, risk_factors.categories,
@@ -144,10 +144,10 @@ report:                              # python -m src.report (checks of steps 1-4
     segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
     risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_taxonomy/risk_category_map.csv"}
     risk_factors.item_1a_in_risk_factor_pct: {min: 80, level: info, why: "share of Item 1A units under a lead: the rest get no theme (open: classify them per sentence?)"}
-    risk_factors.risk_factors_not_classified: {max: 0, level: warn, why: "risk factors with no answer from step 4c (run risk_themes; a changed unit list needs it again)"}
-    risk_factors.risk_factors_unknown: {max: 0, level: info, why: "risk factors the model found no theme for"}
-    risk_factors.risk_factors_differs_from_reference: {max: 0, level: info, why: "primary theme differs from reference_labels.csv: review these rows of risk_factor_themes.csv"}
-    risk_factors.risk_factors_overrules_heading: {max: 0, level: info, why: "primary theme's group is not one the heading names"}
+    risk_themes.risk_factors_not_classified: {max: 0, level: warn, why: "risk factors with no answer from step 5b (run risk_themes; a changed unit list needs it again)"}
+    risk_themes.risk_factors_unknown: {max: 0, level: info, why: "risk factors the model found no theme for"}
+    risk_themes.risk_factors_differs_from_reference: {max: 0, level: info, why: "primary theme differs from reference_labels.csv: review these rows of risk_factor_themes.csv"}
+    risk_themes.risk_factors_overrules_heading: {max: 0, level: info, why: "primary theme's group is not one the heading names"}
     risk_factors.check_year_gap: {max: 0, level: warn, why: "a category the neighbouring filings have is missing: a missed level-1 heading?"}
     risk_factors.check_summary_mismatch: {max: 0, level: warn, why: "a category in the risk factor summary has no level-1 heading in the full text"}
     risk_factors.check_risk_heading_below_1: {max: 0, level: warn, why: "a heading naming a group of risks sits below level 1"}

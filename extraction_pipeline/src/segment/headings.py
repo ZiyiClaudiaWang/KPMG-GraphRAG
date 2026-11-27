@@ -20,7 +20,7 @@ Four questions, answered in three places:
        not listed       the level of the heading before it; without the file, every heading is
                         level 1 and replaces the one before it
   C. Risk category?            Item 1A only (Levels.risk_heading_level): a level-1 heading is the
-                               filing's risk category, the key step 7a maps to risk themes; every
+                               filing's risk category, the key step 5 maps to risk themes; every
                                unit under it carries it as `category`. It is an ordinary `heading`
                                unit (heading_level 1); is_category_unit() finds it. A heading the
                                file does not list is level 1 when it looks like a category
@@ -163,7 +163,7 @@ class Levels:
 # ---------- the heading path ----------
 
 def is_category_unit(unit: dict) -> bool:
-    """A risk category: an Item 1A heading unit at level 1 (step 7a maps its text to risk themes)."""
+    """A risk category: an Item 1A heading unit at level 1 (step 5 maps its text to risk themes)."""
     return (unit["role"] == "heading" and unit["section_type"] == "risk_factors"
             and unit.get("heading_level") == 1)
 

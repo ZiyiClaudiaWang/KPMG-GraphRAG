@@ -1,4 +1,4 @@
-"""The review report (src/report.py): stale steps, settings blocks, changes, unit checks, and a
+"""The review report (src/checks/report.py): stale steps, settings blocks, changes, unit checks, and a
 whole run on the Exhibit 21 fixture. Reads files only, so no network and no API."""
 
 import json

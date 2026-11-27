@@ -1,11 +1,11 @@
 """Before/after report for Claim -> subsidiary/segment links (#91 P1.6). No OpenAI calls.
 
-Re-runs step 7b's matching (entity_annotation.annotate_mentions) on the model's mentions in an
+Re-runs step 9's matching (entity_annotation.annotate_mentions) on the model's mentions in an
 existing claims.jsonl, with the current catalog, and compares with what that claims.jsonl says.
 So a frozen run (runs/<name>/) can be measured without relabelling.
 
 Input : <run>/output/claims.jsonl, <run>/output/sentences.jsonl   (--run, default: data/)
-        data/entity_catalog.json (step 1c)                          (--catalog)
+        data/entity_catalog.json (step 6b)                          (--catalog)
 Output: <out>/entity_link_report.json   counts before and after, by status, origin, type, ticker
         <out>/entity_links.csv          every mention that links (matched / matched_auto)
         <out>/entity_link_sample.csv    --sample links drawn at random (seeded), with empty
@@ -16,7 +16,7 @@ Output: <out>/entity_link_report.json   counts before and after, by status, orig
         <out> defaults to <run>/output/entity_links/
 
 Usage:
-  python -m src.report_entity_links --run ../runs/2026-11_20filings_label-v2
+  python -m src.checks.entity_links --run ../runs/2026-11_20filings_label-v2
 """
 
 from __future__ import annotations

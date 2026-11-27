@@ -20,17 +20,17 @@ python run_pipeline.py --steps label --dry-run
 
 ## Stage 2. Label units, validate them and build Claims
 
-`src/label.py` uses the prompt named by `label.prompt_version` in `config/settings.yaml`. The current default is [label_v2.txt](prompts/label_v2.txt); [repair_v1.txt](prompts/repair_v1.txt) handles targeted repair. Label definitions live in `config/claim_types.yaml`. Before changing a prompt, check `response_schema()` and how `src/validate.py` and `src/build_claims.py` consume the resulting fields. Record the prompt version and model with the run.
+`src/label/` uses the prompt named by `label.prompt_version` in `config/settings.yaml`. The current default is [label_v2.txt](prompts/label_v2.txt); [repair_v1.txt](prompts/repair_v1.txt) handles targeted repair. Label definitions live in `config/claim_types.yaml`. Before changing a prompt, check `response_schema()` and how `src/validate.py` and `src/build_claims.py` consume the resulting fields. Record the prompt version and model with the run.
 
 With the run budget and filing scope agreed, run `python run_pipeline.py --steps label` with an OpenAI key configured through `.env`. The model labels eligible units and can refer to supplied context. Rule-filtered units get local labels. Request and reply files under `checked_pilot/` and `targeted_repair/` help diagnose failures. Usage is logged in `output/usage.jsonl`.
 
 ```bash
 python -m src.validate
-python run_pipeline.py --steps risk_factors,build_claims
+python run_pipeline.py --steps build_claims
 python run_pipeline.py --steps load --dry-run
 ```
 
-Run these in order and stop if validation exits with an error. The standalone validator returns a failing exit status for label errors. It also writes a review queue. The risk step (7a) maps each Item 1A category heading to groups using `config/risk_taxonomy/risk_category_map.csv` and puts the themes of step 4c (`risk_themes`, paid, run on purpose) on every unit of a risk factor. The builder writes `output/claims.jsonl` and leaves held units out. The separate Exhibit 21 path produces `output/subsidiaries.jsonl`.
+Run these in order and stop if validation exits with an error. The standalone validator returns a failing exit status for label errors. It also writes a review queue. Step 5 (`risk_factors`) finds the risk factors and maps each Item 1A category heading to groups using `config/risk_taxonomy/risk_category_map.csv`; step 5b (`risk_themes`, paid, sends only when named) gives each risk factor its themes, and the builder puts them on its Claims. The builder writes `output/claims.jsonl` and leaves held units out. The separate Exhibit 21 path produces `output/subsidiaries.jsonl`.
 
 A Claim is one statement at one source position. Its `claim_id` is the `unit_id`, derived from accession, section key and raw spans. Compare `output/claim_id_report.json` between builds before relying on older Claim references. Repeated wording can belong to several source positions or filings, each with its own citation.
 

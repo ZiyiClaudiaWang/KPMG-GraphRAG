@@ -1,9 +1,9 @@
-"""Step 8 - Load: write Claims and their provenance into Neo4j.
+"""Step 10 - Load: write Claims and their provenance into Neo4j.
 
-Input : data/output/claims.jsonl (one line per occurrence, step 7b), data/output/sentences.jsonl,
+Input : data/output/claims.jsonl (one line per occurrence, step 9), data/output/sentences.jsonl,
         config/risk_taxonomy/ (groups.csv, themes.csv), data/interim/clean/*.jsonl,
         data/output/subsidiaries.jsonl (the subsidiaries step; optional),
-        data/entity_catalog.json (step 1c; optional: the segments)
+        data/entity_catalog.json (step 6b; optional: the segments)
 Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher with --dry-run
 
 Each Claim node is one statement at one place (claim_id = the unit's position id, #45), so
@@ -14,7 +14,7 @@ the same format, so her results load by copying that file to data/output/claims.
 
 Risk themes: every RiskTheme (32, keyed by theme_id) and RiskGroup (7, keyed by group_id) of
 config/risk_taxonomy/ is loaded, each theme with one IN_RISK_GROUP edge. A Claim gets one
-HAS_RISK_THEME edge per theme in its risk_themes (step 7b): {rank: primary | secondary,
+HAS_RISK_THEME edge per theme in its risk_themes (step 9): {rank: primary | secondary,
 scope: risk_factor | sentence, source, agrees_with_heading (primary only), model,
 taxonomy_version}. There is no node per risk factor: risk_factor_id (the lead's unit_id),
 risk_category_text, risk_category_unit_id, heading_risk_group and risk_theme_status
@@ -27,12 +27,12 @@ Graph (names from the ontology):
   (Company)-[:HAS_SEGMENT]->(Segment)
   (Claim)-[:MENTIONS]->(Subsidiary | Segment)
 
-Segment nodes come from the XBRL segment members in data/entity_catalog.json (step 1c), keyed
+Segment nodes come from the XBRL segment members in data/entity_catalog.json (step 6b), keyed
 by segment_id (uuid5 of cik + normalised name). Like OWNS, HAS_SEGMENT is one edge per filing
 whose facts report the segment, keyed by accession_number, so a reorganisation shows by year.
 
 MENTIONS (#91 P3) is one edge per Claim and entity it links to: the Claim's related_subsidiary_ids
-and related_segment_ids (step 7b keeps only matched / matched_auto links there). The edge
+and related_segment_ids (step 9 keeps only matched / matched_auto links there). The edge
 carries what was matched: mention_text, match_status, found_by (dictionary, model or both),
 entity_annotation_version. A link whose Subsidiary or Segment node is not loaded is skipped by
 the MATCH, so load the subsidiaries and the catalog with the Claims.

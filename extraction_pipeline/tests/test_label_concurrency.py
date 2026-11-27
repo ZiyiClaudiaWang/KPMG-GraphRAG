@@ -1,4 +1,4 @@
-"""Step 5 with several requests in flight (--workers): same labels as one at a time, a 429 is
+"""Step 7 with several requests in flight (--workers): same labels as one at a time, a 429 is
 waited out and not left as an uncertain attempt, and the budget counts requests in flight."""
 
 from __future__ import annotations

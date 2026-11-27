@@ -1,4 +1,4 @@
-"""#91 P1: Claims linked to subsidiaries and segments by code (entity_annotation.py, step 1c)."""
+"""#91 P1: Claims linked to subsidiaries and segments by code (entities/annotation.py, step 6b)."""
 import json
 import os
 import shutil
@@ -178,7 +178,7 @@ class DictionaryPass(unittest.TestCase):
 
 
 class CatalogStep(unittest.TestCase):
-    """Step 1c: subsidiaries from step 1b, segments from the fact store, the registrant."""
+    """Step 6b: subsidiaries from step 6a, segments from the fact store, the registrant."""
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
 
 class LoadMentions(unittest.TestCase):
-    """Step 8 (#91 P3): one MENTIONS edge per Claim and linked entity."""
+    """Step 10 (#91 P3): one MENTIONS edge per Claim and linked entity."""
 
     def test_one_edge_per_claim_and_entity(self):
         from src.load import mention_rows

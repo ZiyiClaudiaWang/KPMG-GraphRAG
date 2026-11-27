@@ -16,10 +16,10 @@ Usage:
   python -m src.page_breaks               ask, then rerun steps 2-4 (python run_pipeline.py --from clean)
   python -m src.page_breaks --limit 3     send at most 3 new requests
 
-Money rules are label.py's: a request whose reply is saved (data/page_breaks/<hash>/) is never
+Money rules are the shared client's (src/llm/client.py): a request whose reply is saved (data/page_breaks/<hash>/) is never
 sent again, nothing is resent automatically, and the run stops before budget_usd. The model,
 reasoning effort and budget are this step's own (settings.yaml page_breaks:), and its spend is
-logged to data/output/usage_page_breaks.jsonl, separate from step 5.
+logged to data/output/usage_page_breaks.jsonl, separate from step 7.
   python -m src.page_breaks --dry-run --compare        cost with every model in settings prices:
   python -m src.page_breaks --model gpt-5.5 --limit 1  try another model than the configured one
 A boundary's id is accession|section_key|start of the second paragraph in the Data-team content

@@ -26,7 +26,7 @@ ONE_FOR_ONE = str.maketrans({"\n": " ", "\r": " ", "\t": " ", "\u00a0": " ", "\u
 
 def source_text(content: str, spans: list[list[int]]) -> str:
     """A unit's text rebuilt from the Data team content: its pieces, whitespace read as spaces,
-    joined by one space. Steps 5 and 7b compare a unit with its source through this."""
+    joined by one space. Steps 7 and 9 compare a unit with its source through this."""
     return " ".join(content[a:b].translate(ONE_FOR_ONE) for a, b in spans)
 
 
@@ -114,13 +114,6 @@ class Paths:
     def cleaned(filing: dict) -> Path:             # step 2
         return data_dir() / "interim" / "clean" / f"{filing_stem(filing)}.jsonl"
 
-    ex21_raw = staticmethod(lambda: data_dir() / "ex21" / "raw")                            # step 1b
-    ex21_manifest = staticmethod(lambda: data_dir() / "ex21" / "manifest.csv")              # step 1b
-    subsidiaries = staticmethod(lambda: data_dir() / "output" / "subsidiaries.jsonl")      # step 1b
-    subsidiary_qa = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_qa.csv")  # step 1b
-    subsidiary_catalog = staticmethod(lambda: data_dir() / "output" / "subsidiary_catalog.json")  # step 1b
-    subsidiary_renames = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_renames.csv")  # step 1b
-    entity_catalog = staticmethod(lambda: data_dir() / "entity_catalog.json")              # step 1c
     page_break_decisions = staticmethod(lambda: data_dir() / "interim" / "page_break_decisions.jsonl")  # step 2b
     page_break_candidates = staticmethod(lambda: checks_dir("page_breaks") / "page_break_candidates.jsonl")  # step 2b
     manifest = staticmethod(lambda: data_dir() / "output" / "section_manifest.csv")        # step 3
@@ -134,21 +127,28 @@ class Paths:
     sentences = staticmethod(lambda: data_dir() / "output" / "sentences.jsonl")            # step 4
     lead_summary = staticmethod(lambda: checks_dir("segment") / "lead_summary.csv")       # step 4
     lead_review = staticmethod(lambda: checks_dir("segment") / "lead_review.csv")         # step 4
-    batches = staticmethod(lambda: data_dir() / "interim" / "label_batches.jsonl")         # step 5
-    labels = staticmethod(lambda: data_dir() / "output" / "labels.jsonl")                  # step 5
-    usage = staticmethod(lambda: data_dir() / "output" / "usage.jsonl")                    # step 5
-    # Steps 2b and 4c keep their own ledgers, so each has its own budget_usd.
-    step_usage = staticmethod(lambda step: data_dir() / "output" / f"usage_{step}.jsonl")  # steps 2b, 4c
-    label_cache = staticmethod(lambda: data_dir() / "cache" / "label")                     # step 5
-    errors = staticmethod(lambda: data_dir() / "output" / "errors.jsonl")                  # step 6
-    review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 6
-    risk_themes = staticmethod(lambda: data_dir() / "interim" / "risk_themes.jsonl")       # step 4c
-    risk_categories = staticmethod(lambda: data_dir() / "output" / "risk_categories.csv")  # step 7a
-    risk_assignments = staticmethod(lambda: data_dir() / "interim" / "risk_assignments.jsonl")  # step 7a
-    claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 7b
-    claim_id_report = staticmethod(lambda: data_dir() / "output" / "claim_id_report.json")  # step 7b
-    cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 8
-
+    risk_categories = staticmethod(lambda: data_dir() / "output" / "risk_categories.csv")  # step 5
+    risk_factors = staticmethod(lambda: data_dir() / "interim" / "risk_factors.jsonl")     # step 5
+    risk_assignments = staticmethod(lambda: data_dir() / "interim" / "risk_assignments.jsonl")  # step 5
+    risk_themes = staticmethod(lambda: data_dir() / "interim" / "risk_themes.jsonl")       # step 5b
+    ex21_raw = staticmethod(lambda: data_dir() / "ex21" / "raw")                            # step 6a
+    ex21_manifest = staticmethod(lambda: data_dir() / "ex21" / "manifest.csv")              # step 6a
+    subsidiaries = staticmethod(lambda: data_dir() / "output" / "subsidiaries.jsonl")      # step 6a
+    subsidiary_qa = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_qa.csv")  # step 6a
+    subsidiary_catalog = staticmethod(lambda: data_dir() / "output" / "subsidiary_catalog.json")  # step 6a
+    subsidiary_renames = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_renames.csv")  # step 6a
+    entity_catalog = staticmethod(lambda: data_dir() / "entity_catalog.json")              # step 6b
+    batches = staticmethod(lambda: data_dir() / "interim" / "label_batches.jsonl")         # step 7
+    labels = staticmethod(lambda: data_dir() / "output" / "labels.jsonl")                  # step 7
+    usage = staticmethod(lambda: data_dir() / "output" / "usage.jsonl")                    # step 7
+    # Steps 2b and 5b keep their own ledgers, so each has its own budget_usd.
+    step_usage = staticmethod(lambda step: data_dir() / "output" / f"usage_{step}.jsonl")  # steps 2b, 5b
+    label_cache = staticmethod(lambda: data_dir() / "cache" / "label")                     # step 7
+    errors = staticmethod(lambda: data_dir() / "output" / "errors.jsonl")                  # step 8
+    review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 8
+    claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 9
+    claim_id_report = staticmethod(lambda: data_dir() / "output" / "claim_id_report.json")  # step 9
+    cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 10
 
 # ---------- files ----------
 

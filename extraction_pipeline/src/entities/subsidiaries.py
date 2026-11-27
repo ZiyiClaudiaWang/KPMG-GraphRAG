@@ -1,20 +1,20 @@
-"""Step 1b - Subsidiaries: the Exhibit 21 subsidiary list of every 10-K in config/filings.yaml.
+"""Step 6a - Subsidiaries: the Exhibit 21 subsidiary list of every 10-K in config/filings.yaml.
 
 Input : the form: 10-K rows of config/filings.yaml (ticker, cik, accession,
         reporting_period_end); 10-Q rows are skipped, since only a 10-K carries Exhibit 21.
         Each exhibit is downloaded from SEC EDGAR once into data/ex21/raw/ (listed in
         data/ex21/manifest.csv); later runs read the saved copy and need no network.
-Output: data/output/subsidiaries.jsonl        one row per subsidiary per 10-K (loaded by step 8)
+Output: data/output/subsidiaries.jsonl        one row per subsidiary per 10-K (loaded by step 10)
         data/checks/subsidiaries/subsidiary_qa.csv         one row per 10-K: rows parsed, and what to check
         data/output/subsidiary_catalog.json   the same subsidiaries in entity_annotation.py's
-                                              catalog format, for linking Claims; step 1c
+                                              catalog format, for linking Claims; step 6b
                                               (entity_catalog.py) copies it into data/entity_catalog.json.
                                               Each filing is offered the subsidiaries of its own
                                               year's 10-K, plus those listed only in the 10-K
                                               before it, flagged (catalog()).
         data/checks/subsidiaries/subsidiary_renames.csv    possible renames between consecutive 10-Ks, for review
 
-How Exhibit 21 is read lives in src/ex21/ (edgar.py downloads, parse.py reads the exhibit,
+How Exhibit 21 is read lives in src/entities/ex21/ (edgar.py downloads, parse.py reads the exhibit,
 normalize.py maps jurisdictions and builds the identity keys). This file only runs the step.
 
 No OpenAI calls and no Data team export; nothing here changes a label request hash.
@@ -224,7 +224,7 @@ def catalog(rows: list[dict]) -> list[dict]:
     (sold or merged during the year) still applies, and the filing is named in
     prior_year_only_accessions so a link through it can be flagged.
 
-    Everything is needs_review: nothing here is checked by a person yet, so step 7b would
+    Everything is needs_review: nothing here is checked by a person yet, so step 9 would
     report a hit as candidate_match_needs_review, not matched.
     """
     listed_in: dict[str, set[str]] = {}
@@ -303,7 +303,7 @@ def rename_candidates(rows: list[dict], alias: dict | None = None) -> list[dict]
 
 
 def run() -> None:
-    # Oldest 10-K first per parent: step 8 sets a Subsidiary node's name from each row in turn,
+    # Oldest 10-K first per parent: step 10 sets a Subsidiary node's name from each row in turn,
     # so the node ends up with the latest 10-K's spelling whatever order filings.yaml is in.
     targets = sorted(ten_ks(), key=lambda t: (t["cik"], t["reporting_period_end"]))
     if not targets:
