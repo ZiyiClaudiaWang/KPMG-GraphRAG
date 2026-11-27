@@ -1,5 +1,7 @@
 .env
 .env.aws
+.env.*
+!.env.example
 *.pem
 data/
 __pycache__/

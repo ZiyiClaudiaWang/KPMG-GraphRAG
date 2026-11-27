@@ -9,8 +9,12 @@
 Steps, in order:
   fetch         check (or export) data/sections/*.jsonl
   subsidiaries  subsidiaries.jsonl: Exhibit 21 of each 10-K in filings.yaml (SEC EDGAR, no LLM)
+  entity_catalog entity_catalog.json: subsidiaries (step 1b) + XBRL segments a Claim may link to
+  page_breaks   page_break_decisions.jsonl: yes/no for page breaks the rules leave gray (OpenAI)
   clean         remove page headers, repair paragraphs
   filter        section_manifest.csv: which sections to extract from
+  headings      heading_levels.jsonl: how the sub-headings of a section nest, from the
+                filing's EDGAR HTML (no LLM; needs SEC_USER_AGENT to download the HTML once)
   segment       sentences.jsonl: numbered sentences and list groups
   label         labels.jsonl: one label per sentence (OpenAI)
   validate      errors.jsonl: every sentence has exactly one valid label
@@ -19,6 +23,14 @@ Steps, in order:
   load          Neo4j (Claims and subsidiaries)
 
   python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
+
+A run that includes any step up to segment (or risk_factors) ends with the review report,
+data/checks/report/report.md (python -m src.report): stale steps, numbers changed since the last
+report, and the check files to open.
+
+page_breaks is not in a default run: it costs money, and its output file, once written, is
+read by clean on every later run. Run it on purpose:
+  python run_pipeline.py --steps page_breaks,clean,filter          (clean must have run once)
 """
 
 from __future__ import annotations
@@ -27,10 +39,15 @@ import argparse
 import sys
 import time
 
-from src import (build_claims, clean, fetch, filter_sections, label, load, risk_factors, segment,
-                 subsidiaries, validate)
+from src import (build_claims, clean, entity_catalog, fetch, filter_sections, headings, label, load,
+                 page_breaks, report, risk_factors, segment, subsidiaries, validate)
 
-STEPS = ["fetch", "subsidiaries", "clean", "filter", "segment", "label", "validate", "risk_factors", "build_claims", "load"]
+STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings", "segment", "label",
+         "validate", "risk_factors", "build_claims", "load"]
+OPT_IN = {"page_breaks"}       # paid; only when named in --steps
+# Steps the review report covers (no labels needed): a run with any of them ends with the report.
+REPORTED = {"fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings",
+            "segment", "risk_factors"}
 
 
 def main() -> None:
@@ -43,20 +60,23 @@ def main() -> None:
     parser.add_argument("--from-db", metavar="FOLDER", help="fetch: export from the database via this folder")
     args = parser.parse_args()
 
-    steps = STEPS
+    steps = [s for s in STEPS if s not in OPT_IN]
     if args.steps:
         steps = [s.strip() for s in args.steps.split(",")]
         unknown = [s for s in steps if s not in STEPS]
         if unknown:
             sys.exit(f"Unknown steps: {', '.join(unknown)}. Choose from: {', '.join(STEPS)}")
     elif args.until:
-        steps = STEPS[:STEPS.index(args.until) + 1]
+        steps = [s for s in STEPS[:STEPS.index(args.until) + 1] if s not in OPT_IN]
 
     actions = {
         "fetch": lambda: fetch.run(args.from_db),
         "subsidiaries": subsidiaries.run,
+        "entity_catalog": entity_catalog.run,
+        "page_breaks": lambda: page_breaks.run(dry_run=args.dry_run, limit=args.limit),
         "clean": clean.run,
         "filter": filter_sections.run,
+        "headings": headings.run,
         "segment": segment.run,
         "label": lambda: label.run(dry_run=args.dry_run, filing=args.filing, limit=args.limit),
         "validate": validate.run,
@@ -69,6 +89,11 @@ def main() -> None:
             started = time.time()
             actions[step]()
             print(f"  ({step} took {time.time() - started:.1f}s)\n", flush=True)
+    if REPORTED & set(steps):
+        try:
+            report.run()
+        except Exception as e:            # the report never fails a run
+            print(f"[report] not written: {type(e).__name__}: {e}", flush=True)
 
 
 if __name__ == "__main__":

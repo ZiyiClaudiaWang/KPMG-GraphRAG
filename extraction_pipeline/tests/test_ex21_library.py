@@ -77,6 +77,23 @@ def test_described_lines_in_html_with_inline_tags():
     ]
 
 
+def test_described_lines_in_a_numbered_table():
+    # Casey's FY2021 10-K: the number and the described entry sit in two cells of one row.
+    html = ("<table><tr><td>1.</td><td>Sample’s Marketing Company, an Iowa corporation</td></tr>"
+            "<tr><td>2.</td><td>Sample Holdings, LLC, a Delaware limited liability company</td></tr>"
+            "</table>")
+    rows = parse_html(html)
+    assert [(r["subsidiary_name"], r["jurisdiction_raw"]) for r in rows] == [
+        ("Sample’s Marketing Company", "Iowa"),
+        ("Sample Holdings, LLC", "Delaware"),
+    ]
+
+
+def test_misspelt_state_is_mapped():
+    # Parker-Hannifin FY2022 10-K spells it "Pennslyvania".
+    assert normalize_jurisdiction("Pennslyvania") == ("United States", "Pennsylvania")
+
+
 def test_span_inside_a_name_keeps_the_whole_name():
     # Both readings find one entry; only the block reading keeps "Sample’s".
     html = "<p>1. <span>Sample’s</span> Marketing Company, an Iowa corporation</p>"

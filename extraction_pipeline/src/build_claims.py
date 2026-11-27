@@ -1,7 +1,7 @@
 """Step 7b - Build Claims: one candidate record per Claim occurrence, in Claudia's format.
 
 Input : data/output/sentences.jsonl, data/output/labels.jsonl, data/output/review_queue.jsonl,
-        data/sections/*.jsonl, data/interim/clean/*.jsonl, data/entity_catalog.json (optional)
+        data/sections/*.jsonl, data/interim/clean/*.jsonl, data/entity_catalog.json (optional, step 1c)
 Output: data/output/claims.jsonl   one line per occurrence: a Claim sentence at one place in a section
 
 Follows her build_candidates() field by field. Units labelled not_a_claim or needs_review,
@@ -20,8 +20,8 @@ Identity (#45, README "Unit ID & Claim ID"):
                            the id; one that moves a unit's start, end or fragments changes it.
   claim_identity_version   source_span_position_v1 (was exact_source_sentence_v1, keyed by text)
   candidate_occurrence_id  sha256 of [claim_id, section content hash, raw_spans].
-Every id in a record that points at another unit (context, risk category, risk lead
-sentence) is a unit_id.
+Every id in a record that points at another unit (context, risk category, lead sentence)
+is a unit_id.
 
 Each run compares its claim_ids with the previous claims.jsonl and writes the counts to
 data/output/claim_id_report.json (Adeline's suggestion on #45): ids added, ids gone, and ids
@@ -31,12 +31,15 @@ The ontology fields (decision 2.3) are claim_id, quote, claim_type, accession_nu
 section_id, extraction_status, context, subject_scope and annotation_note. Everything else
 is provenance or review information.
 
+Lead sentences come from step 4 (sentences.jsonl), in every section:
+  is_lead_sentence         true if the sentence sums up the sentences under it (step 4 lead_source)
+  provenance.lead_source   html, html_runin or rule for a lead, else null
+  provenance.lead_unit_id  the lead above the sentence (step 4), or null. A unit_id, only
+                           recorded: the lead itself may not be a Claim (not_a_claim, held).
 Risk fields come from step 7a (data/interim/risk_assignments.jsonl), by unit id:
-  risk_ids               risk themes of the risk category the sentence sits under (may be empty)
-  risk_category_id       that category heading's unit_id, or null outside a category
-  risk_lead_sentence     true if the sentence opens and sums up one risk
-  risk_summary           true if it is in the risk factor summary at the top of Item 1A
-The risk lead sentence above each sentence is kept in provenance (risk_lead_unit_id).
+  risk_ids                 risk themes of the risk category the sentence sits under (may be empty)
+  risk_category_id         that category heading's unit_id, or null outside a category
+  risk_summary             true if it is in the risk factor summary at the top of Item 1A (step 4)
 """
 
 from __future__ import annotations
@@ -48,7 +51,7 @@ from collections import Counter
 from . import entity_annotation, source_review
 from .common import UNIT_IDENTITY_VERSION, Paths, log, read_jsonl, write_jsonl
 
-NO_RISK = {"risk_category_id": None, "risk_ids": [], "risk_lead_sentence": False, "risk_lead_unit_id": None}
+NO_RISK = {"risk_category_id": None, "risk_ids": []}
 from .validate import CLAIM_TYPES, assessment, held_ids
 
 STEP = "build_claims"
@@ -85,7 +88,7 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
         "subject_scope": result["subject_scope"], "annotation_note": result["annotation_note"],
         "section_type": unit["section_type"],
         "risk_ids": risk["risk_ids"], "risk_category_id": risk["risk_category_id"],
-        "risk_lead_sentence": risk["risk_lead_sentence"], "risk_summary": unit.get("risk_summary", False),
+        "is_lead_sentence": bool(unit.get("lead_source")), "risk_summary": unit.get("risk_summary", False),
         "source_fragments": fragments, "parent_paragraph_context": parent,
         "provenance": {"section_key": unit["section_key"],
                        "section_path": unit["section_path"], "source_locator": source["source_locator"],
@@ -98,7 +101,7 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                        "section_content_sha256": digest(source["content"]),
                        "coordinate_system": "exact_data_section_content_unicode_codepoints",
                        "raw_spans": spans, "context_unit_ids": [c["unit_id"] for c in context],
-                       "risk_lead_unit_id": risk["risk_lead_unit_id"],
+                       "lead_unit_id": unit.get("lead_unit_id"), "lead_source": unit.get("lead_source"),
                        "request_hash": label["request_hash"],
                        "runner_version": label.get("runner_version") or label_runner_version(),
                        "model": label["model"], "prompt_version": label["prompt_version"]},
@@ -107,11 +110,10 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                                                       issuer_cik=source["cik"],
                                                       accession=source["accession_number"], catalog=catalog))
     reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
+    # related_*_ids keep only matched / matched_auto links (entity_annotation.py, #91 P1);
+    # anything weaker stays a candidate on the mention. Step 8 does not load them yet (#91 P3).
     record.update(proposed_entity_mentions=reviewed["proposed_entity_mentions"], entity_review=reviewed,
-                  postcheck_policy_version=POSTCHECK_POLICY_VERSION, related_segment_ids=[],
-                  related_subsidiary_ids=[])
-    for m in record["entity_mentions"]:        # no confirmed entity links in this unreviewed run
-        m["matched_entity_id"] = None
+                  postcheck_policy_version=POSTCHECK_POLICY_VERSION)
     record["entity_review_flags"] = sorted(set(record["entity_review_flags"] + reviewed["review_flags"]))
     record["candidate_occurrence_id"] = digest(canonical([record["claim_id"],
                                                           record["provenance"]["section_content_sha256"],
@@ -181,7 +183,9 @@ def run() -> None:
     log(STEP, f"{len(records)} occurrences of {len({r['claim_id'] for r in records})} Claims "
               f"({', '.join(f'{k}={v}' for k, v in sorted(by_type.items()))}); skipped {dict(skipped)} "
               f"-> {Paths.claims()}")
-    log(STEP, f"{sum(bool(r['risk_ids']) for r in records)} occurrences have a risk theme; "
+    log(STEP, f"{sum(r['is_lead_sentence'] for r in records)} occurrences are lead sentences, "
+              f"{sum(bool(r['provenance']['lead_unit_id']) for r in records)} sit under one; "
+              f"{sum(bool(r['risk_ids']) for r in records)} have a risk theme; "
               f"{sum(r['multi_fragment'] for r in records)} are multi-fragment (list groups, page breaks)")
     log(STEP, f"claim_ids since the last build: {report['added']} added, {report['gone']} gone, "
               f"{report['kept']} kept ({report['quote_changed']} with a changed quote)"

@@ -11,7 +11,7 @@ decision with a separate answer on credentials.
 ## First run
 
 ```bash
-cp .env.example .env.internal        # then fill it in — see Credentials below
+cp extraction_pipeline/.env.example extraction_pipeline/.env.internal  # then fill it in — see Credentials below
 pip install -r requirements-dev.txt  # streamlit and pandas are in there
 python3 tools/corpus_report.py       # check the connection before Streamlit
 streamlit run tools/dashboard/app.py
@@ -19,6 +19,63 @@ streamlit run tools/dashboard/app.py
 
 Run the report before the dashboard. If credentials are wrong you get one legible
 error on the terminal instead of a stack trace inside a web page.
+
+## Commands
+
+Every one of these runs from the repository root.
+
+**The report.** Prints both arms and the provenance of where the numbers came from.
+
+```bash
+python3 tools/corpus_report.py                          # internal graph, the default
+python3 tools/corpus_report.py --instance canonical     # what Eval and Agents are given
+python3 tools/corpus_report.py --json report.json       # machine readable, same figures
+python3 tools/corpus_report.py --no-graph               # store only, never touches Aura
+python3 tools/corpus_report.py --no-store               # graph only
+python3 tools/corpus_report.py --scope some-run-v2      # pick a run when there is more than one
+python3 tools/corpus_report.py --env-file ~/elsewhere/.env.internal
+```
+
+There is no `--compare`. Run it once per instance and diff the two JSON files, or use
+the sidebar radio, which switches without a second run.
+
+`--env-file` is the one to reach for from a git worktree, where `.env.internal` may not
+exist beside the code. It takes an absolute path and overrides `--instance`.
+
+**The dashboard.**
+
+```bash
+streamlit run tools/dashboard/app.py --server.address 127.0.0.1
+```
+
+Keep `--server.address 127.0.0.1`. Without it Streamlit also binds a public address and
+prints it in the startup banner, and this app reads a live graph with no authentication
+in front of it. Add `--server.port 8520` if the default is taken. Stop it with `Ctrl-C`,
+or `pkill -f "streamlit run"` if it is running detached.
+
+**The static page.** For sharing outside the team: no credentials, no server, nothing
+live. Netlify, GitHub Pages and the website are all static hosting and none of them can
+run Streamlit, so this is what gets hosted.
+
+```bash
+python3 tools/corpus_report.py --json /tmp/corpus.json
+python3 tools/build_corpus_page.py \
+    --report /tmp/corpus.json \
+    --dated 2026-11-16 \
+    --output ~/linlinlin.online/kpmg/corpus-2026-11-16.html
+```
+
+`--dated` is required rather than read from the clock, so rebuilding an old report does
+not relabel it as today. Put the same date in the filename: an older page stays readable
+instead of being overwritten, which is what makes it citable in a deck.
+
+**The tests.** No network, no Aura, no built store — they run against a fake query
+runner and an in-memory DuckDB.
+
+```bash
+python3 -m pytest tests/test_corpus_report.py -q      # just this tool
+python3 -m pytest tests/ -q                           # everything, 243 pass / 2 skip
+```
 
 ## Credentials
 
@@ -29,15 +86,21 @@ Two graphs, and knowing which one you are looking at is most of the value:
 
 | Instance | What it is | Credentials file |
 | --- | --- | --- |
-| `internal` | the team's own graph, the default, where we look first | `.env.internal` |
-| `canonical` | what Eval and Agents are given | `extraction_pipeline/.env` |
+| `internal` | the team's own graph, the default, where we look first | `extraction_pipeline/.env.internal` |
+| `canonical` | what Eval and Agents are given | `extraction_pipeline/.env.canonical` |
+
+Both files live in `extraction_pipeline/`, next to the pipeline's own `.env`, but the
+dashboard never reads `extraction_pipeline/.env`. That file belongs to the extraction
+pipeline (`run_pipeline.py`) and can point wherever the pipeline run needs. The
+dashboard only reads `.env.internal` and `.env.canonical`, so changing `.env` does
+not change what the dashboard shows. All three files are git-ignored.
 
 They are not copies of each other. As of 16 Nov `internal` has the Exhibit 21
 subsidiaries loaded and `canonical` does not, so a subsidiary question answers on one
 and returns nothing on the other. The sidebar radio switches between them; the
 provenance block under the title always says which one you are on.
 
-`.env.internal` needs `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`,
+`extraction_pipeline/.env.internal` needs `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`,
 `NEO4J_DATABASE` and `MSFT_FACT_DB_PATH`. `NEO4J_DATABASE` is the instance ID, not
 `neo4j` — that one has cost two people an afternoon each.
 
@@ -77,9 +140,14 @@ listing them.
 Edges: `SUPPORTS` 10,774 · `CONCERNS_RISK` 6,198 · `OWNS` 752 · `CONTAINS` 48 ·
 `FILES` 20. Subsidiary coverage 10 of 10 10-Ks. No orphans.
 
-**Graph, `canonical`** — the same, minus `Subsidiary` and `OWNS` entirely. Coverage
-reads 0 of 10 and the driver warns that the label does not exist. That is the
-difference between the two instances, not a broken setup.
+**Graph, `canonical`** — as of 16 Nov, identical to the table above: 752 `Subsidiary`,
+752 `OWNS`, coverage 10 of 10, no orphans. The Exhibit 21 load has now run on both
+instances, so the nine subsidiary questions are answerable through the instance Eval
+and Agents are given.
+
+This line said the opposite three days ago, and the change was found by running the
+report rather than by being told. Treat the two instances as able to differ at any
+time and read the provenance block rather than this file.
 
 **Structured arm** — 20 filings · 10 companies · 24,533 facts · 2,063 concepts.
 
@@ -125,8 +193,8 @@ changed the ranking rather than asserted to have.
 
 | What you see | What it means |
 | --- | --- |
-| `No NEO4J_URI in .env.internal` | The file is missing or empty. Copy `.env.example` and fill it in |
-| `No credentials at .env.internal` in the sidebar | Same, caught earlier |
+| `No NEO4J_URI in …/extraction_pipeline/.env.internal` | The file is missing or empty. Copy `extraction_pipeline/.env.example` and fill it in |
+| `No credentials at extraction_pipeline/.env.internal` in the sidebar | Same, caught earlier |
 | `No store configured. Set MSFT_FACT_DB_PATH` | The path is unset, relative, or uses `~` |
 | `RetrievalUnavailableError` on the first Ask | Aura cold start. Press Refresh once and ask again |
 | Counts roughly double | A second extraction run is in the database. The report warns when more than one `pipeline_scope` is present — set one in the sidebar |

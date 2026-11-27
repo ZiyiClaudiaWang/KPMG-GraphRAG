@@ -250,3 +250,81 @@ def test_a_word_spent_on_the_concept_does_not_also_buy_a_dimension():
                           "member": "us-gaap:CashMember"}])
     assert (concept_match.score_fact(terms, concept, "[]", alias, filer)
             > concept_match.score_fact(terms, concept, slice_, alias, filer))
+# --- The words a reader uses, and the facts that cannot answer them ---------
+
+def test_the_words_a_reader_uses_reach_the_right_tag():
+    """None of these share a word with the tag they name, so word overlap
+    cannot find any of them. "Top line" used to reach a street address."""
+    for question, concept in [
+        ("Microsoft top line", REVENUE),
+        ("Microsoft bottom line", "us-gaap:NetIncomeLoss"),
+        ("Apple capex", "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment"),
+        ("Microsoft deferred revenue", "us-gaap:ContractWithCustomerLiabilityCurrent"),
+        ("Microsoft share buybacks", "us-gaap:PaymentsForRepurchaseOfCommonStock"),
+        ("Microsoft diluted EPS", "us-gaap:EarningsPerShareDiluted"),
+        ("Apple effective tax rate",
+         "us-gaap:EffectiveIncomeTaxRateContinuingOperations"),
+    ]:
+        terms = concept_match.question_terms(question)
+        assert concept_match.aliased_concept(terms) == concept, question
+
+
+def test_a_plural_reaches_the_same_tag_as_the_singular():
+    """A reader types "capital expenditures", the table holds the singular."""
+    singular = concept_match.question_terms("Apple capital expenditure")
+    plural = concept_match.question_terms("Apple capital expenditures")
+    assert (concept_match.aliased_concept(singular)
+            == concept_match.aliased_concept(plural)
+            == "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment")
+
+
+def test_naming_both_current_and_total_means_current():
+    """Two phrases of the same length, decided by their order in the table."""
+    terms = concept_match.question_terms("Apple total current assets")
+    assert concept_match.aliased_concept(terms) == "us-gaap:AssetsCurrent"
+
+
+def test_no_alias_phrase_contains_a_stop_word():
+    """question_terms drops stop words before the table is consulted, so a
+    phrase holding "of" or "and" could never match anything."""
+    for phrase, concept in concept_match.CONCEPT_ALIASES:
+        for word in phrase:
+            assert word not in concept_match.STOP_WORDS, (phrase, concept)
+
+
+@pytest.fixture
+def no_store(monkeypatch):
+    """Rank rows without a database.
+
+    rank_records reads company_name out of the store to tell a filer's own
+    name from one of its segment names. These rows name their ticker, which
+    is enough, and CI has no store to read.
+    """
+    monkeypatch.setattr(structured_query_v1, "_filing", lambda accession: {})
+
+
+def _fact(concept, value, fact_id):
+    return {"concept_name": concept, "dimensions": "[]", "numeric_value": value,
+            "fact_id": fact_id, "ticker": "MSFT", "accession_number": "x",
+            "period_start": "2025-07-01", "period_end": "2026-06-30"}
+
+
+def test_a_fact_with_no_number_never_outranks_one_that_has_a_number(no_store):
+    """A street address is tagged like any other fact and scores like one.
+    Asking for Microsoft's top line returned EntityAddressAddressLine1 at
+    rank 1, because "line" is a word in both."""
+    address = _fact("dei:EntityAddressAddressLine1", None, "a")
+    revenue = _fact(REVENUE, 331839000000.0, "b")
+    ranked = structured_query_v1.rank_records(
+        [address, revenue], "Microsoft top line", {}, 10)
+    assert [r["concept_name"] for _, r in ranked] == [REVENUE,
+                                                      "dei:EntityAddressAddressLine1"]
+
+
+def test_a_fact_with_no_number_is_still_returned_when_nothing_else_matches(no_store):
+    """It sorts last rather than being dropped. Deleting evidence to fix a
+    ranking fault would lose the only answer some questions have."""
+    address = _fact("dei:EntityAddressAddressLine1", None, "a")
+    ranked = structured_query_v1.rank_records(
+        [address], "Microsoft address line", {}, 10)
+    assert len(ranked) == 1

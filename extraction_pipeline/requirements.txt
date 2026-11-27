@@ -4,3 +4,7 @@ jsonschema>=4.0  # step 5 only
 neo4j>=5.0       # step 8 only
 beautifulsoup4>=4.12  # subsidiaries step only (Exhibit 21)
 lxml>=4.9
+duckdb
+pandas
+psycopg[binary]
+python-dotenv

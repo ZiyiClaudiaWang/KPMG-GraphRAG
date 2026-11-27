@@ -1,6 +1,10 @@
 # Paths are relative to the pipeline folder.
 data_dir: ../data            # holds sections/ (input) and all pipeline outputs
 
+entity_catalog:                      # step 1c
+  fact_store: null                   # .duckdb with financial_facts_v1, for XBRL segments; relative to
+                                     # extraction_pipeline/. --facts or PIPELINE_FACT_STORE override it
+
 clean:
   repeated_paragraph_min_count: 5   # a short paragraph seen this often in one filing is a page header
   repeated_paragraph_max_chars: 90
@@ -9,6 +13,9 @@ clean:
 segment:
   min_words: 4                       # shorter sentences are prefiltered as too_short
   max_heading_chars: 500             # longer paragraphs are never risk headings
+  lead_rule: fallback                # lead sentences from rule_heading: fallback = only in filings without
+                                     # HTML (step 4b); section = also in sections whose HTML shows no
+                                     # lead; union = everywhere
 
 label:
   model: gpt-4.1-mini                # any OpenAI model that supports structured outputs
@@ -20,17 +27,65 @@ label:
   temperature: 0                     # sent only to gpt-4.1 and gpt-4o models
   batch_max_sentences: 15            # sentences labelled per request
   context_sentences: 4               # read-only units shown before each batch
+  reuse_repeats: path                # copy the label of the same sentence, 4 units before and
+                                     # section_path in an earlier filing of the company; null = send all
+  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  rate_limit_retries: 6              # waits after a 429 rate-limit reply (not billed) before stopping
   max_request_bytes: 35000           # a larger batch is halved until it fits
   max_completion_tokens: 4000        # output limit per request
   max_retries: 0                     # per batch, when the reply fails validation
   stop_on_failure: true              # stop the run at a failed batch for a person to look
-  budget_usd: 3.0                    # stop before a request could take total spend past this
+  budget_usd: 30.0                    # step 5 only: stop before a request could take its spend past this
   # USD per 1M tokens for the model above (published gpt-4.1-mini rates).
   # Check https://openai.com/api/pricing when changing the model. Left empty, only tokens are
   # reported and budget_usd is not enforced (the run logs a warning).
   price_input_per_1m: 0.40
   price_cached_input_per_1m: 0.10
   price_output_per_1m: 1.60
+
+# Step 2b has its own model, budget and ledger (data/output/usage_<step>.jsonl),
+# separate from step 5. base_url is label.base_url unless set here. Prices come from prices: below.
+# reasoning_effort and max_reasoning_tokens apply to reasoning models only (gpt-5*, o*):
+# max_reasoning_tokens is extra output room per request; too little ends a reply early
+# ("Missing or incomplete completion"), and that reply is saved and not resent.
+# Compare models before a run:  python -m src.page_breaks --compare
+page_breaks:                         # step 2b
+  model: gpt-5.4
+  reasoning_effort: low              # none | low | medium | high (gpt-5 itself: minimal instead of none)
+  max_reasoning_tokens: 2000
+  budget_usd: 1.0
+
+headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
+  indent_tickers: [MCK]              # companies whose left indent marks a heading level
+  compare:                           # heading_html_diff.csv only (HTML headings vs step 4); no level changes
+    max_words: 20                    # an HTML block with more words is never heading-like
+    sentence_min_words: 8            # text_check "sentence": this many words and . ! ? at the end
+  leads:                             # lead sentences (headings/leads.py), read by step 4 for lead_unit_id
+    lead_min_words: 4                # a styled block of its own: a full sentence of this many words ...
+    lead_max_words: 100              # ... up to this many (WMT has 70-word lead sentences)
+    runin_min_words: 6               # a styled first sentence of a paragraph: at least this many words
+  tables:                            # HTML table kinds (headings/tables.py), read by step 4's prefilter
+    long_cell_words: 12              # a cell with this many words is running text
+    layout_long_share: 0.3           # layout table: at least this share of its cells is running text ...
+    layout_bullet_share: 0.5         # ... or at least this share of its rows opens with a bullet cell
+    definition_row_share: 0.6        # definition table: a layout table with this share of term | text rows
+
+# USD per 1M tokens, Standard tier, from https://openai.com/api/pricing (checked 2026-11-18).
+# regional_uplift: true = released on or after 2026-03-05, so 10% more on a data-residency
+# endpoint such as us.api.openai.com (label.base_url). Used by step 2b; step 5 still
+# uses the price_* keys in label:.
+regional_uplift: 0.10
+prices:
+  gpt-4.1-mini: {input: 0.40, cached_input: 0.10,  output: 1.60}
+  gpt-4.1:      {input: 2.00, cached_input: 0.50,  output: 8.00}
+  gpt-4o-mini:  {input: 0.15, cached_input: 0.075, output: 0.60}
+  gpt-5-mini:   {input: 0.25, cached_input: 0.025, output: 2.00}
+  gpt-5.1:      {input: 1.25, cached_input: 0.125, output: 10.00}
+  gpt-5.2:      {input: 1.75, cached_input: 0.175, output: 14.00}
+  gpt-5.4-nano: {input: 0.20, cached_input: 0.02,  output: 1.25,  regional_uplift: true}
+  gpt-5.4-mini: {input: 0.75, cached_input: 0.075, output: 4.50,  regional_uplift: true}
+  gpt-5.4:      {input: 2.50, cached_input: 0.25,  output: 15.00, regional_uplift: true}
+  gpt-5.5:      {input: 5.00, cached_input: 0.50,  output: 30.00, regional_uplift: true}
 
 review:
   # Step 6 holds a Claim that starts with one of these names when a ":" intro is among the
@@ -41,3 +96,40 @@ review:
 
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
+
+report:                              # python -m src.report (checks of steps 1-4 and 7a); read by no step
+  big_change_pct: 5                  # warn when one of these moves more than this % from the last report
+  big_change: [clean.paragraphs, filter.sections_keep, headings.headings, headings.level_1,
+               segment.units, segment.to_llm, subsidiaries.rows, risk_factors.categories,
+               risk_factors.item_1a_units_with_theme]
+  checks:                            # number: max or min, level (error / warn / info), why it matters
+    fetch.exports_missing: {max: 0, level: error, why: "passed filings in filings.yaml with no export"}
+    subsidiaries.10k_unchecked: {max: 0, level: error, why: "10-Ks with no Exhibit 21 read: their subsidiaries are missing"}
+    subsidiaries.10k_not_ok: {max: 0, level: error, why: "Exhibit 21 not read cleanly (subsidiary_qa.csv status)"}
+    subsidiaries.renames_not_reviewed: {max: 0, level: warn, why: "possible renames between years, not decided"}
+    subsidiaries.big_year_changes: {max: 0, level: warn, why: "a 10-K's subsidiary count moved by more than half"}
+    entity_catalog.companies_without_segments: {max: 0, level: warn, why: "Claims of these companies cannot link to a segment"}
+    entity_catalog.companies_without_subsidiaries: {max: 0, level: warn, why: "Claims of these companies cannot link to a subsidiary"}
+    page_breaks.not_answered: {max: 0, level: warn, why: "gray page breaks with no answer stay unjoined"}
+    clean.filings_not_cleaned: {max: 0, level: error, why: "exported filings step 2 has not cleaned"}
+    clean.filings_without_paragraphs: {max: 0, level: error, why: "a cleaned filing with no text"}
+    clean.removed_pct: {max: 15, level: warn, why: "share of paragraphs removed as page furniture (10.5% on 26 Nov)"}
+    filter.filings_lacking_a_section: {max: 0, level: error, why: "a 10-K without Item 1, 1A or 7, or a 10-Q without its MD&A"}
+    filter.sections_review: {max: 0, level: info, why: "sections kept out until decided in sections.yaml (Item 1C)"}
+    headings.filings_without_html: {max: 0, level: error, why: "no HTML: every heading of the filing is a sibling"}
+    headings.min_found_in_html_pct: {min: 90, level: warn, why: "a company whose headings are often not found in its HTML"}
+    headings.level_4plus_pct: {max: 3, level: warn, why: "deep nesting is usually a misread level"}
+    headings.sentence_level: {max: 0, level: info, why: "level -1 headings may be sentences: flagged only (25 Nov)"}
+    segment.segmentation_versions: {max: 1, level: error, why: "sentences.jsonl mixes segmentation versions"}
+    segment.filings_without_units: {max: 0, level: error, why: "exported filings with no unit"}
+    segment.filings_without_units_to_llm: {max: 0, level: error, why: "filings with nothing for the LLM to label"}
+    segment.prefilter_too_short: {max: 50, level: warn, why: "too_short is a residual (v10-v13): it should stay near 0"}
+    segment.check_lowercase_start_per_1k: {max: 0.5, level: warn, why: "missed page-break joins or bad splits"}
+    segment.check_no_end_punct_per_1k: {max: 2, level: warn, why: "cut sentences or missed headings sent to the LLM"}
+    segment.check_very_long_per_1k: {max: 0.5, level: warn, why: "missed sentence splits"}
+    segment.check_single_pipe_per_1k: {max: 1, level: warn, why: "table rows sent to the LLM as text"}
+    segment.check_long_heading: {max: 50, level: warn, why: "sentences read as headings never reach the LLM"}
+    segment.check_risk_section_no_category: {max: 0, level: warn, why: "Item 1A sections whose Claims get no risk theme"}
+    segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
+    risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_theme_map.csv"}
+    risk_factors.item_1a_with_theme_pct: {min: 90, level: warn, why: "share of Item 1A units that get a risk theme"}
