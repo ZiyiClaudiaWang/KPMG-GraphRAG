@@ -52,6 +52,22 @@ def test_the_report_names_what_an_arm_does_with_a_key_it_drops():
             assert len(states) == 1, f"{arm}/{key} is reported as {states}"
 
 
+def test_a_key_the_arm_serves_without_storing_it_is_reported_as_applied():
+    """fiscal_year and fiscal_period are not properties on any node.
+
+    The graph arm turns them into a reporting_period_end window, so they
+    narrow the query as much as ticker does. This module read the property
+    map alone and reported them refused, which is the same defect as
+    reporting max_hops applied, pointing the other way.
+    """
+    graph_backend = pytest.importorskip("graphrag.graph_backend")
+    detail = vocabulary.filters("graph")
+    if "unavailable" in detail:
+        pytest.skip("graph arm is not importable here")
+    for key in graph_backend._DERIVED_FILTERS:
+        assert key in detail[vocabulary.APPLIED], key
+
+
 def test_an_unknown_arm_is_refused_by_name():
     with pytest.raises(ValueError, match="no such arm"):
         vocabulary.filters("vector")

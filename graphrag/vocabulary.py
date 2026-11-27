@@ -5,17 +5,21 @@ accept it and ignore it, or refuse it by name. Only the first does what the
 caller expects, and nothing said which was which.
 
 That gap cost the Agent team a week. Their parser sends `fiscal_year` and
-`fiscal_period` on every call and both arms ignore both, so their questions
-came back unfiltered with nothing raised. The structured arm ignores two more.
-`structured_query_v1` records that 148 of Eval's 155 questions carry `form`,
-`fiscal_year` or `fiscal_period`, so this is not a corner.
+`fiscal_period` on every call; at the time both arms accepted both and read
+neither, so their questions came back unfiltered with nothing raised. Both
+arms apply them now, since #89/#90/#93. `structured_query_v1` records that
+148 of Eval's 155 questions carry `form`, `fiscal_year` or `fiscal_period`,
+so this is not a corner.
+
+Which is the point of deriving the report rather than writing it down: the
+paragraph above went stale in a week and this module did not.
 
 The report is derived from the arms rather than written down. A list in a
 document drifts from the code the first time the code changes; this cannot,
 because it reads the same declarations the arms filter on.
 
     from graphrag import vocabulary
-    vocabulary.filters()["graph"]["ignored"]   # -> ['fiscal_period', 'fiscal_year']
+    vocabulary.filters()["graph"]["refused"]   # -> ['is_table', 'max_hops']
 """
 
 from __future__ import annotations
@@ -67,7 +71,12 @@ def filters(arm: str | None = None) -> dict:
     else:
         report["graph"] = _classify(
             contract.GRAPH_FILTERS,
-            set(graph_backend._FILTER_TO_PROPERTY) | {"max_hops"},
+            # A key the arm serves without storing it as a property still
+            # narrows the query. fiscal_year and fiscal_period become a
+            # reporting_period_end window; reporting them as refused would be
+            # as wrong as reporting max_hops as applied, which this line used
+            # to do.
+            set(graph_backend._FILTER_TO_PROPERTY) | graph_backend._DERIVED_FILTERS,
             graph_backend._IGNORED_FILTERS,
         )
 
