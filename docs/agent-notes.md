@@ -20,6 +20,17 @@ Full shape in [architecture.md §7](./architecture.md#7--tool-signature-and-evid
 
 **5 · Provenance differs by tool, and citations must branch.** Exactly one of `chunk_id`, `section_id`, `metadata.fact_id` is populated. RAG fills the first, we fill the second, the structured arm fills the third. Code that assumes `chunk_id` will null-pointer on two of three tools.
 
+**6 · `metadata.dimensions` is a list of records, never a map.** Each entry names an axis, the member on it, and which kind of axis it is. Both names are qualified tags, not the English a reader uses.
+
+```python
+[{"axis": "srt:ProductOrServiceAxis",
+  "member": "us-gaap:ProductMember",
+  "type": "explicit"}]      # "typed" is the other kind
+[]                          # a consolidated fact carries none
+```
+
+A fact with no dimensions is the consolidated figure; one with dimensions is a slice of it, and summing both double-counts. The mock returned a `{axis: member}` map until #103 — if you indexed by axis name, that is the line to change.
+
 ## Building against the mock, and switching off it later
 
 Build against `mock/mock_retrieval_tools.py` the way you built `rag_tool.py` against RAG's mock — it is standard library only, needs no credentials, and both tools are at their final signatures with 63 conformance tests behind them.
