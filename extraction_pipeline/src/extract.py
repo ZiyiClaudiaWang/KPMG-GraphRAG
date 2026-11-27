@@ -42,7 +42,7 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from .common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, settings, write_jsonl
+from .common import PROMPTS_DIR, Paths, Progress, checks_dir, log, read_jsonl, settings, write_jsonl
 from .label.requests import plan_batches
 from .label.reuse import reuse_plan
 from .llm.client import Client, StopRun, canonical, parse_reply
@@ -238,14 +238,18 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
         if limit is not None:
             todo = todo[:max(0, limit - state["sent"])]
         n = max(1, int(workers or cfg.get("concurrency") or 1))
+        bar = Progress(STEP, len(todo), "requests", spent=lambda: client.spent)
         try:
             with ThreadPoolExecutor(max_workers=n) as pool:
                 for p, (record, sent) in zip(todo, pool.map(lambda q: one(q, not state["stopped"]), todo)):
                     state["sent"] += sent
+                    bar.tick()
                     handle(p, record)
         except StopRun as err:
             state["stopped"] = str(err)
             log(STEP, f"stopped: {err}")
+        finally:
+            bar.close()
 
     send_all(first_round)
     copied = 0

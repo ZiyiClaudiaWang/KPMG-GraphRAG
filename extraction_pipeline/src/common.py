@@ -207,3 +207,59 @@ def load_env(path: Path | None = None) -> None:
 
 def log(step: str, message: str) -> None:
     print(f"[{step}] {message}", flush=True)
+
+
+class Progress:
+    """A progress line for a long step: done / total, a bar, spend, elapsed time and an estimate
+    of the time left. Printed at most every `every` seconds and once at the end, as plain lines
+    (readable in a terminal and in a log file). Thread-safe: tick() may come from worker threads.
+
+        p = Progress("label", total=len(todo), what="requests", spent=lambda: client.spent)
+        ... p.tick() after each request ...
+        p.close()
+    """
+
+    WIDTH = 24
+
+    def __init__(self, step: str, total: int, what: str = "requests", every: float = 10.0, spent=None):
+        import threading
+        import time
+        self.step, self.total, self.what, self.every, self.spent = step, max(0, int(total)), what, every, spent
+        self.done, self.started, self.last = 0, time.monotonic(), 0.0
+        self.lock = threading.Lock()
+        if self.total:
+            log(step, f"{self.total:,} {what} to go")
+
+    @staticmethod
+    def _clock(seconds: float) -> str:
+        seconds = int(seconds)
+        h, rest = divmod(seconds, 3600)
+        m, s = divmod(rest, 60)
+        return f"{h}h{m:02d}m" if h else f"{m}m{s:02d}s"
+
+    def line(self) -> str:
+        import time
+        elapsed = time.monotonic() - self.started
+        share = self.done / self.total if self.total else 1.0
+        filled = int(round(share * self.WIDTH))
+        parts = [f"|{'#' * filled}{'.' * (self.WIDTH - filled)}| {self.done:,}/{self.total:,} {self.what} "
+                 f"{share:.0%}", f"{self._clock(elapsed)} elapsed"]
+        if 0 < self.done < self.total:
+            parts.append(f"about {self._clock(elapsed / self.done * (self.total - self.done))} left")
+        if self.spent is not None:
+            parts.append(f"${self.spent():.2f} spent by this step")
+        return " · ".join(parts)
+
+    def tick(self, n: int = 1) -> None:
+        import time
+        with self.lock:
+            self.done += n
+            now = time.monotonic()
+            if self.done >= self.total or now - self.last >= self.every:
+                self.last = now
+                log(self.step, self.line())
+
+    def close(self) -> None:
+        with self.lock:
+            if self.total and self.done < self.total:
+                log(self.step, self.line() + " (stopped early)")

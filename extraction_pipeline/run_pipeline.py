@@ -104,9 +104,13 @@ def main() -> None:
         "claim_links": lambda: claim_links.run(dry_run=args.dry_run),
         "load": lambda: load.run(dry_run=args.dry_run),
     }
-    for step in STEPS:                    # always run in pipeline order
+    chosen = [s for s in STEPS if s in steps]
+    run_started = time.time()
+    for k, step in enumerate(chosen, 1):  # always run in pipeline order
         if step in steps:
             started = time.time()
+            print(f"[run] step {k}/{len(chosen)}: {step} (run time so far "
+                  f"{int(time.time() - run_started) // 60}m)", flush=True)
             actions[step]()
             print(f"  ({step} took {time.time() - started:.1f}s)\n", flush=True)
             if step == "segment":         # a check, not a step: label finds the repeats itself

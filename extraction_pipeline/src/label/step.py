@@ -91,7 +91,7 @@ import argparse
 import time
 from collections import defaultdict
 
-from ..common import Paths, log, read_jsonl, settings, write_jsonl
+from ..common import Paths, Progress, log, read_jsonl, settings, write_jsonl
 from ..llm.client import StopRun, reserve_cost
 from .repair import plan_repair, repair_labels
 from .replies import Labeller
@@ -178,9 +178,13 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         return (not dry_run and not state["stopped"] and selected
                 and (limit is None or state["sent"] + in_flight < limit))
 
+    progress: dict[str, Progress | None] = {"bar": None}
+
     def handle(plan: dict, reply: dict) -> None:
         nonlocal labels
         state["sent"] += reply["sent"]
+        if reply["sent"] and progress["bar"]:
+            progress["bar"].tick()
         if reply["record"] is None:
             return
         if reply["problems"]:
@@ -204,6 +208,18 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         log(STEP, f"stopped: {err}")
 
     def label_all(batch_plans: list[dict]) -> None:
+        if not dry_run:
+            pending = [p for p in batch_plans if labeller.cached(p) is None
+                       and (filing is None or p["batch"]["accession_number"] == filing)]
+            room = len(pending) if limit is None else max(0, min(len(pending), limit - state["sent"]))
+            progress["bar"] = Progress(STEP, room, "requests", spent=lambda: labeller.spent)
+        try:
+            run_batches(batch_plans)
+        finally:
+            if progress["bar"]:
+                progress["bar"].close()
+
+    def run_batches(batch_plans: list[dict]) -> None:
         if workers <= 1:
             for plan in batch_plans:
                 try:

@@ -480,7 +480,8 @@ python run_pipeline.py --steps load --dry-run        # writes output/load_previe
 ```
 
 - Paid steps send 8 requests at a time (`concurrency` in each block of `config/settings.yaml`;
-  `--workers` overrides).
+  `--workers` overrides). While they send, a progress line every 10 seconds shows requests done /
+  to go, a bar, time elapsed and left, and the step's spend; `[run] step k/n` marks each step.
 - Do the manual overrides before 8b: a released unit joins two runs of Claims, so the 8b requests
   of that run change (and are paid again if they were already sent).
 - `python run_pipeline.py --help` lists the steps. Each module also runs alone

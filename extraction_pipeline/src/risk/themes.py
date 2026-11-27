@@ -42,7 +42,7 @@ from collections import Counter
 
 from . import factors as risk_factors, taxonomy as risk_taxonomy
 from ..llm import cost as llm_cost
-from ..common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, write_jsonl
+from ..common import PROMPTS_DIR, Paths, Progress, checks_dir, log, read_jsonl, write_csv, write_jsonl
 from .taxonomy import category_key
 
 STEP = "risk_themes"
@@ -296,10 +296,12 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     workers = max(1, int(workers or cfg.get("concurrency") or 1))
     send = new if limit is None else new[:limit]
     state = {"sent": 0, "stopped": None}
+    bar = Progress(STEP, len(send), "requests", spent=lambda: labeller.spent)
 
     def one(plan: dict) -> None:
         labeller.send(plan, STEP)
         state["sent"] += 1
+        bar.tick()
 
     try:
         if workers == 1:
@@ -319,6 +321,7 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
                                 g.cancel()
     except StopRun as err:
         state["stopped"] = str(err)
+    bar.close()
     if state["stopped"]:
         log(STEP, f"stopped: {state['stopped']}")
 

@@ -115,5 +115,21 @@ class RiskThemeAnswerRoom(unittest.TestCase):
         self.assertEqual(answer_room(85, cfg), 780)
 
 
+class ProgressLine(unittest.TestCase):
+    def test_counts_bar_and_spend(self):
+        import contextlib
+        import io
+        from src.common import Progress
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            p = Progress("label", 4, "requests", every=0, spent=lambda: 0.5)
+            for _ in range(4):
+                p.tick()
+            p.close()
+        last = out.getvalue().strip().splitlines()[-1]
+        self.assertIn("4/4 requests 100%", last)
+        self.assertIn("$0.50 spent", last)
+
+
 if __name__ == "__main__":
     unittest.main()

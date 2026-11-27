@@ -32,7 +32,7 @@ import argparse
 
 from . import clean as C
 from .llm import cost as llm_cost
-from .common import Paths, filings, load_config, log, read_jsonl, settings, write_jsonl
+from .common import Paths, Progress, filings, load_config, log, read_jsonl, settings, write_jsonl
 from .filter_sections import decide
 
 STEP = "page_breaks"
@@ -159,6 +159,8 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     if dry_run:
         return
     labeller, sent, decided = Client(cfg, Paths.step_usage(STEP)), 0, {}
+    new = sum(labeller.cached(p, "page_breaks") is None for p in todo)
+    bar = Progress(STEP, new if limit is None else min(new, limit), "requests", spent=lambda: labeller.spent)
     try:
         for plan in todo:
             record = labeller.cached(plan, "page_breaks")
@@ -167,12 +169,14 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
                     continue
                 record = labeller.send(plan, "page_breaks")
                 sent += 1
+                bar.tick()
             problems, got = answers(plan, record)
             for p in problems:
                 log(STEP, f"{plan['batch']['batch_id']}: {p}")
             decided.update(got)
     except StopRun as exc:
         log(STEP, f"stopped: {exc}")
+    bar.close()
     rows = [{"boundary_id": b["boundary_id"], "class": b["class"], "same_sentence": decided[b["boundary_id"]],
              "a_tail": b["a"][-80:], "b_head": b["b"][:80], "runner_version": RUNNER_VERSION, "model": cfg["model"]}
             for b in boundaries if b["boundary_id"] in decided]
