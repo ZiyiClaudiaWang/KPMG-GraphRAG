@@ -21,8 +21,9 @@ Two paths, and the order matters:
 A guessed match is always scored below a known one, so a lucky word overlap
 cannot outrank the alias table.
 
-Measured on `msft_gold_questions_v1.json`: 10 of 10 questions put the right
-concept first. Before this, none of them did.
+Measured on `msft_gold_questions_v1.json` with `tools/evaluate_concept_match.py`:
+13 of 13 questions put the right concept first, 12 of 13 put the right slice
+of it first. Before this, none of them did.
 
 This is deliberately not text-to-SQL. RAG's §8 puts that out of scope for v0,
 and it is not needed to stop returning earnings per share for a revenue
@@ -49,7 +50,33 @@ STOP_WORDS = frozenset({
 
 # Plain English to the tag filers actually use. Longest phrase wins, so
 # "operating cash flow" beats "cash flow" and "net sales" beats "sales".
+#
+# Two phrases of the same length are decided by the order here, first one
+# wins. That is why "current assets" sits above "total assets": a question
+# about total current assets names both, and means the first.
+#
+# Every concept below was checked against the corpus before it was added. An
+# alias pointing at a tag nobody files is worse than no alias, because it
+# reads as coverage. "Headcount" is not here for that reason —
+# dei:EntityNumberOfEmployees has no facts in either store.
 CONCEPT_ALIASES = (
+    # What a reader calls it, where the tag name shares no words with the
+    # question. Word overlap cannot reach any of these.
+    (("diluted", "earnings", "per", "share"), "us-gaap:EarningsPerShareDiluted"),
+    (("effective", "tax", "rate"), "us-gaap:EffectiveIncomeTaxRateContinuingOperations"),
+    (("selling", "general", "administrative"), "us-gaap:SellingGeneralAndAdministrativeExpense"),
+    (("capital", "expenditure"), "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment"),
+    (("deferred", "revenue"), "us-gaap:ContractWithCustomerLiabilityCurrent"),
+    (("dividends", "paid"), "us-gaap:PaymentsOfDividendsCommonStock"),
+    (("shares", "outstanding"), "dei:EntityCommonStockSharesOutstanding"),
+    (("diluted", "eps"), "us-gaap:EarningsPerShareDiluted"),
+    (("top", "line"), "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax"),
+    (("bottom", "line"), "us-gaap:NetIncomeLoss"),
+    (("buyback",), "us-gaap:PaymentsForRepurchaseOfCommonStock"),
+    (("repurchase",), "us-gaap:PaymentsForRepurchaseOfCommonStock"),
+    (("capex",), "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment"),
+    (("eps",), "us-gaap:EarningsPerShareBasic"),
+    (("sg",), "us-gaap:SellingGeneralAndAdministrativeExpense"),
     (("operating", "cash", "flow"), "us-gaap:NetCashProvidedByUsedInOperatingActivities"),
     (("cash", "from", "operations"), "us-gaap:NetCashProvidedByUsedInOperatingActivities"),
     (("investing", "cash", "flow"), "us-gaap:NetCashProvidedByUsedInInvestingActivities"),
@@ -61,12 +88,27 @@ CONCEPT_ALIASES = (
     (("stockholders", "equity"), "us-gaap:StockholdersEquity"),
     (("operating", "income"), "us-gaap:OperatingIncomeLoss"),
     (("operating", "expenses"), "us-gaap:OperatingExpenses"),
+    # Current above total. A question naming both means the current one, and
+    # two phrases of the same length are decided by the order here.
+    (("current", "assets"), "us-gaap:AssetsCurrent"),
+    (("current", "liabilities"), "us-gaap:LiabilitiesCurrent"),
     (("total", "liabilities"), "us-gaap:Liabilities"),
     (("gross", "margin"), "us-gaap:GrossProfit"),
     (("gross", "profit"), "us-gaap:GrossProfit"),
     (("total", "assets"), "us-gaap:Assets"),
     (("income", "tax"), "us-gaap:IncomeTaxExpenseBenefit"),
     (("net", "income"), "us-gaap:NetIncomeLoss"),
+    (("long", "term", "debt"), "us-gaap:LongTermDebtNoncurrent"),
+    # No "of" or "and" in a phrase. question_terms drops them before this
+    # table is consulted, so a phrase carrying one can never match.
+    (("cost", "goods", "sold"), "us-gaap:CostOfGoodsAndServicesSold"),
+    (("cost", "sales"), "us-gaap:CostOfGoodsAndServicesSold"),
+    (("cost", "revenue"), "us-gaap:CostOfRevenue"),
+    (("interest", "expense"), "us-gaap:InterestExpense"),
+    (("accounts", "receivable"), "us-gaap:AccountsReceivableNetCurrent"),
+    (("receivables",), "us-gaap:AccountsReceivableNetCurrent"),
+    (("inventory",), "us-gaap:InventoryNet"),
+    (("goodwill",), "us-gaap:Goodwill"),
     (("net", "sales"), "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax"),
     (("revenue",), "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax"),
 )
@@ -122,10 +164,16 @@ def question_terms(question: str) -> list[str]:
 
 
 def aliased_concept(terms: list[str]) -> str | None:
-    """The concept a known phrase names, or None."""
+    """The concept a known phrase names, or None.
+
+    Singular and plural are the same phrase, so "capital expenditures" and
+    "buybacks" reach the table without a second row each. The word overlap
+    path below already works this way; the table used to demand an exact
+    token and quietly missed the plural a reader is more likely to type.
+    """
     best_length, best_concept = 0, None
     for phrase, concept in CONCEPT_ALIASES:
-        if len(phrase) > best_length and all(word in terms for word in phrase):
+        if len(phrase) > best_length and all(_matches(word, terms) for word in phrase):
             best_length, best_concept = len(phrase), concept
     return best_concept
 
@@ -201,7 +249,15 @@ def score_fact(terms: list[str], concept: object, dimensions: object,
         base = min(coverage * brevity + lead, MAX_GUESS_SCORE)
 
     # The filer's own name describes the company, not one of its segments.
-    asked = [t for t in terms if t not in filer]
+    #
+    # Nor is a word the concept already accounts for asking for a dimension.
+    # "Cash and cash equivalents as of June 30" names the concept; the word
+    # cash in it was not a request for the CashMember slice of that concept.
+    # Without this the slice collects a dimension bonus for a word the
+    # question spent on the concept, and outranks the consolidated figure.
+    concept_vocab = sorted(set(words))
+    asked = [t for t in terms
+             if t not in filer and not _matches(t, concept_vocab)]
 
     matched = 0
     unasked = 0

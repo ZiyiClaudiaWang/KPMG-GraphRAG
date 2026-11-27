@@ -7,6 +7,8 @@ so a laptop without Docker still gets the rest.
 
 from __future__ import annotations
 
+import datetime
+
 import os
 
 import pytest
@@ -39,8 +41,9 @@ def _row(**overrides):
         "section_path": "Part I Item 1 > GENERAL",
         "sentence_ids": ["0001193125-26-323660|part-i-item-1|s0003"],
         "context_unit_ids": None,
-        "risk_lead_unit_id": None,
-        "risk_lead_sentence": None,
+        "lead_unit_id": None,
+        "lead_source": None,
+        "is_lead_sentence": None,
         "risk_summary": None,
         "multi_fragment": None,
         "role": "body",
@@ -146,16 +149,31 @@ def test_refusing_a_filter_says_why():
         graph_backend._check_filters({"is_table": True})
 
 
-@pytest.mark.parametrize("key", ["fiscal_year", "fiscal_period"])
-def test_the_fiscal_filters_are_accepted_and_ignored_like_the_structured_arm(key):
-    """Both arms are offered these keys by the contract. Refusing here while
-    the structured arm ignored them meant one filter dict worked on one arm
-    and raised on the other, and 129 of Eval's 155 questions carry one."""
-    graph_backend._check_filters({key: "anything"})
+def test_the_fiscal_filters_reach_the_query(monkeypatch):
+    """These were accepted and dropped, so a question about FY2026 returned
+    filings from any year. 129 of Eval's 155 questions carry one of them."""
+    monkeypatch.setattr(graph_backend, "_calendar", lambda driver=None: {
+        "MSFT": {"Q3 2026": (datetime.date(2026, 1, 1), datetime.date(2026, 3, 31))}})
 
-    where, params = graph_backend._where_clause({"ticker": "MSFT", key: "anything"})
-    assert where == "co.ticker = $ticker"
+    where, params = graph_backend._where_clause(
+        {"ticker": "MSFT", "fiscal_year": 2026, "fiscal_period": "Q3"})
+    assert "reporting_period_end" in where
+    assert params["fiscal_0_a"] == "2026-01-01"
+    assert params["fiscal_0_b"] == "2026-03-31"
+
+
+def test_a_period_no_filing_covers_matches_nothing(monkeypatch):
+    """Dropping the filter would return every year and call it FY2019."""
+    monkeypatch.setattr(graph_backend, "_calendar", lambda driver=None: {"MSFT": {}})
+    where, params = graph_backend._where_clause({"ticker": "MSFT", "fiscal_year": 2019})
+    assert "false" in where
     assert params == {"ticker": "MSFT"}
+
+
+def test_a_quarter_without_a_year_is_refused(monkeypatch):
+    monkeypatch.setattr(graph_backend, "_calendar", lambda driver=None: {"MSFT": {}})
+    with pytest.raises(contract.FilterNotSupportedError, match="needs fiscal_year"):
+        graph_backend._where_clause({"fiscal_period": "Q3"})
 
 
 def test_max_hops_below_the_traversal_is_refused():
@@ -210,6 +228,126 @@ def test_lucene_syntax_in_a_question_is_stripped_not_executed():
 def test_a_query_of_only_punctuation_returns_nothing_rather_than_failing():
     assert graph_backend._lucene_safe("*?:") == ""
     assert graph_backend.search("*?:") == []
+
+
+# ---- how many candidates the index is asked for ---------------------------
+
+class _FakeIndex:
+    """A full-text index over claims, with the filter running after it.
+
+    Models the thing that broke: the index returns the best `limit` claims in
+    the whole graph, and only then is the filter applied. Wanted claims sitting
+    far down the global score order never reach it.
+    """
+
+    def __init__(self, total=600, wanted_at=(227, 461, 488, 498)):
+        # One row per claim, best first. The wanted ones carry the ticker the
+        # filter asks for; everything else does not.
+        self.matches = [
+            _row(claim_id=f"c{i}", ticker="AAPL" if i in wanted_at else "MSFT",
+                 score=float(total - i))
+            for i in range(total)
+        ]
+        self.limits = []
+
+    def session(self, database=None):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def run(self, cypher, **params):
+        limit = params["limit"]
+        self.limits.append(limit)
+        returned = self.matches[:limit]
+        if "count(node)" in cypher:
+            return _Single({"matches": len(returned)})
+        ticker = params.get("ticker")
+        if ticker:
+            returned = [r for r in returned if r["ticker"] == ticker]
+        return _Rows(returned)
+
+
+class _Single:
+    def __init__(self, value):
+        self._value = value
+
+    def single(self):
+        return self._value
+
+
+class _Rows:
+    def __init__(self, rows):
+        self._rows = rows
+
+    def data(self):
+        return self._rows
+
+
+def _use_fake_index(monkeypatch, index):
+    monkeypatch.setattr(graph_backend, "connect", lambda: index)
+    monkeypatch.setattr(graph_backend, "_database", None)
+
+
+def test_a_narrow_filter_returns_its_claims_however_small_top_k_is(monkeypatch):
+    """The bug: at top_k=8 the arm asked for 80 candidates and the four claims
+    the filter wanted sat at 227 and below, so it reported no evidence while
+    they sat in the graph untouched."""
+    index = _FakeIndex()
+    _use_fake_index(monkeypatch, index)
+
+    for top_k in (5, 8, 20, 100):
+        rows = graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=top_k)
+        assert len(rows) == 4, f"top_k={top_k} returned {len(rows)}"
+
+
+def test_the_candidate_count_follows_the_match_set_not_top_k(monkeypatch):
+    index = _FakeIndex()
+    _use_fake_index(monkeypatch, index)
+
+    graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=8)
+    # First the count, then the search itself: both ask for every match, and
+    # neither number is derived from top_k.
+    assert index.limits == [graph_backend.FULLTEXT_MATCH_CAP, 600]
+
+
+def test_an_unfiltered_search_still_asks_for_only_top_k(monkeypatch):
+    """Nothing is discarded after the index, so the best top_k it returns are
+    the best top_k there are. Asking for the whole match set would be waste."""
+    index = _FakeIndex()
+    _use_fake_index(monkeypatch, index)
+
+    graph_backend.search("revenue", top_k=8)
+    assert index.limits == [8]
+
+
+def test_hitting_the_cap_warns_because_nothing_else_would_show_it(monkeypatch, caplog):
+    """At the cap the filter is back to choosing from a prefix, which is the
+    defect this whole path exists to fix. The row count looks ordinary, so the
+    warning is the only thing that says it happened."""
+    index = _FakeIndex(total=600)
+    _use_fake_index(monkeypatch, index)
+    monkeypatch.setattr(graph_backend, "FULLTEXT_MATCH_CAP", 100)
+
+    with caplog.at_level("WARNING", logger=graph_backend.log.name):
+        graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=8)
+
+    assert "FULLTEXT_MATCH_CAP" in caplog.text
+    assert "revenue" in caplog.text
+
+
+def test_a_match_set_under_the_cap_says_nothing(monkeypatch, caplog):
+    index = _FakeIndex(total=600)
+    _use_fake_index(monkeypatch, index)
+    monkeypatch.setattr(graph_backend, "FULLTEXT_MATCH_CAP", 5_000)
+
+    with caplog.at_level("WARNING", logger=graph_backend.log.name):
+        graph_backend.search("revenue", filters={"ticker": "AAPL"}, top_k=8)
+
+    assert caplog.text == ""
 
 
 # ---- against a real graph -------------------------------------------------

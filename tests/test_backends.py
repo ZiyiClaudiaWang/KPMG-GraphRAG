@@ -24,9 +24,11 @@ def clear_backends():
     """
     retrieve.configure_graph_backend(None)
     retrieve.configure_structured_backend(None)
+    retrieve.configure_cypher_backend(None)
     yield
     retrieve.configure_graph_backend(None)
     retrieve.configure_structured_backend(None)
+    retrieve.configure_cypher_backend(None)
 
 
 @pytest.fixture

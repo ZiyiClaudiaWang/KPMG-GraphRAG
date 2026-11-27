@@ -304,7 +304,7 @@ can only be one of five:
 | `context_ids` | earlier sentences a reader needs to understand this one |
 | `subject_scope` | what the statement is about when it is not the company |
 | `annotation_note` | mixed content or ambiguity worth recording |
-| `is_risk_heading` | Item 1A only: is this the sentence that names a risk |
+| `is_risk_heading` | Item 1A only: is this the sentence that names a risk. No longer read: lead sentences (`is_lead_sentence`, `lead_unit_id`) come from the filing's HTML in step 4 |
 | `entity_mentions` | segments and subsidiaries named, as exact substrings of the sentence |
 
 The three claim types are an ontology decision (2.3). The other two are pipeline-only:

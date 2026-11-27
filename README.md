@@ -142,9 +142,11 @@ the amendment replaces that same concept for that same period.
 | --- | --- |
 | [`docs/`](docs/) | **The contracts.** Canonical. [`schema-ids-operations.md`](docs/schema-ids-operations.md) is what to build against |
 | [`docs/sprints/`](docs/sprints/) | One file per week — owners, done conditions, decisions the week is waiting on |
-| [`graphrag/`](graphrag/) | The package. Evidence shape and validation, mirroring the RAG team's `rag/contract.py` |
+| [`graphrag/`](graphrag/) | The package. `contract.py` is the evidence shape and validation, mirroring the RAG team's `rag/contract.py`; `retrieve.py` is the public tools; `backends.py` registers the real arms from the environment |
+| [`structured/`](structured/) | The XBRL fact arm — the loaders that build the DuckDB store, and the query and concept matching over it |
 | [`extraction_pipeline/`](extraction_pipeline/) | The extraction pipeline to build the graph. See its [README](extraction_pipeline/README.md) for details.|
-| [`tests/`](tests/) | 91 tests — 63 contract, 28 toy-graph fixture. They run against the mock now and the real tools later |
+| [`tools/`](tools/) | CLIs around the arms — build the fact store, read Data's database, score entity resolution, build the corpus report |
+| [`tests/`](tests/) | 240 tests on `main`. Say which suite a number refers to: the contract suite alone is 63, and the two get mistaken for each other |
 | [`runs/`](runs/) | Frozen results of agreed `extraction_pipeline/` runs, one folder per run, never edited after commit. |
 | [`mock/`](mock/) | INT-0 mocks for both tools. Standalone, standard library only |
 | [`toy_graph/`](toy_graph/) | A small Neo4j graph used to test the schema against a question needing several hops. It found two gaps; both are closed |

@@ -89,11 +89,20 @@ uv run graphrag_data.py fetch --tickers AAPL MSFT JPM --form 10-K --latest --sec
 
 # Filters, same on every command:
 #   --tickers AAPL MSFT                 companies
+#   --ciks 1652044                      companies by CIK (leading zeros optional), for
+#                                       companies loaded without a ticker; with --tickers, both
 #   --accessions 0000320193-25-000079   exact filings, for reproducible runs
 #   --form 10-K | 10-Q                  leave out for both
 #   --since / --until YYYY-MM-DD        filing-date range
 #   --latest                            each company's newest filing only
 #   --section-types risk_factors mda business market_risk financial_statements
+```
+
+Rebuild the extraction pipeline's filing list (`extraction_pipeline/config/filings.yaml`) from the repo's `tools/` folder, where `.env.aws` lives:
+
+```bash
+uv run graphrag_data.py config            # print it (companies: PIPELINE_TICKERS in the script)
+uv run graphrag_data.py config --write    # overwrite extraction_pipeline/config/filings.yaml
 ```
 
 Or from a notebook or the pipeline:

@@ -1,0 +1,38 @@
+# Exhibit 21 names reviewed by a person (step 1b, src/subsidiaries.py).
+#
+# sub_id is parent CIK + normalised name with the legal form kept (docs/schema-ids-operations.md),
+# so one subsidiary written two ways in different 10-Ks becomes two Subsidiary nodes. Pairs like
+# that show up in data/checks/subsidiaries/subsidiary_renames.csv; once checked, they go here.
+#
+# same_entity: the other spellings get the sub_id of `name`. Use the latest 10-K's spelling as
+#   `name`, since the Subsidiary node keeps the name of the last 10-K loaded. Each OWNS edge still
+#   keeps the name as filed that year (name_as_filed).
+# distinct: checked and kept apart, e.g. a real change of legal form or of jurisdiction. They stay
+#   two nodes, and subsidiary_renames.csv marks the pair review=distinct.
+#
+# Reviewed 19 Nov 2026 against the 59 exhibits of the 2021-2026 10-Ks.
+
+same_entity:
+  # spelling of the same legal form
+  - {ticker: MDT, name: "Medtronic Holdings S.à.r.l.", also: ["Medtronic Holdings Sàrl"]}
+  - {ticker: PH, name: "Altair (UK) Ltd", also: ["Altair (UK) Limited"]}
+  - {ticker: NTAP, name: "CloudCheckr Ltd.", also: ["Cloud Checkr Ltd."]}
+  # a missing space in the filed HTML (FY2022 exhibit)
+  - {ticker: MDT, name: "HeartWare International LLC", also: ["HeartWare InternationalLLC"]}
+  - {ticker: MDT, name: "Medtronic Europe Limited", also: ["Medtronic EuropeLimited"]}
+  # legal form left out in earlier years
+  - {ticker: MDT, name: "Medtronic ULN, LLC", also: ["Medtronic ULN"]}
+  - {ticker: MDT, name: "MiniMed Australia Pty Ltd", also: ["MiniMed Australia"]}
+  - {ticker: MSFT, name: "Microsoft Ireland Research Unlimited Company", also: ["Microsoft Ireland Research"]}
+  - {ticker: MSFT, name: "Microsoft Global Finance Unlimited Company", also: ["Microsoft Global Finance"]}
+  - {ticker: PH, name: "Parker Hannifin Canada Company", also: ["Parker Hannifin Canada"]}
+
+distinct:
+  # legal form changed: Limited (2021) -> Unlimited Company (2022-23) -> Limited (2024-)
+  - {ticker: MDT, names: ["Covidien Limited", "Covidien Unlimited Company"]}
+  # legal form changed: Inc. (2021) -> LLC (2022-)
+  - {ticker: MDT, names: ["HeartWare International, Inc.", "HeartWare International LLC"]}
+  # legal form changed: Limited (2024-25) -> Unlimited Company (2026)
+  - {ticker: NTAP, names: ["NetApp Ireland Limited", "NetApp Ireland Unlimited Company"]}
+  # moved from Gibraltar (Limited, 2023) to Switzerland (Sàrl, 2024-)
+  - {ticker: PH, names: ["Parker Hannifin Switzerland Holdings Limited", "Parker Hannifin Switzerland Holdings Sàrl"]}

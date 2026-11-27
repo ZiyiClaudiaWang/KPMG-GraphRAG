@@ -2,8 +2,8 @@ import unittest
 from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like,
                          is_category, is_colon_heading, mark_risk_summary, segment_section)
 from src.entity_annotation import annotate_mentions
-from src.clean import drop_rule, should_join
-from src.risk_factors import assign, category_key, is_lead_sentence
+from src.clean import drop_rule, has_table_cells, should_join
+from src.risk_factors import assign, category_key
 from src.common import source_text, unit_id
 
 
@@ -151,6 +151,7 @@ class PageBreaks(unittest.TestCase):
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Continued)", set()), "continued_header")
         self.assertEqual(drop_rule("FINANCIAL REVIEW (Concluded)", set()), "continued_header")
         self.assertEqual(drop_rule("Table of Contents | MD&A Index |", set()), "toc_link")
+        self.assertEqual(drop_rule("Table of Contents | Alphabet Inc.", set()), "toc_link")      # GOOGL page top
         self.assertIsNone(drop_rule("Fiscal Year 2026 Compared with Fiscal Year 2025", set()))
 
     def test_unaudited_label_is_removed(self):
@@ -205,6 +206,36 @@ class PageBreaks(unittest.TestCase):
         self.assertFalse(self.join("Three Months Ended July 31, 2026 Compared to Three Months Ended July 31, 2025",
                                    "(Dollars and Amounts in Thousands)"))
 
+    def test_table_rows_are_not_joined(self):
+        # Apple 10-Q MD&A: the next row starts in lower case only because of the product name
+        self.assertFalse(self.join("Mac (1) | 8,675 | 7,160 | 21 | %", "iPad (1) | 8,435 | 5,977 | 41 | %"))
+        self.assertFalse(self.join("Total net sales | $ | 143,756 | $ | 124,300 | 16 | %", "iPhone"))
+        self.assertFalse(self.join("Revenue grew in every region, and the largest increases came from the",
+                                   "Americas | 12,345"))
+
+    def test_two_column_rows_are_table_residue(self):
+        # Diagnostics on 233 filings: 3,380 two-column rows went to the LLM with the old 2+ "|" rule
+        for text in ("Foreign Operations | 45", "Three Months Ended | Six Months Ended", "Acquisitions | 47",
+                     "3.72% Senior notes (Series D) due in 7 installments beginning October 28, 2025 | 50,000",
+                     "Chief Executive Officer |", "|"):
+            self.assertTrue(has_table_cells(text), text)
+            self.assertEqual(prefilter(text, 4), "table_residue", text)
+
+    def test_sentence_with_a_stray_pipe_is_not_a_table(self):
+        # Microsoft risk factors: a "|" before the text; an executive bio ending in "|"
+        for text in ("| We derive substantial revenue from licenses of Windows operating systems on PCs.",
+                     "| Surface revenue decreased $105 million or 3% on a strong prior year comparable.",
+                     "Mr. Cordano holds a BS from the University of Colorado, Boulder. |",
+                     "Revenue increased 5%, driven by growth in services."):
+            self.assertFalse(has_table_cells(text), text)
+            self.assertIsNone(prefilter(text, 4), text)
+
+    def test_page_footer_with_pipes_is_still_a_header_row(self):
+        # repeated_headers() keeps using is_table_row(): "Apple Inc. | 2025 Form 10-K | 5" must
+        # still be removable as a repeated page footer
+        from src.clean import is_table_row
+        self.assertFalse(is_table_row("Apple Inc. | 2025 Form 10-K | 5"))
+
     def test_list_item_ending_in_semicolon_and_is_not_joined(self):
         self.assertFalse(self.join("lower warehousing and logistics costs, primarily due to channel mix; and",
                                    "Lower other costs."))
@@ -244,7 +275,7 @@ if __name__ == "__main__": unittest.main()
 
 
 class RiskCategories(unittest.TestCase):
-    """segment.py: Item 1A category headings and the risk factor summary."""
+    """segment (headings.py, risk.py): Item 1A category headings and the risk factor summary."""
 
     def test_lowercase_risks_related_to_is_a_category(self):
         # TTWO writes its categories in sentence case
@@ -255,17 +286,17 @@ class RiskCategories(unittest.TestCase):
     def test_summary_is_flagged_until_a_category_repeats(self):
         def unit(role, text, rule=None):
             return {"role": role, "text": text, "prefilter": rule, "risk_summary": False}
-        units = [unit("category_heading", "Risk Factor Summary", "heading"),
-                 unit("category_heading", "Risks Related to Our Business", "heading"),
+        units = [unit("heading", "Risk Factor Summary", "heading"),
+                 unit("heading", "Risks Related to Our Business", "heading"),
                  unit("body", "volatility in average selling prices;"),
-                 unit("category_heading", "Risks Related to Our Business", "heading"),
+                 unit("heading", "Risks Related to Our Business", "heading"),
                  unit("body", "Volatility in average selling prices may harm our results.")]
         mark_risk_summary(units)
         self.assertEqual([u["risk_summary"] for u in units], [True, True, True, False, False])
         self.assertIsNone(units[2]["prefilter"])                  # still sent to the LLM
 
     def test_summary_without_a_repeat_is_left_alone(self):
-        units = [{"role": "category_heading", "text": "Summary of Risk Factors", "prefilter": "heading",
+        units = [{"role": "heading", "text": "Summary of Risk Factors", "prefilter": "heading",
                   "risk_summary": False},
                  {"role": "body", "text": "Our industry is highly competitive.", "prefilter": None,
                   "risk_summary": False}]
@@ -273,27 +304,30 @@ class RiskCategories(unittest.TestCase):
         self.assertFalse(units[1]["risk_summary"])
 
     def test_sentences_take_the_themes_of_their_category(self):
-        def unit(n, role, text, rule_heading=None):
-            return {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
-                    "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
-                    "rule_heading": rule_heading, "risk_summary": False}
+        def unit(n, role, text, level=None):
+            u = {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
+                 "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
+                 "risk_summary": False}
+            if level is not None:
+                u["heading_level"] = level
+            return u
         units = [unit(1, "body", "The following risks could affect us."),
-                 unit(2, "category_heading", "Risks Related to Intellectual Property and Litigation"),
-                 unit(3, "body", "We may be sued for infringement.", "high"),
+                 unit(2, "heading", "Risks Related to Intellectual Property and Litigation", 1),
+                 unit(3, "body", "We may be sued for infringement."),
                  unit(4, "body", "Such claims are costly."),
-                 unit(5, "category_heading", "INDEX TO RISK FACTORS")]
+                 unit(5, "heading", "Patents", 2),                  # a sub-heading: not a category
+                 unit(6, "heading", "INDEX TO RISK FACTORS", 1)]
         mapping = {category_key("Risks related to intellectual property and litigation"):
                    ["intellectual_property", "legal_regulatory"],
                    category_key("Index to Risk Factors"): []}
-        categories, assignments = assign(units, {}, mapping)
+        categories, assignments = assign(units, mapping)
         self.assertEqual([c["map_status"] for c in categories], ["mapped", "not_a_theme"])
         by_id = {a["unit_id"]: a for a in assignments}
         self.assertEqual(by_id["u1"]["risk_ids"], [])                    # before any category
         self.assertEqual(by_id["u4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
-        self.assertEqual(by_id["u4"]["risk_lead_unit_id"], "u3")           # unit ids (#45)
         self.assertEqual(by_id["u4"]["risk_category_id"], "u2")
-        self.assertEqual(categories[0]["risk_category_id"], "u2")
-        self.assertTrue(by_id["u3"]["risk_lead_sentence"])
+        self.assertEqual(categories[0]["risk_category_id"], "u2")        # unit ids (#45)
+        self.assertEqual(set(by_id["u4"]), {"unit_id", "risk_category_id", "risk_ids"})   # leads: step 4 (7c)
 
 
 class SourceMatching(unittest.TestCase):
@@ -309,12 +343,6 @@ class SourceMatching(unittest.TestCase):
         second = content.index("follow.")
         joined = [[35, 45], [second, second + 7]]                  # the page number is left out
         self.assertEqual(source_text(content, joined), "Delays may follow.")
-
-    def test_repaired_label_counts_as_model_judgement(self):
-        unit = {"unit_id": "x", "rule_heading": None}
-        for source in ("llm", "llm_repair"):
-            self.assertTrue(is_lead_sentence(unit, {"x": {"source": source, "is_risk_heading": True}}))
-        self.assertTrue(is_lead_sentence({"unit_id": "y", "rule_heading": "high"}, {}))
 
 
 class UnitIdentity(unittest.TestCase):

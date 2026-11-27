@@ -2,7 +2,8 @@
 
 Input : data/output/claims.jsonl (one line per occurrence, step 7b), data/output/sentences.jsonl,
         config/risk_themes.csv, data/interim/clean/*.jsonl,
-        data/output/subsidiaries.jsonl (the subsidiaries step; optional)
+        data/output/subsidiaries.jsonl (the subsidiaries step; optional),
+        data/entity_catalog.json (step 1c; optional: the segments)
 Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher with --dry-run
 
 Each Claim node is one statement at one place (claim_id = the unit's position id, #45), so
@@ -16,6 +17,18 @@ the same format, so her results load by copying that file to data/output/claims.
 Graph (names from the ontology):
   (Company)-[:FILES]->(Filing)-[:CONTAINS]->(Section)-[:SUPPORTS]->(Claim)-[:CONCERNS_RISK]->(RiskFactor)
   (Company)-[:OWNS]->(Subsidiary)
+  (Company)-[:HAS_SEGMENT]->(Segment)
+  (Claim)-[:MENTIONS]->(Subsidiary | Segment)
+
+Segment nodes come from the XBRL segment members in data/entity_catalog.json (step 1c), keyed
+by segment_id (uuid5 of cik + normalised name). Like OWNS, HAS_SEGMENT is one edge per filing
+whose facts report the segment, keyed by accession_number, so a reorganisation shows by year.
+
+MENTIONS (#91 P3) is one edge per Claim and entity it links to: the Claim's related_subsidiary_ids
+and related_segment_ids (step 7b keeps only matched / matched_auto links there). The edge
+carries what was matched: mention_text, match_status, found_by (dictionary, model or both),
+entity_annotation_version. A link whose Subsidiary or Segment node is not loaded is skipped by
+the MATCH, so load the subsidiaries and the catalog with the Claims.
 
 Subsidiary nodes are keyed by sub_id (parent CIK + normalised name), so one subsidiary listed
 in several 10-Ks is one node; each also stores entity_key (legal form removed), for spotting
@@ -94,7 +107,7 @@ MERGE (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
 SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.accession_number,
     c.section_id = r.section_id, c.extraction_status = r.extraction_status, c.context = r.context,
     c.subject_scope = r.subject_scope, c.annotation_note = r.annotation_note,
-    c.risk_lead_sentence = r.risk_lead_sentence, c.risk_summary = r.risk_summary,
+    c.is_lead_sentence = r.is_lead_sentence, c.risk_summary = r.risk_summary,
     c.multi_fragment = r.multi_fragment
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
@@ -121,11 +134,35 @@ SET o.reporting_period_end = r.reporting_period_end, o.name_as_filed = r.name,
     o.parse_method = r.parse_method, o.flags = r.flags, o.source_url = r.source_url,
     o.source_file = r.source_file, o.parser_version = r.parser_version,
     o.evidence = 'Exhibit 21', o.extraction_status = 'needs_review'""",
+    "segments": """
+UNWIND $rows AS r
+MERGE (g:Segment {segment_id: r.segment_id, pipeline_scope: $scope})
+SET g.name = r.name, g.aliases = r.aliases, g.cik = r.cik, g.xbrl_members = r.members,
+    g.extraction_status = 'needs_review'
+WITH g, r
+MERGE (c:Company {cik: r.cik, pipeline_scope: $scope})
+MERGE (c)-[h:HAS_SEGMENT {accession_number: r.accession_number, pipeline_scope: $scope}]->(g)
+SET h.evidence = 'XBRL StatementBusinessSegmentsAxis', h.xbrl_members = r.members,
+    h.extraction_status = 'needs_review'""",
+    "mentions_subsidiary": """
+UNWIND $rows AS r
+MATCH (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
+MATCH (s:Subsidiary {sub_id: r.entity_id, pipeline_scope: $scope})
+MERGE (c)-[m:MENTIONS {pipeline_scope: $scope}]->(s)
+SET m += r.props""",
+    "mentions_segment": """
+UNWIND $rows AS r
+MATCH (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
+MATCH (g:Segment {segment_id: r.entity_id, pipeline_scope: $scope})
+MERGE (c)-[m:MENTIONS {pipeline_scope: $scope}]->(g)
+SET m += r.props""",
 }
 
 COUNT_QUERY = """
 MATCH (n {pipeline_scope: $scope})
 RETURN labels(n)[0] AS label, count(*) AS n ORDER BY label"""
+
+MENTIONS_COUNT = "MATCH (:Claim {pipeline_scope: $scope})-[m:MENTIONS]->() RETURN count(m) AS n"
 
 WIPE_QUERY = "MATCH (n {pipeline_scope: $scope}) DETACH DELETE n"
 
@@ -144,20 +181,21 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
             prov["raw_spans"].append(p["raw_spans"])
             claim["multi_fragment"] = claim["multi_fragment"] or bool(occ.get("multi_fragment"))
             claim["risk_ids"] += [x for x in occ.get("risk_ids") or [] if x not in claim["risk_ids"]]
-            claim["risk_lead_sentence"] = claim["risk_lead_sentence"] or bool(occ.get("risk_lead_sentence"))
+            claim["is_lead_sentence"] = claim["is_lead_sentence"] or bool(occ.get("is_lead_sentence"))
             claim["risk_summary"] = claim["risk_summary"] and bool(occ.get("risk_summary"))
             continue
         claims[occ["claim_id"]] = {
             **{k: occ.get(k) for k in ("claim_id", "quote", "claim_type", "accession_number", "section_id",
                                        "extraction_status", "context", "subject_scope", "annotation_note")},
             "risk_ids": list(occ.get("risk_ids") or []),
-            "risk_lead_sentence": bool(occ.get("risk_lead_sentence")),
+            "is_lead_sentence": bool(occ.get("is_lead_sentence")),
             "risk_summary": bool(occ.get("risk_summary")),
             "multi_fragment": bool(occ.get("multi_fragment")),
             "provenance": {
                 "section_key": p["section_key"],
                 "section_path": p["section_path"],
-                "risk_lead_unit_id": p.get("risk_lead_unit_id"),
+                "lead_unit_id": p.get("lead_unit_id"),
+                "lead_source": p.get("lead_source"),
                 "role": roles.get(occ["claim_id"], "body"),
                 "context_unit_ids": p.get("context_unit_ids") or [],
                 "raw_spans": [p["raw_spans"]],
@@ -175,7 +213,8 @@ def flat_provenance(p: dict) -> dict:
     return {
         "section_key": p["section_key"],
         "section_path": p["section_path"],
-        "risk_lead_unit_id": p["risk_lead_unit_id"],
+        "lead_unit_id": p["lead_unit_id"],
+        "lead_source": p["lead_source"],
         "role": p["role"],
         "context_unit_ids": p["context_unit_ids"],
         "raw_spans_json": json.dumps(p["raw_spans"]),
@@ -185,6 +224,41 @@ def flat_provenance(p: dict) -> dict:
         "model": p["model"],
         "prompt_version": p["prompt_version"],
     }
+
+
+def segment_rows() -> list[dict]:
+    """One row per segment and filing that reports it (HAS_SEGMENT is keyed by accession)."""
+    path = Paths.entity_catalog()
+    if not path.exists():
+        return []
+    rows = []
+    for e in json.loads(path.read_text(encoding="utf-8")):
+        if e["entity_type"] != "segment":
+            continue
+        for accession in e["accessions"]:
+            rows.append({"segment_id": e["entity_id"], "name": e["name"], "aliases": e["aliases"],
+                         "members": e.get("members") or [], "cik": e["issuer_cik"],
+                         "accession_number": accession})
+    return rows
+
+
+def mention_rows(occurrences: list[dict]) -> dict[str, list[dict]]:
+    """MENTIONS edges by target label: one per (claim_id, entity_id) in related_*_ids."""
+    out: dict[str, dict[tuple, dict]] = {"subsidiary": {}, "segment": {}}
+    for occ in occurrences:
+        for kind in ("subsidiary", "segment"):
+            for entity_id in occ.get(f"related_{kind}_ids") or []:
+                key = (occ["claim_id"], entity_id)
+                if key in out[kind]:
+                    continue
+                m = next((m for m in occ.get("entity_mentions") or []
+                          if entity_id in (m.get("candidate_entity_ids") or [])), {})
+                out[kind][key] = {"claim_id": occ["claim_id"], "entity_id": entity_id, "props": {
+                    "mention_text": m.get("mention_text"), "match_status": m.get("match_status"),
+                    "found_by": m.get("found_by") or [m.get("origin") or "model"],
+                    "entity_annotation_version": occ.get("entity_annotation_version"),
+                    "extraction_status": "needs_review"}}
+    return {k: list(v.values()) for k, v in out.items()}
 
 
 def build_rows() -> dict[str, list[dict]]:
@@ -222,9 +296,11 @@ def build_rows() -> dict[str, list[dict]]:
 
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
+    mentions = mention_rows(occurrences)
     return {"companies": list(companies.values()), "filings": list(filing_rows.values()),
             "sections": list(sections.values()), "risk_factors": factors, "claims": claim_rows,
-            "subsidiaries": subsidiaries}
+            "subsidiaries": subsidiaries, "segments": segment_rows(),
+            "mentions_subsidiary": mentions["subsidiary"], "mentions_segment": mentions["segment"]}
 
 
 def write_preview(rows: dict[str, list[dict]], scope: str) -> None:
@@ -274,6 +350,10 @@ def run(dry_run: bool = False, wipe: bool = False) -> None:
             log(STEP, f"{name}: {len(data)} rows merged")
         result = session.run(COUNT_QUERY, scope=scope)
         log(STEP, "in the graph: " + ", ".join(f"{r['label']}={r['n']}" for r in result))
+        n = session.run(MENTIONS_COUNT, scope=scope).single()["n"]
+        expected = len(rows["mentions_subsidiary"]) + len(rows["mentions_segment"])
+        log(STEP, f"MENTIONS edges: {n}" + (f" (of {expected} links; the rest point at a Subsidiary "
+                                            "or Segment that is not loaded)" if n < expected else ""))
 
 
 def main() -> None:

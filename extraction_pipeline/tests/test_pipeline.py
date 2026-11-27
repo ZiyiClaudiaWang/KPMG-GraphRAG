@@ -281,7 +281,8 @@ class EndToEnd(unittest.TestCase):
 
     def test_segment_roles_and_prefilter(self):
         by_text = {u["text"]: u for u in self.units}
-        self.assertEqual(by_text["Industry Risks"]["role"], "category_heading")
+        self.assertEqual((by_text["Industry Risks"]["role"], by_text["Industry Risks"]["heading_level"]), ("heading", 1))
+        self.assertEqual(by_text["Industry Risks"]["category"], "Industry Risks")
         self.assertEqual(by_text["The Company faces intense competition, which could harm its results."]
                          ["rule_heading"], "high")
         self.assertIsNone(by_text["Such pressures may continue for several years."]["rule_heading"])
@@ -374,6 +375,25 @@ class EndToEnd(unittest.TestCase):
         self.assertIn("MERGE (c)-[y:CONCERNS_RISK", Paths.cypher().read_text(encoding="utf-8"))
         categories = list(csv.DictReader(open(Paths.risk_categories(), encoding="utf-8")))
         self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "mapped")])
+
+    def test_claims_take_leads_from_step_4(self):
+        # patch 7c: is_lead_sentence and lead_unit_id / lead_source come from the step 4 unit,
+        # in every section, whatever the model's is_risk_heading says
+        units = {u["unit_id"]: u for u in self.units}
+        for c in self.claims:
+            unit = units[c["claim_id"]]
+            self.assertEqual(c["is_lead_sentence"], bool(unit["lead_source"]))
+            self.assertEqual((c["provenance"]["lead_unit_id"], c["provenance"]["lead_source"]),
+                             (unit["lead_unit_id"], unit["lead_source"]))
+            self.assertNotIn("risk_lead_sentence", c)
+            self.assertNotIn("risk_lead_unit_id", c["provenance"])
+        self.assertTrue(any(c["is_lead_sentence"] for c in self.claims))
+        under = [c for c in self.claims if c["provenance"]["lead_unit_id"]]
+        self.assertTrue(under)
+        rows = {r["claim_id"]: r for r in load.build_rows()["claims"]}
+        for c in under:
+            self.assertEqual(rows[c["claim_id"]]["provenance"]["lead_unit_id"], c["provenance"]["lead_unit_id"])
+        self.assertIn("c.is_lead_sentence = r.is_lead_sentence", Paths.cypher().read_text(encoding="utf-8"))
 
     def test_no_half_quotes(self):
         # #35 review, point 1: a multi-span unit must not be quoted by its first fragment only
