@@ -145,6 +145,22 @@ class TestChecksAndChanges(unittest.TestCase):
         self.assertEqual(rows[1][3], "+10.0%")
 
 
+class TestReadmeSync(unittest.TestCase):
+    """The report's steps follow the README step table: same numbers, names, `--steps` names and
+    order, and each links to an anchor that exists in README "4. Step details"."""
+
+    def test_steps_match_the_readme(self):
+        import re
+        text = report.README.read_text(encoding="utf-8")
+        table = re.findall(r"^\| \[(\w+)\]\(#step-\w+\) \| ([^|(]+?) \(`(\w+)`\) \|", text, re.M)
+        rows = [(num, label.strip(), cli) for num, label, cli in table if cli in report.STEP_IDS]
+        self.assertEqual(rows, [(s["num"], s["label"], s["id"]) for s in report.STEPS])
+        for s in report.STEPS:
+            self.assertIn(f'<a id="{report.readme_anchor(s)}"></a>', text)
+            for c in s["code"]:
+                self.assertTrue((report.SRC / c).exists(), c)
+
+
 class TestRun(TempData):
     def test_report_on_the_ex21_fixture(self):
         shutil.copytree(FIXTURES / "raw", self.tmp / "ex21" / "raw")

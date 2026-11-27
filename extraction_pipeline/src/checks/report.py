@@ -1,5 +1,10 @@
 """Review report for the steps before labelling (1-6): which checks fail, what is stale, what
-changed since the last report, and which check files to open.
+changed since the last report, and which result and check files to open.
+
+Steps are numbered, named and ordered as in the pipeline README's step table (README.md
+"2. Steps"; 2b runs before 2 and 4b before 4); each step's section links to its README entry
+("4. Step details", anchors step-1 ... step-6b), its code and its files. Keep the two in step when
+a step is added, renamed or renumbered.
 
   python -m src.checks.report           read what the steps wrote, write data/checks/report/
   python -m src.checks.report --against FILE   compare with a saved report.json instead of the last one
@@ -80,81 +85,87 @@ def per_filing(kind) -> list[Path]:
     return [p for p in (kind(f) for f in filings()) if p.exists()]
 
 
-# Each step: what it writes (results), what it reads (inputs: earlier results, its code, its
-# config files), the blocks of config/settings.yaml it reads (settings), and the check files to
-# open with what to look at. Paths are functions, read late.
+# Each step, in the order of the README's step table (README.md "2. Steps"): its number and name
+# there, its `--steps` name (the id), its code, whether it calls the LLM, and the anchor of its
+# entry in README "4. Step details". Then what it writes (results), what it reads (inputs: earlier
+# results, its code, its config files), the blocks of config/settings.yaml it reads (settings),
+# and the check files to open with what to look at. Paths are functions, read late.
 STEPS = [
-    {"id": "fetch", "name": "1 Fetch",
+    {"id": "fetch", "num": "1", "label": "Fetch", "code": ["fetch.py"], "llm": "no",
      "results": lambda: per_filing(Paths.sections),
      "inputs": lambda: [],
      "checks": []},
-    {"id": "page_breaks", "name": "2b Page breaks (paid, run on purpose)",
-     "results": lambda: [Paths.page_break_decisions()],
-     "inputs": lambda: [],            # never re-run by a default run: not reported stale
-     "checks": [(Paths.page_break_candidates, "gray boundaries sent to the model, with both sides"),
-                (Paths.page_break_decisions, "the model's answers (`same_sentence`)")]},
-    {"id": "clean", "name": "2 Clean",
+    {"id": "clean", "num": "2", "label": "Clean", "code": ["clean.py"], "llm": "no",
      "results": lambda: per_filing(Paths.cleaned),
      "inputs": lambda: per_filing(Paths.sections) + [Paths.page_break_decisions(), SRC / "clean.py"],
      "settings": ["clean"],
      "checks": []},
-    {"id": "filter", "name": "3 Filter",
+    {"id": "page_breaks", "num": "2b", "label": "Page breaks", "code": ["page_breaks.py"],
+     "llm": "paid, run on purpose",
+     "results": lambda: [Paths.page_break_decisions()],
+     "inputs": lambda: [],            # never re-run by a default run: not reported stale
+     "checks": [(Paths.page_break_candidates, "gray boundaries sent to the model, with both sides"),
+                (Paths.page_break_decisions, "the model's answers (`same_sentence`)")]},
+    {"id": "filter", "num": "3", "label": "Filter", "code": ["filter_sections.py"], "llm": "no",
      "results": lambda: [Paths.manifest()],
      "inputs": lambda: per_filing(Paths.cleaned) + [CONFIG / "sections.yaml", SRC / "filter_sections.py"],
      "checks": [(Paths.manifest, "`review` rows; add overrides in config/sections.yaml"),
                 (lambda: CONFIG / "sections.yaml", "which section types are kept, dropped or reviewed")]},
-    {"id": "headings", "name": "4b Heading levels (from the HTML)",
+    {"id": "headings", "num": "4b", "label": "Heading levels", "code": ["headings/"], "llm": "no",
      "results": lambda: [Paths.heading_levels(), Paths.lead_sentences(), Paths.html_tables()],
      "inputs": lambda: [Paths.manifest(), SRC / "headings"] + per_filing(Paths.cleaned),
      "settings": ["headings", "segment"],
      "checks": [(Paths.heading_summary, "companies with a low `found_in_html_pct`, `filings_no_html` > 0, "
                                         "`flag_risk_sentence`, `flag_before_table`, `level_4plus`"),
-                (Paths.heading_review, "the headings behind those counts (filter on `flags`, `reason`)"),
+                (Paths.heading_review, "the headings behind those counts (filter on `flags`, `reason`; "
+                                       "`open_in_edgar` opens the filing)"),
                 (Paths.heading_html_diff, "`html_only`: HTML headings step 4 missed; `step4_plain`: step-4 "
                                           "headings the HTML shows as plain text")]},
-    {"id": "segment", "name": "4 Segment",
+    {"id": "segment", "num": "4", "label": "Segment", "code": ["segment/"], "llm": "no",
      "results": lambda: [Paths.sentences()],
      "inputs": lambda: [Paths.manifest(), Paths.heading_levels(), Paths.lead_sentences(), Paths.html_tables(),
                         SRC / "segment"] + per_filing(Paths.cleaned),
      "settings": ["segment", "headings"],
      "checks": [(lambda: out_dir() / "samples.csv", "examples of the unit checks (filter on `check`)"),
-                (Paths.sentences, "the units themselves"),
                 (Paths.lead_summary, "per company: leads by source, units under a lead"),
                 (Paths.lead_review, "one row per lead; `rule_heading` rows the HTML does not confirm"),
-                (lambda: checks_dir("unit_repeats"), "repeats across filings, before labelling (written after "
-                                                     "segment by `src/checks/unit_repeats.py`)")]},
-    {"id": "risk_factors", "name": "5 Risk factors and categories",
+                (lambda: checks_dir("unit_repeats"), "**repeats** (a check, not a step): repeats across "
+                                                     "filings before labelling, written after step 4 by "
+                                                     "`src/checks/unit_repeats.py`")]},
+    {"id": "risk_factors", "num": "5", "label": "Risk factors", "code": ["risk/factors.py"], "llm": "no",
      "results": lambda: [Paths.risk_categories(), Paths.risk_factors(), Paths.risk_assignments()],
      "inputs": lambda: [Paths.sentences(), risk_taxonomy.folder(), SRC / "risk" / "factors.py",
                         SRC / "risk" / "taxonomy.py"],
      "computed": "risk_categories.csv not written yet; the numbers here are computed from sentences.jsonl",
      "checks": [(risk_taxonomy.category_map_path, "add the unmapped category texts listed in this section"),
-                (Paths.risk_categories, "one row per category heading"),
-                (risk_factors.checks_path, "are the categories complete? filter on `check` (year_gap, "
+                (risk_factors.checks_path, "missing or doubtful categories: filter on `check` (year_gap, "
                                            "summary_mismatch, risk_heading_below_1, suspect_category)")]},
-    {"id": "risk_themes", "name": "5b Risk themes (paid: sends only when named)",
+    {"id": "risk_themes", "num": "5b", "label": "Risk themes", "code": ["risk/themes.py"],
+     "llm": "paid, sends only when named",
      "results": lambda: [Paths.risk_themes()],
      "inputs": lambda: [Paths.risk_factors(), risk_taxonomy.folder(), SRC / "risk" / "themes.py"],
      "checks": [(risk_themes.factors_path, "one row per risk factor; filter on `review` (not_classified, unknown, "
                                            "differs_from_reference, overrules_heading)"),
                 (lambda: checks_dir("risk_themes") / "requests.csv",
-                 "one row per risk factor: its request, `reply_saved`, `truncated`"),
-                (Paths.risk_themes, "the model's primary and secondary themes per risk factor")]},
-    {"id": "subsidiaries", "name": "6a Subsidiaries (Exhibit 21)",
+                 "one row per risk factor: its request, `reply_saved`, `truncated`")]},
+    {"id": "subsidiaries", "num": "6a", "label": "Subsidiaries", "code": ["entities/subsidiaries.py", "entities/ex21/"],
+     "llm": "no",
      "results": lambda: [Paths.subsidiaries(), Paths.subsidiary_catalog()],
      "inputs": lambda: [CONFIG / "filings.yaml", CONFIG / "subsidiary_aliases.yaml",
                         SRC / "entities" / "subsidiaries.py", SRC / "entities" / "ex21"],
-     "checks": [(Paths.subsidiary_qa, "rows whose `status` is not OK; `duplicate_names`, `unmapped_jurisdiction`"),
+     "checks": [(Paths.subsidiary_qa, "CHECK rows (`status` not OK); `duplicate_names`, `unmapped_jurisdiction`"),
                 (Paths.subsidiary_renames, "rows with an empty `review`: same entity renamed, or two entities? "
                                            "Reviewed pairs go to config/subsidiary_aliases.yaml"),
                 (lambda: checks_dir("entity_inputs"), "`python -m src.checks.entity_inputs`: big year-to-year "
                                                       "changes, repeats, companies without segments")]},
-    {"id": "entity_catalog", "name": "6b Entity catalog (subsidiaries and segments)",
+    {"id": "entity_catalog", "num": "6b", "label": "Entity catalog", "code": ["entities/catalog.py"], "llm": "no",
      "results": lambda: [Paths.entity_catalog()],
      "inputs": lambda: [Paths.subsidiary_catalog(), CONFIG / "entity_linking.yaml", SRC / "entities" / "catalog.py"],
      "settings": ["entity_catalog"],
      "checks": [(Paths.entity_catalog, "entries by `entity_type`; segments come from the fact store")]},
 ]
+for _s in STEPS:
+    _s["name"] = f"{_s['num']} {_s['label']}"
 STEP_IDS = [s["id"] for s in STEPS]
 STEP_NAME = {s["id"]: s["name"] for s in STEPS}
 
@@ -230,6 +241,25 @@ def link(p: Path) -> str:
     return f"[`{rel(p)}`]({href}{'/' if p.is_dir() else ''})"
 
 
+README = ROOT / "README.md"
+
+
+def readme_link(anchor_id: str, text: str) -> str:
+    """A link to a section of the pipeline README (README.md), relative to report.md."""
+    href = quote(os.path.relpath(README.resolve(), out_dir().resolve()).replace(os.sep, "/"))
+    return f"[{text}]({href}#{anchor_id})"
+
+
+def readme_anchor(step: dict) -> str:
+    """The anchor of the step's entry in README "4. Step details" (`<a id="step-4b">`)."""
+    return f"step-{step['num']}"
+
+
+def summarised(paths: list[Path]) -> list[Path]:
+    """Results to list: a step with one file per filing is shown by its folder."""
+    return sorted({p.parent for p in paths}) if len(paths) > 3 else paths
+
+
 # ---------------------------------------------------------------- numbers per step ----
 # Each returns (metrics, notes, lines): numbers to compare between runs and to check against
 # the limits, details behind them, and extra markdown (tables) for the step's section.
@@ -296,7 +326,9 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     m["companies_without_segments"], m["companies_without_subsidiaries"] = len(no_seg), len(no_sub)
     notes = []
     if no_seg:
-        notes.append(f"companies with no segment in the catalog: {', '.join(no_seg)}")
+        notes.append(f"companies with no segment in the catalog: {', '.join(no_seg)}"
+                     + (" (no segment at all: was step 6b run without a fact store, `--facts` or "
+                        "`PIPELINE_FACT_STORE`?)" if not with_segments else ""))
     if no_sub:
         notes.append(f"companies with no subsidiary in the catalog: {', '.join(no_sub)}")
     return m, notes, []
@@ -733,7 +765,14 @@ def build(last: dict | None, before: dict | None) -> tuple[dict, dict, list[dict
     rep = repeats_numbers()
     if rep and units:
         seg = numbers["segment"]
-        numbers["segment"] = ({**seg[0], **{f"repeats_{k}": v for k, v in rep.items()}}, seg[1], seg[2])
+        levels = sorted({k.rsplit("_", 2)[0] for k in rep})
+        table = md_table(["level", "repeated units", "reusable units (step 7 reuses their label)"],
+                         [[f"`{lv}`", f"{rep.get(f'{lv}_repeated_units', 0):,}",
+                           f"{rep.get(f'{lv}_reusable_units', 0):,}"] for lv in levels])
+        numbers["segment"] = ({**seg[0], **{f"repeats_{k}": v for k, v in rep.items()}}, seg[1],
+                              seg[2] + ["**Repeats** (a check after step 4, not a step: "
+                                        f"{link(checks_dir('unit_repeats'))}; {readme_link('2-steps', 'README')})",
+                                        "", table, ""])
     # Check folders written by their own scripts, not by a step: say when they are older than their input.
     for step_id, folder, inputs, script in (
             ("segment", checks_dir("unit_repeats"), [Paths.sentences()], "checks.unit_repeats"),
@@ -766,9 +805,11 @@ def markdown(report: dict, numbers: dict, before: dict | None, against: Path | N
     def step_link(step_id: str) -> str:
         return f"[{STEP_NAME.get(step_id, step_id)}](#{anchor(step_id)})"
 
-    L = ["# Review report: steps before labelling", "",
+    L = ["# Review report: steps 1–6 (before labelling)", "",
          f"Written {report['written']} from `{report['data_dir']}`. Reads files only; numbers are "
-         "those of the last run of each step. Limits: `config/settings.yaml` `report:`.", "",
+         f"those of the last run of each step. Limits: {link(CONFIG / 'settings.yaml')} `report:`. "
+         f"Steps, names and numbers as in the pipeline {readme_link('2-steps', 'README')}; how to use "
+         f"this report: {readme_link('what-to-review', 'What to review')}.", "",
          " · ".join(f"{ICON[k]} {count[k]} {k}" for k in ("error", "warn", "info", "pass", "not run") if count[k]), "",
          "## Contents", "",
          f"1. [Checks](#checks): {count['error']} errors, {count['warn']} warnings",
@@ -801,8 +842,8 @@ def markdown(report: dict, numbers: dict, before: dict | None, against: Path | N
 
     L += ['<a id="stale"></a>', "## 2. Stale steps", ""]
     if stale:
-        L += ["An input is newer than the step's result: run these again before reading their numbers "
-              "(in pipeline order).", "",
+        L += ["An input is newer than the step's result: run these again before reading their numbers, "
+              f"in run order (2b before 2, 4b before 4: {readme_link('2-steps', 'README')}).", "",
               md_table(["step", "result written", "why"],
                        [[step_link(s["id"]), fresh[s["id"]]["written"], fresh[s["id"]]["reason"]] for s in stale]), ""]
     else:
@@ -822,10 +863,18 @@ def markdown(report: dict, numbers: dict, before: dict | None, against: Path | N
         m, notes, lines = numbers[s["id"]]
         state = {"missing": s.get("computed", "not run"), "stale": "**stale**", "ok": "up to date"}[f["status"]]
         mark = " (changed)" if s["id"] in changed else ""
+        code = ", ".join(link(SRC / c) for c in s["code"])
         L += [f'<a id="{anchor(s["id"])}"></a>', f"### {s['name']}{mark}", "",
+              f"`--steps {s['id']}` · code {code} · LLM: {s['llm']} · "
+              f"{readme_link(readme_anchor(s), 'step details in the README')}", "",
               f"{state}" + (f", written {f['written']}" if f["written"] else "")
               + (f": {f['reason']}" if f["reason"] else ""), ""]
         files = [(p(), what) for p, what in s["checks"]]
+        results = [p for p in summarised(s["results"]()) if p not in {q for q, _ in files}]
+        if results:
+            L += ["Results (read by the next steps):", ""]
+            L += [f"- {link(p)}" + ("" if p.exists() else " (not written yet)") for p in results]
+            L += [""]
         if files:
             L += ["Check files:", ""]
             L += [f"- {link(p)}" + ("" if p.exists() else " (not written yet)") + f": {what}" for p, what in files]
