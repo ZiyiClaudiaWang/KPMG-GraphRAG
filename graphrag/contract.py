@@ -75,9 +75,9 @@ STRUCTURED_FILTERS = SHARED_FILTERS | {"concept", "segment", "basis"}
 #
 # Taking a key is not the same as applying it. The adapter must raise
 # FilterNotSupportedError for any key it cannot put into the generated query,
-# the way the graph arm refuses fiscal_year and fiscal_period. Ignoring one
-# returns unfiltered rows that still pass validation, which is worse than an
-# error because nothing says it happened.
+# the way the graph arm refuses is_table and max_hops. Ignoring one returns
+# unfiltered rows that still pass validation, which is worse than an error
+# because nothing says it happened.
 CYPHER_FILTERS = GRAPH_FILTERS
 
 # The value each arm writes to metadata.retrieval_method. The wrapper checks it,

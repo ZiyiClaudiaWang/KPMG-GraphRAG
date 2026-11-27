@@ -16,7 +16,7 @@ Full shape in [architecture.md §7](./architecture.md#7--tool-signature-and-evid
 
 **3 · Do not threshold or compare scores.** Scores are raw and unnormalised. They are comparable only within a single call, and *never* between tools — a 0.03 from hybrid RRF and a 0.03 from a graph path score mean nothing to each other. Use order.
 
-**4 · Filter names follow RAG's.** `form` not `form_type`, `reporting_period_end` not `period_end`, `accession_number` not `accession`. We add `max_hops` for the graph arm and `concept`, `segment`, `basis` for the structured arm.
+**4 · Filter names follow RAG's.** `form` not `form_type`, `reporting_period_end` not `period_end`, `accession_number` not `accession`. We add `concept`, `segment`, `basis` for the structured arm. `max_hops` is still in the graph arm's key set, but the arm **refuses it by name** — it walks a fixed three hops upward to fill the evidence envelope, so there is no depth to set. Run `python3 -m graphrag.vocabulary` for what each arm applies, ignores and refuses.
 
 **5 · Provenance differs by tool, and citations must branch.** Exactly one of `chunk_id`, `section_id`, `metadata.fact_id` is populated. RAG fills the first, we fill the second, the structured arm fills the third. Code that assumes `chunk_id` will null-pointer on two of three tools.
 
