@@ -1,1186 +1,478 @@
 # Claim extraction pipeline
 
-Turns Data-team section text from SEC 10-K and 10-Q filings into `Claim` nodes in Neo4j,
-following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2.4).
-
-> **Last updated:** 23 Nov 2026 by Kelly Zhou (wenyu-kelly-zhou), on branch
-> `kelly/claim-extraction-pipeline` (PR #35).
->
-> **Based on** the version merged with Claudia's code (five filings, [Appendix C](#appendix-c-merge-notes-with-claudias-code)), plus:
-> - the fix for #46 (openai/httpx)
-> - the expansion to 10 companies / 20 filings
-> - fixes to steps 2 and 4 found on them
-> - the link from Claims to risk themes (#53)
-> - ids by source position instead of text (#45)
-> - list groups and sentences rejoined across a page break now become Claims (they used to be held for review)
-
+- Turns the Data team's section text of SEC 10-K and 10-Q filings into `Claim` nodes in Neo4j.
+- Ontology: `docs/ontology-reconciliation.md` (decisions 2.3 and 2.4).
+- Code does everything that must be exact and repeatable; the LLM only judges meaning.
+- Last updated 26 Nov 2026 by Kelly Zhou (segmentation `kelly_sentence_v15`).
 
 ```
 Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:HAS_RISK_THEME]-> RiskTheme -[:IN_RISK_GROUP]-> RiskGroup
+Company -[:OWNS]-> Subsidiary      Company -[:HAS_SEGMENT]-> Segment      Claim -[:MENTIONS]-> Subsidiary | Segment
 ```
 
 ## Contents
 
-- [Data Scope](#data-scope)
+- [Data](#data)
 - [How it works](#how-it-works)
-    1. [Extraction workflow](#1-extraction-workflow)
-    2. [ID workflow](#2-id-workflow): [unit_id and claim_id](#a-unit_id-and-claim_id), [risk factors](#b-risk-factors), [lists](#c-lists), [illustration](#d-illustration)
-    3. [Details of each step](#3-details-of-each-step)
-- [Unit ID & Claim ID](#unit-id--claim-id)
-- [Setup](#setup)
-- [Run](#run)
-- [Tests](#tests)
-- [Cost tracking](#cost-tracking)
+    1. [Workflow](#1-workflow)
+    2. [Steps](#2-steps)
+    3. [Diagrams](#3-diagrams): [heading levels](#a-heading-levels-step-4b), [lists](#b-lists-step-4), [risk factors and themes](#c-risk-factors-and-themes-steps-5-and-5b), [segments and subsidiaries](#d-segments-and-subsidiaries-step-6), [ids](#e-unit_id-and-claim_id), [illustration](#f-illustration)
+    4. [Step details](#4-step-details)
+- [Unit ID and Claim ID](#unit-id-and-claim-id)
+- [Setup](#setup) · [Run](#run) · [Tests](#tests) · [Cost tracking](#cost-tracking)
 - [What to review](#what-to-review)
 - [Remaining issues](#remaining-issues)
-    1. [Improvement](#1-improvement)
-    2. [Decide but can be open](#2-decide-but-can-be-open)
-    3. [Todo List](#3-todo-list)
-    - [Note: rules that fit only this data](#note-rules-that-fit-only-this-data)
 - [Appendix A: Output fields](#appendix-a-output-fields)
-- [Appendix B: Risk themes](#appendix-b-risk-themes)
-- [Appendix C: Merge notes with Claudia's code](#appendix-c-merge-notes-with-claudias-code)
+- [Appendix B: Risk taxonomy](#appendix-b-risk-taxonomy)
 
-## Data Scope
+## Data
 
-313 filings from 14 companies (`status: passed`), plus 40 filings of CAH and INTC listed as `status: on_hold` until the Data team fixes them and skipped by every step: every 10-K and 10-Q in the Data team database, listed in `config/filings.yaml`. Until 25 Nov 2026 the scope was 233 filings from the first 10 companies. Here are some examples listed:
-
-| Company | Industry | Form | Reporting period end | Accession | Filing |
-|---------|----------|------|------------|-----------|--------|
-| AAPL | Technology | 10-K | 2025-09-27 | 0000320193-25-000079 | [aapl-20250927.htm](https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm) |
-| AAPL | Technology | 10-Q | 2026-03-28 | 0000320193-26-000013 | [aapl-20260328.htm](https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm) |
-| AAPL | Technology | 10-Q | 2026-06-27 | 0000320193-26-000020 | [aapl-20260627.htm](https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm) |
-| CASY | Retail | 10-K | 2026-04-30 | 0000726958-26-000046 | [casy-20260430.htm](https://www.sec.gov/Archives/edgar/data/726958/000072695826000046/casy-20260430.htm) |
-| CASY | Retail | 10-Q | 2026-07-31 | 0000726958-26-000085 | [casy-20260731.htm](https://www.sec.gov/Archives/edgar/data/726958/000072695826000085/casy-20260731.htm) |
-| MCK | Healthcare | 10-K | 2026-03-31 | 0000927653-26-000069 | [mck-20260331.htm](https://www.sec.gov/Archives/edgar/data/927653/000092765326000069/mck-20260331.htm) |
-| MCK | Healthcare | 10-Q | 2026-06-30 | 0000927653-26-000234 | [mck-20260630.htm](https://www.sec.gov/Archives/edgar/data/927653/000092765326000234/mck-20260630.htm) |
-| MDT | Healthcare | 10-K | 2026-04-24 | 0001628280-26-044354 | [mdt-20260424.htm](https://www.sec.gov/Archives/edgar/data/1613103/000162828026044354/mdt-20260424.htm) |
-| MDT | Healthcare | 10-Q | 2026-07-31 | 0001628280-26-060473 | [mdt-20260731.htm](https://www.sec.gov/Archives/edgar/data/1613103/000162828026060473/mdt-20260731.htm) |
-| MSFT | Technology | 10-Q | 2026-03-31 | 0001193125-26-191507 | [msft-20260331.htm](https://www.sec.gov/Archives/edgar/data/789019/000119312526191507/msft-20260331.htm) |
-| MSFT | Technology | 10-K | 2026-06-30 | 0001193125-26-323660 | [msft-20260630.htm](https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm) |
-| MU | Technology | 10-Q | 2026-05-28 | 0000723125-26-000015 | [mu-20260528.htm](https://www.sec.gov/Archives/edgar/data/723125/000072312526000015/mu-20260528.htm) |
-| MU | Technology | 10-K | 2026-09-03 | 0000723125-26-000023 | [mu-20260903.htm](https://www.sec.gov/Archives/edgar/data/723125/000072312526000023/mu-20260903.htm) |
-| NKE | Apparel | 10-K | 2026-05-31 | 0000320187-26-000088 | [nke-20260531.htm](https://www.sec.gov/Archives/edgar/data/320187/000032018726000088/nke-20260531.htm) |
-| NKE | Apparel | 10-Q | 2026-08-31 | 0000320187-26-000193 | [nke-20260831.htm](https://www.sec.gov/Archives/edgar/data/320187/000032018726000193/nke-20260831.htm) |
-| NTAP | Technology | 10-K | 2026-04-24 | 0001193125-26-259683 | [ntap-20260424.htm](https://www.sec.gov/Archives/edgar/data/1002047/000119312526259683/ntap-20260424.htm) |
-| PH | Industrial manufacturing | 10-Q | 2026-03-31 | 0000076334-26-000073 | [ph-20260331.htm](https://www.sec.gov/Archives/edgar/data/76334/000007633426000073/ph-20260331.htm) |
-| PH | Industrial manufacturing | 10-K | 2026-06-30 | 0000076334-26-000105 | [ph-20260630.htm](https://www.sec.gov/Archives/edgar/data/76334/000007633426000105/ph-20260630.htm) |
-| TTWO | Video games | 10-K | 2026-03-31 | 0001628280-26-037434 | [ttwo-20260331.htm](https://www.sec.gov/Archives/edgar/data/946581/000162828026037434/ttwo-20260331.htm) |
-| TTWO | Video games | 10-Q | 2026-06-30 | 0001628280-26-054870 | [ttwo-20260630.htm](https://www.sec.gov/Archives/edgar/data/946581/000162828026054870/ttwo-20260630.htm) |
-
+The scope is every 10-K and 10-Q of 16 companies in the Data team database, listed in
+`config/filings.yaml`. 313 filings of 14 companies are `status: passed`; the 40 filings of CAH
+and INTC are `on_hold` until the Data team fixes them, and every step skips them. The pipeline
+reads one export per filing, `data/sections/<TICKER>_<accession>.jsonl`, and keeps Item 1A
+(Risk Factors), MD&A and Business.
 
 ## How it works
-### 1. Extraction workflow
+
+### 1. Workflow
 
 ```mermaid
 flowchart TD
-    DB[("Data team database")] -->|"1 Fetch"| SEC["Raw section text"]
-    SEC -->|"2 Clean"| CLN["Cleaned sections"]
-    CLN -->|"3 Filter"| MAN["Kept sections"]
-    MAN -->|"4 Segment<br/>(split into sentences and list groups)"| UNITS["Units<br/>(unit_id from source position)"]
-    UNITS -->|"5 Label: OpenAI<br/>15 per batch + 4 context units<br/>(+ missing list intros)"| CACHE["Saved requests<br/>and raw replies"]
-    CACHE -->|"checks, unit quarantine,<br/>targeted repair"| LAB["Labels"]
-    UNITS -->|"prefilter: not_a_claim"| LAB
-    LAB -->|"6 Validate"| REV["Label errors<br/>and review queue"]
-    UNITS -->|"4c Risk themes: OpenAI<br/>one request per risk factor"| RT["Themes of each<br/>risk factor"]
-    UNITS -->|"7a Risk factors<br/>category above each sentence"| RF["Risk categories, groups<br/>and themes per unit"]
-    RT --> RF
-    MAP["config/risk_taxonomy/"] --> RT
-    MAP --> RF
-    LAB -->|"7b Build Claims"| CLM["Claims<br/>one line per Claim"]
+    DB[("Data team database")] -->|"1 Fetch"| SEC["Section exports"]
+    SEC -->|"2 Clean (2b page breaks, paid)"| CLN["Cleaned sections"]
+    CLN -->|"3 Filter"| KEPT["Kept sections"]
+    EDGAR[("SEC EDGAR")] -->|"filing HTML"| HL["4b Heading levels,<br/>lead sentences, tables"]
+    KEPT --> HL
+    KEPT -->|"4 Segment"| UNITS["Units<br/>(sentences, list groups, headings)"]
+    HL --> UNITS
+    UNITS -->|"5 Risk factors"| RF["Risk factors and categories"]
+    RF -->|"5b Risk themes (LLM)"| RT["Themes per risk factor"]
+    EDGAR -->|"Exhibit 21"| SUB["6a Subsidiaries"]
+    FACTS[("XBRL fact store")] --> CAT["6b Entity catalog"]
+    SUB --> CAT
+    UNITS -.->|"repeats check"| REP["Repeats across filings"]
+    UNITS -->|"7 Label (LLM)"| LAB["Labels"]
+    REP -.->|"label reused"| LAB
+    LAB -->|"8 Validate"| VAL["Errors, review queue"]
+    VAL -->|"9 Build Claims"| CLM["claims.jsonl"]
     RF --> CLM
-    REV -->|"held units left out"| CLM
-    CLM -->|"8 Load: one Claim node per claim_id"| NEO[("Neo4j")]
-    EDGAR[("SEC EDGAR<br/>Exhibit 21 of each 10-K")] -->|"1b Subsidiaries"| SUBS["Subsidiaries<br/>sub_id = parent CIK + name"]
-    SUBS -->|"8 Load: Company OWNS Subsidiary"| NEO
+    RT --> CLM
+    CAT --> CLM
+    CLM -->|"10 Load"| NEO[("Neo4j")]
+    SUB --> NEO
 ```
 
-Code does everything that must be exact and repeatable. The LLM only judges meaning.
+- Steps 1–6 need no labels; their results are checked in one [review report](#what-to-review).
+- Results the next steps read are in `data/output/` and `data/interim/`; review files are in
+  `data/checks/<step>/` (no step reads them).
 
-Results the next steps read are in `output/` and `interim/`; files written only for a person to
-review are in `checks/<step>/` (no step reads them).
+### 2. Steps
 
-| # | Step | Module | Output (under `data/`) | LLM |
-|---|------|--------|------------------------|-----|
-| 1 | Fetch | `fetch.py` | `sections/*.jsonl` (from the Data-team database) | no |
-| 1b | [Subsidiaries](#step-1b-subsidiaries) | `subsidiaries.py`, `ex21/` | `output/subsidiaries.jsonl`, `output/subsidiary_catalog.json`, `checks/subsidiaries/` (`subsidiary_qa.csv`, `subsidiary_renames.csv`), `ex21/raw/` | no |
-| 1c | [Entity catalog](#step-1c-entity-catalog) | `entity_catalog.py` | `entity_catalog.json` | no |
-| 2 | [Clean](#step-2-clean) | `clean.py` | `interim/clean/*.jsonl` | no |
-| 2b | [Page breaks](#step-2b-page-breaks) (optional, paid) | `page_breaks.py` | `interim/page_break_decisions.jsonl`, `output/usage_page_breaks.jsonl`, `checks/page_breaks/page_break_candidates.jsonl` | yes |
-| 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
-| 4 | [Segment](#step-4-segment) | `segment/` | `output/sentences.jsonl`, `checks/segment/` (`lead_summary.csv`, `lead_review.csv`) | no |
-| 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `interim/html_tables.jsonl`, `checks/headings/` (`heading_review.csv`, `heading_summary.csv`, `heading_html_diff.csv`), `edgar/primary/` (HTML and `urls.json`) | no |
-| 4c | [Risk themes](#step-4c-risk-themes) (paid, run on purpose) | `risk_themes.py` | `interim/risk_themes.jsonl`, `output/usage_risk_themes.jsonl`, `checks/risk_themes/requests.csv`, `risk_themes/` (saved replies) | yes |
-| 7a | [Risk factors](#step-7a-risk-factors) (runs before 5) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl`, `checks/risk_factors/` (`category_checks.csv`, `risk_factor_themes.csv`) | no |
-| 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
-| 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
-| 7b | [Build Claims](#step-7b-build-claims) | `build_claims.py` | `output/claims.jsonl` | no |
-| 8 | [Load](#step-8-load) | `load.py` | Neo4j | no |
+| # | Step (`--steps` name) | Code | Main output (under `data/`) | LLM |
+|---|---|---|---|---|
+| 1 | Fetch (`fetch`) | `fetch.py` | `sections/*.jsonl` | no |
+| 2 | Clean (`clean`) | `clean.py` | `interim/clean/*.jsonl` | no |
+| 2b | Page breaks (`page_breaks`) | `page_breaks.py` | `interim/page_break_decisions.jsonl` | paid, run on purpose |
+| 3 | Filter (`filter`) | `filter_sections.py` | `output/section_manifest.csv` | no |
+| 4b | Heading levels (`headings`) | `headings/` | `interim/heading_levels.jsonl`, `lead_sentences.jsonl`, `html_tables.jsonl` | no |
+| 4 | Segment (`segment`) | `segment/` | `output/sentences.jsonl` | no |
+| 5 | Risk factors (`risk_factors`) | `risk/factors.py` | `output/risk_categories.csv`, `interim/risk_factors.jsonl`, `risk_assignments.jsonl` | no |
+| 5b | Risk themes (`risk_themes`) | `risk/themes.py` | `interim/risk_themes.jsonl` | paid, sends only when named |
+| 6a | Subsidiaries (`subsidiaries`) | `entities/subsidiaries.py`, `entities/ex21/` | `output/subsidiaries.jsonl`, `subsidiary_catalog.json` | no |
+| 6b | Entity catalog (`entity_catalog`) | `entities/catalog.py` | `entity_catalog.json` | no |
+| 7 | Label (`label`) | `label/` | `output/labels.jsonl` | paid |
+| 8 | Validate (`validate`) | `validate.py`, `source_review.py` | `output/errors.jsonl`, `review_queue.jsonl` | no |
+| 9 | Build Claims (`build_claims`) | `build_claims.py`, `entities/annotation.py` | `output/claims.jsonl` | no |
+| 10 | Load (`load`) | `load.py` | Neo4j | no |
 
+- Run order: 2b runs before 2, 4b before 4 (each feeds the step it belongs to).
+- Shared code: `common.py` (paths, settings, ids), `llm/` (the OpenAI client and costs of steps
+  2b, 5b and 7), `checks/` (the review report and the checks behind it; no step reads them).
+- **Repeats** are a check, not a step: after step 4 the run writes `checks/unit_repeats/`, and
+  step 7 finds the same repeats itself to reuse labels (`label.reuse_repeats`).
 
-### 2. ID workflow
-#### a. unit_id and claim_id
+### 3. Diagrams
+
+#### a. Heading levels (step 4b)
+
+```mermaid
+flowchart LR
+    S4["step 4 text rules:<br/>which lines are headings"] --> C["candidate headings"]
+    H[("filing HTML<br/>(EDGAR, downloaded once)")] --> B["HTML blocks with style<br/>(size, bold, italic, capitals)"]
+    B -->|"placed in the export text"| M{"candidate found<br/>in the HTML?"}
+    C --> M
+    M -->|"no"| SIB["sibling of the<br/>heading before"]
+    M -->|"yes"| L{"level"}
+    L -->|"table cell, contents,<br/>'(In millions)'"| L0["0: not a heading"]
+    L -->|"by style: first style = 1,<br/>more prominent = higher"| L1["1, 2, 3 ..."]
+    L -->|"Item 1A lead sentence<br/>read as a heading"| LM["-1: a sentence"]
+    L0 & L1 & LM & SIB --> OUT["heading_levels.jsonl"]
+    OUT --> P["step 4: heading_path,<br/>section_path"]
+    B --> LEADS["lead_sentences.jsonl"] --> LU["step 4: lead_unit_id"]
+    B --> TAB["html_tables.jsonl"] --> PF["step 4: prefilter<br/>(table_residue, definition)"]
+```
+
+#### b. Lists (step 4)
+
+```mermaid
+flowchart LR
+    L["intro ending in ':'<br/>+ items"] --> Q{"items are fragments<br/>and the group is short?"}
+    Q -->|"yes: merge"| G["one list_group unit<br/>(its Claim: multi_fragment)"]
+    Q -->|"no: split"| I["intro: a body unit"]
+    Q -->|"no: split"| IT["each item: a body unit"]
+    IT -.->|"list_intro_id"| I
+```
+
+#### c. Risk factors and themes (steps 5 and 5b)
+
+```mermaid
+flowchart LR
+    U["Item 1A unit"] -.->|"5: level-1 heading above"| CAT["risk category<br/>'Business Risks'"]
+    CAT -->|"risk_category_map.csv"| HG["heading_risk_group"]
+    U -.->|"5: lead above, to the next lead<br/>or heading at its level"| RF["risk factor<br/>risk_factor_id = lead's unit_id"]
+    RF -->|"5b: one request"| TH["primary theme: all its units<br/>secondary themes: their sentences"]
+    U -->|"9"| CL["Claim"]
+    TH --> CL
+    HG -->|"compared: agrees_with_heading"| CL
+    CL -->|"10: HAS_RISK_THEME<br/>{rank, scope, source, agrees_with_heading}"| T["RiskTheme (32)"]
+    T -->|"IN_RISK_GROUP"| G["RiskGroup (7)"]
+```
+
+#### d. Segments and subsidiaries (step 6)
+
+```mermaid
+flowchart LR
+    EX[("EDGAR Exhibit 21<br/>of each 10-K")] -->|"6a"| SUB["subsidiaries.jsonl<br/>sub_id = parent CIK + name"]
+    SUB --> SC["subsidiary_catalog.json"]
+    XB[("XBRL fact store<br/>segment members")] -->|"6b"| CAT["entity_catalog.json<br/>subsidiaries, segments,<br/>registrant names"]
+    SC -->|"6b"| CAT
+    LAB["7: model's entity_mentions"] --> M{"9: match_key()"}
+    CAT -->|"9: dictionary pass"| M
+    M -->|"one exact hit"| LINK["related_subsidiary_ids,<br/>related_segment_ids"]
+    M -->|"ambiguous, prior year only"| CAND["candidate (not linked)"]
+    SUB -->|"10"| OWNS["Company -OWNS-> Subsidiary"]
+    CAT -->|"10"| HS["Company -HAS_SEGMENT-> Segment"]
+    LINK -->|"10"| MEN["Claim -MENTIONS-> Subsidiary | Segment"]
+```
+
+#### e. unit_id and claim_id
 
 ```mermaid
 flowchart TD
-    subgraph DATA["From the Data team (steps 1-3)"]
-        F["Filing<br/>accession_number, cik, ticker, form"]
-        S["Section<br/>section_id, section_key,<br/>processing_set_id, content"]
-        F --> S
-    end
-    S -->|"4 Segment"| U["Unit<br/>unit_id = uuid5 of accession,<br/>section_key and raw_spans"]
-
-    U --> R1["role: section_title"]
-    U --> R2["role: heading<br/>(Item 1A level 1 = risk category)"]
-    U --> R4["role: body<br/>(a sentence or a split list item)"]
-    U --> R5["role: list_group"]
-
-    R1 & R2 --> NO["prefilter set:<br/>not_a_claim, not sent to the LLM"]
-    R4 --> P{"prefilter"}
+    S["Section (Data team)"] -->|"4 Segment"| U["Unit<br/>unit_id = uuid5(accession, section_key, raw_spans)"]
+    U --> R1["section_title, heading"]
+    U --> R2["body (sentence, split list item)"]
+    U --> R3["list_group"]
+    R1 --> NO["prefilter: not_a_claim<br/>(not sent)"]
+    R2 --> P{"prefilter"}
     P -->|"table_residue, definition,<br/>cross_reference, list_intro, too_short"| NO
-    P -->|"none"| LLM
-    R5 --> LLM["5 Label (LLM)<br/>the model sees a short number (fewer tokens),<br/>mapped back to unit_id"]
-
-    LLM -->|"not_a_claim"| NC["no Claim"]
-    LLM -->|"needs_review"| H["held in review_queue.jsonl<br/>(by unit_id)"]
-    LLM -->|"stated_fact, forward_looking,<br/>hedged_risk"| V{"6 Validate"}
+    P -->|"none"| LLM["7 Label"]
+    R3 --> LLM
+    LLM -->|"not_a_claim"| X["no Claim"]
+    LLM -->|"needs_review"| H["8: held (review_queue)"]
+    LLM -->|"stated_fact, forward_looking,<br/>hedged_risk"| V{"8 Validate"}
     V -->|"held by a rule"| H
-    V -->|"kept"| C["7b Claim<br/>claim_id = unit_id"]
+    V -->|"kept"| C["9: Claim<br/>claim_id = unit_id"]
 ```
 
-How each id is made and when it changes: [Unit ID & Claim ID](#unit-id--claim-id). Roles and
-prefilter reasons: [step 4](#step-4-segment); the LLM's short numbers: [step 5](#step-5-label);
-the hold rules: [step 6](#step-6-validate).
-
-#### b. risk factors
-```mermaid
-flowchart LR
-    U["each Item 1A unit"] -.->|"risk_category_unit_id<br/>(7a: the nearest level-1 heading above)"| CH["risk category: Item 1A heading at level 1<br/>'Business Risks'"]
-    CH -->|"its text, in<br/>risk_category_map.csv"| HG["heading_risk_group<br/>(Claim property)"]
-    U -.->|"risk_factor_id<br/>(step 4 lead_unit_id)"| RFX["risk factor: a lead<br/>and the units under it"]
-    RFX -->|"4c: one request"| TH["primary theme (all its units)<br/>secondary themes (their sentences)"]
-    U -->|"7b"| CL["its Claim"]
-    TH --> CL
-    HG --> CL
-    CL -->|"8 Load: HAS_RISK_THEME<br/>{rank, scope, source, agrees_with_heading}"| RT["RiskTheme (32)"]
-    RT -->|"IN_RISK_GROUP"| RG["RiskGroup (7)"]
-```
-
-Details: [step 7a](#step-7a-risk-factors); the themes and the map: [Appendix B](#appendix-b-risk-themes); lead
-sentences (`lead_unit_id`, every section): [step 4](#step-4-segment); whether only lead sentences should link to a
-theme: [Remaining issues 2.2](#2-decide-but-can-be-open).
-
-#### c. lists
-```mermaid
-flowchart LR
-    L["intro ending in ':'<br/>+ bullet items"] --> Q{"items can't stand alone<br/>+ the group is short?"}
-    Q -->|"yes: merge"| G["one list_group unit<br/>one unit_id for intro + all items<br/>its Claim: multi_fragment = true"]
-    Q -->|"no: split"| I["intro's last sentence<br/>a body unit, its own unit_id"]
-    Q -->|"no: split"| IT["each item<br/>a body unit, its own unit_id"]
-    IT -.->|"list_intro_id =<br/>the intro's last sentence unit_id"| I
-```
-
-The merge rule: [step 4](#step-4-segment). Open questions: the list rule and the step 6 hold
-([Remaining issues 2.1](#2-decide-but-can-be-open)) and lists without a ":" intro ([2.1](#2-decide-but-can-be-open)). In step 5 every split item
-sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label)).
-
-#### d. Illustration
+#### f. Illustration
 
 ![Illustration: how units, lists and risk fields are assigned in Item 1A (made-up text)](docs/illustration.png)
 
-### 3. Details of each step
+### 4. Step details
 
-- <a id="step-1b-subsidiaries"></a>**[1b] Subsidiaries** reads the Exhibit 21 subsidiary list of every `form: 10-K` row in `config/filings.yaml` (10-Qs carry none). It does not use the Data team's export or the LLM, and changes no label request hash.
-  - **Source:** SEC EDGAR, by the exact accession in `filings.yaml`.
-  - **Keep `config/filings.yaml` current:** the outputs cover exactly the 10-Ks listed there. Each row carries `reporting_period_end` (the Data team's and the Filing node's name); the step reads `reporting_period_end` (the name the graph and retrieval use).
-  - **Code layout:** `src/subsidiaries.py` runs the step only. `src/ex21/` is a library that imports
-    nothing from the pipeline: `edgar.py` downloads, `parse.py` reads an exhibit, `normalize.py`
-    maps jurisdictions and builds the identity keys. A change to SEC's site touches only
-    `edgar.py`; a parsing change only `parse.py`.
-  - **Parsing:** HTML tables (a row holding several subsidiaries in stacked paragraphs is split),
-    `Name (Delaware)`, `Name ...... Japan`, and `Name, LLC, an Iowa limited liability company`.
-    Title, date and group-heading rows are skipped, and so is a row that names the registrant itself
-    (counted in `registrant_rows_dropped`). A file that gives no rows (image or PDF exhibit, an
-    unusual layout) is a CHECK row; read `subsidiary_qa.csv` after each run.
-  - **Jurisdiction:** `country` and `state_or_region` come from the text as filed, which stays in
-    `jurisdiction_raw`. US states and Canadian provinces give the country and the state/province.
-    A value that cannot be mapped leaves `country` empty and makes the 10-K a CHECK row, so a
-    count of subsidiaries by country never takes a province or a typo for a country.
-  - **Identity:** `sub_id` = uuid5 of `<parent CIK>|<normalised name>` (case, accents and punctuation
-    removed, legal form kept), as agreed in `docs/schema-ids-operations.md`. The same name under the
-    same parent is one node across filings; a renamed subsidiary gets a new `sub_id`. Each node also
-    stores `entity_key` (legal form removed too): across years, a subsidiary that disappears and one
-    that appears under the same parent with the same `entity_key` is likely a rename. Such pairs
-    between consecutive 10-Ks are listed in `subsidiary_renames.csv` for review; nothing is merged
-    automatically. Reviewed pairs go in `config/subsidiary_aliases.yaml`: `same_entity` gives other
-    spellings of one subsidiary (Ltd / Limited, a missing space, a legal form left out) the
-    `sub_id` of the latest 10-K's name, while each OWNS edge keeps the name as filed; `distinct`
-    keeps a real change of legal form or jurisdiction as two nodes and marks the pair
-    `review=distinct`. A blank `review` is a pair still to check.
-  - `subsidiary_catalog.json` holds the same subsidiaries in the entity-catalog format (all
-    `needs_review`), for linking Claims to subsidiaries later. Each filing is offered the
-    subsidiaries of its *reference 10-K*: the parent's first 10-K ending on or after the filing's
-    `reporting_period_end` (the last 10-K for filings after it). A subsidiary listed only in the
-    10-K before that one stays in scope, and the filing is named in `prior_year_only_accessions`.
-    Step 1c copies it into `data/entity_catalog.json`.
+Each module's docstring has the full rules; below is what each step does and what to know.
 
-- <a id="step-1c-entity-catalog"></a>**[1c] Entity catalog** builds `data/entity_catalog.json`, the
-  subsidiaries and segments a Claim may link to (#91, P1: matching in code, no LLM).
-  - Subsidiaries: `output/subsidiary_catalog.json` from step 1b, as it is.
-  - Segments: the XBRL members on `us-gaap:StatementBusinessSegmentsAxis` in a fact store
-    (`--facts path/to/corpus_facts.duckdb`, or `PIPELINE_FACT_STORE`). Each filing is offered the
-    segments its own facts use. Totals, "all other", Casey's single reportable segment and
-    NetApp's revenue categories are skipped (`segment_member_skip` in `config/entity_linking.yaml`).
-    Labels come from the QName (`mu:CDBUMember` -> "CDBU"); no aliases yet. Without a fact store
-    the catalog has no segments.
-  - The registrant's own names (`registrant_names`), so "Medtronic plc" is recognised and never
-    linked.
-  - Step 7b matches on `match_key()` (accents, case, punctuation, dashes, legal form and a trailing
-    "segment" ignored); a catalog hit decides the type; a dictionary pass adds catalog names the
-    model did not tag (`origin: dictionary`). A one-entry exact hit on an Exhibit 21 or XBRL entry
-  - Step 7b runs the catalog first: a dictionary pass finds every catalog name in the Claim,
-    then the model's `entity_mentions` (unchanged, prompt `label_v2`) are matched and merged
-    with it (`found_by`: dictionary, model or both); the model's generic references and
-    counterparties are kept as they are. Matching is on `match_key()` (accents, case, punctuation, dashes, legal form and a trailing
-    "segment" ignored); a catalog hit decides the type; a dictionary pass adds catalog names the
-    model did not tag. A one-entry exact hit on an Exhibit 21 or XBRL entry
-    is `matched_auto` and goes into `related_*_ids`; a subsidiary listed only in the prior year's
-    10-K, or a key shared by several entries (Covidien, CathWorks), stays a candidate. Segment
-    names that are also places or words (`guard_terms`: "Europe", "Japan", "Cardiovascular") need
-    "segment" in the sentence or a word such as "net sales" right after them. Lower-case words
-    never match ("public cloud providers"). Details: `src/entity_annotation.py`.
-  - Measure on a run without relabelling: `python -m src.report_entity_links --run ../runs/<run>`;
-    `entity_link_review.csv` lists the hits code left undecided, with their candidates.
-  - Check the inputs first: `python -m src.report_entity_inputs` reads steps 1b and 1c and
-    reports 10-Ks flagged for checking, the same subsidiary twice in one 10-K, row counts that
-    jump between years, and the filings and companies offered no segment
-    (`data/checks/entity_inputs/`).
+**[1] Fetch**
+- Checks that each passed filing has its export; `--from-db <folder>` exports it from the
+  database (`docs/data-access.md`).
 
-- <a id="step-2-clean"></a>**[2] Clean** removes page furniture and rejoins text split by a page break. It never
-  rewrites words: every cleaned character maps back to the original `content`, so each Claim's
-  quote can be found in the source.
-  - Removed:
-    - page numbers and page labels ("Part II", "Item 7")
-    - short paragraphs repeated across sections of a filing (page headers); a line of words
-      only must name the company or be a "Table of Contents" link, so Microsoft's segment
-      headings ("More Personal Computing" in Items 1, 7 and 8) are kept
-    - "Table of Contents" lines, including navigation lines such as "Table of Contents | MD&A Index |",
-      and Microsoft's page-footer links to the next items ("Item 1B, 1C", "Item 9B, 9C, 10, 11")
-    - running headers ending "(Continued)" or "(Concluded)" (McKesson's "FINANCIAL REVIEW (Continued)"), which repeat in one section only
-    - the "(UNAUDITED)" label under McKesson's 10-Q headers
-  - Lone bullets ("•" on its own line) are attached to the text after them.
-  - Lone bullets ("•", the Symbol-font "\uf0b7" of NetApp, and "• |", a bullet exported as its
-    own table cell) are attached to the text after them.
-  - **Page breaks.** Every boundary between two paragraphs gets a class (`boundary_class()`,
-    the same classes in the diagnostics report, section 3). A paragraph cut by a page break is
-    joined to the next when:
-    - the next starts in lower case, or
-    - the first ends on a word no sentence ends on ("the", "of", "and") and the next starts with
-      a word, a quote or a number ("...issuance of 2026 Notes and" / "2028 Notes"), or
-    - the first ends on a comma ("Through February 27," / "2025, we had"), or
-    - a quote or parenthesis is opened before the break and closed after it, or
-    - the next starts with an amount ("$19.7 billion", "€500 million"), or with a parenthesis
-      the sentence goes on after ('("Information Technology Systems"), may'). A table caption
-      such as "(In millions)" ends its paragraph and is not joined.
-  - Never joined: a table row (cells joined by " | ", `has_table_cells()`), a list item ending
-    "; and", a bullet next, a check box line ("Yes ☒ No ☐"), a list item that ends without
-    punctuation, and a title before or after (capitals or title case: "Item 2. Management's
-    Discussion and Analysis ...", "Critical Audit Matter Description").
-  - What is left is gray: no end punctuation and a capital next ("...the European Union General
-    Data" / "Protection Regulation"), or a short line before lower case. On the 233 filings this
-    is 62 boundaries in kept sections (779 + 61 before 19 November 2026). Gray boundaries are not
-    joined unless step 2b said yes, so run step 2b once before labelling at scale
-    ([Run](#run)); MSFT "...Securities and Exchange" / "Commission on..." stays split without it.
-- <a id="step-2b-page-breaks"></a>**[2b] Page breaks** (`src/page_breaks.py`, optional, OpenAI)
-  asks the model, for each gray boundary in a kept section, whether the second paragraph goes on
-  with the sentence of the first (20 per request; 4 requests for the 233 filings: under $0.10
-  with gpt-5.4, its default model).
-  The answers go to `data/interim/page_break_decisions.jsonl`, keyed by
-  `accession|section_key|start of the second paragraph`; step 2 reads them on every later run.
-  Same money rules as step 5 (saved replies in `data/page_breaks/`, no resend), but its own model,
-  reasoning effort and `budget_usd` (`page_breaks:` in `config/settings.yaml`) and its own ledger
-  `data/output/usage_page_breaks.jsonl`. `--compare` prints the cost with every model in `prices:`;
-  `--model` tries another model.
-- <a id="step-3-filter"></a>**[3] Filter** keeps Item 1A, MD&A and Business (`config/sections.yaml`). Everything else is
-  dropped with a reason, or marked `review` for a person to decide.
-- <a id="step-4-segment"></a>**[4] Segment** (`src/segment/`, no LLM) splits kept sections into units, written in source order:
-  - **Code layout:** one module per part below: `sentences.py`, `lists.py`, `headings.py` (which lines are
-    headings, their levels from step 4b, the heading path), `risk.py` (Item 1A), `prefilter.py`,
-    `link_leads.py` (lead sentences); `section.py` reads a section paragraph by paragraph and holds the
-    order of the rules; `units.py` makes the unit record; `step.py` is `run()`.
-  - **Sentences.** Each sentence is one unit.
-    - After an abbreviation that can also end a sentence ("U.S.", "Inc.", "plc"), a new sentence
-      starts only if the next word is a typical sentence opener (`OPENERS`, e.g. "The", "We",
-      "During", "Refer"). So "U.S. GAAP" and "NIKE, Inc. Revenues" stay one sentence.
-    - "Item 1A. Risk Factors" and "Note 9. Debt" are not split.
-    - "non-U.S." is read as "U.S.".
-  - **Lists** ([diagram](#c-lists)). A bullet is "•", "●", "◦", "▪", "‣", "\uf0b7", a dash or "o", with or without a space after it, and with or without the "|" of a bullet exported as its own table cell ("• | Revenue grew 6%."). A list starts:
-    - after an intro ending in ":", with bullets or with lettered or numbered items ("a.we
-      maintain", "(1) cost of product revenues", "(ii)pertain to"); lettered items only here, so
-      footnotes under a table ("(1)Includes ...") stay ordinary paragraphs;
-    - after a heading (Micron's risk factor summary: "Risks Related to Laws and Regulations" /
-      "•tax expense and tax laws in key jurisdictions; and"): the heading is the intro;
-    - after a sentence announcing "the following" (McKesson "The following summary provides
-      highlights ... ."), even when another sentence comes after it in the paragraph.
+**[2] Clean**
+- Removes page furniture: page numbers, repeated page headers, "Table of Contents" and navigation
+  lines, "(Continued)" running headers.
+- Rejoins paragraphs cut by a page break (next starts lower case, first ends on "the" / "of" / a
+  comma, an open quote or parenthesis, an amount next). Never joins table rows, list items ending
+  "; and", titles.
+- Never rewrites words: every character maps back to the export, so each quote can be found in
+  the source.
+- **2b Page breaks** (paid, on purpose): asks the model about the "gray" boundaries the rules
+  leave open (62 on the 233 filings); step 2 reads the answers on every later run.
 
-    An item whose bullet the export dropped stays in the list: a lower-case paragraph after an
-    item ending ";", "; and" or ",", or a short name between two short-name bullets
-    (Parker-Hannifin "• Power generation" / "Renewable energy" / "• Water purification").
-    A list whose intro ends in ":" becomes one `list_group` unit (intro plus items) only
-    when its items cannot stand alone and the group is short:
-    1. every item is a fragment and items average under 60 characters (a list of names), or
-    2. at least one item is a fragment and the last intro sentence plus all items is at most
-      600 characters.
+**[3] Filter**
+- Keeps Item 1A, MD&A and Business (`config/sections.yaml`, by `section_type`); drops the rest
+  with a reason or marks it `review`.
 
-    Every other list is split: each item is a unit and carries `list_intro_id`, the `unit_id` of the
-    intro sentence (or heading). Bullets after any other paragraph are ordinary paragraphs
-    (mostly full sentences: MSFT "• | Gaming revenue increased $1.7 billion ...").
-  - **Headings.**
-    - A short line without sentence punctuation is a heading and becomes the `subheading` of the
-      units below it, unless it ends in ":" or on a word such as "of" or "the" (a piece of a
-      table header), or is a footnote marker on its own line ("(a)", "(1)").
-    - A short title-case line ending in ":" is also a heading ("Executive Summary:",
-      "OPERATIONS:", "Sales and Marketing (in millions, except percentages):"), unless a bulleted
-      list follows it: then it is a list intro. At most 10 words outside parentheses, and every
-      word of 4 or more letters capitalised, so "Our cost of revenues consists of:" stays a
-      sentence. The ":" is left out of `subheading` and `section_path`.
-    - A short title-case sentence ending in a period at the start of a paragraph
-      ("Flexible Work.", "Zynga.") is also a heading.
-    - Levels come from `data/interim/heading_levels.jsonl` ([step 4b](#step-4b-heading-levels),
-      from the filing's HTML): a heading keeps the headings above it in `section_path` and in the
-      `heading_path` field ("Part II Item 7 > SEGMENT RESULTS OF OPERATIONS > Reportable Segments >
-      Intelligent Cloud"); level 0 is not a heading (a column header, "(In millions)", a table of
-      contents) and changes no path; level -1 would make the line a sentence (no rule gives it yet).
-      Without the file a heading replaces the one before it.
-  - **Item 1A - Risk Factors** ([diagram](#b-risk-factors)).
-    - A risk category is an Item 1A heading at level 1 ("Business Risks", "RISKS RELATING TO …",
-      "Risks related to our business and industry"): an ordinary `heading` unit with
-      `heading_level` 1, the first entry of `heading_path`, and the unit's `category` for every
-      unit under it. It is the filing's own grouping of its risks: step 7a maps its text to risk
-      themes. Deeper headings sit under it (`subheading`, `heading_path`). The level comes from
-      [step 4b](#step-4b-heading-levels); a heading without one is level 1 when it looks like a
-      category (capitals or title case, "Risks related to …"), which also makes title-case
-      sub-headings categories, and otherwise at least level 2. A run-in heading ("Flexible Work.")
-      is never a category. `category` is set only in risk factors. (Until v8 a category was a
-      separate role, `category_heading`, outside `heading_path`.)
-    - Single-sentence paragraphs followed by their discussion are proposed as the sentence that
-      opens and sums up a risk (`rule_heading`).
-  - **Lead sentences** (every section). A lead sentence sums up the sentences under it; it is
-    labelled like any sentence and changes no `section_path`. Leads come from the filing's HTML
-    ([step 4b](#step-4b-heading-levels), `interim/lead_sentences.jsonl`): a bold / italic /
-    underlined sentence of its own followed by plain text (`html`: MU "We are subject to
-    counterparty default risks."; also the Item 1A headings step 4b reads as sentences, level -1),
-    or the styled first sentence of a paragraph whose rest is plain (`html_runin`: MSFT). A
-    run-in heading such as "Flexible Work." stays a heading. For a filing without HTML,
-    `rule_heading` units are the leads (`rule`; `segment.lead_rule: section` also uses them in
-    sections whose HTML shows no lead, `union` everywhere).
-    - `lead_source`: html, html_runin or rule when the unit is a lead, else null.
-    - `lead_unit_id`: the lead above the unit, until the next lead, the next heading (any level
-      but 0) or the end of the section; null for a lead itself and for text under no lead.
-    - `checks/segment/lead_summary.csv`: per company, leads by source, units under a lead, HTML leads
-      that matched no unit, and `rule_heading` against the HTML (`rule_and_html`, `rule_only`,
-      `html_not_rule_1a`). `checks/segment/lead_review.csv`: one row per lead (`kind lead`, with
-      `units_under` and the next text) and per `rule_heading` unit the HTML did not make a lead
-      (`kind rule_only`), to decide `segment.lead_rule`.
-    - Step 7b copies them onto every Claim (`is_lead_sentence`, `provenance.lead_unit_id`,
-      `provenance.lead_source`); the model's `is_risk_heading` is not used (patch 7c).
-    - Units in the risk factor summary that some filings open with (MU, TTWO) carry
-      `risk_summary = true`. The summary ends where a category it listed appears again (with step 4b
-      levels the categories in the summary are level-2 headings under its title, and level 1 in
-      the full text).
-  - **Prefilter** ([diagram](#a-unit_id-and-claim_id)). Units marked `not_a_claim` here are not sent to the LLM:
-    - `section_title`, `heading`
-    - **Tables come from the filing's HTML** ([step 4b](#step-4b-heading-levels),
-      `interim/html_tables.jsonl`, `src/headings/tables.py`). Each HTML table is a **data** table
-      (numbers, dates, names, ratings), a **layout** table (a table used to lay out text: at least
-      30% of its cells running text, or half its rows opening with a bullet cell; MSFT bullet
-      lists, MU / NKE bios, NTAP critical accounting estimates), or a **definition** table (a layout
-      table of term | definition rows, MSFT metric glossaries). Every unit records the kind of
-      table row it sits in as `html_table` (null outside tables).
-    - `table_residue`: a row of a data table that is not a full sentence (6+ words ending in
-      . ? !); the full sentences, footnotes such as PH "(2) On February 9, 2025, a fire damaged
-      ...", go to the cross-reference check and then the LLM. Also, anywhere: over 30% digits
-      (page numbers), a footnote marker on its own line, or a table note listed in `TABLE_NOTES`
-      (e.g. "NM - Not Meaningful"). Layout tables are ordinary text, and a "|" outside a table is
-      text too (TTWO "Xbox Series X|S"). Filings without HTML keep the text rule: a row or cell
-      with " | " (`has_table_cells()`).
-    - `definition`: a row of a definition table; not sent to the LLM and not a Claim for now,
-      kept for a possible metric glossary.
-    - `cross_reference`: "See …", "Refer to …"
-    - `list_intro`: under 4 words and ending in ":" ("Solutions include:"); split list items
-      point back to it, and the LLM sees it as context
-    - `too_short`: under 4 words and not a sentence (a fragment: "Number of", "Avg."); a short
-      complete sentence ("No material items.") goes to the LLM; never for a split list item,
-      whose meaning comes from its intro
-  - **Ids and versions.**
-    - Each unit gets a `unit_id` from its filing, section and source spans, never its text
-      ([Unit ID & Claim ID](#unit-id--claim-id)). It is a unit's only id: every later step, file and the
-      graph point at a unit by `unit_id`.
-    - `segmentation_version` (`kelly_sentence_v9`) records which splitting rules made the units.
-      It is a label only: it is not in the request hash, so changing it alone costs nothing; a
-      rule change that alters what the model sees does.
-  - All fields: [Appendix A: `sentences.jsonl`](#sentencesjsonl-step-4).
-- <a id="step-4b-heading-levels"></a>**[4b] Heading levels** (`src/headings/`, no LLM) reads
-  how the headings nest from the typography of the filing's own HTML. Plain text cannot show it,
-  and the LLM version of this step (gpt-4.1-mini on the text, removed 25 Nov 2026) agreed with the
-  HTML on only 63% of levels in the 20-filing check; where they differed, the HTML was right in
-  the cases looked at, not a blind check (NKE 18pt "RESULTS OF OPERATIONS" is a top heading; the MSFT Item 1
-  siblings "The Ambitions That Drive Us" / "Our Future Opportunity").
-  - **Input:** the candidate headings step 4 finds in each kept section, the Data-team sections,
-    and the filing's primary document from SEC EDGAR, downloaded once to
-    `data/edgar/primary/<TICKER>_<accession>.htm` (needs `SEC_USER_AGENT` in `.env`, as step 1b).
-    The export text matches the HTML: each HTML block is placed in the export text, and each
-    heading is found by its position (`heading_id`). A heading the HTML splits over consecutive
-    blocks (CASY 10-Q "Nine Months Ended January 31, 2021 Compared to" / "Nine Months Ended
-    January 31, 2020", one line in the export) is matched across them (`joined_blocks`).
-  - **Candidates come from step 4.** This step only gives a level to the lines step 4 reads as
-    headings (role `heading`); it cannot add a heading step 4 missed. Risk
-    lead sentences (body units with `rule_heading`) are not candidates. In Item 1A the level
-    decides which headings are risk categories (level 1); the review file shows it
-    (`risk_category`) next to what the text rule alone would say (`category_by_look`).
-  - **Levels**, per section (`src/headings/levels.py`):
-    - inside a table (a column or row header), centred lines right after the Item title that go
-      on with it ("For the fiscal year ended …", "And …", PH 10-Q "FINANCIAL CONDITION AND RESULTS
-      OF OPERATIONS" / "FOR THE THREE AND SIX MONTHS ENDED …" / "AND COMPARABLE PERIODS ENDED …"), a table of contents ("INDEX TO …" and the lines right after it
-      that are links or less prominent), a line that is only a unit in brackets ("(In millions)",
-      "(Dollars and Amounts in Thousands)"), and a line without any letter or digit (the rule
-      before footnotes, "________", AMZN): level 0;
-    - otherwise by style: the first style seen is level 1; a style seen before closes the levels
-      under it (a sibling); a new style first closes the open styles less prominent than it
-      (size, then bold / underline / capitals / centred; italic and run-in rank lower), then opens
-      one level deeper;
-    - left indent counts only for the companies in `headings.indent_tickers`
-      (`config/settings.yaml`; MCK);
-    - a heading not found in the HTML, in the middle of an HTML paragraph, or a run-in lead-in
-      without bold or italic is a sibling of the heading before it (`reason` says which);
-    - a preamble heading ("CAUTIONARY NOTE ABOUT FORWARD-LOOKING STATEMENTS", "Forward-Looking
-      Statements") keeps its level but holds no headings: the headings after it do not nest under
-      it (TTWO Item 7 opens with it in a larger style than its real top headings);
-    - in Item 1A, a level-2+ heading that is a risk factor's lead sentence gets level -1
-      (`lead_sentence`), and step 4 labels it like any sentence (it becomes a Claim; AMZN "Our
-      International Operations Expose Us to a Number of Risks", bold italic, no period): it is
-      flagged `risk_sentence`, or most headings of its style in the section are, so the short
-      ones ("We Face Intense Competition") go with them. Level-1 headings stay categories (MDT
-      "Risks Relating to the Proposed Separation of …").
-  - **Flags** (never change the level), for review:
-    - `risk_sentence`: in Item 1A, 10 or more words. Possibly a risk factor's lead sentence that
-      lost its period and was read as a heading (CASY "We may be adversely impacted by increases
-      in the cost of food ingredients …" in an earlier export); as a heading it is not labelled
-      and never becomes a Claim. Once checked, a rule can give these level -1, and step 4 labels
-      them like any sentence (`lead_sentence` above). (Long headings elsewhere are normal and not flagged.)
-    - `before_table`: the next HTML block is a table, so it may be a table title
-      (NTAP "Net Revenues (in millions, except percentages)") rather than a heading.
-  - **Output:** `interim/heading_levels.jsonl` (`heading_id`, `text`, `level`, `source: html`,
-    `reason`), read by step 4; `interim/lead_sentences.jsonl` (`src/headings/leads.py`), one row
-    per filing (`accession`, `html`: whether its HTML was read, `leads`: `section_key`, `start`,
-    `end`, `source`, `text`), read by step 4 for lead sentences (settings `headings.leads`);
-    `interim/html_tables.jsonl` (`src/headings/tables.py`), one row per filing (`accession`, `html`,
-    `rows`: `section_key`, `start`, `end`, `kind`, `table`), the HTML table rows in its kept sections,
-    read by step 4's prefilter (settings `headings.tables`); `checks/headings/heading_review.csv`, one row per heading with its level,
-    parent, path, reason, flags, style and `open_in_edgar`, a link to the filing on sec.gov that
-    scrolls to the heading and highlights it (a `#:~:text=` link; the filing URLs are kept in
-    `data/edgar/primary/urls.json`, looked up once per filing); `checks/headings/heading_summary.csv`, one row per company
-    (share found in the HTML, levels, reasons, flags, filings without HTML, filings whose HTML
-    hash differs from the export's `source_sha256`, and `html_covered_pct`: the share of HTML
-    headings that step 4 reads as headings, lead sentences left out, `html_only_lead`); `checks/headings/heading_html_diff.csv`, for review only
-    (`src/headings/compare.py`, changes no level or role): `html_only` rows are HTML blocks in a
-    kept section styled as headings (standalone, bold / underline / italic / capitals / larger,
-    at most `headings.compare.max_words` words) that step 4 did not read as headings, with what
-    step 4 made of them (`step4_role`) and `text_check` (`sentence` = a full sentence of
-    `headings.compare.sentence_min_words`+ words ending in . ! ?, so a risk lead sentence or body
-    rather than a heading; `none` = in no unit: the text was removed in clean, mostly running
-    page headers and footers such as MSFT "PART II", left out of `html_covered_pct` and counted
-    in `html_only_removed`); `step4_plain` rows are step-4 headings the HTML shows as plain text.
-    All three CSV files start with one
-    `# column: meaning` line per column, then the header row. Read them with
-    `from src.headings.step import read_output; read_output(path)` (pandas), not
-    `read_csv(comment="#")`, which also cuts the `open_in_edgar` links at their `#`.
-  - A new level changes `section_path`, which is in the step 5 request: units whose path changed
-    are sent again (and paid for) the next time step 5 runs. `unit_id`s do not change.
-- <a id="step-5-label"></a>**[5] Label** sends sentences to OpenAI:
-  - Batches of up to 15 consecutive sentences per section, with read-only context: the 4 units
-    before them, plus the intro of any split list item in the batch whose intro is in neither
-    (a long list cut by a batch boundary, or an intro too short to be labelled, such as
-    "Solutions include:"). Context is in source order. Before 4 November 2026, 281 of the 983
-    split items sent to the LLM did not see their intro; now none. The prompt is one file,
-    `prompts/label_v2.txt`; the label definitions are filled in from `config/claim_types.yaml`.
-  - Inside a request, units go by short numbers counted within that request: `c1`, `c2`, … for
-    the context and `s1` … `s15` for the sentences. This is instead of the 36-character
-    `unit_id`, which saves tokens and leaves nothing long for the model to copy wrong.
-    - The batch keeps the table of numbers and `unit_id`s, and a reply is turned back into
-      `unit_id`s as soon as it is read. The numbers appear only in the saved request and reply
-      (`checked_pilot/`), never as ids in the output files (`labels.jsonl` has `unit_id` and
-      `context_unit_ids`).
-    - A rerun numbers the same batch the same way, so the same request finds its saved reply.
-      Because the numbers count within the request, a change further up the section that
-      leaves the batch's own units and context alone (a heading or page footer added or
-      removed) does not change the request.
-  - Repeats (`label.reuse_repeats: path`): a sentence whose text, 4 units before and
-    `section_path` are the same as in an earlier filing of the same company is not sent
-    (`report_unit_repeats.py`, level `path`; about 25% of the 233 filings' sentences). It gets a
-    copy of the first occurrence's label (`source: llm_reused`, `reused_from_unit_id`; same
-    `request_hash`, `model` and `prompt_version`), with `context_unit_ids` moved to its own units
-    at the same place. Batches are cut at reused sentences, so every sentence sent still has its
-    own preceding units as context. A reused sentence is sent after all (a second round in the
-    same run) when its first occurrence was held by quarantine, or cites a context unit whose
-    counterpart has other text. `null` sends every sentence.
-  - Before sending, every sentence is rebuilt from the Data team text at its `raw_spans`; a
-    mismatch stops the step, and so does a `unit_id` that does not match the unit's spans.
-    Steps 5 and 7b compare a unit with its source the same way
-    (`source_text()` in `common.py`: newlines, tabs and non-breaking spaces read as spaces).
-  - The model returns, per number: a label (`stated_fact`, `forward_looking`, `hedged_risk`, or
-    the pipeline-only `not_a_claim` and `needs_review`), `context_ids`, `subject_scope`,
-    `annotation_note`, `is_risk_heading` and `entity_mentions` (segments and subsidiaries named).
-    `is_risk_heading` is no longer read (lead sentences come from step 4, patch 7c); it stays in
-    the prompt until the next prompt version.
-  - The client sends `Accept-Encoding: identity`, so replies are never brotli-compressed: an old
-    `brotli` package (below 1.2.0) breaks httpx2's decoding (#46). `openai` is pinned to 3.40.0.
-  - A reply fails, and publishes no labels, when it is incomplete or a refusal, is not the
-    expected JSON, or breaks the JSON schema.
-    - By default the run stops sending there for a person to look (`max_retries: 0`,
-      `stop_on_failure: true`); replies already saved are still used.
-    - Set `max_retries` above 0 to send a follow-up request listing the problems.
-  - Problems with single sentences do not fail the whole reply; the rest of the reply is kept.
-    - A sentence that cites invalid context (later, unknown, repeated or out of order), or whose
-      number is missing or repeated, becomes `needs_review` and does not become a Claim.
-    - Rows with numbers not in the batch are ignored; nothing is guessed from row order.
-    - Details are saved in `unit_quarantine.json` in the request folder.
-  - Once every batch has a reply, the sentences whose number was missing or repeated are sent
-    again in one repair request (`prompts/repair_v1.txt`, saved in `data/targeted_repair/`).
-    Each sentence goes under a key the code assigns (`repair_1`, …), with its own context (its 4
-    preceding units, plus its list intro if missing, numbered `c1`, …), so the model cannot mix
-    up numbers. Their labels replace `needs_review`.
-  - Nothing is resent automatically.
-    - Each request gets a folder `checked_pilot/<hash>/`; a reply saved there is never
-      requested again.
-    - If a request was sent but no reply was saved (timeout, crash), the run stops, because it
-      may have been charged.
-  - The run stops before a request could take total estimated spend past `budget_usd`.
-- <a id="step-6-validate"></a>**[6] Validate** checks that every unit has exactly one valid label (`errors.jsonl`), then writes
-  `review_queue.jsonl` for a person to look at. A held unit keeps its label
-  but does not become a Claim. Rules (Claudia's, in `source_review.py` and `validate.py`;
-  `source_review.py` has her rules unchanged, see [Appendix C](#appendix-c-merge-notes-with-claudias-code)):
-  - Held, flag in `claim_review_flags`:
-    - `list_intro_dependency_boundary_review`: a Claim whose context includes an intro ending
-      in ":", i.e. a list item that may not stand alone (whether to keep this hold:
-      [Remaining issues 2.1](#2-decide-but-can-be-open)).
-    - `mixed_existing_and_prospective_statement_review` ("have passed … considering"),
-      `current_cost_or_past_action_with_possible_future_review` ("causes / has required … may"),
-      `existing_legal_condition_may_be_stated_fact` (`hedged_risk` for "is subject to … laws"
-      with no may/could).
-    - `known_product_list_fragment_boundary_review`: starts with a product-line name listed in
-      `config/settings.yaml` (`review.known_list_fragment_prefixes`) shortly after a ":" intro.
-  - Held, with `source_fragments`: the label is `needs_review`.
-  - Not held for being in several pieces: a list group, or a sentence joined across a page
-    break, becomes a Claim like any other unit. Step 5 has already checked that its text is
-    rebuilt exactly from the source; whether it was joined correctly is a question for steps 2
-    and 4, not for the label. Its Claim carries `multi_fragment: true` (step 7b).
-  - Every entry names its unit by `unit_id` (and the intro units it cites by `intro_unit_ids`),
-    so a review decision still finds its unit after other sentences are re-split.
-  - Retained (`candidate_retained: true`, flag in `flags`): doubtful entity mentions. The Claim
-    is still built.
-    - quote not in the sentence
-    - "the Company" as an entity
-    - uncertain type
-    - a named subsidiary with no catalog
-    - a "segment" that is not among the segment names defined in the filing, or a defined
-      segment the model missed. The defined names are read by `source_review.py` and written to
-      `output/provisional_segment_definitions.json`.
-- <a id="step-4c-risk-themes"></a>**[4c] Risk themes** (`risk_themes.py`, paid, not in a default run) asks the
-  model which themes each Item 1A risk factor is about ([Appendix B](#appendix-b-risk-themes)).
-  - A **risk factor** is one SEC risk: a lead sentence in Item 1A (step 4 `lead_source`, outside
-    the risk factor summary) and the units after it, up to the next lead or heading at its
-    level. Sub-headings below the lead stay inside (Microsoft's italic sub-topics under a bold
-    lead), so this is wider than `lead_unit_id`, which stops at any heading. `risk_factor_id` is
-    the lead's `unit_id`. Units under no lead are not classified (still open).
-  - One request per risk factor: its lead and units as `s1, s2, ...` (cross references and table
-    residue left out, at most `max_units`), and the 32 themes with their definitions. The model
-    returns one primary theme (or `unknown`) and up to two secondary themes with the sentences
-    that support each. It picks themes, never groups, and sees neither the filing's heading nor
-    `reference_labels.csv`.
-  - Separate from step 5: a taxonomy change changes only these requests, never step 5's hashes.
-  - Money rules are step 5's: saved replies (`data/risk_themes/<hash>/`) are never resent, the
-    step has its own model, `budget_usd` and ledger (`settings.yaml` `risk_themes:`,
-    `output/usage_risk_themes.jsonl`). The request holds text only, so a risk factor repeated
-    word for word in another filing reuses the reply: the cost is paid once per distinct text.
-  - `python run_pipeline.py --steps risk_themes,risk_factors --dry-run` (cost), then `--limit 3`,
-    then without `--limit` (`--workers 8`).
-- <a id="step-7a-risk-factors"></a>**[7a] Risk factors** puts the risk fields on every Item 1A unit. No model
-  call; it needs only step 4 (and step 4c's answers), so it runs before step 5.
-  - **Risk category:** the Item 1A heading at level 1 above the unit, by position
-    (`risk_category_unit_id`, `risk_category_text`). Units before the first category heading, and
-    filings without categories (Apple's 10-Qs), have none.
-  - **Heading group:** `config/risk_taxonomy/risk_category_map.csv` maps each category text (case
-    does not matter) to groups (`heading_risk_group`). `broad` headings ("Business Risks",
-    "General Risks") name no group; `not_a_category` rows are level-1 headings that are no category
-    (MCK "INDEX TO RISK FACTORS"). A text missing from the map is `unmapped`.
-  - **Themes:** from step 4c, by `risk_factor_id`: the primary theme on every unit of the risk
-    factor (`scope: risk_factor`), a secondary only on its supporting sentences (`scope: sentence`).
-    On the primary, `agrees_with_heading` says whether the theme's group is one the heading names
-    (null for a broad heading). `risk_theme_status`: `classified`, `unknown`, `not_classified` (no
-    answer from 4c, or one from before step 4 changed the risk factor), `no_risk_factor`,
-    `risk_summary`.
-  - Review: `checks/risk_factors/category_checks.csv` (are the categories complete?) and
-    `risk_factor_themes.csv` (one row per risk factor; `review`: `differs_from_reference`,
-    `overrules_heading`, `unknown`, `not_classified`).
-  - All fields: [Appendix A: `risk_categories.csv`](#risk_categoriescsv-step-7a).
-- <a id="step-7b-build-claims"></a>**[7b] Build Claims** writes one record per Claim (a statement at one place in a
-  section): the ontology fields, provenance (source spans, context unit ids,
-  XPath, section hash, request hash, model, prompt id), the source fragments and paragraph, and
-  entity mentions checked against the sentence and the entity catalog (`entity_annotation.py`,
-  [step 1c](#step-1c-entity-catalog)).
-  `not_a_claim` and `needs_review` units, and units held in step 6, do not become Claims.
-  All fields: [Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8).
-  - `quote`: the source text of every fragment, joined by one space. A multi-span unit is never
-    cut to its first fragment.
-  - `multi_fragment`: true for a list group or a sentence joined across a page break (136 of the
-    units sent to the LLM on the 20 filings). Its `quote` joins the pieces with one space, so it cannot be found in the
-    source as one string; `source_fragments` lists each piece with its position, exactly as in
-    the source ([Remaining issues 3.1](#3-todo-list)).
-  - `claim_id`: the unit's `unit_id` ([Unit ID & Claim ID](#unit-id--claim-id)); `claim_identity_version`
-    is `source_span_position_v1`. A Claim is a statement at one place: the same sentence twice
-    in one section is two Claims, and so is the same sentence in two filings of a company.
-    Repeats across filings stay separate Claims on purpose; step 5 only reuses their label
-    ([Repeats](#step-5-label)). `python -m src.report_claim_repeats data/output/claims.jsonl --output
-    data/output/claim_repeats.json` counts Claims whose text repeats in another filing of the same
-    company (whitespace normalised; repeats inside one filing are left out).
-  - Ids that point at other units (`context_evidence`, `risk_factor_id`, `risk_category_unit_id`,
-    `provenance.context_unit_ids`, `provenance.lead_unit_id`) are `unit_id`s. `lead_unit_id` is
-    only recorded: the lead may not be a Claim itself (`not_a_claim`, or held).
-  - Each run compares its `claim_id`s with the `claims.jsonl` it replaces and writes
-    `output/claim_id_report.json`: ids added, ids gone, and ids kept whose quote changed, with
-    examples. The counts are also logged.
-  - Lead fields from step 4, in every section: `is_lead_sentence`, `provenance.lead_unit_id`,
-    `provenance.lead_source`. Risk fields from step 7a: `risk_factor_id`, `risk_category_text`,
-    `risk_category_unit_id`, `heading_risk_group`, `risk_theme_status`, `risk_themes`; and
-    `risk_summary` from step 4 ([Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8)).
-- <a id="step-8-load"></a>**[8] Load** writes one Claim node per `claim_id`, with its ids and source spans on `SUPPORTS`,
-  and `multi_fragment` on the node.
-  - All 32 `RiskTheme` nodes (`theme_id`) and 7 `RiskGroup` nodes (`group_id`), each theme with one
-    `IN_RISK_GROUP` edge. A Claim gets one `HAS_RISK_THEME` edge per entry of its `risk_themes`
-    (`rank`, `scope`, `source`, `agrees_with_heading`, `model`, `taxonomy_version`). No node per
-    risk factor: `risk_factor_id` and the heading fields are Claim properties.
-  - Segments (step 1c): one `Segment` node per `segment_id` (XBRL members in
-    `entity_catalog.json`), and one `Company -[:HAS_SEGMENT]-> Segment` edge per filing whose
-    facts report it, keyed by `accession_number`.
-  - `Claim -[:MENTIONS]-> Subsidiary | Segment` (#91 P3): one edge per Claim and entity in its
-    `related_subsidiary_ids` / `related_segment_ids` (only `matched` / `matched_auto`), with
-    `mention_text`, `match_status`, `found_by` and `entity_annotation_version`. Candidates and
-    the model's other mentions (generic references, counterparties) stay in `claims.jsonl`.
-    A link whose Subsidiary or Segment is not loaded is skipped; the log says how many.
-  - Subsidiaries (step 1b): one `Subsidiary` node per `sub_id` (with `entity_key`), and one
-    `Company -[:OWNS]-> Subsidiary` edge per subsidiary per 10-K, keyed by the 10-K’s `accession_number` (`row_order` is stored on the edge, not used as a key). The edge holds what that exhibit says (name as filed, jurisdiction, nesting) and the filing's `reporting_period_end`, the same name as on the Filing node.
-  - **How OWNS is cited:** it has no `section_id`, since Exhibit 21 is a separate document of the
-    filing, not a section of the Data team's export. It cites its source by `accession_number` +
-    `source_url` (the Exhibit 21 document on EDGAR) + `evidence = 'Exhibit 21'`.
-  - The parent Company is matched by CIK. Loading subsidiaries never sets a Company's name: a
-    Company first created by the subsidiaries has `cik` and `ticker` only, and gets its name from
-    the Data team's `company_name` when the Claims load.
-  - Claims and subsidiaries load independently: `--steps subsidiaries,load` loads subsidiaries
-    without any Claims.
-  - Step 8 only adds and updates; Claims whose ids changed in a rebuild stay in the graph
-    ([Remaining issues 1.5](#1-improvement)).
+**[4b] Heading levels** ([diagram](#a-heading-levels-step-4b))
+- Levels come from the filing's own HTML (needs `SEC_USER_AGENT`); the LLM version was removed
+  on 25 Nov 2026.
+- Gives a level only to headings step 4 found; it cannot add one.
+- Also writes the lead sentences (bold / italic / underlined sentence followed by plain text)
+  and the HTML table rows (`data`, `layout` or `definition` table) that step 4 reads.
+- Flags for review only: `risk_sentence` (a 10+ word Item 1A heading), `before_table`.
+- Review: `checks/headings/` (`heading_summary.csv`, `heading_review.csv` with `open_in_edgar`
+  links, `heading_html_diff.csv`). Read them with `src.headings.step.read_output()`.
 
-## Unit ID & Claim ID
-Every unit has one id, `unit_id`: uuid5 of `<accession_number>|<section_key>|<raw_spans>`, with
-`raw_spans` written as compact JSON in order (`common.unit_id()`; #45). The text is not part of
-it. **A Claim's `claim_id` is the `unit_id` of the unit it comes from, so the two always change
-together.** `claim_identity_version` (`source_span_position_v1`) records this rule. Where the ids
-sit in the pipeline: [ID workflow](#2-id-workflow).
+**[4] Segment** (`src/segment/`, one module per part; [lists](#b-lists-step-4), [ids](#e-unit_id-and-claim_id))
+- One unit per sentence; abbreviations ("U.S.", "Inc.") end a sentence only before a typical
+  opener (`OPENERS`).
+- **Lists:** a ":" intro with bullets or numbered items. Short fragment lists become one
+  `list_group`; other lists are split, each item pointing to its intro (`list_intro_id`).
+- **Headings:** short lines without sentence punctuation, title-case lines ending ":" or ".".
+  With step 4b levels, `heading_path` / `section_path` keep every heading above the unit.
+- **Item 1A:** a level-1 heading is a risk category; the risk factor summary (MU, TTWO) is marked
+  `risk_summary`.
+- **Lead sentences** (every section): from the HTML (`html`, `html_runin`), or the rule
+  (`rule_heading`) for filings without HTML. `lead_unit_id` links each unit to the lead above it,
+  up to the next lead or heading.
+- **Prefilter** (`not_a_claim`, not sent to the LLM): headings, `table_residue` (data-table rows
+  that are no full sentence), `definition` (definition-table rows), `cross_reference`,
+  `list_intro`, `too_short`.
+- `segmentation_version` records the rules; it is not in the label request hash.
+- Review: `checks/segment/lead_summary.csv`, `lead_review.csv`.
+
+**[5] Risk factors** ([diagram](#c-risk-factors-and-themes-steps-5-and-5b))
+- **Risk category:** the Item 1A level-1 heading above each unit, mapped to groups by
+  `config/risk_taxonomy/risk_category_map.csv` (`heading_risk_group`; `broad` headings name none).
+- **Risk factor:** a lead sentence and the units after it, up to the next lead or heading at its
+  level (sub-headings below the lead stay inside; wider than `lead_unit_id`).
+- Units under no lead get no risk factor and no theme.
+- Review: `checks/risk_factors/category_checks.csv` (missing or doubtful categories); a new
+  company's categories show up as `unmapped`.
+
+**[5b] Risk themes** (paid)
+- One request per risk factor: its sentences and the 32 themes. The model returns one primary
+  theme (or `unknown`) and up to two secondary themes with their sentences; it never sees the
+  heading.
+- A default run only reads saved replies; it sends when named (`--steps risk_themes`).
+- Same text in another filing = same request: paid once per distinct risk text.
+- A taxonomy change touches only these requests, never step 7's.
+- Review: `checks/risk_themes/risk_factor_themes.csv` (`review`: `not_classified`, `unknown`,
+  `differs_from_reference`, `overrules_heading`).
+
+**[6a] Subsidiaries** ([diagram](#d-segments-and-subsidiaries-step-6))
+- Reads Exhibit 21 of every 10-K in `filings.yaml` from EDGAR (needs `SEC_USER_AGENT`); no LLM.
+- `sub_id` = uuid5 of parent CIK + normalised name; a renamed subsidiary gets a new id.
+  Reviewed renames go in `config/subsidiary_aliases.yaml` (`same_entity` / `distinct`).
+- `src/entities/ex21/` is a library: `edgar.py` downloads, `parse.py` reads, `normalize.py`
+  maps jurisdictions and builds the keys.
+- Review: `checks/subsidiaries/subsidiary_qa.csv` (CHECK rows), `subsidiary_renames.csv`;
+  `python -m src.checks.entity_inputs` for year-to-year changes.
+
+**[6b] Entity catalog**
+- `entity_catalog.json`: the subsidiaries of 6a, the XBRL segment members of a fact store
+  (`--facts`, `PIPELINE_FACT_STORE`), and the registrant's own names (never linked).
+- Without a fact store the catalog has no segments.
+
+**[7] Label** (paid; `src/label/`)
+- Batches of up to 15 sentences per section, with 4 context units before them and any missing
+  list intro. The model sees short numbers (`s1`, `c1`), mapped back to `unit_id`.
+- Returns a label (`stated_fact`, `forward_looking`, `hedged_risk`, `not_a_claim`,
+  `needs_review`), cited context, `subject_scope`, `annotation_note`, `entity_mentions`.
+  `is_risk_heading` is still asked but no longer read.
+- Repeats of an earlier filing (same sentence, 4 units before, `section_path`) reuse its label
+  (`llm_reused`).
+- Each sentence is rebuilt from the source before sending; a mismatch stops the step.
+- A bad reply stops the run (`stop_on_failure`); single bad sentences become `needs_review`
+  (quarantine), and missing ones go into one targeted repair request.
+
+**[8] Validate**
+- `errors.jsonl`: every unit has exactly one valid label (should be empty).
+- `review_queue.jsonl`: held units (no Claim) with `claim_review_flags` (Claudia's rules in
+  `source_review.py`), and retained Claims with doubtful entity mentions.
+
+**[9] Build Claims**
+- One record per Claim: ontology fields, provenance (spans, context, request hash, model,
+  prompt), lead fields, risk fields (step 5) with themes (step 5b), entity links (6b).
+- `claim_id` = `unit_id`; a multi-fragment Claim (list group, page-break join) is matched by
+  `source_fragments`, not `quote`.
+- `output/claim_id_report.json`: ids added, gone, or with a changed quote since the last build.
+
+**[10] Load**
+- One Claim node per `claim_id`; all `RiskTheme` / `RiskGroup` nodes; `HAS_RISK_THEME` per theme.
+- `Subsidiary` + `OWNS` per 10-K (cited by accession + Exhibit 21 URL), `Segment` + `HAS_SEGMENT`,
+  `MENTIONS` for matched links.
+- Only adds and updates; every node and edge carries `pipeline_scope`
+  (`python -m src.load --wipe` deletes them).
+
+## Unit ID and Claim ID
+
+- `unit_id` = uuid5 of `<accession>|<section_key>|<raw_spans>` (`common.unit_id()`, #45); the
+  text is not part of it. `claim_id` = the unit's `unit_id` (`source_span_position_v1`).
+- The same sentence at another place or in another filing is another Claim.
 
 | Change | `unit_id` / `claim_id` |
-|--------|------------------------|
-| Text-only cleaning changes that keep every unit's spans: whitespace, newlines and non-breaking spaces read as spaces (`ONE_FOR_ONE`), any other one-for-one character change | same |
-| An earlier unit in the section is split differently | same for every unit whose own spans are unchanged |
-| Step 2 removes or keeps different text inside a sentence (e.g. a page header is no longer removed, so the sentence is no longer joined) | new |
-| Step 2 joins split paragraphs differently (`should_join`) | new |
-| Step 2 trims more or fewer characters at a unit's start or end (a bullet sign, whitespace) | new |
-| Step 4 splits sentences differently, or merges or splits a list differently (`merge_list`) | new, for the units affected |
-| The Data team re-extracts the section and its `content` changes (`processing_set_id`) | new for every unit whose spans move. A unit whose spans happen to stay the same keeps its id even if the text at those spans changed; `claim_id_report.json` counts these as "quote changed" |
-| The same sentence at another place in the section, or in another filing | a different id |
-
-`output/claim_id_report.json` shows how many `claim_id`s each build changed
-([step 7b](#step-7b-build-claims)). Anything joined on `claim_id` across builds (Eval's citations, a review decision) stops matching for the ids that changed. Open points: old Claims after a rebuild, a step 4
-report ([Remaining issues 1.4–1.5](#1-improvement)).
-
+|---|---|
+| Whitespace or one-for-one character changes that keep the spans | same |
+| An earlier unit split differently | same for units whose spans are unchanged |
+| Step 2 removes, joins or trims differently inside a unit | new |
+| Step 4 splits sentences or lists differently | new, for the units affected |
+| The Data team re-exports and `content` moves | new where the spans move |
 
 ## Setup
 
-Python 3.11, as in CI.
-
 ```bash
 cd extraction_pipeline
-uv venv --python 3.11            # or: python3.11 -m venv .venv
-source .venv/bin/activate
-uv pip install -r requirements.txt pytest   # or: pip install -r requirements.txt pytest
-cp .env.example .env             # then add your OpenAI key, and Neo4j details for step 8
+uv venv --python 3.11 && source .venv/bin/activate
+uv pip install -r requirements.txt pytest
+cp .env.example .env     # OpenAI key (2b, 5b, 7), SEC_USER_AGENT (4b, 6a), Neo4j (10)
 ```
 
-The pipeline reads the Data team section exports, one file per filing:
-`data/sections/<TICKER>_<accession>.jsonl`. Step 1 only checks that they exist.
-
-- To export them from the database instead, run
-  `python run_pipeline.py --steps fetch --from-db <folder>`, where the folder holds the Data
-  team's `graphrag_data.py` and `.env.aws` (`docs/data-access.md`).
-- That tool's own packages (`psycopg[binary]`, `pandas`, `python-dotenv`) are not in
-  `requirements.txt`.
+- Settings: `config/settings.yaml` (one block per step: model, budget, limits); risk taxonomy:
+  `config/risk_taxonomy/`.
+- If the OpenAI key is refused on the US endpoint, set `label.base_url` to `https://api.openai.com/v1`.
 - Never commit `.env` or `.env.aws`.
-
-`config/settings.yaml` holds:
-
-- the data folder: `data_dir`, default `../data`, the `data/` folder at the repository root
-- the model name (`label.model`): a model your OpenAI account can use that supports structured
-  outputs
-- the endpoint (`label.base_url`): OpenAI's US data-residency endpoint
-  (`https://us.api.openai.com/v1`) by default; if your key is refused there, use
-  `https://api.openai.com/v1`
-- batch sizes, token prices and the spending limit (`budget_usd`)
-- what happens to a failed reply (`max_retries`, `stop_on_failure`)
-- the step 6 product names (`review.known_list_fragment_prefixes`)
-- the Neo4j scope (`load.scope`)
-
-The risk taxonomy (groups, themes, heading map) is in `config/risk_taxonomy/`
-([Appendix B](#appendix-b-risk-themes)); step 4c's model and budget are in `risk_themes:`.
 
 ## Run
 
 ```bash
-python run_pipeline.py --until segment      # steps 1-4: no LLM; 1b and 4b download from EDGAR
-python run_pipeline.py --steps page_breaks --dry-run      # step 2b: requests and cost, no API
-python run_pipeline.py --steps page_breaks,clean,filter   # step 2b (paid): once before labelling at scale
-python run_pipeline.py --steps headings,segment           # step 4b: free; downloads each filing's HTML once
-python -m src.report_unit_repeats           # repeats across filings, before labelling: data/checks/unit_repeats/
-python run_pipeline.py --steps risk_factors # step 7a: free; lists unmapped risk categories
-python -m src.report                        # review report of steps 1-4 and 7a (also written at the end
-                                            # of any run of those steps): data/checks/report/report.md
-
-python run_pipeline.py --steps label --dry-run                           # batches, sentences, worst-case cost
-python run_pipeline.py --steps label --filing 0000320193-25-000079 --limit 3   # a first, small paid run
-python run_pipeline.py --steps label --filing 0000320193-25-000079       # one full filing
-python run_pipeline.py --steps label                                     # all filings
-
-python run_pipeline.py --steps validate,risk_factors,build_claims
-python run_pipeline.py --steps load --dry-run     # writes output/load_preview.cypher
-python run_pipeline.py --steps load
+python run_pipeline.py --until entity_catalog        # steps 1-6; ends with the review report
+python run_pipeline.py --steps page_breaks,clean,filter   # 2b (paid), once before labelling at scale
+python run_pipeline.py --steps risk_themes --dry-run # 5b cost; then --limit 3, then without (--workers 8)
+python run_pipeline.py --steps label --dry-run       # 7 cost; then --filing <acc> --limit 3, then all
+python run_pipeline.py --steps validate,build_claims
+python run_pipeline.py --steps load --dry-run        # writes output/load_preview.cypher; then without
 ```
 
-In zsh, paste the commands without the `#` comments, or run `setopt interactive_comments` first.
-
-Each module also runs on its own, e.g. `python -m src.label --report`.
-Use `python -m src.load --wipe` to delete everything this pipeline loaded
-(every node and edge carries `pipeline_scope`).
-
-If step 5 stops, the message names the request folder:
-
-- `validation_errors.json` there says why a reply was rejected.
-- An `attempt.json` without `raw_response.json` means a request was sent but no reply was saved
-  (check usage before sending it again).
+- `python run_pipeline.py --help` lists the steps. Each module also runs alone
+  (`python -m src.label --report`, `python -m src.risk.themes --dry-run --compare`).
+- In zsh, paste commands without the `#` comments.
+- If step 7 stops: `validation_errors.json` in the named request folder says why; an
+  `attempt.json` without `raw_response.json` may have been charged (check usage first).
 
 ## Tests
 
 ```bash
-pytest tests -q                  # as CI does (pytest.ini puts src/ on the path)
-python -m unittest discover tests
+uv run python -m pytest tests -q
 ```
 
-They need no API key, database or network.
-
-- `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
-  fake model in place of OpenAI and its own risk category map (`tests/fixtures/risk_category_map.csv`).
-- `test_headings.py` runs step 4b on a small synthetic filing (HTML and export text built from
-  the same lines).
-- `test_sentence_entities.py` started as Claudia's (sentence boundaries and entity matching)
-  and now also covers bullets, lists, abbreviations, headings, page breaks, risk categories,
-  the risk factor summary and unit ids.
+- No API key, database or network needed: a fake model stands in for OpenAI, and
+  `tests/fixtures/` holds a small synthetic filing.
 
 ## Cost tracking
 
-- Every step-5 API call is logged to `data/output/usage.jsonl` (step 2b: `usage_page_breaks.jsonl`,
-  with its own `budget_usd`), and to `usage.json` in its request
-  folder, with its tokens (including cached input tokens), request id, latency and estimated cost.
-- `python -m src.label --report` prints the totals. Step 5's prices are the `price_*` keys in `label:`
-  (published gpt-4.1-mini rates); update them when changing the model. Step 2b looks up its
-  model in the `prices:` table (10% added on the US data-residency endpoint for models marked
-  `regional_uplift`).
-- `label.budget_usd` (default 3.0) stops the step-5 run before a request could take total estimated spend
-  past it. With no token prices set, costs are not estimated and the budget is not enforced;
-  step 5 logs a warning.
-- `label.concurrency` (or `python -m src.label --workers 8`) sends that many requests at once
-  (default 1). Requests in flight count at their worst-case cost against `budget_usd` until
-  their reply is in; two batches with the same request are never in flight together. A 429
-  rate-limit reply is not billed, so it is sent again after a wait (`label.rate_limit_retries`,
-  default 6); "insufficient_quota" and every other error still stop the run. Progress is logged
-  once a minute.
-- Each request is saved in `data/checked_pilot/<first 24 characters of request_hash>/`:
-  `request.json`, `attempt.json`, `raw_response.json`, `usage.json`, and
-  `validation_errors.json` for a rejected reply. The repair request is saved the same way in
-  `data/targeted_repair/`.
-  - The hash covers only what reaches the model: the request as sent (model, prompt,
-    sentences and their context, schema, limits) and the runner version.
-  - `request.json` still records everything the request was built from (the units, source
-    versions, segment names, entity catalog), but none of it is hashed. So a change the model
-    never sees (a new field on the units, a filled entity catalog, a Data re-export with the
-    same text) reuses the saved replies and costs nothing.
-  - Changing the model, the prompt, a sentence, its context or its `section_path` sends new
-    requests. So does adding or removing a sentence sent to the LLM further up a section: the
-    batches after it start at different sentences. A unit that is not sent (a heading, a page
-    footer) changes nothing outside its own batch's context, because the short numbers count
-    within each request.
-  - Until 4 November 2026 the whole record was hashed, as in Claudia's run, so replies saved
-    before then are not reused. For scale, Microsoft's FY2026 10-K cost $0.14 (#47).
-- The dry run reports a worst-case cost: each request's full size as input, plus the full
-  `max_completion_tokens` as output. On Microsoft's FY2026 10-K the real cost was about a fifth
-  of it ($0.14 against $0.79; replies averaged 765 output tokens against the 4,000 allowed, #47).
+- Paid steps: 2b, 5b, 7. Each has its own `budget_usd` and ledger (`output/usage.jsonl` for 7,
+  `output/usage_<step>.jsonl` for 2b and 5b) and stops before a request could pass the budget.
+- A saved reply is never requested again; nothing is resent automatically.
+- The request hash covers only what reaches the model (request + runner version): changing the
+  model, prompt, a sentence, its context or `section_path` sends new requests.
+- `--dry-run` shows the worst case (full output allowance); real cost is about a fifth of it
+  (MSFT FY2026 10-K: $0.14 against $0.79, #47).
 
 ## What to review
 
-Start with `data/checks/report/report.md` (`python -m src.report`; written at the end of every run
-that includes a step up to segment, or risk_factors). It reads what steps 1-4 and 7a wrote, re-runs
-nothing, opens with a table of contents, and links every check file it names:
-
-1. **Checks**: every number with a limit in `config/settings.yaml` `report.checks` (max or min,
-   and a level: `error` = fix before the label run, `warn` = look at it, `info`), plus two built-in
-   checks: each stale step is an error, and a key number (`report.big_change`) that moves more than
-   `report.big_change_pct` from the last report is a warning. Failing checks first; passed ones
-   are folded. Change a limit there (no step reads the `report:` block, so nothing goes stale).
-2. **Stale steps**: an input (an earlier step's result, the step's code under `src/`, its config
-   file, or its own block of `settings.yaml`) is newer than the step's result. Run them again first.
-3. **Changes since the last report**: every number that moved (`report_previous.json` keeps the
-   one before; `--against FILE` compares with a saved `report.json`, e.g. one kept from before a
-   rule change). This replaces the counting part of a throwaway before / after script.
-4. **Steps**: per step its check files (links), what to look at, its numbers, and tables such as
-   the sections step 3 keeps (types and the titles the filings use) or the unmapped risk
-   categories. Unit checks (examples in `checks/report/samples.csv`) are those of the scale-up
-   diagnostics that can be read from `sentences.jsonl`; `python -m src.diagnose`
-   (`checks/diagnose/`) still re-runs steps 2-4 on every section, also the dropped ones.
-
-`report.json` holds the same numbers for a later dashboard page. What to look for in each file:
-
-| File | Check |
-|------|-------|
-| `output/section_manifest.csv` | `review` rows (Item 1C Cybersecurity); add overrides in `config/sections.yaml` |
-| `checks/headings/heading_summary.csv`, `heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `risk_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`, `no_letters`)<br>• `joined_blocks` > 1<br>• `level_4plus`: deep nesting |
-| `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
-| `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_taxonomy/risk_category_map.csv`<br>• `not_a_category` and `broad` rows<br>• `n_units` of large categories |
-| `checks/risk_factors/risk_factor_themes.csv` | rows with a `review`: primary theme differs from `reference_labels.csv`, or overrules the heading |
-| `config/risk_taxonomy/risk_category_map.csv` | rows with a `note`: headings that name more than one group, or none ([Appendix B](#appendix-b-risk-themes)) |
-| `output/labels.jsonl` | • units the model labelled `not_a_claim` (`source` is `llm`): they appear neither in the review queue nor in `claims.jsonl` |
-| `output/errors.jsonl` | should be empty after step 6 |
-| `output/review_queue.jsonl` | • held units (no `candidate_retained`), their `reason` and `claim_review_flags`<br>• retained Claims with entity `flags` |
-| `output/claims.jsonl` | • sample Claims per section for the type-fit test<br>• `risk_themes` of Item 1A Claims<br>• `multi_fragment` Claims: whether the list or page-break join is right |
-| `output/claim_id_report.json` | ids added, gone and with a changed quote since the last build; expected near 0 when only labels changed |
+- Open `data/checks/report/report.md` (written after every run up to step 6;
+  `python -m src.checks.report`). It lists failing checks, stale steps and changes since the last
+  report, with links to every check file. Limits: `config/settings.yaml` `report:`.
+- After labelling: `output/errors.jsonl` (empty), `review_queue.jsonl`, `claims.jsonl`,
+  `claim_id_report.json`.
 
 ## Remaining issues
+
 ### 1. Improvement
-1. Step 2 - [Filter] Which sections to extract from
-   - The rules in `config/sections.yaml` are a first pass. They key on `section_type`, so they carry over to new companies.
-   - **Dropped:** usually empty sections (mine safety, changes in accountants, defaults on senior securities), and `unknown` (here only Items 1B, 6 and 9C).
-   - **Undecided:** the three sections below.
 
-   | Section | What it holds | For keeping | Against keeping |
-   |---------|---------------|-------------|-----------------|
-   | Legal proceedings (10-K Item 3, 10-Q Part II Item 1) | Lawsuits and investigations, e.g. Apple's EU Digital Markets Act and antitrust cases | Concrete events and possible penalties that support Item 1A legal risks | Microsoft refers to its notes instead (about 200 characters) |
-   | Market risk (10-K Item 7A, 10-Q Part I Item 3) | Interest-rate and currency exposure, with sensitivity figures | Some narrative risk sentences | Mostly numbers that belong to `Fact`; decide together with the MD&A type-fit question |
-   | Cybersecurity (10-K Item 1C) | How the company governs and manages cyber risk | Answers "how does the company manage cybersecurity?" | The risks themselves are already in Item 1A; mostly process descriptions |
+1. **Sections to extract** (step 3): undecided for legal proceedings (concrete legal events vs
+   MSFT refers to notes), market risk (mostly numbers for `Fact`) and cybersecurity Item 1C
+   (process descriptions; the risks are already in Item 1A).
+2. **Release held units** (step 8): a held unit stays out of `claims.jsonl`, and the next run
+   holds it again. To do: a release list by `unit_id`, and who signs off.
+3. **Id changes counted too late:** `claim_id_report.json` comes in step 9, after paying for
+   step 7. To do: the same report in step 4 (units added, gone, changed).
+4. **Old Claims after a rebuild** (step 10): load only MERGEs, so Claims whose ids changed stay.
+   For now `python -m src.load --wipe` before loading; to do: delete this scope's Claims that are
+   not in `claims.jsonl`.
 
-2. Step 4 - Headings:
-   - Levels now come from the filing's HTML (step 4b, 25 Nov 2026); the LLM version is removed. Open:
-     - `risk_sentence` rows: decide the rule that gives a real sentence level -1.
-     - `before_table` rows: kept as headings for now (they have explanatory text below them); the flag stays for review.
-     - Candidates still come from step 4's text rules: a heading step 4 misses gets no level.
-     - Same-size visual nesting can differ from the meaning (MSFT italic "Competition" sits under the last product, not the segment).
-     - The export's `source_sha256` never equals the EDGAR file's hash, although the text matches: ask the Data team what they hash.
-   - Some real headings are marked `too_short`, not `heading`.
-     - TTWO "Player acquisition costs." (×2) and "International operations risks": a period, or a lower-case word, keeps them from the heading rules. They are not sent to the LLM either way, but the units below them keep the previous heading in `section_path`
-3. Step 6 - Release held units.
-   - A unit held in `review_queue.jsonl` stays out of `claims.jsonl`. After review, the only way through is editing files by hand, and the next step 6 run holds it again.
-   - To do: a release list that step 6 reads, by `unit_id` so it survives renumbering, and who signs off on a release.
-4. Step 4 - Unit id changes are only counted after labelling.
-   - `claim_id_report.json` is written in step 7b, after step 5 has been paid for.
-   - The ids are made in step 4, so a step 4 report (units added, gone, text changed, against the last `sentences.jsonl`) would show the effect of a rule change before any API call.
-5. Step 8 - Old Claims stay in the graph after a rebuild.
-   - Step 8 only MERGEs. When a step 2 or 4 change gives some units new ids, the Claims with the old ids stay in Neo4j next to the new ones; nothing deletes them.
-   - For now: run `python -m src.load --wipe` before loading a rebuilt `claims.jsonl`.
-   - To do: have step 8 delete this scope's Claims that are not in the current `claims.jsonl`, or wipe and reload by default.
-6. Risk themes
-   - New risks year over year (eval M06) & Too coarse
-     - Themes are too coarse: a new risk usually goes into an existing category (MCK's new AI risk sits under "Company and Operational Risks").
-     - Comparing the risk lead sentences of two years would find it, but each company here has one 10-K; a prior-year 10-K (e.g. MSFT FY2025) is needed.
-   - Themes for Item 1A units without a category.
-     - Apple's 10-Qs (179 units) and the opening paragraphs of each 10-K get no theme.
-     - One option is a model pass that picks a theme from the library ([Appendix B](#appendix-b-risk-themes)).
-   - the model's `is_risk_heading`
-     - no longer read: lead sentences come from step 4 (patch 7c). The field leaves the label prompt with the other prompt changes, before the full step 5 run.
-8. Claims to segments and subsidiaries (#91):
-   - P1 (code-only matching, [step 1c](#step-1c-entity-catalog)) is in. On the 20 filings: 402
-     of 10,774 Claims link (105 to a subsidiary, 332 to a segment), up from 0.
-   - P1 (code-only matching, [step 1c](#step-1c-entity-catalog)) and P3 (`MENTIONS`, step 8) are
-     in. On the 20 filings: 416 of 10,774 Claims link (119 to a subsidiary, 332 to a segment), up
-     from 0; 511 MENTIONS edges. The prompt is unchanged (no P2), so no relabel is needed.
-   - 50 catalog hits left undecided (`entity_link_review.csv`): MiniMed (prior year only),
-     place-like segment names without context, one brand with several legal entities.
-   - Tell Adeline: `MENTIONS`, `Segment` and `HAS_SEGMENT` are now written by step 8; add them to
-     `docs/schema-ids-operations.md`.
-   - Segment aliases: XBRL labels only ("Diabetes Group", "Neuroscience Group", "AEBU"); prose
-     names that differ do not match yet.
-   - One brand, several legal entities (Covidien, CathWorks, Instaclustr, Meggitt): stays
-     `ambiguous_catalog_match`. Decide: link to all, or keep unlinked.
-   - Load the links (`MENTIONS` edge, P3) after the schema decision with Adeline.
-9. Repeated sentences across filings
-   - The same sentence in another filing is a separate Claim (`claim_id` includes the accession number); so is the same sentence twice in one section (`claim_id` includes its position).
-   - Repeats are common in the five-filing run (not yet counted on the 20 filings): 1,223 of about 2,400 Claims share their text with a Claim in another filing of the same
-     company; mostly between a 10-K and a 10-Q (448 Microsoft sentences), mainly in Risk Factors and MD&A
-   - no sentence repeated across companies
+### 2. Decide but can be open
 
-### 2. Decide but can be open:
-1. `multi_fragment` Claim: 
-   - merge the list if fewer than 600 characters
-   - Step 6 holds every split item that cites its intro as context, complete sentences too, although the Claim already carries the intro in `context`.
-   - Lists after a heading or "the following" get a `list_intro_id` since 19 November 2026 (MU's
-     risk factor summary; MCK lists under "Fiscal 2026" / "Fiscal 2025" take the sub-heading).
-     Bullets after any other paragraph still get none: 2,474 units in kept sections of the 233
-     filings, mostly full sentences; 127 are cut items, mostly Parker-Hannifin's product lists
-     exported as a two-column table ("Filtration Group: | • Aerospace").
-2. Risk Factors:
-   - Now every Claim takes the themes of its category directly. 
-   - Alternative: only the risk lead sentence links to the theme, and the Claims below it link to the lead sentence (a Claim-to-Claim edge, a change to the ontology).
-3. Sentence or paragraph as the unit for extraction
-   - Each unit is one sentence (ontology decision 2.3). Whether paragraphs would work better is an open, ontology-level question, to be decided later with the retrieval team.
+1. **`multi_fragment` Claims:** the merge rule (under 600 characters); step 8 holds every split
+   item that cites its intro, complete sentences too; bullets after a non-intro paragraph get no
+   `list_intro_id` (mostly full sentences; PH product lists are the cut ones).
+2. **Sentence or paragraph** as the extraction unit (ontology decision 2.3): later, with the
+   retrieval team.
 
-### 3. Todo List
-1. Tell the UI and Eval teams, and note in the data contract, that a `multi_fragment` Claim is matched by `source_fragments`, not `quote`.
+### 3. Todo
+
+1. Tell the UI and Eval teams (and the data contract) that a `multi_fragment` Claim is matched by
+   `source_fragments`, not `quote`.
 
 ### Note: rules that fit only this data
-1. **Hard-coded Microsoft product names (`known_product_list_fragment_boundary_review`).**
-   - Step 6 holds a Claim that starts with "Windows and Devices," or "XBOX (formerly Gaming),"
-     shortly after a ":" intro.
-   - The names (in `config/settings.yaml`) fit one filing only.
-   - To do: replace with a general fix for list fragments.
-2. **Segment names read from the filing text (`source_review.py`).**
-   - Two regular expressions read segment names from the Business section (Apple: "reportable
-     segments consist of …"; Microsoft: "Our … segment consists of"). Step 6 flags model
-     "segment" mentions not among them, and defined names the model missed.
-   - Other companies get no names, so all their segment mentions are flagged.
-   - The names duplicate the entity catalog's job (`data/entity_catalog.json`, still empty).
-     To do: switch the check to the catalog once it is filled.
-3. **Lists written by hand from these filings.**
-   - `TABLE_NOTES` in `segment/prefilter.py`: table notes, header pieces and table cells cut out of a
-     table (MCK, NTAP, MDT, CASY, MSFT).
-   - `OPENERS` in `segment/sentences.py`: sentence openers added for sentences seen in these filings.
-   - `config/risk_taxonomy/risk_category_map.csv`: the category texts of these companies. A new company's
-     categories show up as `unmapped` in step 7a until they are added ([Appendix B](#appendix-b-risk-themes)).
 
+1. `review.known_list_fragment_prefixes` (settings): MSFT product names that step 8 holds after a
+   ":" intro. To do: a general fix for list fragments.
+2. `source_review.py` reads segment names from Apple's and Microsoft's Business text only; other
+   companies' segment mentions are all flagged. To do: check against the entity catalog.
+3. Hand-written lists: `TABLE_NOTES` (`segment/prefilter.py`), `OPENERS` (`segment/sentences.py`),
+   `risk_category_map.csv` (a new company's categories are `unmapped` until added).
 
 ## Appendix A: Output fields
 
 ### `sentences.jsonl` (step 4)
 
-One line per unit. "Data team" fields are copied from the section export; the rest are made by
-`src/segment/`.
-
-| Field | Source | Meaning |
-|-------|--------|---------|
-| `unit_id` | segment | uuid5 of accession, section key and `raw_spans` ([Unit ID & Claim ID](#unit-id--claim-id)); what every later file uses to point at the unit |
-| `accession_number`, `ticker`, `form` | Data team | Filing the unit comes from |
-| `section_id`, `section_key`, `section_type` | Data team | Section the unit comes from; `section_type` is the shared Item code (`risk_factors`, `mda`, ...) |
-| `section_label` | segment | `Part I Item 1A`; always with the Part prefix |
-| `category` | segment | Item 1A only: the level-1 heading above the unit, the filing's risk category (e.g. `Business Risks`); null elsewhere |
-| `subheading` | segment | Nearest heading above the unit (e.g. `iPhone` in MD&A); the last entry of `heading_path` |
-| `heading_path` | segment | The open headings above the unit, outermost first (in Item 1A the first is the category) |
-| `section_path` | segment | `section_label > heading_path` joined by ` > ` |
-| `role` | segment | `body` (sentence or list item), `list_group` (intro plus fragment list), `heading`, `section_title` |
-| `heading_level` | segment | Headings only: 1, 2, ... from step 4b (0 = not a heading, changes no path); in Item 1A level 1 is a risk category |
-| `text` | segment | The unit's text, unchanged from the source except whitespace; list-group fragments joined by one space |
-| `char_start`, `char_end` | segment | Position in the cleaned section text |
-| `raw_spans` | segment | Position(s) in the Data team `content`; one `[start, end]` per fragment |
-| `paragraph_index` | segment | Paragraph number in the cleaned section |
-| `list_paragraphs` | segment | List groups only: the paragraphs the group covers |
-| `list_intro_id` | segment | Split list items only: `unit_id` of the intro's last sentence |
-| `prefilter` | segment | Why the unit is `not_a_claim` before the LLM: `section_title`, `heading`, `table_residue`, `definition`, `cross_reference`, `list_intro`, `too_short`; null if sent to the LLM |
-| `rule_heading` | segment | Item 1A only: `high` or `medium` if the rules propose the unit as a risk lead sentence; else null |
-| `risk_summary` | segment | True inside the risk factor summary at the top of Item 1A (MU, TTWO) |
-| `lead_source` | segment | The unit is a lead sentence: `html`, `html_runin` (from the filing's HTML, step 4b) or `rule` (`rule_heading`, filings without HTML); else null |
-| `lead_unit_id` | segment | `unit_id` of the lead sentence above, until the next lead or heading; null for a lead and for text under no lead |
-| `processing_set_id` | Data team | Version of the Data team parse the unit was cut from |
-| `source_locator` | Data team | XPath of the section in the SEC HTML |
-| `html_table` | segment | The kind of HTML table row the unit sits in: `data`, `layout`, `definition`; null outside tables or without HTML (step 4b) |
-| `segmentation_version` | segment | Version of the splitting rules (`kelly_sentence_v9`) |
-
-### `risk_categories.csv` (step 7a)
-
-One row per risk category heading in each filing. `risk_assignments.jsonl` (in `data/interim/`)
-has one line per Item 1A unit (`unit_id`) with the risk fields of `claims.jsonl` below.
+One line per unit; "Data team" fields come from the export.
 
 | Field | Meaning |
-|-------|---------|
-| `risk_category_unit_id` | `unit_id` of the category heading |
-| `accession_number`, `ticker`, `form`, `section_key` | Where the heading is |
-| `category_text` | The heading as written |
-| `risk_summary` | True if the heading is in the risk factor summary |
-| `n_units` | Units under the heading, up to the next category heading |
-| `heading_risk_group` | The groups it names, separated by ";" |
-| `map_status` | `group`, `broad`, `not_a_category` (from the map) or `unmapped` (not in the map) |
+|---|---|
+| `unit_id` | uuid5 of accession, section key and `raw_spans`; every later file points at a unit by it |
+| `accession_number`, `ticker`, `form` | Filing (Data team) |
+| `section_id`, `section_key`, `section_type` | Section (Data team); `section_type` is the Item code (`risk_factors`, `mda`, ...) |
+| `section_label` | `Part I Item 1A` |
+| `role` | `body`, `list_group`, `heading`, `section_title` |
+| `heading_level` | Headings: 1, 2, ... from step 4b (0 = not a heading); in Item 1A level 1 is a risk category |
+| `category` | Item 1A: the level-1 heading above the unit; null elsewhere |
+| `subheading`, `heading_path`, `section_path` | Nearest heading; all open headings, outermost first; `section_label > heading_path` |
+| `text` | The unit's text (whitespace normalised; list-group fragments joined by one space) |
+| `char_start`, `char_end`, `raw_spans` | Position in the cleaned text; position(s) in the Data team `content` |
+| `paragraph_index`, `list_paragraphs`, `list_intro_id` | Paragraph; a list group's paragraphs; a split item's intro `unit_id` |
+| `prefilter` | Why the unit is `not_a_claim` before the LLM; null if sent |
+| `html_table` | Kind of HTML table row the unit sits in: `data`, `layout`, `definition`, or null |
+| `rule_heading`, `lead_source`, `lead_unit_id` | Rule-proposed lead; lead source (`html`, `html_runin`, `rule`); the lead above |
+| `risk_summary` | Inside the risk factor summary of Item 1A |
+| `processing_set_id`, `source_locator` | Data team parse version; XPath of the section |
+| `segmentation_version` | The splitting rules (`kelly_sentence_v15`) |
 
-### `claims.jsonl` (step 7b, input to step 8)
+### Risk files (steps 5 and 5b)
 
-One line per Claim: a statement at one place in a section, so step 8 makes one Claim node per
-line. "Loaded" shows where a field ends up in Neo4j.
+| File | One row per | Fields |
+|---|---|---|
+| `output/risk_categories.csv` | category heading | `risk_category_unit_id`, `category_text`, `risk_summary`, `n_units`, `heading_risk_group`, `map_status` (`group`, `broad`, `not_a_category`, `unmapped`) |
+| `interim/risk_factors.jsonl` | risk factor | `risk_factor_id`, filing and section, `lead_text`, `level`, `unit_ids` |
+| `interim/risk_assignments.jsonl` | Item 1A unit | `unit_id`, `risk_category_unit_id`, `risk_category_text`, `heading_risk_group`, `risk_factor_id`, `risk_summary` |
+| `interim/risk_themes.jsonl` | answered risk factor | `risk_factor_id`, `unit_ids`, `primary_theme`, `secondary_themes` (with `unit_ids`), `notes`, `request_hash`, `model`, `taxonomy_version` |
 
-| Field | Meaning | Loaded |
-|-------|---------|--------|
-| `claim_id` | The unit's `unit_id`: uuid5 of `<accession>\|<section_key>\|<raw_spans>` | `Claim.claim_id` |
-| `quote` | The sentence, exactly as in the Data team `content`; for a multi-fragment unit, its fragments joined by one space | `Claim.quote` |
-| `multi_fragment` | True if the unit has several source fragments (list group, page break): match `source_fragments`, not `quote` | `Claim.multi_fragment` |
-| `claim_type` | `stated_fact`, `forward_looking` or `hedged_risk` | `Claim.claim_type` |
-| `accession_number`, `section_id` | Filing and section the Claim comes from | `Claim`; `Section-[:SUPPORTS]->Claim` |
-| `extraction_status` | Always `needs_review` (no Claim is approved yet) | `Claim.extraction_status` |
-| `context` | Text of the context units the model cited, joined | `Claim.context` |
-| `subject_scope`, `annotation_note` | From the model | `Claim` |
-| `risk_themes` | Themes from step 4c: `theme_id`, `rank` (primary / secondary), `scope` (risk_factor / sentence), `source`, `agrees_with_heading` (primary only), `model`, `taxonomy_version`; empty outside Item 1A risk factors | one `Claim-[:HAS_RISK_THEME]->RiskTheme` per entry, the rest on the edge |
-| `risk_factor_id` | `unit_id` of the lead of the risk factor the Claim is in, or null | `Claim.risk_factor_id` |
-| `risk_category_text`, `risk_category_unit_id` | The Item 1A level-1 heading above the Claim, and its `unit_id` | `Claim` |
-| `heading_risk_group` | Groups that heading names (`risk_category_map.csv`) | `Claim.heading_risk_group` |
-| `risk_theme_status` | `classified`, `unknown`, `not_classified`, `no_risk_factor`, `risk_summary`; null outside Item 1A | `Claim.risk_theme_status` |
-| `is_lead_sentence` | True if the Claim is a lead sentence (sums up the sentences under it; step 4 `lead_source`), in any section | `Claim.is_lead_sentence` |
-| `risk_summary` | True if the Claim is in the risk factor summary at the top of Item 1A | `Claim.risk_summary` |
-| `provenance` | Section key and path, XPath, Data team versions (`processing_set_id`, `report_id`, source hashes), section content hash, `raw_spans`, `context_unit_ids`, `lead_unit_id` and `lead_source` (step 4), `request_hash`, `runner_version`, `model`, `prompt_version` | Part, on `SUPPORTS`: section key and path, `context_unit_ids`, `lead_unit_id` and `lead_source` (step 4), `raw_spans` (as JSON), XPath, source file, `processing_set_id`, `model`, `prompt_version`; step 8 adds the unit's `role` |
-| `candidate_occurrence_id` | sha256 of claim id, section content hash and `raw_spans`; one per Claim (Claudia's field name) | no |
-| `claim_identity_version` | How `claim_id` is made: `source_span_position_v1` (before #45: `exact_source_sentence_v1`, by text). Tells anyone holding claim_ids whether two builds' ids are comparable | no |
-| `section_logical_key`, `section_type` | `<accession>/<section_key>`; the section's Item code | no |
-| `context_evidence` | The cited context units: `unit_id`, `raw_spans` and text | no |
-| `source_fragments`, `parent_paragraph_context` | Start, end and text of the sentence and of its paragraph in the Data team `content` | no |
-| `entity_mentions`, `entity_review_flags`, `entity_annotation_version`, `graph_relations_created` | The model's entity mentions checked against the sentence and catalog (`entity_annotation.py`) | no |
-| `proposed_entity_mentions`, `entity_review`, `postcheck_policy_version` | Segment names found by rule, and the review of the model's mentions (`source_review.py`) | no |
-| `related_segment_ids`, `related_subsidiary_ids` | Segments and subsidiaries the Claim links to (`matched` / `matched_auto` only, step 1c); not loaded yet (#91 P3) | no |
+### `claims.jsonl` (step 9, input to step 10)
 
-## Appendix B: Risk themes
+| Field | Meaning | In Neo4j |
+|---|---|---|
+| `claim_id` | The unit's `unit_id` | `Claim.claim_id` |
+| `quote` | The sentence as in the source; fragments joined by one space | `Claim.quote` |
+| `multi_fragment` | Several source fragments: match `source_fragments`, not `quote` | `Claim.multi_fragment` |
+| `claim_type` | `stated_fact`, `forward_looking`, `hedged_risk` | `Claim.claim_type` |
+| `accession_number`, `section_id` | Filing and section | `Section-[:SUPPORTS]->Claim` |
+| `extraction_status` | Always `needs_review` | `Claim` |
+| `context`, `subject_scope`, `annotation_note` | Cited context text; from the model | `Claim` |
+| `is_lead_sentence`, `risk_summary` | Lead sentence (step 4); in the risk factor summary | `Claim` |
+| `risk_factor_id`, `risk_category_text`, `risk_category_unit_id`, `heading_risk_group` | Step 5 | `Claim` |
+| `risk_theme_status` | `classified`, `unknown`, `not_classified`, `no_risk_factor`, `risk_summary`; null outside Item 1A | `Claim` |
+| `risk_themes` | Step 5b: `theme_id`, `rank`, `scope`, `source`, `agrees_with_heading`, `model`, `taxonomy_version` | one `HAS_RISK_THEME` edge each |
+| `related_subsidiary_ids`, `related_segment_ids` | Matched entity links (6b catalog) | `MENTIONS` edges |
+| `provenance` | Section path, XPath, Data team versions, `raw_spans`, `context_unit_ids`, `lead_unit_id`, `lead_source`, `request_hash`, `model`, `prompt_version` | part, on `SUPPORTS` |
+| `claim_identity_version` | `source_span_position_v1` | no |
+| `context_evidence`, `source_fragments`, `parent_paragraph_context` | Cited units; source pieces and paragraph with positions | no |
+| `entity_mentions`, `entity_review_flags`, `proposed_entity_mentions`, `entity_review` | Model mentions checked against sentence and catalog | no |
 
-Two levels in `config/risk_taxonomy/` (decided 26 Nov 2026; sources and the deliberate differences
-from EY 2016 in its README):
+## Appendix B: Risk taxonomy
+
+`config/risk_taxonomy/` (decided 26 Nov 2026, EY 2016 as the reference; details in its README):
 
 | File | Holds | In the graph |
-|------|-------|--------------|
+|---|---|---|
 | `groups.csv` | 7 coarse groups | `RiskGroup {group_id}` |
-| `themes.csv` | 32 fine themes, each in one group, with the definition the model is given | `RiskTheme {theme_id}` `-[:IN_RISK_GROUP]->` its group |
-| `risk_category_map.csv` | each Item 1A category text -> groups (`group_ids`, `status`, `seen_in`, `note`) | `Claim.heading_risk_group` |
-| `reference_labels.csv` | a draft primary theme per lead text, from the title only | not loaded; compared in `risk_factor_themes.csv` |
+| `themes.csv` | 32 themes, each in one group, with the definition the model sees | `RiskTheme {theme_id}` `-[:IN_RISK_GROUP]->` group |
+| `risk_category_map.csv` | Item 1A category text -> groups (`group`, `broad`, `not_a_category`) | `Claim.heading_risk_group` |
+| `reference_labels.csv` | a draft primary theme per lead text (title only) | not loaded; compared in step 5b's review file |
 
-Each risk factor is classified once (step 4c): one primary theme for all its Claims, up to two
-secondary themes only on their supporting sentences. The filing's own heading stays a Claim
-property; its group is compared with the primary theme's group (`agrees_with_heading`).
-
-**Heading map statuses.** `group`: the heading names the groups in `group_ids` (one or several,
-e.g. MU "Risks Related to Intellectual Property and Litigation" -> `technology_data;legal_regulatory`).
-`broad`: a real category that names no area ("Business Risks", "Risks Related to Our Business and
-Industry", "General Risks"): no comparison. `not_a_category`: a level-1 heading that is no category
-(MCK "INDEX TO RISK FACTORS", MSFT "Item 1B, 1C", NKE "Risk Factors", the risk factor summary
-headings); the categories inside the summary are mapped as usual.
-
-**To add a company:**
-
-1. Run step 7a. Every category of the new filings missing from the map is listed as `unmapped`
-   in the log, in `risk_categories.csv` and in the review report.
-2. Add one row per category text to `config/risk_taxonomy/risk_category_map.csv` (an unknown group,
-   a wrong status or a text listed twice stops the step).
-3. Run step 4c for the new risk factors (saved replies are reused), then 7a again.
-
-## Appendix C: Merge notes with Claudia's code
-
-Claudia ran steps 5 to 8 on the five filings with her own version of this pipeline (handoff
-package `GraphRAG_Five_Filing_Handoff`). Her changes were merged into this code as below.
-The merged step 5 built the same 173 requests as her run, byte for byte. Since then the
-step 2 and 4 fixes changed some of the text sent, the short numbers count within each request
-(`c1` / `s1`, not her `s0042`), the context adds missing list intros, and the request hash
-covers only the request (Cost tracking), so the requests and hashes no longer match hers. These notes describe
-that merge; steps 2 to 8 have changed since ([How it works](#how-it-works)), among them the
-ids (#45: `sentence_id` and `source_unit_key` removed, `claim_id` and every reference by
-`unit_id`; one line of `claim_review_flags()` in her `source_review.py` now reads context by
-`unit_id`, its rules unchanged) and the hold for non-continuous text (removed).
-
-### Taken into this code
-
-- Step 4 (`segment.py`): her version, as it was at the merge ("Restrictions" sentence split,
-  "no material changes" exception, `source_unit_key`).
-- Steps 5 to 7b (`entity_annotation.py`): her module, kept; its prompt text moved into
-  `label_v2.txt`.
-- Steps 4, 6 and 7b (`tests/test_sentence_entities.py`): her test file (sentence boundaries,
-  the step 4 prefilter, entity matching).
-- Step 5 (`label.py`), set up so outputs equal her run:
-  - **Prompt**
-    - Her four prompt pieces (`label_v1.txt`, text in `checked_pilot.py`, text in
-      `entity_annotation.py`, `batch_review_v3.txt`) joined into one file,
-      `prompts/label_v2.txt`; `label_v1.txt` is kept for the record.
-    - `prompt_id` (`kelly_label_v1_entity_mentions_batch_review_v3`) recorded as the prompt
-      version, as in her records; the prompt text is the same.
-  - **Requests**
-    - Batches of 15 sentences, halved when a request is over 35,000 bytes.
-    - US endpoint as the default `base_url`, configurable.
-    - Same request identity and cache folder layout (`data/checked_pilot/`). The identity is
-      still saved in full in `request.json`; since 4 November 2026 `request_hash` covers only
-      the request and the runner version, not the whole identity
-      ([Cost tracking](#cost-tracking)).
-    - `store: false`, `max_completion_tokens`, temperature only for gpt-4.1 and gpt-4o models.
-  - **Cost and safety**
-    - No automatic retry by default; the run stops at a rejected reply (`max_retries: 0`,
-      `stop_on_failure: true`).
-    - No automatic resend: the OpenAI client does not retry; a request with no saved reply
-      stops the run (`attempt.json`).
-    - Source check before sending; request and raw reply saved before parsing.
-    - Fuller usage records, cost estimate with cached-token price, `budget_usd`.
-  - **Reply checks and recovery**
-    - Her reply checks: one complete answer (`finish_reason` "stop"), no refusal, exactly
-      `{"results": [...]}`, JSON schema check, then id and context checks.
-    - `needs_review` label, pipeline-only like `not_a_claim`; `entity_mentions` in the reply.
-    - Her fixes for faulty replies, from `Resume_Five_Filing_Batch_v2.py` and
-      `Run_Three_Target_Repair.py`: unit quarantine (problem sentences become `needs_review`,
-      the rest of the reply is kept) and one targeted repair request for sentences whose number
-      was missing or repeated. Her repair was written for her 3 sentences; here it works for
-      any number. The repair prompt (`prompts/repair_v1.txt`) is her text. Two names are
-      general instead of hers: the schema name `target_gap_repair` (hers
-      `three_target_gap_repair`) and the version `target_repair_v1` (hers
-      `three_target_repair_v1`). Her earlier recovery script (`Resume_Five_Filing_Batch.py`,
-      context only) is covered by the v2 rules.
-- Step 6 (`validate.py`), following her `source_review.py` and `checked_pilot.py`:
-  - Her context checks: no duplicate context ids, context in source order.
-  - A review queue (`output/review_queue.jsonl`); held units do not become Claims.
-  - Her `source_review.py` functions, logic unchanged. On 4 November 2026 the file was
-    reformatted with black (line length 100) in a commit of its own; its syntax tree is
-    identical to her handoff version, so only spacing and line breaks differ. To compare with
-    her handoff line by line, use the version before that commit. Since #45,
-    `claim_review_flags()` looks up context units by `unit_id` instead of joining her short ids
-    to a section prefix; which units it flags is unchanged. Hold rules: `needs_review`, list
-    intro, non-continuous text (removed since, see 3.1), mixed tense, past action with possible
-    future, existing law as risk, and her hard-coded Microsoft product names (moved to `config/settings.yaml`).
-  - Review queue entries in her format, with her flag names and reasons.
-  - Entity checks taken: quote not in the sentence, "the Company" or "we" as an entity, generic
-    references get no id, uncertain type, named subsidiary needing the catalog, and her segment
-    names read from the filing text (`source_review.py`) with the two checks built on them.
-  - On her labels, these rules hold 48 of the 49 units she held. The 49th she held by hand (an
-    impairment-process sentence in Microsoft's 10-Q MD&A); hand decisions are not coded.
-  - Kept, with open points recorded under [Remaining issues](#remaining-issues):
-    - the list-intro rule also holds complete sentences (2.1)
-    - the non-continuous rule depended on how the UI highlights quotes (3.1; removed since)
-    - held units cannot be released yet (1.4)
-  - The same 119 units carry entity flags as in her run.
-  - Taken but specific to these filings ([Remaining issues, Note](#note-rules-that-fit-only-this-data)): the product names and the
-    segment-name patterns.
-- Step 7b (`build_claims.py`): her Claim record, field for field (one record per occurrence,
-  `candidate_occurrence_id`, source fragments, paragraph context, entity review), and her
-  `claim_id` algorithm (exact text, no normalization).
-- Step 8 (`load.py`): reads her record format. Her file uses the old text-keyed `claim_id`, so
-  several lines can share one id; step 8 merges them into one Claim node. Her
-  `candidate_occurrences.jsonl` loads directly when copied to `data/output/claims.jsonl` (2,420
-  Claims, as in the graph loaded earlier).
-
-### Not taken; kept in the handoff package as the record of her run
-
-| File | What it does | Why not taken |
-|------|--------------|---------------|
-| `checked_pilot.py` | Her API-call path | Merged into `label.py` |
-| `five_filing_batch.py` | Locked plan of the 173 batches; refuses to run if any code or input changes | Suited to one fixed run; blocks normal development. Its budget cap is merged |
-| `source_review.py` (her full file) | Rule checks after the LLM, plus an offline review of three earlier entity pilots | Her four rule functions are in `source_review.py` unchanged. The offline pilot review and its hard-coded batch ids are not taken |
-| `tests/test_batch_review_v3.py`, `tests/test_checked_pilot.py` | Tests of checked_pilot.py and five_filing_batch.py | Those two files are not taken; the merged code is tested in tests/test_pipeline.py |
-| `02_code/Run_Five_Filing_Batch.py` | Colab launcher with the whole package embedded in base64 | Replaced by `run_pipeline.py` |
-| `02_code/Load_Five_Filing_Graph.py` | Loads her results with `GRBatch*` labels | `load.py` uses ontology labels with `pipeline_scope` and reads her results directly |
-| Guards in her `label.py`, `build_claims.py`, `load.py` | Disabled the original paths in favour of hers | Not needed with one path |
-| Summary reports: `summary.json`, `section_coverage.json`, `model_target_ledger.jsonl` (written by `five_filing_batch.py` and `Resume_Five_Filing_Batch_v2.py`; final versions `resolved_*` by `Run_Three_Target_Repair.py`) | Counts for the run and per section, and one ledger row per sentence sent to the model | Not written by this code. The same counts can be read from `labels.jsonl`, `review_queue.jsonl` and `claims.jsonl` |
+- The model picks themes, never groups. One primary theme per risk factor on all its Claims;
+  up to two secondaries on their sentences only.
+- **To add a company:** run step 5, add its `unmapped` category texts to `risk_category_map.csv`,
+  run step 5b for its risk factors (saved replies are reused).
+- Merge notes with Claudia's code (the five-filing handoff): `docs/merge-notes-claudia.md`.
