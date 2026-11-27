@@ -9,6 +9,7 @@ The same contract holds whether you call over MCP or import `graphrag.backends` 
 - [The tools](#the-tools)
 - [Arguments](#arguments)
 - [Filters: what each arm does with each key](#filters-what-each-arm-does-with-each-key)
+- [`describe_corpus`: which filers, and which years](#describe_corpus-which-filers-and-which-years)
 - [The response](#the-response)
 - [The decision: status and reason](#the-decision-status-and-reason)
 - [Evidence fields](#evidence-fields)
@@ -25,6 +26,7 @@ The same contract holds whether you call over MCP or import `graphrag.backends` 
 | `graph_search(query, filters, top_k, trace_id)` | Claims extracted from filing prose, over a Neo4j full-text index on the claim sentence | What a company **said** — risks, commitments, descriptions |
 | `structured_search(query, filters, top_k, trace_id)` | An XBRL fact table in DuckDB, matched on concept and dimensions | What a company **reported** — a tagged number with its period |
 | `describe_filters()` | Nothing; it reports what the two arms do with each filter key | Before you send filters |
+| `describe_corpus()` | Nothing; it reports which filers each arm holds | Once at startup, instead of keeping a company list |
 
 Both return evidence, never an answer. `cypher_search` — generated Cypher — exists as a seam and is not served: it raises until a backend registers, and a tool that always fails is worse than an absent one.
 
@@ -143,6 +145,51 @@ One row per piece of evidence, nineteen fields, the same nineteen from both arms
 | `model` | graph | The model that labelled the claim |
 | `hops` | graph | Always `3`: `Claim → Section → Filing → Company`, walked to fill the envelope |
 | `extraction_status` | graph | ⚠️ Always `needs_review` for every claim, so it carries no information today (#119) |
+
+## `describe_corpus`: which filers, and which years
+
+Read it at startup rather than keeping a company list by hand. It is derived from the arms, so it
+cannot go stale, and each arm answers for itself.
+
+One filer, as returned:
+
+```json
+{
+  "ticker": "AAPL",
+  "cik": "0000320193",
+  "company_name": "Apple Inc.",
+  "forms": [
+    "10-K",
+    "10-Q"
+  ],
+  "filings": 3,
+  "fiscal_years": [
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "reporting_period_end": {
+    "earliest": "2016-08-30",
+    "latest": "2026-07-17"
+  }
+}
+```
+
+⚠️ **The two arms do not accept the same fiscal years.** A 10-K carries several years of
+comparative figures, so the structured arm answers about years the graph arm has no claims for —
+from the same twenty filings, Apple is **FY2023–2026** on the structured arm and **FY2025–2026**
+on the graph arm. Check the arm you are about to call.
+
+⚠️ **Join the arms on `cik`, not on the name.** They load from different sources: `Apple Inc.` on
+one and `MICROSOFT CORP` on the other.
+
+`reporting_period_end` is the span of periods the arm holds, not of filings. On the structured arm
+it reaches back further than the filing dates, because a filing's comparatives carry older
+periods.
+
+An arm that could not be reached reports `unavailable` with the reason, rather than an empty filer
+list — an empty list would read as "we do not hold that company".
 
 ## A call and its answer, over the wire
 

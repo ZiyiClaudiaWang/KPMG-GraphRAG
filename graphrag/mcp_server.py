@@ -68,7 +68,7 @@ try:
 except ImportError:  # pragma: no cover - 3.12+ without typing_extensions
     from typing import TypedDict
 
-from . import backends, contract, retrieve, vocabulary
+from . import backends, contract, corpus as corpus_module, retrieve, vocabulary
 
 _ROOT = Path(__file__).resolve().parent.parent
 
@@ -169,6 +169,35 @@ class SearchResponse(TypedDict):
     results: list[Evidence]
     count: int
     arm: str
+    graphrag_commit: str
+
+
+class Filer(TypedDict):
+    """One company an arm can answer about."""
+
+    ticker: str
+    cik: str | None
+    company_name: str
+    forms: list[str]
+    filings: int
+    fiscal_years: list[int]
+    reporting_period_end: dict[str, str]
+
+
+class ArmCorpus(TypedDict, total=False):
+    """What one arm holds, or why it could not say."""
+
+    filers: list[Filer]
+    tickers: list[str]
+    filings: int
+    unavailable: str
+
+
+class CorpusResponse(TypedDict):
+    """What each arm holds. The two can differ, so each answers for itself."""
+
+    graph: ArmCorpus
+    structured: ArmCorpus
     graphrag_commit: str
 
 
@@ -276,7 +305,28 @@ def describe_filters() -> FiltersResponse:
     }
 
 
-TOOLS = (graph_search, structured_search, describe_filters)
+def describe_corpus() -> CorpusResponse:
+    """Which filers each arm can answer about, and in which fiscal years.
+
+    Call it once at startup instead of keeping a company list by hand. Read
+    from the arms, so it cannot go stale.
+
+    ⚠️ **The two arms do not hold the same years.** A 10-K carries several
+    years of comparative figures, so the structured arm answers about years
+    the graph arm has no claims for — AAPL is FY2023–2026 structured and
+    FY2025–2026 graph, from the same twenty filings. Check the arm you are
+    about to call, not the other one.
+
+    `fiscal_years` are the values that arm will accept as `fiscal_year`,
+    derived from its own calendar. Join the two arms on `cik`: they load from
+    different sources and spell a name differently.
+    """
+    report = corpus_module.corpus()
+    report["graphrag_commit"] = commit()
+    return report
+
+
+TOOLS = (graph_search, structured_search, describe_filters, describe_corpus)
 
 
 # What the arms raise on purpose, and a caller can act on: a filter this arm

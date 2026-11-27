@@ -173,10 +173,11 @@ def server():
     return mcp_server.build_server()
 
 
-def test_three_tools_are_published(server, anyio_backend="asyncio"):
+def test_the_published_tools_are_the_ones_we_mean(server):
     import asyncio
     names = {t.name for t in asyncio.run(server.list_tools())}
-    assert names == {"graph_search", "structured_search", "describe_filters"}
+    assert names == {"graph_search", "structured_search",
+                     "describe_filters", "describe_corpus"}
 
 
 def test_cypher_is_not_published(server):
@@ -280,3 +281,39 @@ def test_the_mock_arms_serve_the_same_tools(server):
     finally:
         retrieve.configure_graph_backend(None)
         retrieve.configure_structured_backend(None)
+
+
+# ---- describe_corpus -------------------------------------------------------
+
+def test_the_corpus_tool_is_published(server):
+    import asyncio
+    names = {t.name for t in asyncio.run(server.list_tools())}
+    assert "describe_corpus" in names
+
+
+def test_an_unreachable_arm_says_so_rather_than_holding_nothing(monkeypatch):
+    """An empty filer list reads as "we do not hold that company". An arm
+    that could not be asked has to say that instead."""
+    from graphrag import corpus as corpus_module
+
+    def fails():
+        raise RuntimeError("no store configured")
+
+    monkeypatch.setattr(corpus_module, "_structured_corpus", fails)
+    monkeypatch.setattr(corpus_module, "_graph_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0})
+
+    report = corpus_module.corpus()
+    assert "unavailable" in report["structured"]
+    assert "no store configured" in report["structured"]["unavailable"]
+    assert "unavailable" not in report["graph"]
+
+
+def test_the_fiscal_years_come_from_the_arms_own_labels():
+    """They are what that arm accepts as fiscal_year, not a calendar range."""
+    from graphrag import corpus as corpus_module
+
+    calendar = {"MSFT": {"FY 2026": (None, None), "Q3 2026": (None, None),
+                         "Q1 2027": (None, None)}}
+    assert corpus_module._years(calendar, "MSFT") == [2026, 2027]
+    assert corpus_module._years(calendar, "AAPL") == []
