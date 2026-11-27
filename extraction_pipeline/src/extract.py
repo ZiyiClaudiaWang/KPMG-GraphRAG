@@ -69,12 +69,12 @@ DIRECTIONS = ("increase", "decrease", "unchanged", "none")
 EMPTY = {"entity_mentions": [], "metrics": [], "event_type": None, "affected_object": []}
 
 
-def config() -> dict:
+def config(model: str | None = None) -> dict:
     """extract: settings with prices (llm/cost.py), plus step 7's batching keys."""
     cfg = {k: v for k, v in settings()["label"].items()
            if k in ("context_sentences", "batch_max_sentences", "max_request_bytes", "temperature",
                     "reuse_repeats")}
-    cfg.update(step_cfg(STEP))
+    cfg.update(step_cfg(STEP, model))
     return cfg
 
 
@@ -179,8 +179,9 @@ def rows_from(plan: dict, record: dict, results: list[dict], texts: dict[str, st
     return out, dropped
 
 
-def run(dry_run: bool = False, limit: int | None = None, workers: int | None = None) -> None:
-    cfg = config()
+def run(dry_run: bool = False, limit: int | None = None, workers: int | None = None,
+        model: str | None = None, compare: bool = False) -> None:
+    cfg = config(model)
     units = list(read_jsonl(Paths.sentences()))
     labels = reviewed_labels()
     claims = targets(units, labels, assume_unlabelled=dry_run)
@@ -199,6 +200,9 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
     log(STEP, f"{len(claims)} Claims: {len(claims) - len(reuse)} to send in {len(first_round)} requests, "
               f"{len(reuse)} copy an earlier filing's extraction; about ${typical:.2f} typical, "
               f"${worst:.2f} worst case ({cfg['model']})")
+    if compare:
+        from .llm.cost import compare_models
+        compare_models(STEP, first_round, cfg, [], log, estimator=estimate)
     if dry_run:
         return
 
@@ -281,8 +285,11 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="plan and estimate cost only")
     parser.add_argument("--limit", type=int, help="send at most this many new requests")
     parser.add_argument("--workers", type=int, help="requests in flight at once (default extract.concurrency)")
+    parser.add_argument("--model", help="use this model instead of settings.yaml extract.model (a trial)")
+    parser.add_argument("--compare", action="store_true", help="dry run: cost with every model in settings prices:")
     args = parser.parse_args()
-    run(dry_run=args.dry_run, limit=args.limit, workers=args.workers)
+    run(dry_run=args.dry_run or args.compare, limit=args.limit, workers=args.workers, model=args.model,
+        compare=args.compare)
 
 
 if __name__ == "__main__":
