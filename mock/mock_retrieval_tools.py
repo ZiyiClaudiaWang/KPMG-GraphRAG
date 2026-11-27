@@ -128,6 +128,32 @@ def _tokens(text):
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 
+# A segment as a reader names it, and the member a filer tags it with. The
+# real arm returns the tag, so the mock has to as well: a consumer that reads
+# `member` and gets "Intelligent Cloud" here will get
+# "msft:IntelligentCloudMember" from the arm and match neither.
+_SEGMENT_MEMBERS = {
+    "Intelligent Cloud": "msft:IntelligentCloudMember",
+}
+
+
+def _dimensions(segment):
+    """The shape the real structured arm returns: a list of records.
+
+    This was a dict keyed by axis name. Both are truthy JSON containers, so a
+    consumer written against the dict carried on against the arm's list with
+    the wrong values and nothing raised. A dict cannot hold `type` either —
+    an axis is explicit or typed, and the distinction is real.
+    """
+    if not segment:
+        return []
+    return [{
+        "axis": "srt:StatementBusinessSegmentsAxis",
+        "member": _SEGMENT_MEMBERS.get(segment, segment),
+        "type": "explicit",
+    }]
+
+
 def _overlap(query, text):
     q = _tokens(query)
     if not q:
@@ -280,10 +306,13 @@ def structured_search(
                 "value_num": row["value_num"],
                 "period_start": "2026-01-01",
                 "period_end": "2026-03-31",
-                "dimensions": (
-                    {"StatementBusinessSegmentsAxis": row["segment"]}
-                    if row["segment"] else {}
-                ),
+                # A list of records, the shape the real arm returns. It was a
+                # dict keyed by axis here, and both are truthy JSON
+                # containers, so a consumer written against this one carried
+                # on against the real arm with the wrong values and nothing
+                # raised. A dict cannot hold `type` either: an axis is
+                # explicit or typed, and that distinction is real.
+                "dimensions": _dimensions(row["segment"]),
                 "retrieval_method": "mock_keyword_overlap",
             },
         ))

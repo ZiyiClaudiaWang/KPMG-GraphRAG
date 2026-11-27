@@ -141,8 +141,12 @@ def test_dimensional_facts_are_distinguishable_from_totals():
     part = by_id["fact-msft-26q3-revenue-ic"]
     assert total["concept"] == part["concept"]
     assert total["period_end"] == part["period_end"]
-    assert total["dimensions"] == {}
-    assert part["dimensions"]["StatementBusinessSegmentsAxis"] == "Intelligent Cloud"
+    assert total["dimensions"] == []
+    assert part["dimensions"] == [{
+        "axis": "srt:StatementBusinessSegmentsAxis",
+        "member": "msft:IntelligentCloudMember",
+        "type": "explicit",
+    }]
 
 
 @pytest.mark.parametrize("tool,allowed", TOOLS)
