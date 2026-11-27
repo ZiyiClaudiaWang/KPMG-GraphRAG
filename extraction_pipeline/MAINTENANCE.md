@@ -14,7 +14,8 @@ python run_pipeline.py --steps label --dry-run
 
 - `fetch` checks exports against `config/filings.yaml`. Add or remove filings there for a planned corpus change.
 - `clean` removes page furniture and repairs paragraphs. `filter` selects sections according to `config/sections.yaml` and records those decisions in `output/section_manifest.csv`.
-- `segment` writes `output/sentences.jsonl`. Each unit carries its filing, section key and raw source spans. Review headings, bullets and page-break examples when changing `src/clean.py`, `src/segment.py` or the corresponding settings.
+- `segment` writes `output/sentences.jsonl`. Each unit carries its filing, section key and raw source spans. Review headings, bullets and page-break examples when changing `src/clean.py`, the `src/segment/` package, `src/headings/` or the corresponding settings.
+- Every unit records the `segmentation_version` that produced it, and which prefilter it was given. **Quote both beside any count of what `segment` kept or dropped.** The versions move: the frozen pilot run is `kelly_sentence_v3`, and `kelly_sentence_v9` added a `definition` prefilter and reclassified several hundred units between `table_residue` and the LLM. A sentence or claim count without its version is not comparable to another run's.
 - The label dry run reports the planned work and estimated worst-case cost without sending new requests. It writes local planning and label outputs, so run it in a separate data directory when preserving an existing run matters.
 
 ## Stage 2. Label units, validate them and build Claims
