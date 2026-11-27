@@ -149,6 +149,8 @@ class Paths:
     review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 8
     claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 9
     claim_id_report = staticmethod(lambda: data_dir() / "output" / "claim_id_report.json")  # step 9
+    claim_links = staticmethod(lambda: data_dir() / "output" / "claim_links.jsonl")        # step 9b
+    usage_claim_links = staticmethod(lambda: data_dir() / "output" / "usage_claim_links.jsonl")  # step 9b
     cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 10
 
 # ---------- files ----------

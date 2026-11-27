@@ -109,8 +109,25 @@ prices:
   gpt-5.4:      {input: 2.50, cached_input: 0.25,  output: 15.00, regional_uplift: true}
   gpt-5.5:      {input: 5.00, cached_input: 0.50,  output: 30.00, regional_uplift: true}
 
+claim_links:                         # step 9b: Claims with the same or similar text (src/claim_links.py)
+  edit:                              # NEAR_TEXT (Claudia's #111): difflib on tokens
+    min_similarity: 0.90             # a link at this token similarity or more (or one token changed)
+    report_min: 0.80                 # scores.csv also counts pairs down to this, to choose min_similarity
+    min_tokens: 6                    # shorter quotes are not compared
+    max_bucket: 500                  # a 3-token anchor shared by more earlier Claims is too common to use
+  semantic:                          # SIMILAR_TO: OpenAI embeddings (paid; base_url = label.base_url)
+    compute: false                   # true, or --semantic, to build it
+    model: text-embedding-3-small    # $0.02 per 1M tokens; text-embedding-3-large $0.13
+    price_per_1m: 0.02
+    budget_usd: 2.0                  # this layer only (output/usage_claim_links.jsonl)
+    batch: 256                       # texts per request
+    top_k: 5                         # nearest Claims kept per Claim
+    min_score: 0.85                  # cosine for a link; to be set from scores.csv
+    report_min: 0.70                 # scores.csv counts pairs down to this
+
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
+  claim_links: {exact: false, edit: false, semantic: false}   # step 9b layers loaded into Neo4j
 
 report:                              # python -m src.checks.report (checks of steps 1-6, README "What to review"); read by no step
   big_change_pct: 5                  # warn when one of these moves more than this % from the last report

@@ -21,6 +21,8 @@ Steps, in order (the number is the README's):
   7   label          labels.jsonl: one label per sentence (paid)
   8   validate       errors.jsonl, review_queue.jsonl
   9   build_claims   claims.jsonl
+  9b  claim_links    claim_links.jsonl: Claims with the same or similar text in other filings
+                     (no LLM; the semantic layer is paid and off unless claim_links.semantic.compute)
   10  load           Neo4j (Claims, risk themes, subsidiaries, segments)
 
   python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
@@ -43,13 +45,14 @@ import argparse
 import sys
 import time
 
-from src import build_claims, clean, fetch, filter_sections, headings, label, load, page_breaks, segment, validate
+from src import (build_claims, claim_links, clean, fetch, filter_sections, headings, label, load, page_breaks,
+                 segment, validate)
 from src.checks import report, unit_repeats
 from src.entities import catalog as entity_catalog, subsidiaries
 from src.risk import factors as risk_factors, themes as risk_themes
 
 STEPS = ["fetch", "page_breaks", "clean", "filter", "headings", "segment", "risk_factors", "risk_themes",
-         "subsidiaries", "entity_catalog", "label", "validate", "build_claims", "load"]
+         "subsidiaries", "entity_catalog", "label", "validate", "build_claims", "claim_links", "load"]
 OPT_IN = {"page_breaks"}                  # paid; only when named in --steps
 SEND_WHEN_NAMED = {"risk_themes"}         # paid; in a default run it reads saved replies only
 # Steps the review report covers (no labels needed): a run with any of them ends with the report.
@@ -94,6 +97,7 @@ def main() -> None:
         "validate": validate.run,
         "risk_factors": risk_factors.run,
         "build_claims": build_claims.run,
+        "claim_links": lambda: claim_links.run(dry_run=args.dry_run),
         "load": lambda: load.run(dry_run=args.dry_run),
     }
     for step in STEPS:                    # always run in pipeline order

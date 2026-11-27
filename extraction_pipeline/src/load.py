@@ -26,6 +26,12 @@ Graph (names from the ontology):
   (Company)-[:OWNS]->(Subsidiary)
   (Company)-[:HAS_SEGMENT]->(Segment)
   (Claim)-[:MENTIONS]->(Subsidiary | Segment)
+  (Claim)-[:SAME_TEXT | NEAR_TEXT | SIMILAR_TO]->(Claim)   step 9b, only layers switched on
+
+Claim links (step 9b, data/output/claim_links.jsonl): a layer is loaded only when
+load.claim_links.<layer> is true (exact, edit, semantic; all false by default). The edge points
+from the later Claim to the earlier one and carries layer, same_company, the two accessions and
+the layer's score (similarity + changes as JSON text for NEAR_TEXT, score + model for SIMILAR_TO).
 
 Segment nodes come from the XBRL segment members in data/entity_catalog.json (step 6b), keyed
 by segment_id (uuid5 of cik + normalised name). Like OWNS, HAS_SEGMENT is one edge per filing
@@ -177,6 +183,14 @@ MATCH (g:Segment {segment_id: r.entity_id, pipeline_scope: $scope})
 MERGE (c)-[m:MENTIONS {pipeline_scope: $scope}]->(g)
 SET m += r.props""",
 }
+# Step 9b Claim links: one query per layer (a relationship type cannot be a parameter).
+for _layer, _rel in (("exact", "SAME_TEXT"), ("edit", "NEAR_TEXT"), ("semantic", "SIMILAR_TO")):
+    QUERIES[f"claim_links_{_layer}"] = f"""
+UNWIND $rows AS r
+MATCH (a:Claim {{claim_id: r.from_claim_id, pipeline_scope: $scope}})
+MATCH (b:Claim {{claim_id: r.to_claim_id, pipeline_scope: $scope}})
+MERGE (a)-[x:{_rel} {{pipeline_scope: $scope}}]->(b)
+SET x += r.props"""
 
 COUNT_QUERY = """
 MATCH (n {pipeline_scope: $scope})
@@ -293,6 +307,22 @@ def mention_rows(occurrences: list[dict]) -> dict[str, list[dict]]:
     return {k: list(v.values()) for k, v in out.items()}
 
 
+def claim_link_rows() -> dict[str, list[dict]]:
+    """Step 9b links of the layers switched on in load.claim_links (all off by default)."""
+    on = settings()["load"].get("claim_links") or {}
+    out: dict[str, list[dict]] = {layer: [] for layer in ("exact", "edit", "semantic")}
+    if not any(on.values()) or not Paths.claim_links().exists():
+        return out
+    for l in read_jsonl(Paths.claim_links()):
+        if on.get(l["layer"]):
+            props = {k: v for k, v in l.items() if k not in ("from_claim_id", "to_claim_id", "relationship")}
+            if "changes" in props:
+                props["changes"] = json.dumps(props["changes"], ensure_ascii=False)   # Neo4j: no maps in lists
+            out[l["layer"]].append({"from_claim_id": l["from_claim_id"], "to_claim_id": l["to_claim_id"],
+                                    "props": props})
+    return out
+
+
 def build_rows() -> dict[str, list[dict]]:
     roles = {u["unit_id"]: u["role"] for u in read_jsonl(Paths.sentences())} \
         if Paths.sentences().exists() else {}
@@ -333,7 +363,8 @@ def build_rows() -> dict[str, list[dict]]:
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
     mentions = mention_rows(occurrences)
-    return {"companies": list(companies.values()), "filings": list(filing_rows.values()),
+    links = claim_link_rows()
+    return {**{f"claim_links_{layer}": rows for layer, rows in links.items()},"companies": list(companies.values()), "filings": list(filing_rows.values()),
             "sections": list(sections.values()), "risk_groups": groups, "risk_themes": themes,
             "claims": claim_rows,
             "subsidiaries": subsidiaries, "segments": segment_rows(),
