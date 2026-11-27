@@ -13,6 +13,9 @@ FILINGS = """filings:
   - {ticker: TST, form: 10-K, reporting_period_end: "2022-12-31", accession: A1}
   - {ticker: TST, form: 10-K, reporting_period_end: "2023-12-31", accession: A2}
   - {ticker: TST, form: 10-K, reporting_period_end: "2024-12-31", accession: A3}
+  - {ticker: TST, form: 10-Q, reporting_period_end: "2025-03-31", accession: Q1}
+  - {ticker: TST, form: 10-Q, reporting_period_end: "2025-06-30", accession: Q2}
+  - {ticker: TST, form: 10-Q, reporting_period_end: "2025-09-30", accession: Q3}
 """
 MAP = {"business risks": ["business_operations"], "legal risks": ["legal_regulatory"],
        "risk factor summary": []}
@@ -65,6 +68,9 @@ class TestCategoryChecks(unittest.TestCase):
             u.category(acc, "Business Risks")
             if acc != "A2":
                 u.category(acc, "Legal Risks")
+        for acc in ("Q1", "Q3"):                                              # a 10-Q gap (Q2) is not flagged
+            u.category(acc, "Quarterly Risks", form="10-Q", section_key="part-ii-item-1a")
+        u.category("Q2", "Other Risks", form="10-Q", section_key="part-ii-item-1a")
         _, _, rows = self.run_checks(u)
         gaps = [r for r in rows if r["check"] == "year_gap"]
         self.assertEqual([(r["accession_number"], r["text"], r["reporting_period_end"]) for r in gaps],

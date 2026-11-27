@@ -108,8 +108,9 @@ def assign(units: list[dict], mapping: dict[str, list[str]]) -> tuple[list[dict]
 # ---------- review: are the categories complete? ----------
 
 CATEGORY_CHECKS = [
-    ("year_gap", "A category this company's filings of the same form have just before and just after, "
-                 "missing here: a level-1 heading read as a lower level or not found?"),
+    ("year_gap", "A category this company's 10-Ks have the year before and the year after, missing here: a "
+                 "level-1 heading read as a lower level or not found? (10-Qs left out: their Item 1A lists "
+                 "only the risks that changed)"),
     ("summary_mismatch", "A category the risk factor summary lists with no level-1 heading of that text in the "
                          "full text: missed, or worded differently in the summary?"),
     ("risk_heading_below_1", "An Item 1A heading below level 1 that names a group of risks ('Risks related to "
@@ -143,11 +144,13 @@ def category_checks(units: list[dict], categories: list[dict]) -> list[dict]:
     # year_gap: neighbours in period order, among the filings of a company and form that have categories
     keys: dict[str, set] = defaultdict(set)
     for c in categories:
-        if not c["risk_summary"]:
+        if not c["risk_summary"] and c["form"] == "10-K":
             keys[c["accession_number"]].add(category_key(c["category_text"]))
     series: dict[tuple, list[str]] = defaultdict(list)
     for c in categories:
         acc = c["accession_number"]
+        if c["form"] != "10-K":
+            continue
         if acc not in series[(c["ticker"], c["form"])]:
             series[(c["ticker"], c["form"])].append(acc)
     first_unit = {}
