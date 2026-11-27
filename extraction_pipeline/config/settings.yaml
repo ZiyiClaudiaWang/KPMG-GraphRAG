@@ -10,6 +10,10 @@ subsidiaries:                        # step 6a
   # accession -> the 10-K it points to. Not flagged in the report; no rows are copied over.
   ex21_by_reference:
     0001628280-26-057139: 0000106040-25-000038   # WDC FY2026 -> FY2025 10-K (exhibit index, checked 27 Nov)
+  big_change_min_rows: 20             # report subsidiaries.big_year_changes: no flag below this many rows
+  big_change_reviewed:                 # 10-Ks whose big change is explained (report leaves them out)
+    0000076334-23-000042: Meggitt acquisition (Sept 2022)
+    0000106040-25-000038: Sandisk (flash business) separated Feb 2025
 clean:
   repeated_paragraph_min_count: 5   # a short paragraph seen this often in one filing is a page header
   repeated_paragraph_max_chars: 90

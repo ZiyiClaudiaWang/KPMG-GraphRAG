@@ -25,11 +25,17 @@ class TestReportEntityInputs(unittest.TestCase):
         self.assertEqual(rep.repeats(rows), [])
 
     def test_big_change_between_years_is_flagged(self):
-        rows = [row(f"s{i}", "x", f"x{i}", "k1", "2023-06-30") for i in range(10)]
-        rows += [row(f"s{i}", "x", f"x{i}", "k2", "2024-06-30") for i in range(3)]
+        rows = [row(f"s{i}", "x", f"x{i}", "k1", "2023-06-30") for i in range(30)]
+        rows += [row(f"s{i}", "x", f"x{i}", "k2", "2024-06-30") for i in range(9)]
         years = rep.subsidiaries_by_year(rows)
         self.assertEqual([y["flag"] for y in years], ["", "BIG CHANGE"])
         self.assertEqual(years[1]["change"], -0.7)
+
+    def test_small_lists_are_not_flagged(self):
+        # settings.yaml subsidiaries.big_change_min_rows: 5 -> 10 subsidiaries is no news
+        rows = [row(f"s{i}", "x", f"x{i}", "k1", "2023-06-30") for i in range(5)]
+        rows += [row(f"s{i}", "x", f"x{i}", "k2", "2024-06-30") for i in range(10)]
+        self.assertEqual([y["flag"] for y in rep.subsidiaries_by_year(rows)], ["", ""])
 
 
 if __name__ == "__main__":

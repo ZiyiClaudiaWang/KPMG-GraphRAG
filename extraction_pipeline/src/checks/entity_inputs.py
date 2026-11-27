@@ -26,7 +26,7 @@ import csv
 import json
 from collections import Counter, defaultdict
 
-from ..common import Paths, checks_dir, filings, log, read_jsonl, write_csv
+from ..common import Paths, checks_dir, filings, log, read_jsonl, settings, write_csv
 
 STEP = "report_entity_inputs"
 BIG_CHANGE = 0.5        # a 10-K whose row count moves by more than half from the year before
@@ -40,14 +40,22 @@ def _read_csv(path):
 
 
 def subsidiaries_by_year(rows: list[dict]) -> list[dict]:
+    """Subsidiary rows per 10-K and the change from the 10-K before. A change is flagged when it
+    is over BIG_CHANGE, the larger count has at least settings.yaml subsidiaries.big_change_min_rows
+    (5 -> 10 rows is no news) and the 10-K is not in subsidiaries.big_change_reviewed."""
+    cfg = settings().get("subsidiaries") or {}
+    min_rows = int(cfg.get("big_change_min_rows") or 0)
+    reviewed = cfg.get("big_change_reviewed") or {}
     per = Counter((r["parent_ticker"], r["reporting_period_end"], r["accession_number"]) for r in rows)
     out, last = [], {}
     for (ticker, period, acc), n in sorted(per.items()):
         before = last.get(ticker)
         change = "" if before is None else round((n - before) / before, 2)
+        big = change != "" and abs(change) > BIG_CHANGE and max(n, before) >= min_rows
+        flag = ("BIG CHANGE (reviewed: " + str(reviewed[acc]) + ")" if big and acc in reviewed
+                else "BIG CHANGE" if big else "")
         out.append({"ticker": ticker, "reporting_period_end": period, "accession": acc, "rows": n,
-                    "rows_10k_before": "" if before is None else before, "change": change,
-                    "flag": "BIG CHANGE" if change != "" and abs(change) > BIG_CHANGE else ""})
+                    "rows_10k_before": "" if before is None else before, "change": change, "flag": flag})
         last[ticker] = n
     return out
 
@@ -129,7 +137,7 @@ def run() -> None:
     print(f"  same subsidiary twice in one 10-K: {same}  (should be 0; repeats.csv)")
     print(f"  one core name, several legal entities in one 10-K: {len(reps) - same}  (repeats.csv)")
     print(f"  possible renames between years: {len(renames)}  (subsidiary_renames.csv)")
-    big = [y for y in years if y["flag"]]
+    big = [y for y in years if y["flag"] == "BIG CHANGE"]
     print(f"  10-Ks whose row count moved by more than {int(BIG_CHANGE * 100)}% from the year before: {len(big)}")
     for y in big:
         print(f"    {y['ticker']:5} {y['reporting_period_end']}  {y['rows_10k_before']} -> {y['rows']}")

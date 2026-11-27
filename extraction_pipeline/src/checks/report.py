@@ -293,7 +293,7 @@ def subsidiaries_numbers() -> tuple[dict, list, list]:
     not_ok = [q for q in qa if q["status"] != "OK" and not q["status"].startswith(BY_REFERENCE)]
     by_ref = [q for q in qa if q["status"].startswith(BY_REFERENCE)]
     unchecked = [f for a, f in ten_ks.items() if a not in {q["accession"] for q in qa}]
-    big = [r for r in subsidiaries_by_year(rows) if r["flag"]]
+    big = [r for r in subsidiaries_by_year(rows) if r["flag"] == "BIG CHANGE"]
     m = {"10k_in_filings": len(ten_ks), "10k_checked": len(qa), "10k_unchecked": len(unchecked),
          "10k_not_ok": len(not_ok), "rows": len(rows), "distinct_subsidiaries": len(catalog),
          "renames": len(renames), "renames_not_reviewed": sum(1 for r in renames if not r["review"]),
