@@ -6,11 +6,11 @@ looks count as a lead (source):
 
   html         a block of its own whose whole text is bold, italic or underlined, a full sentence
                (lead_min_words..lead_max_words, ends in . ? !), followed by a plain block of text
-               or by a block step 4b reads as a heading (MSFT: a bold lead, then an italic
+               or by a block step 3b reads as a heading (MSFT: a bold lead, then an italic
                sub-topic heading "Competition in the technology sector")
                (blocks without a letter in between, such as a page number, are passed over)
                (MU "We are subject to counterparty default risks." / "We have numerous
-               arrangements ..."). The Item 1A headings step 4b reads as sentences (level -1,
+               arrangements ..."). The Item 1A headings step 3b reads as sentences (level -1,
                reason lead_sentence: AMZN "Our International Operations Expose Us to a Number of
                Risks") are leads too, and so is a styled Title Case line in Item 1A too long to be
                a heading candidate (is_title_line).
@@ -18,7 +18,7 @@ looks count as a lead (source):
                (MSFT "Competition in the technology sector may harm our business." then the text
                about it in the same paragraph); at least runin_min_words words.
 
-Never a lead: a block in a table or a table of contents, a block step 4b reads as a heading
+Never a lead: a block in a table or a table of contents, a block step 3b reads as a heading
 (any level but -1), a short title-case line ending in a period ("Flexible Work.", a run-in
 heading: segment/headings.is_period_heading), and a styled sentence next to another styled sentence or
 block (a run of them is emphasis, not a lead).
@@ -67,7 +67,7 @@ def is_title_line(text: str, min_words: int, max_words: int) -> bool:
     """A Title Case line with no end punctuation: every word of 4+ letters capitalised. In Item 1A
     such a styled block is a risk factor's title, a lead (AMZN "We Face Risks Related to Adequately
     Protecting Our Intellectual Property Rights and Being Accused of Infringing Intellectual Property
-    Rights of Third Parties": over the 150 characters of a heading candidate, so step 4b never sees it)."""
+    Rights of Third Parties": over the 150 characters of a heading candidate, so step 3b never sees it)."""
     words = re.findall(r"[A-Za-z][A-Za-z'’-]*", text)
     return (not re.search(r"[.?!:;,]$", text.strip()) and min_words <= len(text.split()) <= max_words
             and not re.match(r"(?i)(?:part\s+[iv]+\W*)?item\s+\d", text)
@@ -133,7 +133,7 @@ def section_leads(section: dict, blocks: list[Block], text: str, rows: list[dict
     lo = section["offset_start"]
     hi = lo + len(section["content"])
     out: list[dict] = []
-    headings = []                                   # spans step 4b reads as headings (any level but -1)
+    headings = []                                   # spans step 3b reads as headings (any level but -1)
     for r in rows:
         start = int(r["heading_id"].rsplit("|", 1)[1])
         span = (start, start + len(r["text"]))

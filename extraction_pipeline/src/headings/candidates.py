@@ -33,7 +33,7 @@ def leads_path():
 
 def load_leads() -> dict[str, dict]:
     """accession -> {"html": bool, "leads": {section_key: [{start, end, source, text}, ...]},
-    "runin_headings": {section_key: [{start, end, text}, ...]}}; empty when step 4b has not run.
+    "runin_headings": {section_key: [{start, end, text}, ...]}}; empty when step 3b has not run.
     A filing it does not list counts as one without HTML. A file from before run-in headings
     has none."""
     path = leads_path()
@@ -57,7 +57,7 @@ def tables_path():
 
 def load_tables() -> dict[str, dict]:
     """accession -> {"html": bool, "rows": {section_key: [{start, end, kind, table}, ...]}};
-    empty when step 4b has not run. A filing it does not list counts as one without HTML
+    empty when step 3b has not run. A filing it does not list counts as one without HTML
     (step 4 then keeps its text rule for tables)."""
     path = tables_path()
     if not path.exists():
@@ -71,12 +71,12 @@ def load_tables() -> dict[str, dict]:
     return out
 
 
-# 4b reasons that only repeat the level of the heading before (levels.py): not evidence of depth.
+# 3b reasons that only repeat the level of the heading before (levels.py): not evidence of depth.
 SIBLING_REASONS = frozenset({"inside_paragraph", "plain_style", "unmatched", "missing_html"})
 
 
 def load_levels() -> dict[str, int]:
-    """heading id -> level; empty when step 4b has not run."""
+    """heading id -> level; empty when step 3b has not run."""
     path = levels_path()
     if not path.exists():
         return {}
@@ -84,7 +84,7 @@ def load_levels() -> dict[str, int]:
 
 
 def load_guessed_levels() -> set[str]:
-    """heading ids whose level 4b only guessed from the heading before (SIBLING_REASONS)."""
+    """heading ids whose level 3b only guessed from the heading before (SIBLING_REASONS)."""
     path = levels_path()
     if not path.exists():
         return set()

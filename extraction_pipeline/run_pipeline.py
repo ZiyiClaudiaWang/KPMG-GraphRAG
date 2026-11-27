@@ -11,7 +11,7 @@ Steps, in order (the number is the README's):
   2b  page_breaks    page_break_decisions.jsonl: yes/no for page breaks the rules leave gray (paid)
   2   clean          remove page headers, repair paragraphs
   3   filter         section_manifest.csv: which sections to extract from
-  4b  headings       heading levels, lead sentences and tables from the filing's EDGAR HTML
+  3b  headings       heading levels, lead sentences and tables from the filing's EDGAR HTML
                      (no LLM; needs SEC_USER_AGENT to download the HTML once)
   4   segment        sentences.jsonl: sentences, list groups and headings (units)
   5   risk_factors   risk factors and risk categories of every Item 1A unit (no LLM)

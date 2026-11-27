@@ -1,4 +1,4 @@
-"""Where a unit sits relative to the filing's HTML tables (step 4b, headings/tables.py).
+"""Where a unit sits relative to the filing's HTML tables (step 3b, headings/tables.py).
 
 `TableRows.where(unit)` returns the kind of table row the unit is in (`data`, `layout`,
 `definition`), `outside` when it is in none, or None when the filing has no HTML; prefilter.py

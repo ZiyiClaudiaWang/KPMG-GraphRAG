@@ -42,7 +42,7 @@ import re
 
 from .ex21.normalize import entity_key
 
-VERSION = "entity_mentions_v2"
+VERSION = "entity_mentions_v3"       # v3 (27 Nov 2026): dictionary hits inside an 8b product, geography, ... mention are not linked
 SCHEMA = {
     "type": "array", "items": {
         "type": "object", "additionalProperties": False,
@@ -299,7 +299,23 @@ def dictionary_hits(text: str, sc: _Scope) -> list[tuple[int, int, str]]:
     return sorted(kept)
 
 
-def annotate_mentions(text, mentions, *, issuer_cik, accession, catalog, dictionary=True):
+# Step 8b types that name something other than a company entity. A dictionary hit inside such a
+# mention is not linked: "iTunes" (product) is not iTunes K.K., "MiniMed 780G" not MiniMed Pty Ltd.
+NOT_AN_ENTITY_TYPES = ("product", "geography", "regulation", "government", "person")
+
+
+def _typed_spans(text: str, typed_mentions) -> list[tuple[int, int, str]]:
+    """(start, end, entity_type) of every place a step 8b non-entity mention occurs in the text."""
+    spans = []
+    for m in typed_mentions or []:
+        if m.get("entity_type") not in NOT_AN_ENTITY_TYPES or not m.get("mention_text"):
+            continue
+        for hit in re.finditer(re.escape(m["mention_text"]), text):
+            spans.append((hit.start(), hit.end(), m["entity_type"]))
+    return spans
+
+
+def annotate_mentions(text, mentions, *, issuer_cik, accession, catalog, dictionary=True, typed_mentions=None):
     """Catalog first, then the model's mentions.
 
     1. Dictionary pass: every catalog name of this filing found in the text (code only).
@@ -307,7 +323,9 @@ def annotate_mentions(text, mentions, *, issuer_cik, accession, catalog, diction
        dictionary already found replaces that dictionary mention (the model's type, kind and
        evidence are kept) and is marked found_by ["dictionary", "model"]. The rest stay as the
        model gave them, generic references and counterparties included (found_by ["model"]).
-    3. Dictionary hits no model mention covers are added (found_by ["dictionary"]).
+    3. Dictionary hits no model mention covers are added (found_by ["dictionary"]). A hit inside
+       a step 8b mention of a NOT_AN_ENTITY_TYPES type (typed_mentions) is kept but not linked
+       (match_status typed_as_<type>).
     origin is "model" or "dictionary": who produced the mention record.
     """
     sc = scope(catalog, issuer_cik, accession)
@@ -334,8 +352,13 @@ def annotate_mentions(text, mentions, *, issuer_cik, accession, catalog, diction
             m.setdefault("char_start", d["char_start"])
             m.setdefault("char_end", d["char_end"])
         output.append(m)
+    typed = _typed_spans(text, typed_mentions)
     for d in found:
         d["found_by"] = ["dictionary"]
+        cover = next((t for t in typed if t[0] <= d["char_start"] and d["char_end"] <= t[1]), None)
+        if cover is not None:
+            d["match_status"] = f"typed_as_{cover[2]}"
+            d["matched_entity_id"] = None
         if d["match_status"] in LINKED:
             rows = [r for i in d["candidate_entity_ids"] for r in sc.by_id.get(i, [])]
             for r in rows:

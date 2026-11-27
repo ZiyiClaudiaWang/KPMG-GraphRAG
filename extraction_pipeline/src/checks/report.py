@@ -2,7 +2,7 @@
 changed since the last report, and which result and check files to open.
 
 Steps are numbered, named and ordered as in the pipeline README's step table (README.md
-"2. Steps"; 2b runs before 2 and 4b before 4); each step's section links to its README entry
+"2. Steps"; 2b runs before 2); each step's section links to its README entry
 ("4. Step details", anchors step-1 ... step-6b), its code and its files. Keep the two in step when
 a step is added, renamed or renumbered.
 
@@ -113,7 +113,7 @@ STEPS = [
      "inputs": lambda: per_filing(Paths.cleaned) + [CONFIG / "sections.yaml", SRC / "filter_sections.py"],
      "checks": [(Paths.manifest, "`review` rows; add overrides in config/sections.yaml"),
                 (lambda: CONFIG / "sections.yaml", "which section types are kept, dropped or reviewed")]},
-    {"id": "headings", "num": "4b", "label": "Heading levels", "code": ["headings/"], "llm": "no",
+    {"id": "headings", "num": "3b", "label": "Heading levels", "code": ["headings/"], "llm": "no",
      "results": lambda: [Paths.heading_levels(), Paths.lead_sentences(), Paths.html_tables()],
      "inputs": lambda: [Paths.manifest(), SRC / "headings"] + per_filing(Paths.cleaned),
      "settings": ["headings", "segment"],
@@ -160,11 +160,16 @@ STEPS = [
                                            "Reviewed pairs go to config/subsidiary_aliases.yaml"),
                 (lambda: checks_dir("entity_inputs"), "`python -m src.checks.entity_inputs`: big year-to-year "
                                                       "changes, repeats, companies without segments")]},
-    {"id": "entity_catalog", "num": "6b", "label": "Entity catalog", "code": ["entities/catalog.py"], "llm": "no",
-     "results": lambda: [Paths.entity_catalog()],
-     "inputs": lambda: [Paths.subsidiary_catalog(), CONFIG / "entity_linking.yaml", SRC / "entities" / "catalog.py"],
+    {"id": "entity_catalog", "num": "6b", "label": "Entity catalog", "code": ["entities/catalog.py", "entities/headings.py"],
+     "llm": "no",
+     "results": lambda: [Paths.entity_catalog(), Paths.heading_entities()],
+     "inputs": lambda: [Paths.subsidiary_catalog(), Paths.sentences(), CONFIG / "entity_linking.yaml",
+                        SRC / "entities" / "catalog.py", SRC / "entities" / "headings.py",
+                        SRC / "entities" / "annotation.py"],
      "settings": ["entity_catalog"],
-     "checks": [(Paths.entity_catalog, "entries by `entity_type`; segments come from the fact store")]},
+     "checks": [(Paths.entity_catalog, "entries by `entity_type`; segments come from the fact store"),
+                (Paths.heading_entities, "headings that name a catalog entity; the Claims under them inherit it "
+                                         "(`MENTIONS {found_by: heading}`)")]},
 ]
 for _s in STEPS:
     _s["name"] = f"{_s['num']} {_s['label']}"
@@ -253,7 +258,7 @@ def readme_link(anchor_id: str, text: str) -> str:
 
 
 def readme_anchor(step: dict) -> str:
-    """The anchor of the step's entry in README "4. Step details" (`<a id="step-4b">`)."""
+    """The anchor of the step's entry in README "4. Step details" (`<a id="step-3b">`)."""
     return f"step-{step['num']}"
 
 
@@ -331,6 +336,9 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     no_sub = sorted({t for c, t in ticker.items() if c not in with_subs})
     m = {f"entries_{k}": v for k, v in sorted(kinds.items())}
     m["companies_without_segments"], m["companies_without_subsidiaries"] = len(no_seg), len(no_sub)
+    m["heading_entities_missing"] = int(not Paths.heading_entities().exists())
+    if Paths.heading_entities().exists():
+        m["headings_naming_an_entity"] = sum(1 for _ in read_jsonl(Paths.heading_entities()))
     notes = []
     if no_seg:
         notes.append(f"companies with no segment in the catalog: {', '.join(no_seg)}"
@@ -343,14 +351,18 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
 
 def page_breaks_numbers() -> tuple[dict, list, list]:
     m = {}
+    candidates = None
     if Paths.page_break_candidates().exists():
-        m["gray_boundaries"] = sum(1 for _ in read_jsonl(Paths.page_break_candidates()))
+        candidates = {r["boundary_id"] for r in read_jsonl(Paths.page_break_candidates())}
+        m["gray_boundaries"] = len(candidates)
     if Paths.page_break_decisions().exists():
         rows = list(read_jsonl(Paths.page_break_decisions()))
+        decided = {r["boundary_id"] for r in rows}
         m["decisions"] = len(rows)
         m["joined"] = sum(bool(r.get("same_sentence")) for r in rows)
-        if "gray_boundaries" in m:
-            m["not_answered"] = max(m["gray_boundaries"] - m["decisions"], 0)
+        if candidates is not None:      # by id: a count difference hides an unanswered boundary
+            m["not_answered"] = len(candidates - decided)
+            m["decisions_not_a_candidate"] = len(decided - candidates)
     ledger = Paths.step_usage("page_breaks")
     if ledger.exists():
         m["cost_usd"] = round(sum(r.get("estimated_cost_usd") or 0 for r in read_jsonl(ledger)), 4)
@@ -474,7 +486,7 @@ def headings_numbers() -> tuple[dict, list, list]:
                               [[r.ticker, r.headings, r.found_in_html_pct, r.level_4plus, r.flag_risk_sentence,
                                 r.flag_before_table] for r in low.itertuples()]), ""]
     if no_html:
-        notes.append(f"{no_html} filings without HTML: their headings are all siblings (run step 4b with "
+        notes.append(f"{no_html} filings without HTML: their headings are all siblings (run step 3b with "
                      "SEC_USER_AGENT set)")
     if m["sentence_level"]:
         notes.append(f"{m['sentence_level']} headings at level -1 (may be sentences): flagged for review only "
@@ -776,10 +788,13 @@ def build(last: dict | None, before: dict | None) -> tuple[dict, dict, list[dict
     rep = repeats_numbers()
     if rep and units:
         seg = numbers["segment"]
-        levels = sorted({k.rsplit("_", 2)[0] for k in rep})
-        table = md_table(["level", "repeated units", "reusable units (step 7 reuses their label)"],
+        from . import unit_repeats as _ur
+        used = settings().get("label", {}).get("reuse_repeats")
+        levels = [lv for lv in _ur.LEVELS if f"{lv}_repeated_units" in rep]
+        table = md_table(["level", "repeated units", "reusable units", "step 7"],
                          [[f"`{lv}`", f"{rep.get(f'{lv}_repeated_units', 0):,}",
-                           f"{rep.get(f'{lv}_reusable_units', 0):,}"] for lv in levels])
+                           f"{rep.get(f'{lv}_reusable_units', 0):,}",
+                           "reuses these labels (label.reuse_repeats)" if lv == used else ""] for lv in levels])
         numbers["segment"] = ({**seg[0], **{f"repeats_{k}": v for k, v in rep.items()}}, seg[1],
                               seg[2] + ["**Repeats** (a check after step 4, not a step: "
                                         f"{link(checks_dir('unit_repeats'))}; {readme_link('2-steps', 'README')})",
@@ -854,7 +869,7 @@ def markdown(report: dict, numbers: dict, before: dict | None, against: Path | N
     L += ['<a id="stale"></a>', "## 2. Stale steps", ""]
     if stale:
         L += ["An input is newer than the step's result: run these again before reading their numbers, "
-              f"in run order (2b before 2, 4b before 4: {readme_link('2-steps', 'README')}).", "",
+              f"in run order (2b before 2: {readme_link('2-steps', 'README')}).", "",
               md_table(["step", "result written", "why"],
                        [[step_link(s["id"]), fresh[s["id"]]["written"], fresh[s["id"]]["reason"]] for s in stale]), ""]
     else:

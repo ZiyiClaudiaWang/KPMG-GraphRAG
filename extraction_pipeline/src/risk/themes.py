@@ -85,6 +85,12 @@ def shown(rf: dict, max_units: int) -> list[dict]:
     return ([lead] + rest)[:max_units]
 
 
+def answer_room(n_units: int, cfg: dict) -> int:
+    """Output tokens a reply may use. Two secondary themes may list every sentence id ("s85", about
+    4 tokens each), so the room grows with the risk factor: a cut reply stops the run."""
+    return max(int(cfg.get("answer_tokens", 300)), 100 + 8 * n_units)
+
+
 def plans(factors: list[dict], cfg: dict) -> list[dict]:
     """One request per risk factor. The request has text only, so identical risk text shares a hash."""
     from ..llm.client import canonical, digest
@@ -99,7 +105,7 @@ def plans(factors: list[dict], cfg: dict) -> list[dict]:
                                 {"role": "user", "content": canonical({"risk_factor": sentences})}],
                    "response_format": {"type": "json_schema", "json_schema": schema(ids)},
                    "store": False}
-        llm_cost.model_params(request, cfg, answer_tokens=int(cfg.get("answer_tokens", 300)))
+        llm_cost.model_params(request, cfg, answer_tokens=answer_room(len(units), cfg))
         key = {"runner_version": RUNNER_VERSION, "request": request}
         batch = {"batch_id": f"{rf['risk_factor_id']}|risk_themes", "risk_factor_id": rf["risk_factor_id"],
                  "unit_ids": [u["unit_id"] for u in units]}

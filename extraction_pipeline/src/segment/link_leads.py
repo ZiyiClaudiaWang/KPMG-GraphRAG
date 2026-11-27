@@ -1,7 +1,7 @@
 """Lead sentences (every section): which units are leads, and the lead above every unit.
 
 A lead sentence sums up the sentences under it. It is not a heading: it is labelled like any
-sentence and changes no section_path. Step 4b finds leads in the filing's HTML
+sentence and changes no section_path. Step 3b finds leads in the filing's HTML
 (src/headings/leads.py); here they are matched to units and every unit gets:
 
   lead_source    this unit is a lead: html, html_runin (from the HTML) or rule (the rule_heading
@@ -35,7 +35,7 @@ def uses_rule(mode: str, has_html: bool, section_leads: list | None) -> bool:
 def mark_leads(units: list[dict], leads: list[dict] | None, use_rule: bool) -> int:
     """Set lead_source and lead_unit_id on the units of one section (in source order).
 
-    leads: the section's lead spans from step 4b (headings/leads.py), [{start, end, source}]
+    leads: the section's lead spans from step 3b (headings/leads.py), [{start, end, source}]
     in `content` positions; the first body or list unit that starts inside a span is that lead,
     unless step 4 prefiltered it as a cross reference or table residue.
     use_rule: units with rule_heading are leads too (source rule) when the HTML did not already

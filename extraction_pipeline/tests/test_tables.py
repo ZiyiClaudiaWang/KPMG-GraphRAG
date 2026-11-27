@@ -1,4 +1,4 @@
-"""HTML tables (step 4b headings/tables.py) and the prefilter that reads them (step 4).
+"""HTML tables (step 3b headings/tables.py) and the prefilter that reads them (step 4).
 
 A small synthetic filing, no network. Run from the pipeline folder:  python -m pytest tests/test_tables.py
 """

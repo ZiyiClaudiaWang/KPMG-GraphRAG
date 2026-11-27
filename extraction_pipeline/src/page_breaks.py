@@ -155,8 +155,8 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     log(STEP, f"{len(boundaries)} gray boundaries in kept sections, model {cfg['model']}"
               + (f", reasoning_effort {cfg.get('reasoning_effort')}" if llm_cost.is_reasoning(cfg["model"]) else ""))
     llm_cost.report(STEP, cfg, lambda c: plans(boundaries, c), expected_answer_tokens, log, compare)
+    write_jsonl(Paths.page_break_candidates(), boundaries)   # every run: the report compares it by id
     if dry_run:
-        write_jsonl(Paths.page_break_candidates(), boundaries)
         return
     labeller, sent, decided = Client(cfg, Paths.step_usage(STEP)), 0, {}
     try:

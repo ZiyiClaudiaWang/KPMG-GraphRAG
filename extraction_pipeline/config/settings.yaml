@@ -24,7 +24,7 @@ segment:
   min_words: 4                       # shorter sentences are prefiltered as too_short
   max_heading_chars: 500             # longer paragraphs are never risk headings
   lead_rule: fallback                # lead sentences from rule_heading: fallback = only in filings without
-                                     # HTML (step 4b); section = also in sections whose HTML shows no
+                                     # HTML (step 3b); section = also in sections whose HTML shows no
                                      # lead; union = everywhere
 
 label:
@@ -40,7 +40,7 @@ label:
   reuse_repeats: label               # copy the label of the same sentence, 4 units before,
                                      # section_path, form and list intro in an earlier filing of
                                      # the company (checks/unit_repeats.py level label); null = send all
-  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  concurrency: 8                     # requests in flight at once (--workers overrides); 429s wait and retry
   rate_limit_retries: 6              # waits after a 429 rate-limit reply (not billed) before stopping
   max_request_bytes: 35000           # a larger batch is halved until it fits
   max_completion_tokens: 2000        # output limit per request (label_v2 used at most 1,295 for 15
@@ -74,9 +74,10 @@ risk_themes:                         # step 5b: themes of each Item 1A risk fact
                                      # try both with --model ... --limit 20 against reference_labels.csv
   reasoning_effort: low              # reasoning models only
   max_reasoning_tokens: 2000
-  answer_tokens: 300                 # output room for the answer itself
+  answer_tokens: 300                 # output room for the answer at least; 100 + 8 per sentence
+                                     # when larger (themes.answer_room), so long risk factors are not cut
   max_units: 120                     # units of one risk factor shown at most (lead first)
-  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  concurrency: 8                     # requests in flight at once (--workers overrides); 429s wait and retry
   rate_limit_retries: 6
   budget_usd: 10.0                   # this step only; check the dry run's worst case first
 
@@ -86,12 +87,12 @@ extract:                             # step 8b: entity mentions, metrics, event 
   answer_tokens_per_sentence: 120    # typical output a Claim, for the dry run's typical cost
   max_completion_tokens: 4000        # output limit per request (the dry run's worst case); a reply
                                      # cut short is rejected, so keep room for metric-heavy MD&A
-  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  concurrency: 8                     # requests in flight at once (--workers overrides); 429s wait and retry
   rate_limit_retries: 6
   stop_on_failure: true              # stop at a rejected reply (ids differ from the batch)
   budget_usd: 35.0                   # this step only (output/usage_extract.jsonl)
 
-headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
+headings:                            # step 3b: heading levels from the EDGAR HTML (no LLM)
   indent_tickers: [MCK]              # companies whose left indent marks a heading level
   compare:                           # heading_html_diff.csv only (HTML headings vs step 4); no level changes
     max_words: 20                    # an HTML block with more words is never heading-like
@@ -156,6 +157,7 @@ report:                              # python -m src.checks.report (checks of st
     subsidiaries.big_year_changes: {max: 0, level: warn, why: "a 10-K's subsidiary count moved by more than half"}
     entity_catalog.companies_without_segments: {max: 0, level: warn, why: "Claims of these companies cannot link to a segment"}
     entity_catalog.companies_without_subsidiaries: {max: 0, level: warn, why: "Claims of these companies cannot link to a subsidiary"}
+    entity_catalog.heading_entities_missing: {max: 0, level: error, why: "no interim/heading_entities.jsonl: step 9 gives no Claim the entities named in its headings (rerun step 6b)"}
     page_breaks.not_answered: {max: 0, level: warn, why: "gray page breaks with no answer stay unjoined"}
     clean.filings_not_cleaned: {max: 0, level: error, why: "exported filings step 2 has not cleaned"}
     clean.filings_without_paragraphs: {max: 0, level: error, why: "a cleaned filing with no text"}

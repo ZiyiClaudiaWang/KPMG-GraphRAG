@@ -15,7 +15,7 @@
                    "During", "Avg."); a short complete sentence ("No material items.", "Revenue
                    decreased slightly.") goes to the LLM. Never for a split list item (lists.py)
 
-The HTML decides tables when the filing has it (step 4b, headings/tables.py, html_tables.py):
+The HTML decides tables when the filing has it (step 3b, headings/tables.py, html_tables.py):
   data table    full sentences (footnotes) go on to the cross_reference check and the LLM; the
                 rest is table_residue
   layout table  ordinary text: a table used to lay out bullets, bios or paragraphs

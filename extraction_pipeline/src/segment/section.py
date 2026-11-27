@@ -14,7 +14,7 @@ Each paragraph goes to the first reader in READERS that takes it; the order is t
                       Systems Segment. Our ... products include:")
   4. run_in_heading   a paragraph opening with a period heading ("Flexible Work. ..."): title case
                       by its text, or, from the filing's HTML, a short styled first sentence in any
-                      case (TTWO "Player acquisition costs.", step 4b headings/leads.py)
+                      case (TTWO "Player acquisition costs.", step 3b headings/leads.py)
   5. rule_lead        Item 1A: a paragraph the rules propose as a risk lead (rule_heading)
   6. paragraph        anything else: split into sentences; a stray bullet paragraph opening
                       with a title-case period heading is a run-in heading too (WMT
@@ -70,7 +70,7 @@ class Section:
         return unit
 
     def styled_runin(self, paragraph: dict, start: int, text: str) -> bool:
-        """The HTML styles this short first sentence as a run-in heading (step 4b)."""
+        """The HTML styles this short first sentence as a run-in heading (step 3b)."""
         if not self.runin_spans or not text.endswith(".") or len(text.split()) > RUNIN_HEADING_MAX_WORDS:
             return False
         spans = raw_spans(paragraph, start, start + 1)
@@ -272,12 +272,12 @@ READERS: tuple[Reader, ...] = (section_title, heading_line, group_list, list_blo
 def segment_section(sec: dict, cfg: dict, levels: dict[str, int] | None = None,
                     tables: list[dict] | None = None, runin_headings: list[dict] | None = None,
                     guessed: set[str] | None = None) -> list[dict]:
-    """Units of one cleaned section. levels: heading id -> level from step 4b (headings.Levels);
+    """Units of one cleaned section. levels: heading id -> level from step 3b (headings.Levels);
     without it every heading is level 1, so a heading replaces the one before it. tables: the
-    section's HTML table rows from step 4b (html_tables.TableRows); None = the filing has no HTML,
+    section's HTML table rows from step 3b (html_tables.TableRows); None = the filing has no HTML,
     so tables are found from the text ("|"). runin_headings: the section's styled short run-ins
-    from step 4b (headings/leads.py runin_headings), [{start, end}] in `content` positions.
-    guessed: heading ids whose 4b level only repeats the heading before (load_guessed_levels)."""
+    from step 3b (headings/leads.py runin_headings), [{start, end}] in `content` positions.
+    guessed: heading ids whose 3b level only repeats the heading before (load_guessed_levels)."""
     s = Section(sec, cfg, levels, tables, runin_headings, guessed)
     i = 0
     while i < len(s.paragraphs):

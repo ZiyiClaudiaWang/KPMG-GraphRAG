@@ -10,35 +10,53 @@
 
 ### The graph (what step 10 loads)
 
+**a. Overview**
+
 ```mermaid
 flowchart LR
-    CO["<b>Company</b><br/>cik · name · ticker"]
-    FI["<b>Filing</b><br/>accession_number · form · filing_date<br/>reporting_period_end · cik"]
-    SE["<b>Section</b><br/>section_id · section_key · section_type<br/>title · part · item · xpath"]
-    CL["<b>Claim</b><br/>claim_id · quote · claim_type · multi_fragment<br/>context · subject_scope · annotation_note<br/>is_boilerplate · time_reference<br/>event_type · affected_object · metrics_json · typed_mentions_json<br/>is_lead_sentence · risk_summary<br/>risk_factor_id · risk_category_text · risk_category_unit_id<br/>heading_risk_group · risk_theme_status"]
-    RT["<b>RiskTheme</b> (32)<br/>theme_id · definition · ey_2016_category"]
-    RG["<b>RiskGroup</b> (7)<br/>group_id · definition"]
-    SU["<b>Subsidiary</b><br/>sub_id · name · entity_key<br/>jurisdiction_raw · country · state_or_region"]
-    SG["<b>Segment</b><br/>segment_id · name · aliases · xbrl_members"]
-
-    CO -->|FILES| FI
-    FI -->|CONTAINS| SE
-    SE -->|"SUPPORTS<br/>{raw_spans, section_path, context_unit_ids, lead_unit_id,<br/>request_hash, model, prompt_version, ...}"| CL
-    CL -->|"HAS_RISK_THEME<br/>{rank, scope, source, agrees_with_heading, model}"| RT
-    RT -->|IN_RISK_GROUP| RG
-    CO -->|"OWNS {accession_number, name_as_filed, jurisdiction_raw,<br/>ownership_pct, level, immediate_parent, source_url}"| SU
-    CO -->|"HAS_SEGMENT {accession_number, xbrl_members}"| SG
-    CL -->|"MENTIONS {mention_text, match_status,<br/>found_by: dictionary / model / heading}"| SU
+    CO[Company] -->|FILES| FI[Filing]
+    FI -->|CONTAINS| SE[Section]
+    SE -->|SUPPORTS| CL[Claim]
+    CL -->|HAS_RISK_THEME| RT["RiskTheme (32)"]
+    RT -->|IN_RISK_GROUP| RG["RiskGroup (7)"]
+    CO -->|OWNS| SU[Subsidiary]
+    CO -->|HAS_SEGMENT| SG[Segment]
+    CL -->|MENTIONS| SU
     CL -->|MENTIONS| SG
-    CL -.->|"SAME_TEXT / NEAR_TEXT / SIMILAR_TO (step 9b, off by default)<br/>{layer, same_company, similarity or score}"| CL
+    CL -.->|"SAME_TEXT / NEAR_TEXT / SIMILAR_TO<br/>(step 9b, off by default)"| CL
 ```
 
-- One Claim node per `claim_id` (= `unit_id`: one statement at one place). Every node and edge
-  also has `pipeline_scope`; Claims and the entity edges have `extraction_status: needs_review`.
+**b. Every property** (one per line; every node and edge also has `pipeline_scope`)
+
+```mermaid
+flowchart LR
+    CO["<b>Company</b><br/>cik<br/>name<br/>ticker"]
+    FI["<b>Filing</b><br/>accession_number<br/>cik<br/>form<br/>filing_date<br/>reporting_period_end"]
+    SE["<b>Section</b><br/>section_id<br/>accession_number<br/>section_key<br/>section_type<br/>title<br/>part<br/>item<br/>xpath<br/>processing_set_id"]
+    CL["<b>Claim</b><br/>claim_id (= unit_id)<br/>quote<br/>claim_type<br/>multi_fragment<br/>accession_number<br/>section_id<br/>extraction_status<br/>context<br/>annotation_note<br/>subject_scope<br/>is_boilerplate<br/>time_reference<br/>event_type<br/>affected_object<br/>metrics_json<br/>typed_mentions_json<br/>is_lead_sentence<br/>risk_summary<br/>risk_factor_id<br/>risk_category_text<br/>risk_category_unit_id<br/>heading_risk_group<br/>risk_theme_status"]
+    RT["<b>RiskTheme</b><br/>theme_id<br/>group_id<br/>definition<br/>ey_2016_category<br/>taxonomy_version"]
+    RG["<b>RiskGroup</b><br/>group_id<br/>definition<br/>taxonomy_version"]
+    SU["<b>Subsidiary</b><br/>sub_id<br/>name<br/>normalised_name<br/>entity_key<br/>parent_cik<br/>jurisdiction_raw<br/>country<br/>state_or_region<br/>extraction_status"]
+    SG["<b>Segment</b><br/>segment_id<br/>name<br/>aliases<br/>cik<br/>xbrl_members<br/>extraction_status"]
+
+    CO -->|"<b>FILES</b>"| FI
+    FI -->|"<b>CONTAINS</b>"| SE
+    SE -->|"<b>SUPPORTS</b><br/>section_key<br/>section_path<br/>role<br/>lead_unit_id<br/>lead_source<br/>context_unit_ids<br/>raw_spans_json<br/>xpath<br/>source_file<br/>processing_set_id<br/>model<br/>prompt_version"| CL
+    CL -->|"<b>HAS_RISK_THEME</b><br/>rank<br/>scope<br/>source<br/>agrees_with_heading<br/>model<br/>taxonomy_version<br/>extraction_status"| RT
+    RT -->|"<b>IN_RISK_GROUP</b>"| RG
+    CO -->|"<b>OWNS</b> (one per 10-K)<br/>accession_number<br/>reporting_period_end<br/>name_as_filed<br/>jurisdiction_raw<br/>country<br/>state_or_region<br/>ownership_pct<br/>level<br/>immediate_parent<br/>relationship<br/>row_order<br/>parse_method<br/>flags<br/>source_url<br/>source_file<br/>parser_version<br/>evidence<br/>extraction_status"| SU
+    CO -->|"<b>HAS_SEGMENT</b> (one per filing)<br/>accession_number<br/>xbrl_members<br/>evidence<br/>extraction_status"| SG
+    CL -->|"<b>MENTIONS</b><br/>mention_text<br/>match_status<br/>found_by (dictionary / model / heading)<br/>heading_unit_id<br/>entity_annotation_version<br/>extraction_status"| SU
+    CL -->|"<b>MENTIONS</b><br/>(same properties)"| SG
+    CL -.->|"<b>SAME_TEXT / NEAR_TEXT / SIMILAR_TO</b><br/>layer<br/>same_company<br/>from_accession<br/>to_accession<br/>similarity (NEAR_TEXT)<br/>single_token<br/>changes<br/>score (SIMILAR_TO)"| CL
+```
+
+- One Claim node per `claim_id` (= `unit_id`: one statement at one place). Claims and the entity
+  edges have `extraction_status: needs_review`.
 - No node per risk factor or heading: those are Claim properties (`risk_factor_id`, …).
 - Dotted: step 9b Claim links, loaded only for the layers switched on in `load.claim_links`.
 - Not in the graph yet: `context_unit_ids` and `lead_unit_id` are properties on SUPPORTS, not
-  Claim→Claim edges.
+  Claim→Claim edges; `fiscal_year` / `fiscal_period` (planned on Filing and Claim).
 
 ## Contents
 
@@ -47,7 +65,7 @@ flowchart LR
 - [How it works](#how-it-works)
     1. [Workflow](#1-workflow)
     2. [Steps](#2-steps)
-    3. [Diagrams](#3-diagrams): [heading levels](#a-heading-levels-step-4b), [lists](#b-lists-step-4), [risk factors and themes](#c-risk-factors-and-themes-steps-5-and-5b), [segments and subsidiaries](#d-segments-and-subsidiaries-step-6), [ids](#e-unit_id-and-claim_id), [illustration](#f-illustration)
+    3. [Diagrams](#3-diagrams): [heading levels](#a-heading-levels-step-3b), [lists](#b-lists-step-4), [risk factors and themes](#c-risk-factors-and-themes-steps-5-and-5b), [segments and subsidiaries](#d-segments-and-subsidiaries-step-6), [ids](#e-unit_id-and-claim_id), [illustration](#f-illustration)
     4. [Step details](#4-step-details)
 - [Unit ID and Claim ID](#unit-id-and-claim-id)
 - [Setup](#setup) · [Run](#run) · [Tests](#tests) · [Cost tracking](#cost-tracking)
@@ -76,7 +94,7 @@ flowchart TD
     DB[("Data team database")] -->|"1 Fetch"| SEC["Section exports"]
     SEC -->|"2 Clean (2b page breaks, paid)"| CLN["Cleaned sections"]
     CLN -->|"3 Filter"| KEPT["Kept sections"]
-    EDGAR[("SEC EDGAR")] -->|"filing HTML"| HL["4b Heading levels,<br/>lead sentences, tables"]
+    EDGAR[("SEC EDGAR")] -->|"filing HTML"| HL["3b Heading levels,<br/>lead sentences, tables"]
     KEPT --> HL
     KEPT -->|"4 Segment"| UNITS["Units<br/>(sentences, list groups, headings)"]
     HL --> UNITS
@@ -114,7 +132,7 @@ flowchart TD
 | [2](#step-2) | Clean (`clean`) | [`clean.py`](src/clean.py) | `interim/clean/*.jsonl` | no |
 | [2b](#step-2b) | Page breaks (`page_breaks`) | [`page_breaks.py`](src/page_breaks.py) | `interim/page_break_decisions.jsonl` | paid, run on purpose |
 | [3](#step-3) | Filter (`filter`) | [`filter_sections.py`](src/filter_sections.py) | `output/section_manifest.csv` | no |
-| [4b](#step-4b) | Heading levels (`headings`) | [`headings/`](src/headings/) | `interim/heading_levels.jsonl`, `lead_sentences.jsonl`, `html_tables.jsonl` | no |
+| [3b](#step-3b) | Heading levels (`headings`) | [`headings/`](src/headings/) | `interim/heading_levels.jsonl`, `lead_sentences.jsonl`, `html_tables.jsonl` | no |
 | [4](#step-4) | Segment (`segment`) | [`segment/`](src/segment/) | `output/sentences.jsonl` | no |
 | [5](#step-5) | Risk factors (`risk_factors`) | [`risk/factors.py`](src/risk/factors.py) | `output/risk_categories.csv`, `interim/risk_factors.jsonl`, `risk_assignments.jsonl` | no |
 | [5b](#step-5b) | Risk themes (`risk_themes`) | [`risk/themes.py`](src/risk/themes.py) | `interim/risk_themes.jsonl` | paid, sends only when named |
@@ -127,7 +145,8 @@ flowchart TD
 | [9b](#step-9b) | Claim links (`claim_links`) | [`claim_links.py`](src/claim_links.py) | `output/claim_links.jsonl` | semantic layer only: paid, off by default |
 | [10](#step-10) | Load (`load`) | [`load.py`](src/load.py) | Neo4j | no |
 
-- Run order: 2b runs before 2, 4b before 4 (each feeds the step it belongs to).
+- Run order follows the table. A letter runs after its number (3b after 3, 5b after 5), except 2b:
+  it runs before 2, once, and step 2 reads its answers on every later run.
 - Code paths are under `src/`; output paths under `data/` (git-ignored, so not linked here; the
   review report links them).
 - Shared code: [`common.py`](src/common.py) (paths, settings, ids), [`llm/`](src/llm/) (the
@@ -139,7 +158,7 @@ flowchart TD
 
 ### 3. Diagrams
 
-#### a. Heading levels (step 4b)
+#### a. Heading levels (step 3b)
 
 ```mermaid
 flowchart LR
@@ -239,20 +258,23 @@ Each module's docstring has the full rules; below is what each step does and wha
 - Removes page furniture: page numbers, repeated page headers, "Table of Contents" and navigation
   lines, "(Continued)" running headers.
 - Rejoins paragraphs cut by a page break (next starts lower case, first ends on "the" / "of" / a
-  comma, an open quote or parenthesis, an amount next). Never joins table rows, list items ending
+  comma, an open quote or parenthesis, an amount next). A closing parenthesis or quote with no
+  sentence end before it is no sentence end when lower case follows ("...changes in compensation)"
+  / "to our overall ..."; 3 boundaries, 27 Nov). Never joins table rows, list items ending
   "; and", titles.
 - Never rewrites words: every character maps back to the export, so each quote can be found in
   the source.
 - <a id="step-2b"></a>**2b Page breaks** (paid, on purpose; [`page_breaks.py`](src/page_breaks.py)): asks the model about the "gray" boundaries the rules
-  leave open (62 on the 233 filings); step 2 reads the answers on every later run.
+  leave open (83 on the 313 filings, 27 Nov); step 2 reads the answers on every later run.
+  The report compares boundaries and answers by id (`not_answered`).
 
 <a id="step-3"></a>
 **[3] Filter**
 - Keeps Item 1A, MD&A and Business ([`config/sections.yaml`](config/sections.yaml), by `section_type`); drops the rest
   with a reason or marks it `review`.
 
-<a id="step-4b"></a>
-**[4b] Heading levels** ([`src/headings/`](src/headings/); [diagram](#a-heading-levels-step-4b))
+<a id="step-3b"></a>
+**[3b] Heading levels** ([`src/headings/`](src/headings/); [diagram](#a-heading-levels-step-3b))
 - Levels come from the filing's own HTML on EDGAR (needs `SEC_USER_AGENT`, [SEC fair access][edgar-access]); the LLM version was removed
   on 25 Nov 2026.
 - Gives a level only to headings step 4 found; it cannot add one.
@@ -269,7 +291,7 @@ Each module's docstring has the full rules; below is what each step does and wha
 - **Lists:** a ":" intro with bullets or numbered items. Short fragment lists become one
   `list_group`; other lists are split, each item pointing to its intro (`list_intro_id`).
 - **Headings:** short lines without sentence punctuation, title-case lines ending ":" or ".".
-  With step 4b levels, `heading_path` / `section_path` keep every heading above the unit.
+  With step 3b levels, `heading_path` / `section_path` keep every heading above the unit.
 - **Item 1A:** a level-1 heading is a risk category (Item 105 asks for risks under headings and
   subcaptions, [Reg. S-K Item 105][sk-105]); the risk factor summary (MU, TTWO) is marked
   `risk_summary`.
@@ -303,6 +325,9 @@ Each module's docstring has the full rules; below is what each step does and wha
 - A default run only reads saved replies; it sends when named (`--steps risk_themes`).
 - Same text in another filing = same request: paid once per distinct risk text.
 - A taxonomy change touches only these requests, never step 7's.
+- Requests run in parallel (`risk_themes.concurrency: 8`, `--workers` overrides). A reply may use
+  100 + 8 output tokens per sentence (at least `answer_tokens`), so a long risk factor whose
+  secondary themes list many sentence ids is not cut.
 - Review: `checks/risk_themes/risk_factor_themes.csv` (`review`: `not_classified`, `unknown`,
   `differs_from_reference`, `overrules_heading`).
 
@@ -326,7 +351,15 @@ Each module's docstring has the full rules; below is what each step does and wha
 - Without a fact store the catalog has no segments.
 - `interim/heading_entities.jsonl` ([`entities/headings.py`](src/entities/headings.py)): catalog names
   found in headings (dictionary pass, no LLM). Step 9 gives every Claim under such a heading
-  `heading_entity_links`; step 10 loads them as `MENTIONS {found_by: ["heading"]}`.
+  `heading_entity_links`; step 10 loads them as `MENTIONS {found_by: ["heading"]}`. Step 9 stops
+  when the file is missing (rerun 6b), and the report counts it (`heading_entities_missing`).
+- A reviewed name in `segment_names` wins over `segment_member_skip`: GOOGL's Other Bets is tagged
+  `AllOtherSegmentsMember`. NIKE's geographic operating segments are not on the XBRL segment axis
+  (only NIKE Brand and Converse are).
+- Dictionary pass: `dictionary_skip` leaves out names that are mostly products ("Google": Google
+  Maps, Google Play). In step 9, a dictionary hit inside a mention step 8b typed as product,
+  geography, regulation, government or person is kept with `match_status: typed_as_<type>` and not
+  linked ("iTunes" is not iTunes K.K.).
 
 <a id="step-7"></a>
 **[7] Label** (paid; [`src/label/`](src/label/))
@@ -396,7 +429,11 @@ Each module's docstring has the full rules; below is what each step does and wha
 - `Subsidiary` + `OWNS` per 10-K (cited by accession + Exhibit 21 URL), `Segment` + `HAS_SEGMENT`,
   `MENTIONS` for matched links.
 - Only adds and updates (Cypher [`MERGE`][neo4j-merge]); every node and edge carries `pipeline_scope`
-  (`python -m src.load --wipe` deletes them).
+  (`python -m src.load --wipe` deletes them, 5,000 nodes per transaction).
+- First creates one composite index per node key (`claim_id` + `pipeline_scope`, ...): without
+  them every MERGE scans all nodes of its label.
+- Logs the expected node and relationship counts against AuraDB Free (200,000 / 400,000,
+  [Aura limits][aura-limits]); the Claim link layers can pass it.
 
 ## Unit ID and Claim ID
 
@@ -419,7 +456,7 @@ Each module's docstring has the full rules; below is what each step does and wha
 cd extraction_pipeline
 uv venv --python 3.11 && source .venv/bin/activate
 uv pip install -r requirements.txt pytest
-cp .env.example .env     # OpenAI key (2b, 5b, 7), SEC_USER_AGENT (4b, 6a), Neo4j (10)
+cp .env.example .env     # OpenAI key (2b, 5b, 7), SEC_USER_AGENT (3b, 6a), Neo4j (10)
 ```
 
 - Settings: [`config/settings.yaml`](config/settings.yaml) (one block per step: model, budget,
@@ -431,13 +468,21 @@ cp .env.example .env     # OpenAI key (2b, 5b, 7), SEC_USER_AGENT (4b, 6a), Neo4
 
 ```bash
 python run_pipeline.py --until entity_catalog        # steps 1-6; ends with the review report
-python run_pipeline.py --steps page_breaks,clean,filter   # 2b (paid), once before labelling at scale
-python run_pipeline.py --steps risk_themes --dry-run # 5b cost; then --limit 3, then without (--workers 8)
+python run_pipeline.py --steps page_breaks           # 2b (paid): new gray page breaks only
+python run_pipeline.py --until entity_catalog        # then 2-6 again, so the answers are used
+python run_pipeline.py --steps risk_themes --dry-run # 5b cost; then --limit 20, then without
 python run_pipeline.py --steps label --dry-run       # 7 cost; then --filing <acc> --limit 3, then all
-python run_pipeline.py --steps validate,build_claims
+python run_pipeline.py --steps validate              # 8; then fill config/label_overrides.csv
+python run_pipeline.py --steps validate,extract --dry-run   # 8b cost, after the overrides
+python run_pipeline.py --steps validate,extract      # 8b (paid)
+python run_pipeline.py --steps build_claims,claim_links     # 9, 9b (semantic layer only with --semantic)
 python run_pipeline.py --steps load --dry-run        # writes output/load_preview.cypher; then without
 ```
 
+- Paid steps send 8 requests at a time (`concurrency` in each block of `config/settings.yaml`;
+  `--workers` overrides).
+- Do the manual overrides before 8b: a released unit joins two runs of Claims, so the 8b requests
+  of that run change (and are paid again if they were already sent).
 - `python run_pipeline.py --help` lists the steps. Each module also runs alone
   (`python -m src.label --report`, `python -m src.risk.themes --dry-run --compare`).
 - In zsh, paste commands without the `#` comments.
@@ -526,7 +571,7 @@ One line per unit; "Data team" fields come from the export.
 | `section_id`, `section_key`, `section_type` | Section (Data team); `section_type` is the Item code (`risk_factors`, `mda`, ...) |
 | `section_label` | `Part I Item 1A` |
 | `role` | `body`, `list_group`, `heading`, `section_title` |
-| `heading_level` | Headings: 1, 2, ... from step 4b (0 = not a heading); in Item 1A level 1 is a risk category |
+| `heading_level` | Headings: 1, 2, ... from step 3b (0 = not a heading); in Item 1A level 1 is a risk category |
 | `category` | Item 1A: the level-1 heading above the unit; null elsewhere |
 | `subheading`, `heading_path`, `section_path` | Nearest heading; all open headings, outermost first; `section_label > heading_path` |
 | `text` | The unit's text (whitespace normalised; list-group fragments joined by one space) |
@@ -605,10 +650,11 @@ where they are named).
   (b)(21) subsidiaries of the registrant: Exhibit 21).
 - SEC, [Form 10-K][form-10k] and [Form 10-Q][form-10q] (general instructions and items).
 - SEC, [Accessing EDGAR Data][edgar-access]: declare a User-Agent (`SEC_USER_AGENT`) and keep to
-  the request rate limit (steps 4b and 6a).
+  the request rate limit (steps 3b and 6a).
 - OpenAI, [API pricing][openai-pricing] (the `prices:` table) and [Your data][openai-data]
   (regional endpoints).
-- Python, [`uuid.uuid5`][py-uuid5] (`unit_id`); Neo4j, [Cypher `MERGE`][neo4j-merge] (step 10).
+- Python, [`uuid.uuid5`][py-uuid5] (`unit_id`); Neo4j, [Cypher `MERGE`][neo4j-merge] and
+  [AuraDB quotas and limits][aura-limits] (step 10).
 - Team pull requests and issues: [#34][pr-34] (Exhibit 21 pipeline), [#45][pr-45] (ids anchored to
   source spans), [#47][pr-47] (a real run and its cost), [#88][pr-88] (repeats across filings),
   [#91][pr-91] (Claim entity linking), [#122][pr-122] (review report), [#125][pr-125] (risk
@@ -626,6 +672,7 @@ where they are named).
 [openai-data]: https://developers.openai.com/api/docs/guides/your-data
 [py-uuid5]: https://docs.python.org/3/library/uuid.html#uuid.uuid5
 [neo4j-merge]: https://neo4j.com/docs/cypher-manual/current/clauses/merge/
+[aura-limits]: https://neo4j.com/docs/aura/quotas-and-limits/
 [pr-34]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/34
 [pr-45]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/45
 [pr-47]: https://github.com/ZiyiClaudiaWang/KPMG-GraphRAG/issues/47

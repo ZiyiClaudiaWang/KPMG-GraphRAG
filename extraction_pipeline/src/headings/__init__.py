@@ -1,4 +1,4 @@
-"""Step 4b - Heading levels from each filing's own EDGAR HTML (no LLM).
+"""Step 3b - Heading levels from each filing's own EDGAR HTML (no LLM).
 
 Plain text shows that a line is a heading, not how deep it sits: in "Results of Operations" /
 "Segment Results" / "Intelligent Cloud" each heading would replace the one before it in

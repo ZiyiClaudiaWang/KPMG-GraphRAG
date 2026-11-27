@@ -1,7 +1,7 @@
 """Item 1A only: the rule that proposes risk lead sentences, and the risk factor summary.
 
 rule_heading (unit field): "high" / "medium" when the rules propose a paragraph as the sentence
-that opens and sums up a risk (rule_lead_strength). Since step 4b, these are used as lead
+that opens and sums up a risk (rule_lead_strength). Since step 3b, these are used as lead
 sentences only where the HTML cannot be read (segment.lead_rule, link_leads.uses_rule). The field
 keeps its old name for now; risk categories (level-1 headings) are in headings.py.
 
@@ -53,7 +53,7 @@ def mark_risk_summary(units: list[dict]) -> None:
     """Flag the risk factor summary (risk_summary = true): it repeats the risks described after it.
 
     The summary runs from its heading to the first heading that appears for the second time
-    (where the full text starts again), at any level: with heading levels (step 4b) the
+    (where the full text starts again), at any level: with heading levels (step 3b) the
     categories listed in the summary sit under its heading at level 2, and are level 1 in the
     full text (MU, TTWO). Without such a repeat nothing is marked.
     """

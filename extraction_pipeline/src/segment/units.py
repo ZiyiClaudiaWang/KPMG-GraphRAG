@@ -12,11 +12,11 @@ from .headings import HeadingPath
 # v5 (18 Nov 2026): any table row is table_residue, two-column rows ("Acquisitions | 47") too;
 #     table rows are never joined across a page break (step 2).
 # v6 (19 Nov 2026): lists after a heading or "the following", lettered items, "• |" and ""
-#     bullets, items whose bullet was lost; heading levels (step 4b); new page-break joins (step 2).
-# v7 (26 Nov 2026): lead_source and lead_unit_id (lead sentences from the HTML, step 4b).
+#     bullets, items whose bullet was lost; heading levels (step 3b); new page-break joins (step 2).
+# v7 (26 Nov 2026): lead_source and lead_unit_id (lead sentences from the HTML, step 3b).
 # v8 (26 Nov 2026): no role category_heading: an Item 1A risk category is a heading at level 1, in
 #     heading_path and subheading like any heading; category and section_path are unchanged.
-# v9 (26 Nov 2026): tables from the HTML (step 4b): html_table; table_residue only in data tables
+# v9 (26 Nov 2026): tables from the HTML (step 3b): html_table; table_residue only in data tables
 #     (their full sentences go to the LLM); layout tables are text; definition tables; "|" outside a
 #     table is no longer a table.
 # v10 (26 Nov 2026): too_short only for fragments: short complete sentences go to the LLM; short
@@ -33,10 +33,10 @@ from .headings import HeadingPath
 # v14 (26 Nov 2026): a run-in heading whose level the HTML does not give (not listed, or only the
 #     sibling's level) is at least one level below the line heading it sits under, so it replaces
 #     only another run-in (NTAP "Financial and savings programs." was replacing its parent heading).
-# v15 (26 Nov 2026): a styled sentence of its own followed by a sub-heading is a lead (step 4b;
+# v15 (26 Nov 2026): a styled sentence of its own followed by a sub-heading is a lead (step 3b;
 #     MSFT "We face intense competition ..." then "Competition in the technology sector").
 # v16 (27 Nov 2026): a styled Title Case line in Item 1A too long to be a heading candidate is a
-#     lead (step 4b; AMZN "We Face Risks Related to Adequately Protecting Our Intellectual
+#     lead (step 3b; AMZN "We Face Risks Related to Adequately Protecting Our Intellectual
 #     Property Rights ..."); in a names table, a cell may hold several "•" names and "&" or a
 #     "(HVAC)" abbreviation is not a word (PH Filtration and Instrumentation groups); a styled
 #     run-in whose full stop is in the plain run is a lead or run-in heading (MSFT 2024 "If our

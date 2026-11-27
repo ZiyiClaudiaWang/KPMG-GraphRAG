@@ -116,7 +116,8 @@ def segment_members(path: Path) -> list[tuple[str, str, str]]:
 
 def segment_entries(members: list[tuple[str, str, str]]) -> list[dict]:
     """One entry per (company, segment label); only filings in filings.yaml count, and members
-    matching config/entity_linking.yaml segment_member_skip (totals, "all other") are left out.
+    matching config/entity_linking.yaml segment_member_skip (totals, "all other") are left out
+    unless segment_names names them for that company.
     segment_names gives a member its reviewed name and aliases (the XBRL name loses punctuation:
     "SamsClubSegmentMember" is "Sam's Club" in the text); members given one name are one entry."""
     wanted = {f["accession"] for f in filings()}
@@ -127,9 +128,10 @@ def segment_entries(members: list[tuple[str, str, str]]) -> list[dict]:
     out: dict[tuple[str, str], dict] = {}
     for cik, accession, member in sorted(members):
         local = member.split(":")[-1]
-        if accession not in wanted or any(p.search(local) for p in skip):
-            continue
         named = (names.get(ticker.get(cik, "")) or {}).get(local)
+        # a reviewed name wins over segment_member_skip (GOOGL tags Other Bets as AllOtherSegmentsMember)
+        if accession not in wanted or (not named and any(p.search(local) for p in skip)):
+            continue
         if isinstance(named, str):
             named = {"name": named}
         label = named["name"] if named else segment_label(member)

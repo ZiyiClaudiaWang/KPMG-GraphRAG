@@ -201,7 +201,22 @@ RETURN labels(n)[0] AS label, count(*) AS n ORDER BY label"""
 
 MENTIONS_COUNT = "MATCH (:Claim {pipeline_scope: $scope})-[m:MENTIONS]->() RETURN count(m) AS n"
 
-WIPE_QUERY = "MATCH (n {pipeline_scope: $scope}) DETACH DELETE n"
+# In batches: one transaction for ~100k nodes can run out of memory on Aura Free.
+WIPE_QUERY = """
+MATCH (n {pipeline_scope: $scope})
+CALL (n) { DETACH DELETE n } IN TRANSACTIONS OF 5000 ROWS"""
+
+# Every MERGE and MATCH above looks a node up by its key and pipeline_scope. Without an index each
+# lookup scans every node of the label (about 100k Claims): the load would take hours. A composite
+# range index serves the equality on both properties (all Neo4j 5 editions, Aura Free included).
+INDEX_KEYS = {"Company": "cik", "Filing": "accession_number", "Section": "section_id", "Claim": "claim_id",
+              "RiskGroup": "group_id", "RiskTheme": "theme_id", "Subsidiary": "sub_id", "Segment": "segment_id"}
+INDEX_QUERIES = [f"CREATE INDEX load_{label.lower()}_key IF NOT EXISTS FOR (n:{label}) ON (n.{key}, n.pipeline_scope)"
+                 for label, key in INDEX_KEYS.items()]
+
+# AuraDB Free holds at most 200,000 nodes and 400,000 relationships (Neo4j, "AuraDB quotas and limits").
+AURA_FREE = {"nodes": 200_000, "relationships": 400_000}
+NODE_ROWS = ("companies", "filings", "sections", "risk_groups", "risk_themes", "claims")
 
 
 def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[dict]:
@@ -383,7 +398,7 @@ def build_rows() -> dict[str, list[dict]]:
 
 
 def write_preview(rows: dict[str, list[dict]], scope: str) -> None:
-    lines = [f"// pipeline_scope = {scope}"]
+    lines = [f"// pipeline_scope = {scope}", "", "// key indexes, created first"] + [q + ";" for q in INDEX_QUERIES]
     for name, query in QUERIES.items():
         sample = json.dumps(rows[name][:1], ensure_ascii=False, indent=1)
         lines += [f"\n// {name}: {len(rows[name])} rows; first row:", "// " + sample.replace("\n", "\n// "),
@@ -404,6 +419,19 @@ def connect():
     return driver, os.environ.get("NEO4J_DATABASE") or None
 
 
+def expected_size(rows: dict[str, list[dict]]) -> tuple[int, int]:
+    """Nodes and relationships the rows create at most (before MERGE folds repeats)."""
+    subsidiaries = len({r["sub_id"] for r in rows["subsidiaries"]})
+    segments = len({r["segment_id"] for r in rows["segments"]})
+    nodes = sum(len(rows[k]) for k in NODE_ROWS) + subsidiaries + segments
+    themes = sum(len(c.get("risk_themes") or []) for c in rows["claims"])
+    relationships = (len(rows["filings"]) + len(rows["sections"]) + len(rows["claims"]) + themes
+                     + len(rows["risk_themes"]) + len(rows["subsidiaries"]) + len(rows["segments"])
+                     + len(rows["mentions_subsidiary"]) + len(rows["mentions_segment"])
+                     + sum(len(v) for k, v in rows.items() if k.startswith("claim_links_")))
+    return nodes, relationships
+
+
 def run(dry_run: bool = False, wipe: bool = False) -> None:
     scope = settings()["load"]["scope"]
     if wipe:
@@ -417,11 +445,24 @@ def run(dry_run: bool = False, wipe: bool = False) -> None:
     counts = ", ".join(f"{k}={len(v)}" for k, v in rows.items())
     if dry_run:
         write_preview(rows, scope)
-        log(STEP, f"dry run: {counts} -> {Paths.cypher()}")
+        nodes, relationships = expected_size(rows)
+        log(STEP, f"dry run: {counts}; about {nodes:,} nodes, {relationships:,} relationships "
+                  f"(AuraDB Free: {AURA_FREE['nodes']:,} / {AURA_FREE['relationships']:,}) -> {Paths.cypher()}")
         return
+
+    nodes, relationships = expected_size(rows)
+    log(STEP, f"about {nodes:,} nodes and {relationships:,} relationships to load "
+              f"(AuraDB Free: {AURA_FREE['nodes']:,} / {AURA_FREE['relationships']:,})")
+    if nodes > AURA_FREE["nodes"] or relationships > AURA_FREE["relationships"]:
+        log(STEP, "more than AuraDB Free holds: on a Free instance the load will fail part way "
+                  "(switch off claim_links layers in settings.yaml load.claim_links)")
 
     driver, database = connect()
     with driver, driver.session(database=database) as session:
+        for q in INDEX_QUERIES:
+            session.run(q).consume()
+        session.run("CALL db.awaitIndexes(600)").consume()
+        log(STEP, f"{len(INDEX_QUERIES)} key indexes in place")
         for name, query in QUERIES.items():       # order matters: parents before children
             data = rows[name]
             for i in range(0, len(data), BATCH):
