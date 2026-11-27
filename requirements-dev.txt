@@ -14,3 +14,7 @@ pandas>=2.0
 # The MCP endpoint (graphrag/mcp_server.py). Without it tests/test_mcp_server.py
 # skips its server half, and the layer that other teams call goes uncovered.
 mcp>=2.0
+
+# The structured loader's --all-of path reads config/filings.yaml, and the
+# test that it skips on-hold filings cannot run without it.
+PyYAML>=6.0

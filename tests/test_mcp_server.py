@@ -173,10 +173,11 @@ def server():
     return mcp_server.build_server()
 
 
-def test_three_tools_are_published(server, anyio_backend="asyncio"):
+def test_the_published_tools_are_the_ones_we_mean(server):
     import asyncio
     names = {t.name for t in asyncio.run(server.list_tools())}
-    assert names == {"graph_search", "structured_search", "describe_filters"}
+    assert names == {"graph_search", "structured_search",
+                     "describe_filters", "describe_corpus"}
 
 
 def test_cypher_is_not_published(server):
@@ -280,3 +281,107 @@ def test_the_mock_arms_serve_the_same_tools(server):
     finally:
         retrieve.configure_graph_backend(None)
         retrieve.configure_structured_backend(None)
+        # _configure_mock also redirects the corpus readers. Leaving them set
+        # would describe the mock corpus for the rest of the session.
+        from graphrag import corpus as corpus_module
+        for arm in ("graph", "structured"):
+            corpus_module.configure_reader(arm, None)
+
+
+# ---- describe_corpus -------------------------------------------------------
+
+def test_the_corpus_tool_is_published(server):
+    import asyncio
+    names = {t.name for t in asyncio.run(server.list_tools())}
+    assert "describe_corpus" in names
+
+
+def test_an_unreachable_arm_says_so_rather_than_holding_nothing(monkeypatch):
+    """An empty filer list reads as "we do not hold that company". An arm
+    that could not be asked has to say that instead."""
+    from graphrag import corpus as corpus_module
+
+    def fails():
+        raise RuntimeError("no store configured")
+
+    monkeypatch.setattr(corpus_module, "_structured_corpus", fails)
+    monkeypatch.setattr(corpus_module, "_graph_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0})
+
+    report = corpus_module.corpus()
+    said = report["structured"]["unavailable"]
+    # The kind of failure, so a caller can act; not the text, which names the
+    # store path. The detail goes to the log.
+    assert said.startswith("RuntimeError:")
+    assert "no store configured" not in said
+    assert "unavailable" not in report["graph"]
+
+
+def test_the_fiscal_years_come_from_the_arms_own_labels():
+    """They are what that arm accepts as fiscal_year, not a calendar range."""
+    from graphrag import corpus as corpus_module
+
+    calendar = {"MSFT": {"FY 2026": (None, None), "Q3 2026": (None, None),
+                         "Q1 2027": (None, None)}}
+    assert corpus_module._years(calendar, "MSFT") == [2026, 2027]
+    assert corpus_module._years(calendar, "AAPL") == []
+
+
+def test_the_corpus_says_which_build_answered(monkeypatch):
+    """`raw` is Data's unvalidated set. A number quoted from it carries that
+    caveat, so the caveat has to travel with the corpus rather than sit in a
+    handover note."""
+    from graphrag import corpus as corpus_module
+
+    monkeypatch.setattr(corpus_module, "_graph_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0,
+                                 "corpus_version": "kelly-extraction-pilot-v1"})
+    monkeypatch.setattr(corpus_module, "_structured_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0,
+                                 "corpus_version": "data-api-raw:313",
+                                 "source": "data-api:raw",
+                                 "loader_version": "data-api-loader-v1"})
+
+    report = corpus_module.corpus()
+    assert report["structured"]["source"] == "data-api:raw"
+    assert report["graph"]["corpus_version"] == "kelly-extraction-pilot-v1"
+
+
+def test_the_unavailable_reason_does_not_say_where_the_arm_lives(monkeypatch):
+    """A driver error carries the host, and on Aura the instance id in the
+    host is the username. This tool is read by other teams at startup."""
+    from graphrag import corpus as corpus_module
+
+    def boom():
+        raise RuntimeError(
+            "cannot reach the graph at neo4j+s://12345678.databases.neo4j.io")
+
+    monkeypatch.setattr(corpus_module, "_graph_corpus", boom)
+    monkeypatch.setattr(corpus_module, "_structured_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0})
+    monkeypatch.setitem(corpus_module._READERS, "graph", boom)
+
+    said = corpus_module.corpus()["graph"]["unavailable"]
+    assert "12345678" not in said
+    assert "neo4j" not in said.lower()
+    assert "not an empty corpus" in said
+
+
+def test_the_mock_server_describes_the_mock_corpus(server):
+    """A consumer integrating against --mock must not be told both arms are
+    unavailable while the search tools answer."""
+    import asyncio
+    from graphrag import corpus as corpus_module
+
+    mcp_server._configure_mock()
+    try:
+        body = asyncio.run(server.call_tool("describe_corpus", {})).structured_content
+        for arm in ("graph", "structured"):
+            assert "unavailable" not in body[arm]
+            assert body[arm]["tickers"] == ["MSFT"]
+            assert body[arm]["source"] == "mock"
+    finally:
+        retrieve.configure_graph_backend(None)
+        retrieve.configure_structured_backend(None)
+        for arm in ("graph", "structured"):
+            corpus_module.configure_reader(arm, None)

@@ -68,7 +68,7 @@ try:
 except ImportError:  # pragma: no cover - 3.12+ without typing_extensions
     from typing import TypedDict
 
-from . import backends, contract, retrieve, vocabulary
+from . import backends, contract, corpus as corpus_module, retrieve, vocabulary
 
 _ROOT = Path(__file__).resolve().parent.parent
 
@@ -169,6 +169,44 @@ class SearchResponse(TypedDict):
     results: list[Evidence]
     count: int
     arm: str
+    graphrag_commit: str
+
+
+class Filer(TypedDict):
+    """One company an arm can answer about."""
+
+    ticker: str
+    cik: str | None
+    company_name: str
+    forms: list[str]
+    filings: int
+    fiscal_years: list[int]
+    reporting_period_end: dict[str, str]
+
+
+class ArmCorpus(TypedDict, total=False):
+    """What one arm holds, where it came from, or why it could not say.
+
+    `source` tells Data's validated view from their unvalidated sets. On an
+    audit-flavoured project that caveat belongs with every corpus answer, not
+    in a handover note. The EDGAR loader writes no `source` at all, so its
+    absence identifies that path.
+    """
+
+    filers: list[Filer]
+    tickers: list[str]
+    filings: int
+    corpus_version: str | None
+    source: str | None
+    loader_version: str | None
+    unavailable: str
+
+
+class CorpusResponse(TypedDict):
+    """What each arm holds. The two can differ, so each answers for itself."""
+
+    graph: ArmCorpus
+    structured: ArmCorpus
     graphrag_commit: str
 
 
@@ -276,7 +314,28 @@ def describe_filters() -> FiltersResponse:
     }
 
 
-TOOLS = (graph_search, structured_search, describe_filters)
+def describe_corpus() -> CorpusResponse:
+    """Which filers each arm can answer about, and in which fiscal years.
+
+    Call it once at startup instead of keeping a company list by hand. Read
+    from the arms, so it cannot go stale.
+
+    ⚠️ **The two arms do not hold the same years.** A 10-K carries several
+    years of comparative figures, so the structured arm answers about years
+    the graph arm has no claims for — AAPL is FY2023–2026 structured and
+    FY2025–2026 graph, from the same twenty filings. Check the arm you are
+    about to call, not the other one.
+
+    `fiscal_years` are the values that arm will accept as `fiscal_year`,
+    derived from its own calendar. Join the two arms on `cik`: they load from
+    different sources and spell a name differently.
+    """
+    report = corpus_module.corpus()
+    report["graphrag_commit"] = commit()
+    return report
+
+
+TOOLS = (graph_search, structured_search, describe_filters, describe_corpus)
 
 
 # What the arms raise on purpose, and a caller can act on: a filter this arm
@@ -340,6 +399,28 @@ def _without_the_driver_text(message: str) -> str:
     )
 
 
+def _mock_corpus(mock) -> dict:
+    """The one filing the mock stands on, described the same way as a real one."""
+    filing = mock._FILING
+    return {
+        "filers": [{
+            "ticker": filing["ticker"],
+            "cik": filing["cik"],
+            "company_name": filing["company_name"],
+            "forms": [filing["form"]],
+            "filings": 1,
+            "fiscal_years": [2026],
+            "reporting_period_end": {"earliest": filing["reporting_period_end"],
+                                     "latest": filing["reporting_period_end"]},
+        }],
+        "tickers": [filing["ticker"]],
+        "filings": 1,
+        "corpus_version": "mock",
+        "source": "mock",
+        "loader_version": "mock",
+    }
+
+
 def _configure_mock() -> dict[str, str]:
     """Serve the mock arms instead of the real ones.
 
@@ -358,6 +439,12 @@ def _configure_mock() -> dict[str, str]:
 
     retrieve.configure_graph_backend(mock.graph_search)
     retrieve.configure_structured_backend(mock.structured_search)
+    # describe_corpus has to describe the arms this server is actually
+    # serving. Left alone it reads the live graph and store, so a consumer
+    # integrating against --mock would be told both arms are unavailable
+    # while the search tools answer.
+    for arm in ("graph", "structured"):
+        corpus_module.configure_reader(arm, lambda: _mock_corpus(mock))
     backends.status.clear()
     backends.status.update({
         "graph": "registered: mock",

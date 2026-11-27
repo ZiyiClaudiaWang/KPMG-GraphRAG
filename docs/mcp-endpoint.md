@@ -62,6 +62,12 @@ What each arm does with every filter key it is offered — `applied`, `ignored` 
 
 Also reports which arms this server has configured, and the reason for any it could not.
 
+### `describe_corpus()`
+
+Which filers each arm can answer about, with the forms, the fiscal years that arm accepts, and how many filings. Call it at startup instead of hardcoding a company list; it is read from the arms, so it cannot drift from them.
+
+⚠️ The two arms do not accept the same years — a 10-K's comparatives mean the structured arm reaches back further than the graph arm does. Apple is FY2023–2026 structured, FY2025–2026 graph, from the same filings.
+
 ## What comes back
 
 The arm's own envelope, item for item, under `results`. Nothing is renamed, reshaped or re-sorted. What this layer adds sits beside it:
