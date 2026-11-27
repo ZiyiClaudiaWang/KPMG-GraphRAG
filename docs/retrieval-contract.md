@@ -84,6 +84,7 @@ An empty `results` on its own cannot tell you whether the arm looked and found n
 | `abstain` | `false_premise` | The question assumes something the filings contradict |
 | `abstain` | `fabricated_relationship` | It asserts a link that does not exist |
 | `clarify` | `ambiguous` | More than one reading; ask which |
+| `block` | `null` | The request is refused on policy grounds. No arm emits it today — it is in the vocabulary for the agent layer |
 
 Richer non-score triggers are in review (#86) and land on this same seam, so they will appear here without the response shape changing.
 
