@@ -349,6 +349,11 @@ Each module's docstring has the full rules; below is what each step does and wha
 - `review_queue.jsonl`: held units (`needs_review`, no Claim), and retained Claims with rule flags
   (`claim_review_flags`, Claudia's rules in [`source_review.py`](src/source_review.py); flag only,
   they hold nothing). List items and list groups are Claims. Entity mentions are checked in step 9.
+- Manual decisions: [`config/label_overrides.csv`](config/label_overrides.csv) (`unit_id, label,
+  reviewer, note`) sets a unit's label by hand over the model's or the prefilter's: a Claim type
+  releases a `not_a_claim` or held unit, `not_a_claim` drops a Claim. Steps 8, 8b and 9 read the
+  labels with it applied; `labels.jsonl` stays the model's. To choose: `checks/validate/not_a_claim.csv`
+  (every unit the model labelled `not_a_claim`) and `review_queue.jsonl` (held units).
 
 <a id="step-8b"></a>
 **[8b] Extract** (paid; [`src/extract.py`](src/extract.py), prompt [`extract_v1`](prompts/extract_v1.txt))
@@ -360,6 +365,8 @@ Each module's docstring has the full rules; below is what each step does and wha
   must be part of the sentence; code drops what is not.
 - Step 7's batches and context; repeats copy the first occurrence's extraction (`llm_reused`).
   Own model, budget and ledger (`extract:` in settings, `output/usage_extract.jsonl`).
+- No validate step after it: an extraction only adds to a Claim. Review files in `checks/extract/`:
+  `dropped.jsonl` (quoted fields not in the sentence), `rejected_batches.jsonl`, `missing.jsonl`.
 
 <a id="step-9"></a>
 **[9] Build Claims** ([`src/build_claims.py`](src/build_claims.py))
@@ -478,8 +485,7 @@ uv run python -m pytest tests -q
 1. **Sections to extract** (step 3): undecided for legal proceedings (concrete legal events vs
    MSFT refers to notes), market risk (mostly numbers for `Fact`) and cybersecurity Item 1C
    (process descriptions; the risks are already in Item 1A).
-2. **Release held units** (step 8): a held unit (`needs_review`) stays out of `claims.jsonl`,
-   and the next run holds it again. To do: a release list by `unit_id`, and who signs off.
+2. **Released units** (step 8): `config/label_overrides.csv` is per `unit_id`; after a step 4 change that moves a unit's spans, its override no longer matches (step 8 lists it in `errors.jsonl`). To do: who signs off the file.
 3. **Id changes counted too late:** `claim_id_report.json` comes in step 9, after paying for
    step 7. To do: the same report in step 4 (units added, gone, changed).
 4. **Old Claims after a rebuild** (step 10): load only MERGEs, so Claims whose ids changed stay.

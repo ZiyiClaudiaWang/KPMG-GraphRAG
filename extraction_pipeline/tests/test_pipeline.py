@@ -559,3 +559,37 @@ class FailedReply(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class LabelOverrides(unittest.TestCase):
+    """Step 8: config/label_overrides.csv sets a unit's label by hand (validate.reviewed_labels)."""
+
+    def test_override_releases_and_drops(self):
+        labels = [{"unit_id": "a", "label": "not_a_claim", "source": "llm"},
+                  {"unit_id": "b", "label": "stated_fact", "source": "llm"},
+                  {"unit_id": "c", "label": "not_a_claim", "source": "rule:too_short"},
+                  {"unit_id": "d", "label": "hedged_risk", "source": "llm"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "overrides.csv"
+            path.write_text("unit_id,label,reviewer,note\na,stated_fact,KZ,real statement\n"
+                            "b,not_a_claim,KZ,\nc,forward_looking,,\nd,hedged_risk,,same\n", encoding="utf-8")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = str(path)
+            try:
+                got = {l["unit_id"]: l for l in validate.reviewed_labels(labels)}
+                path.write_text("unit_id,label\na,maybe\n", encoding="utf-8")
+                with self.assertRaises(SystemExit):
+                    validate.read_overrides()
+            finally:
+                os.environ.pop("PIPELINE_LABEL_OVERRIDES")
+        self.assertEqual((got["a"]["label"], got["a"]["source"], got["a"]["model_label"], got["a"]["reviewer"]),
+                         ("stated_fact", "manual", "not_a_claim", "KZ"))
+        self.assertEqual(got["b"]["label"], "not_a_claim")
+        self.assertEqual((got["c"]["label"], got["c"]["model_source"]), ("forward_looking", "rule:too_short"))
+        self.assertEqual(got["d"]["source"], "llm")                    # same label: unchanged
+
+    def test_no_file_changes_nothing(self):
+        labels = [{"unit_id": "a", "label": "not_a_claim"}]
+        os.environ["PIPELINE_LABEL_OVERRIDES"] = str(TMP / "none.csv")
+        try:
+            self.assertEqual(validate.reviewed_labels(labels), labels)
+        finally:
+            os.environ.pop("PIPELINE_LABEL_OVERRIDES")

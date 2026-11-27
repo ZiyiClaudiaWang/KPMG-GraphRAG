@@ -43,7 +43,8 @@ label:
   concurrency: 1                     # requests in flight at once (--workers overrides); try 8
   rate_limit_retries: 6              # waits after a 429 rate-limit reply (not billed) before stopping
   max_request_bytes: 35000           # a larger batch is halved until it fits
-  max_completion_tokens: 4000        # output limit per request
+  max_completion_tokens: 2000        # output limit per request (label_v2 used at most 1,295 for 15
+                                     # sentences, with entity mentions; label_v3 has fewer fields)
   max_retries: 0                     # per batch, when the reply fails validation
   stop_on_failure: true              # stop the run at a failed batch for a person to look
   budget_usd: 30.0                    # step 7 only: stop before a request could take its spend past this
@@ -83,11 +84,12 @@ extract:                             # step 8b: entity mentions, metrics, event 
   model: gpt-4.1-mini                # batching (15 Claims, 4 context units) and reuse as in label:
   prompt_version: extract_v1         # prompts/<prompt_version>.txt
   answer_tokens_per_sentence: 120    # typical output a Claim, for the dry run's typical cost
-  max_completion_tokens: 6000        # output limit per request (the dry run's worst case)
+  max_completion_tokens: 4000        # output limit per request (the dry run's worst case); a reply
+                                     # cut short is rejected, so keep room for metric-heavy MD&A
   concurrency: 1                     # requests in flight at once (--workers overrides); try 8
   rate_limit_retries: 6
   stop_on_failure: true              # stop at a rejected reply (ids differ from the batch)
-  budget_usd: 30.0                   # this step only (output/usage_extract.jsonl)
+  budget_usd: 35.0                   # this step only (output/usage_extract.jsonl)
 
 headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
   indent_tickers: [MCK]              # companies whose left indent marks a heading level

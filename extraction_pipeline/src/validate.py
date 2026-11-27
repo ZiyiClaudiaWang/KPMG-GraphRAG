@@ -29,17 +29,27 @@ break) is not held for that reason: its text is rebuilt exactly from the source 
 and whether it was joined correctly is a question for steps 2 and 4, not for the label. Its
 Claim carries multi_fragment = true and every fragment's position (step 9).
 
+Manual decisions: config/label_overrides.csv (unit_id, label, reviewer, note) sets a unit's label
+by hand, over the model's and the prefilter's: a Claim type releases a not_a_claim or held unit,
+not_a_claim drops a Claim. Steps 8, 8b and 9 read labels through reviewed_labels(), so a released
+unit is extracted in 8b and built in 9 on their next run; labels.jsonl (the model's) is never
+changed. checks/validate/not_a_claim.csv lists every unit the model labelled not_a_claim, to
+choose from. The override is per unit_id: a repeat in another filing keeps its own label.
+
 Every record here (errors, queue entries, the intro units they cite) names its unit by unit_id
 (#45), so a review decision still points at the same unit after other sentences are re-split.
 """
 
 from __future__ import annotations
 
+import csv
 import json
+import os
 from collections import Counter
+from pathlib import Path
 
 from . import source_review
-from .common import Paths, data_dir, log, read_jsonl, write_jsonl
+from .common import CONFIG_DIR, Paths, checks_dir, data_dir, log, read_jsonl, write_jsonl
 
 STEP = "validate"
 
@@ -142,6 +152,70 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
     return queue
 
 
+# ---------- manual decisions ----------
+
+def overrides_path() -> Path:
+    return Path(os.environ.get("PIPELINE_LABEL_OVERRIDES") or CONFIG_DIR / "label_overrides.csv")
+
+
+def read_overrides() -> dict[str, dict]:
+    """config/label_overrides.csv: unit_id, label, reviewer, note. A person's label for a unit
+    wins over the model's and the prefilter's: release a not_a_claim or a held needs_review unit
+    as a Claim (stated_fact, forward_looking, hedged_risk), or drop a Claim (not_a_claim)."""
+    path = overrides_path()
+    if not path.exists():
+        return {}
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        rows = [r for r in csv.DictReader(f) if (r.get("unit_id") or "").strip()]
+    out = {}
+    for r in rows:
+        label = (r.get("label") or "").strip()
+        if label not in CLAIM_TYPES + ("not_a_claim",):
+            raise SystemExit(f"{path}: {r['unit_id']}: label must be one of "
+                             f"{', '.join(CLAIM_TYPES + ('not_a_claim',))}, not {label!r}")
+        out[r["unit_id"].strip()] = {"label": label, "reviewer": (r.get("reviewer") or "").strip() or None,
+                                     "note": (r.get("note") or "").strip() or None}
+    return out
+
+
+def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
+    """labels.jsonl with label_overrides.csv applied: what steps 8, 8b and 9 read. An overridden
+    row keeps the model's label and source (model_label, model_source)."""
+    if labels is None:
+        labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
+    overrides = read_overrides()
+    if not overrides:
+        return labels
+    out = []
+    for l in labels:
+        o = overrides.get(l["unit_id"])
+        if o is None or o["label"] == l["label"]:
+            out.append(l)
+            continue
+        out.append(dict(l, label=o["label"], source="manual", model_label=l["label"],
+                        model_source=l.get("source"), reviewer=o["reviewer"], override_note=o["note"]))
+    return out
+
+
+def write_not_a_claim_review(units: dict[str, dict], labels: list[dict]) -> int:
+    """checks/validate/not_a_claim.csv: every unit the model labelled not_a_claim, to choose which
+    to release (copy its unit_id into config/label_overrides.csv with a Claim type)."""
+    rows = [{"unit_id": l["unit_id"], "ticker": units[l["unit_id"]]["ticker"],
+             "accession_number": units[l["unit_id"]]["accession_number"],
+             "section_path": units[l["unit_id"]]["section_path"], "text": units[l["unit_id"]]["text"],
+             "annotation_note": l.get("annotation_note"), "source": l.get("source")}
+            for l in labels if l["label"] == "not_a_claim" and not (l.get("source") or "").startswith("rule:")
+            and l["unit_id"] in units]
+    path = checks_dir("validate") / "not_a_claim.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=["unit_id", "ticker", "accession_number", "section_path", "text",
+                                          "annotation_note", "source"])
+        w.writeheader()
+        w.writerows(rows)
+    return len(rows)
+
+
 def held_ids() -> set[str]:
     """Unit ids held from Claims by the last review (used by step 9)."""
     if not Paths.review_queue().exists():
@@ -151,8 +225,10 @@ def held_ids() -> set[str]:
 
 def run() -> int:
     units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
-    labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
-    errors = []
+    model_labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
+    labels = reviewed_labels(model_labels)
+    errors = [{"unit_id": uid, "error": f"{overrides_path().name}: unknown unit"}
+              for uid in read_overrides() if uid not in units]
 
     seen = Counter(l["unit_id"] for l in labels)
     for uid in units:
@@ -175,6 +251,14 @@ def run() -> int:
     log(STEP, f"{labelled}/{len(units)} units have one label; {len(errors)} errors -> {Paths.errors()}")
     by_label = Counter(l["label"] for l in labels)
     log(STEP, "labels: " + ", ".join(f"{k}={v}" for k, v in sorted(by_label.items())))
+
+    manual = [l for l in labels if l.get("source") == "manual"]
+    if manual:
+        log(STEP, f"{len(manual)} labels set by a person ({overrides_path().name}): "
+                  + ", ".join(f"{a}->{b}={n}" for (a, b), n in
+                              Counter((l["model_label"], l["label"]) for l in manual).most_common()))
+    n = write_not_a_claim_review(units, labels)
+    log(STEP, f"{n} units the model labelled not_a_claim -> {checks_dir('validate') / 'not_a_claim.csv'}")
 
     queue = review(units, labels)
     write_jsonl(Paths.review_queue(), queue)

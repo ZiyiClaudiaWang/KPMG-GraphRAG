@@ -75,7 +75,7 @@ from . import source_review
 from .entities import annotation as entity_annotation
 from .common import UNIT_IDENTITY_VERSION, Paths, log, read_jsonl, write_jsonl
 
-from .validate import CLAIM_TYPES, assessment, held_ids
+from .validate import CLAIM_TYPES, assessment, held_ids, reviewed_labels
 
 RISK_FIELDS = ("risk_factor_id", "risk_category_text", "risk_category_unit_id", "heading_risk_group",
                "risk_theme_status", "risk_themes")
@@ -151,9 +151,11 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
                        "coordinate_system": "exact_data_section_content_unicode_codepoints",
                        "raw_spans": spans, "context_unit_ids": [c["unit_id"] for c in context],
                        "lead_unit_id": unit.get("lead_unit_id"), "lead_source": unit.get("lead_source"),
-                       "request_hash": label["request_hash"],
+                       "request_hash": label.get("request_hash"),
                        "runner_version": label.get("runner_version") or label_runner_version(),
-                       "model": label["model"], "prompt_version": label["prompt_version"]},
+                       "model": label.get("model"), "prompt_version": label.get("prompt_version"),
+                       "label_source": label.get("source"), "model_label": label.get("model_label"),
+                       "reviewer": label.get("reviewer")},
     }
     record.update(entity_annotation.annotate_mentions(unit["text"], catalog_mentions,
                                                       issuer_cik=source["cik"],
@@ -226,7 +228,7 @@ def run() -> None:
     extractions = {r["unit_id"]: r for r in read_jsonl(Paths.extractions())} if Paths.extractions().exists() else {}
 
     records, skipped = [], Counter()
-    for label in read_jsonl(Paths.labels()):
+    for label in reviewed_labels():
         unit = units[label["unit_id"]]
         if label["label"] not in CLAIM_TYPES:
             skipped[label["label"]] += 1

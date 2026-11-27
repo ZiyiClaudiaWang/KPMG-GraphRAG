@@ -21,8 +21,12 @@ own schema. Each result, per sentence:
   event_type       one of EVENT_TYPES or null
   affected_object  0 to 3 of AFFECTED_OBJECTS
 Code checks every quoted field against the sentence: a mention whose mention_text or
-evidence_quote is not part of it is dropped (counted in the log), a metric whose metric_text or
-value_text is not part of it is dropped, a period_text that is not part of it becomes null.
+evidence_quote is not part of it is dropped, a metric whose metric_text or value_text is not part
+of it is dropped, a period_text that is not part of it becomes null. There is no separate
+validate step after 8b: an extraction only adds to a Claim and never decides whether it is one.
+What code dropped, rejected batches and Claims still without an extraction are review files:
+data/checks/extract/dropped.jsonl, rejected_batches.jsonl, missing.jsonl. Step 9 then checks
+the segment / subsidiary mentions against the catalog (entity_review_flags).
 
 Repeats: a Claim whose label step 7 reused (label.reuse_repeats, same text, context, path, form
 and list intro as in an earlier filing) gets a copy of that first occurrence's extraction
@@ -38,12 +42,12 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from .common import PROMPTS_DIR, Paths, log, read_jsonl, settings, write_jsonl
+from .common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, settings, write_jsonl
 from .label.requests import plan_batches
 from .label.reuse import reuse_plan
 from .llm.client import Client, StopRun, canonical, parse_reply
 from .llm.cost import step_cfg
-from .validate import CLAIM_TYPES, held_ids
+from .validate import CLAIM_TYPES, held_ids, reviewed_labels
 
 STEP = "extract"
 RUNNER_VERSION = "kelly_extract_v1"
@@ -100,23 +104,25 @@ def response_schema() -> dict:
 
 # ---------- checks ----------
 
-def checked(row: dict, text: str) -> tuple[dict, int]:
-    """The fields of one result with every quote checked against the sentence; (fields, dropped)."""
-    mentions, metrics, dropped = [], [], 0
+def checked(row: dict, text: str) -> tuple[dict, list[dict]]:
+    """The fields of one result with every quote checked against the sentence; (fields, dropped
+    items: what the model returned that is not part of the sentence)."""
+    mentions, metrics, dropped = [], [], []
     for m in row.get("entity_mentions") or []:
         w, e = m.get("mention_text") or "", m.get("evidence_quote") or ""
         if w.strip() and w in e and e in text:
             mentions.append(dict(m))
         else:
-            dropped += 1
+            dropped.append({"field": "entity_mentions", "item": m})
     for x in row.get("metrics") or []:
         if (x.get("metric_text") or "") in text and (x.get("value_text") or "").strip() and x["value_text"] in text:
             x = dict(x)
             if x.get("period_text") is not None and x["period_text"] not in text:
+                dropped.append({"field": "metrics.period_text", "item": dict(x)})
                 x["period_text"] = None
             metrics.append(x)
         else:
-            dropped += 1
+            dropped.append({"field": "metrics", "item": x})
     affected = [a for a in dict.fromkeys(row.get("affected_object") or []) if a in AFFECTED_OBJECTS][:3]
     event = row.get("event_type") if row.get("event_type") in EVENT_TYPES else None
     return {"entity_mentions": mentions, "metrics": metrics, "event_type": event, "affected_object": affected}, dropped
@@ -159,13 +165,14 @@ def estimate(plans: list[dict], cfg: dict) -> tuple[float, float]:
 
 # ---------- run ----------
 
-def rows_from(plan: dict, record: dict, results: list[dict], texts: dict[str, str], cfg: dict) -> tuple[list[dict], int]:
+def rows_from(plan: dict, record: dict, results: list[dict], texts: dict[str, str],
+              cfg: dict) -> tuple[list[dict], list[dict]]:
     to_unit = dict(zip(plan["batch"]["local_ids"], plan["batch"]["unit_ids"]))
-    out, dropped = [], 0
+    out, dropped = [], []
     for r in results:
         uid = to_unit[r["id"]]
         fields, d = checked(r, texts[uid])
-        dropped += d
+        dropped += [dict(x, unit_id=uid, text=texts[uid], request_hash=plan["request_hash"]) for x in d]
         out.append({"unit_id": uid, **fields, "source": "llm", "request_hash": plan["request_hash"],
                     "model": record["raw_response"].get("model"), "prompt_version": cfg["prompt_version"],
                     "runner_version": RUNNER_VERSION})
@@ -175,10 +182,12 @@ def rows_from(plan: dict, record: dict, results: list[dict], texts: dict[str, st
 def run(dry_run: bool = False, limit: int | None = None, workers: int | None = None) -> None:
     cfg = config()
     units = list(read_jsonl(Paths.sentences()))
-    labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
+    labels = reviewed_labels()
     claims = targets(units, labels, assume_unlabelled=dry_run)
     if dry_run and len(claims) > len({l["unit_id"] for l in labels if l["label"] in CLAIM_TYPES}):
         log(STEP, "dry run: units step 7 has not labelled yet are counted as Claims")
+    # a unit a person released from a prefilter (label_overrides.csv) is sent like any Claim
+    units = [dict(u, prefilter=None) if u["prefilter"] and u["unit_id"] in claims else u for u in units]
     reuse = {u: f for u, f in reuse_plan(units, cfg).items() if u in claims and f in claims}
     system, schema = system_prompt(cfg["prompt_version"]), response_schema()
 
@@ -195,7 +204,7 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
 
     texts = {u["unit_id"]: u["text"] for u in units}
     client = Client(cfg, usage_path=Paths.step_usage(STEP))
-    state = {"sent": 0, "dropped": 0, "stopped": None}
+    state = {"sent": 0, "dropped": [], "rejected": [], "stopped": None}
     rows: dict[str, dict] = {}
 
     def one(p: dict, send: bool):
@@ -212,6 +221,8 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
         problems = problems or check_reply(p["batch"], parsed["results"])
         if problems:
             log(STEP, f"{p['batch']['batch_id']} rejected: {'; '.join(problems)[:200]}")
+            state["rejected"].append({"batch_id": p["batch"]["batch_id"], "request_hash": p["request_hash"],
+                                      "problems": problems, "unit_ids": p["batch"]["unit_ids"]})
             if cfg.get("stop_on_failure", True):
                 state["stopped"] = p["batch"]["batch_id"]
             return
@@ -249,8 +260,14 @@ def run(dry_run: bool = False, limit: int | None = None, workers: int | None = N
     order = {u["unit_id"]: k for k, u in enumerate(units)}
     out = sorted(rows.values(), key=lambda r: order[r["unit_id"]])
     write_jsonl(Paths.extractions(), out)
+    folder = checks_dir(STEP)
+    folder.mkdir(parents=True, exist_ok=True)
+    write_jsonl(folder / "dropped.jsonl", state["dropped"])
+    write_jsonl(folder / "rejected_batches.jsonl", state["rejected"])
+    write_jsonl(folder / "missing.jsonl", [{"unit_id": u} for u in sorted(claims - set(rows), key=order.get)])
     log(STEP, f"{state['sent']} new requests; {len(out)}/{len(claims)} Claims extracted ({copied} copied), "
-              f"{state['dropped']} quoted fields not in their sentence dropped -> {Paths.extractions()}")
+              f"{len(state['dropped'])} quoted fields not in their sentence dropped, "
+              f"{len(state['rejected'])} batches rejected -> {Paths.extractions()}; review: {folder}")
     if state["stopped"]:
         log(STEP, f"stopped at {state['stopped']}; the rest wait for the next run")
 
