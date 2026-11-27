@@ -49,6 +49,14 @@ def _years(calendar: dict, ticker: str) -> list[int]:
     return sorted(years)
 
 
+# What a caller needs to know about where an answer came from. `source`
+# distinguishes Data's validated view from their unvalidated sets, and on an
+# audit-flavoured project that caveat has to travel with the corpus rather
+# than live in a handover note. The EDGAR loader writes `corpus_version`
+# alone, so absence of `source` identifies it.
+_STORE_META_KEYS = ("corpus_version", "source", "loader_version")
+
+
 def _graph_corpus() -> dict:
     graph_backend = importlib.import_module("graphrag.graph_backend")
     driver = graph_backend.connect()
@@ -63,7 +71,16 @@ def _graph_corpus() -> dict:
             "ORDER BY ticker"
         ).data()
     calendar = graph_backend._calendar(driver)
-    return _assemble(rows, calendar)
+    report = _assemble(rows, calendar)
+    # The graph is loaded by the extraction pipeline, which stamps its scope
+    # on the nodes rather than a meta table.
+    with driver.session(database=graph_backend._database) as session:
+        scopes = session.run(
+            "MATCH (c:Claim) WHERE c.pipeline_scope IS NOT NULL "
+            "RETURN DISTINCT c.pipeline_scope AS scope"
+        ).value()
+    report["corpus_version"] = ", ".join(sorted(s for s in scopes if s)) or None
+    return report
 
 
 def _structured_corpus() -> dict:
@@ -88,9 +105,12 @@ def _structured_corpus() -> dict:
                    "earliest", "latest"]
         records = [dict(zip(columns, row)) for row in rows]
         calendar = structured_query._calendar(conn)
+        meta = dict(conn.execute("SELECT key, value FROM store_meta_v1").fetchall())
     finally:
         conn.close()
-    return _assemble(records, calendar)
+    report = _assemble(records, calendar)
+    report.update({k: meta.get(k) for k in _STORE_META_KEYS})
+    return report
 
 
 def _assemble(rows, calendar: dict) -> dict:

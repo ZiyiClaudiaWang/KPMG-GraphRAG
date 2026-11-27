@@ -185,11 +185,20 @@ class Filer(TypedDict):
 
 
 class ArmCorpus(TypedDict, total=False):
-    """What one arm holds, or why it could not say."""
+    """What one arm holds, where it came from, or why it could not say.
+
+    `source` tells Data's validated view from their unvalidated sets. On an
+    audit-flavoured project that caveat belongs with every corpus answer, not
+    in a handover note. The EDGAR loader writes no `source` at all, so its
+    absence identifies that path.
+    """
 
     filers: list[Filer]
     tickers: list[str]
     filings: int
+    corpus_version: str | None
+    source: str | None
+    loader_version: str | None
     unavailable: str
 
 

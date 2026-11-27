@@ -37,6 +37,7 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 import re
 from pathlib import Path
 
@@ -309,12 +310,19 @@ def write(rows_df, filings_df, output, source, snapshot):
         conn.close()
 
 
-def accessions_from(path: str) -> list[str]:
-    """Every accession in a filing list, in file order.
+def accessions_from(path: str, include_on_hold: bool = False) -> list[str]:
+    """Every accession the pipeline would process, in file order.
 
     Reads the same `config/filings.yaml` the extraction pipeline uses, so the
     structured arm and the graph arm describe the same filings. Typing twenty
     accessions by hand is how the two drift apart.
+
+    It also skips what the pipeline skips. A row with `status: on_hold` is a
+    company the Data team is still fixing, and every extraction step leaves it
+    out — `extraction_pipeline/src/common.filings()` has the same rule, and a
+    row with no status counts as passed. Loading them here would put filers in
+    the structured arm that the graph arm has no claims for at all, which is
+    the drift this function exists to prevent.
     """
     try:
         import yaml
@@ -326,7 +334,19 @@ def accessions_from(path: str) -> list[str]:
     with open(os.path.expanduser(path)) as fh:
         doc = yaml.safe_load(fh) or {}
 
-    found = [f["accession"] for f in (doc.get("filings") or []) if f.get("accession")]
+    rows = [f for f in (doc.get("filings") or []) if f.get("accession")]
+    if not include_on_hold:
+        held = [f for f in rows if f.get("status", "passed") == "on_hold"]
+        rows = [f for f in rows if f.get("status", "passed") != "on_hold"]
+        if held:
+            tickers = sorted({f.get("ticker") for f in held if f.get("ticker")})
+            # Say what was left out. A count that silently drops forty rows
+            # reads as a smaller corpus rather than a skipped one.
+            print(f"skipping {len(held)} on-hold filings "
+                  f"({', '.join(tickers)}); pass --include-on-hold to load them",
+                  file=sys.stderr)
+
+    found = [f["accession"] for f in rows]
     if not found:
         raise SystemExit(f"no filings with an accession in {path}")
     return found
@@ -347,7 +367,11 @@ def main():
                         "raw: all 20 of ours, their unvalidated sets v1-v3")
     p.add_argument("--accessions", nargs="+", help="accession numbers to load")
     p.add_argument("--all-of", metavar="FILINGS_YAML",
-                   help="load every accession in a filing list, e.g. config/filings.yaml")
+                   help="load every passed accession in a filing list, e.g. config/filings.yaml")
+    p.add_argument("--include-on-hold", action="store_true",
+                   help="also load filings the Data team is still fixing. The "
+                        "extraction pipeline skips these, so the graph arm will "
+                        "have no claims for them")
     p.add_argument("--dry-run", action="store_true",
                    help="report what would be written, write nothing (still reads every fact: as slow as a real run)")
     p.add_argument("--batch-size", type=int, default=20, help="filings per query (default 20)")
@@ -356,7 +380,7 @@ def main():
     if args.accessions and args.all_of:
         p.error("give --accessions or --all-of, not both")
     if args.all_of:
-        args.accessions = accessions_from(args.all_of)
+        args.accessions = accessions_from(args.all_of, args.include_on_hold)
         print(f"{len(args.accessions)} accessions from {args.all_of}")
     if not args.accessions:
         p.error("give --accessions or --all-of")

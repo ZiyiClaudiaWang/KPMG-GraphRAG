@@ -317,3 +317,23 @@ def test_the_fiscal_years_come_from_the_arms_own_labels():
                          "Q1 2027": (None, None)}}
     assert corpus_module._years(calendar, "MSFT") == [2026, 2027]
     assert corpus_module._years(calendar, "AAPL") == []
+
+
+def test_the_corpus_says_which_build_answered(monkeypatch):
+    """`raw` is Data's unvalidated set. A number quoted from it carries that
+    caveat, so the caveat has to travel with the corpus rather than sit in a
+    handover note."""
+    from graphrag import corpus as corpus_module
+
+    monkeypatch.setattr(corpus_module, "_graph_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0,
+                                 "corpus_version": "kelly-extraction-pilot-v1"})
+    monkeypatch.setattr(corpus_module, "_structured_corpus",
+                        lambda: {"filers": [], "tickers": [], "filings": 0,
+                                 "corpus_version": "data-api-raw:313",
+                                 "source": "data-api:raw",
+                                 "loader_version": "data-api-loader-v1"})
+
+    report = corpus_module.corpus()
+    assert report["structured"]["source"] == "data-api:raw"
+    assert report["graph"]["corpus_version"] == "kelly-extraction-pilot-v1"

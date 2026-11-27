@@ -188,6 +188,11 @@ one and `MICROSOFT CORP` on the other.
 it reaches back further than the filing dates, because a filing's comparatives carry older
 periods.
 
+Each arm also names the build that answered: `corpus_version`, and on the structured arm `source`
+and `loader_version`. ⚠️ **`source: data-api:raw` means Data's unvalidated sets** — a number
+quoted from it carries that caveat. The EDGAR loader writes no `source` at all, so its absence
+identifies that path.
+
 An arm that could not be reached reports `unavailable` with the reason, rather than an empty filer
 list — an empty list would read as "we do not hold that company".
 
