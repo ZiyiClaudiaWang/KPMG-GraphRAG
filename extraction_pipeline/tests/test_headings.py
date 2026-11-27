@@ -1,4 +1,4 @@
-"""Step 4b (src/headings/): heading levels from a filing's HTML. A small synthetic filing, no
+"""Step 3b (src/headings/): heading levels from a filing's HTML. A small synthetic filing, no
 network: the HTML is written to a temporary file and the export text is built from the same lines.
 
 Run from the pipeline folder:  python -m pytest tests/test_headings.py

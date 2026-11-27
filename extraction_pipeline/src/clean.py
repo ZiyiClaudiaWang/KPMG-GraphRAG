@@ -62,6 +62,10 @@ TERMINAL = re.compile(r"[.?!:;\"”’)]$")
 MIN_WORDS_TO_JOIN = 8
 # A page that starts with an amount, or with a parenthesis followed by more of the sentence.
 CONTINUES_AFTER_BREAK = re.compile(r"[$€£]\s?\d|\([^()]{1,80}\)[,;]?\s+[a-z]")
+# A paragraph that ends on a closing parenthesis or quote with no sentence end before it
+# ("...(including annual changes in compensation)", "...in other companies’", "...could (i)"):
+# not a sentence end when the next paragraph goes on in lower case.
+CLOSES_WITHOUT_END = re.compile(r"(?<![.?!:;\"”’)])[\"”’)]+$")
 
 
 def split_paragraphs(raw: str) -> list[tuple[int, int]]:
@@ -265,7 +269,7 @@ def clean_section(sec: dict, headers: set[str], decisions: dict[str, bool] | Non
 # JOIN_CLASSES are joined, GRAY_CLASSES are joined only when step 2b (page_breaks.py, an LLM
 # yes/no) said so, every other class is never joined. checks/diagnose.py reports the same classes.
 
-JOIN_CLASSES = ("join_lowercase", "join_dangling_word", "join_dangling_quote", "join_dangling_digit",
+JOIN_CLASSES = ("join_lowercase", "join_close_lowercase", "join_dangling_word", "join_dangling_quote", "join_dangling_digit",
                 "join_amount_paren", "join_comma", "join_open_quote")
 GRAY_CLASSES = ("C9_gray_no_punct_capital", "C9_gray_short_prev_lower")
 BOUNDARY_CLASSES = ("sentence_end", "table_row", "short_prev", "heading_then_text", "text_then_heading",
@@ -318,9 +322,12 @@ def boundary_class(raw: str, prev_pieces: list[list[int]], next_text: str) -> st
     first = raw[prev_pieces[0][0]:prev_pieces[0][1]]          # where the previous paragraph starts
     if has_table_cells(prev) or has_table_cells(next_text):
         return "table_row"
+    words = prev.split()
+    if (CLOSES_WITHOUT_END.search(prev) and next_text[:1].islower() and len(words) >= MIN_WORDS_TO_JOIN
+            and not is_item_start(next_text) and not looks_like_heading(prev)):
+        return "join_close_lowercase"
     if TERMINAL.search(prev):
         return "sentence_end"
-    words = prev.split()
     if len(words) < MIN_WORDS_TO_JOIN:
         if next_text[:1].islower() and not looks_like_heading(prev):
             return "C9_gray_short_prev_lower"

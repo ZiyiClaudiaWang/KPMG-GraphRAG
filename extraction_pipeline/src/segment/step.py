@@ -14,14 +14,14 @@ STEP = "segment"
 
 
 def run() -> None:
-    from ..headings import load_guessed_levels, load_leads, load_levels, load_tables   # from step 4b
+    from ..headings import load_guessed_levels, load_leads, load_levels, load_tables   # from step 3b
 
     cfg = settings()["segment"]
     kept = kept_section_keys()
     levels = load_levels()
     guessed = load_guessed_levels()
     if levels:
-        log(STEP, f"{len(levels)} heading levels from step 4b")
+        log(STEP, f"{len(levels)} heading levels from step 3b")
     leads = load_leads()
     tables = load_tables()
     rule_mode = cfg.get("lead_rule", "fallback")

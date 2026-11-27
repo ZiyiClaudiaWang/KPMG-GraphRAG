@@ -532,7 +532,7 @@ class FailedReply(unittest.TestCase):
         bad = [{"id": "s9999", "label": "maybe"}]                   # off the schema
         restore = use_fake_openai(lambda payload, request: bad)
         original_settings = label.step.settings
-        cfg = dict(original_settings()["label"], max_retries=max_retries)
+        cfg = dict(original_settings()["label"], max_retries=max_retries, concurrency=1)   # serial: counts the calls
         label.step.settings = lambda: {**original_settings(), "label": cfg}
         os.environ["PIPELINE_DATA_DIR"] = str(tmp)
         try:

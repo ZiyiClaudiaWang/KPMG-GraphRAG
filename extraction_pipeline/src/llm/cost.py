@@ -140,6 +140,24 @@ def report(step: str, cfg: dict, build_plans, answer_tokens, log, compare: bool 
                       f"-> about ${m['cost'] * len(plans):.3f} for all {len(plans)}")
 
 
+def compare_models(step: str, plans: list[dict], cfg: dict, answer_tokens_per_request: list[int], log,
+                   estimator=None) -> None:
+    """Cost of the same requests with every model in the prices table (steps 7 and 8b, whose
+    batches do not depend on the model). Reasoning models also spend reasoning tokens, which
+    these numbers leave out: measure them with --model <name> --limit 20."""
+    log(step, f"{'model':<14}{'typical':>10}{'worst case':>12}   ({len(plans)} requests; budget ${cfg.get('budget_usd')})")
+    for model in settings().get("prices") or {}:
+        c = dict(cfg, model=model, **prices_for(model, cfg.get("base_url") or settings()["label"]["base_url"]))
+        if estimator is not None:                  # the step's own estimate (typical, worst)
+            typical, worst = estimator(plans, c)
+            e = {"typical": typical, "worst": worst}
+        else:
+            e = estimate(plans, c, answer_tokens_per_request)
+        mark = " <- configured" if model == cfg["model"] else ""
+        note = " (+ reasoning tokens)" if is_reasoning(model) else ""
+        log(step, f"{model:<14}{'$%.2f' % e['typical']:>10}{'$%.2f' % e['worst']:>12}{mark}{note}")
+
+
 def _spent(step: str) -> float:
     from .client import spent_so_far
     return spent_so_far(Paths.step_usage(step))

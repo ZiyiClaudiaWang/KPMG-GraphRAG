@@ -91,6 +91,8 @@ single_segment_companies: [CASY, TTWO]
 segment_names:
   AMZN:
     AmazonWebServicesSegmentMember: {name: Amazon Web Services, aliases: [AWS]}
+  GOOGL:                                           # a reviewed name wins over segment_member_skip
+    AllOtherSegmentsMember: Other Bets             # Alphabet tags its Other Bets segment as "all other"
   MCK:
     USPharmaceuticalSegmentMember: U.S. Pharmaceutical
     U.S.PharmaceuticalandSpecialtySolutionsMember: U.S. Pharmaceutical and Specialty Solutions
@@ -120,7 +122,9 @@ segment_names:
 # The dictionary pass (a catalog name found in a Claim the model did not tag) skips keys
 # shorter than this, and the keys listed under dictionary_skip (too common as words).
 dictionary_min_key_length: 4
-dictionary_skip: []
+dictionary_skip:
+  - Google              # GOOGL: Google LLC is a subsidiary, but "Google Maps", "Google Play", "Google Search"
+                        # are products (about 1,400 dictionary hits on 27 Nov); 8b's subsidiary mentions still link
 # Short names searched all the same (whole word, capital or digit first, and not right after
 # a capitalised word: "NBA 2K" is a game series).
 dictionary_short_names: [2K, AWS, MBU, SBU, EBU]   # Take-Two's 2K label (2K, Inc.); Amazon Web Services; Micron business units

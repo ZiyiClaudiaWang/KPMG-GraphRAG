@@ -10,7 +10,7 @@ Four questions, answered in three places:
                         ("Flexible Work.")
        never            a line ending on DANGLING_WORDS ("Number of"), a table note
                         (prefilter.TABLE_NOTES), a footnote marker ("(a)")
-  B. How deep is it?           step 4b (src/headings/levels.py) from the filing's HTML, read
+  B. How deep is it?           step 3b (src/headings/levels.py) from the filing's HTML, read
                                back here through `Levels`:
        1, 2, ...        a heading at that depth
        0                NOT_A_HEADING: a column header, "(In millions)", a table of contents;
@@ -110,7 +110,7 @@ def is_category(text: str) -> bool:
     return capitalised / len(words) >= 0.5
 
 
-# ---------- B. levels from step 4b ----------
+# ---------- B. levels from step 3b ----------
 
 def heading_id(sec: dict, paragraph: dict, start: int) -> str:
     """The id of a heading for heading levels: accession|section_key|its start in `content`."""
@@ -119,7 +119,7 @@ def heading_id(sec: dict, paragraph: dict, start: int) -> str:
 
 
 class Levels:
-    """The step 4b levels of one section's headings (heading id -> level); empty without step 4b."""
+    """The step 3b levels of one section's headings (heading id -> level); empty without step 3b."""
 
     def __init__(self, sec: dict, levels: dict[str, int] | None, guessed: set[str] | None = None):
         self.sec = sec
@@ -131,7 +131,7 @@ class Levels:
         return self.levels.get(heading_id(self.sec, paragraph, start))
 
     def is_guess(self, paragraph: dict, start: int) -> bool:
-        """The HTML gives no depth for this heading: not listed, or 4b only repeated the level of
+        """The HTML gives no depth for this heading: not listed, or 3b only repeated the level of
         the heading before (candidates.SIBLING_REASONS)."""
         hid = heading_id(self.sec, paragraph, start)
         return hid not in self.levels or hid in self.guessed

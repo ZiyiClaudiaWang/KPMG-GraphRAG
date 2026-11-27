@@ -1,4 +1,4 @@
-"""Step 4b - Heading levels from each filing's EDGAR HTML. No LLM.
+"""Step 3b - Heading levels from each filing's EDGAR HTML. No LLM.
 
   python run_pipeline.py --steps headings,segment
   python -m src.headings                              the same step on its own (then rerun segment)

@@ -42,7 +42,7 @@ from collections import Counter
 
 from . import factors as risk_factors, taxonomy as risk_taxonomy
 from ..llm import cost as llm_cost
-from ..common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, write_jsonl
+from ..common import PROMPTS_DIR, Paths, Progress, checks_dir, log, read_jsonl, write_csv, write_jsonl
 from .taxonomy import category_key
 
 STEP = "risk_themes"
@@ -85,6 +85,12 @@ def shown(rf: dict, max_units: int) -> list[dict]:
     return ([lead] + rest)[:max_units]
 
 
+def answer_room(n_units: int, cfg: dict) -> int:
+    """Output tokens a reply may use. Two secondary themes may list every sentence id ("s85", about
+    4 tokens each), so the room grows with the risk factor: a cut reply stops the run."""
+    return max(int(cfg.get("answer_tokens", 300)), 100 + 8 * n_units)
+
+
 def plans(factors: list[dict], cfg: dict) -> list[dict]:
     """One request per risk factor. The request has text only, so identical risk text shares a hash."""
     from ..llm.client import canonical, digest
@@ -99,7 +105,7 @@ def plans(factors: list[dict], cfg: dict) -> list[dict]:
                                 {"role": "user", "content": canonical({"risk_factor": sentences})}],
                    "response_format": {"type": "json_schema", "json_schema": schema(ids)},
                    "store": False}
-        llm_cost.model_params(request, cfg, answer_tokens=int(cfg.get("answer_tokens", 300)))
+        llm_cost.model_params(request, cfg, answer_tokens=answer_room(len(units), cfg))
         key = {"runner_version": RUNNER_VERSION, "request": request}
         batch = {"batch_id": f"{rf['risk_factor_id']}|risk_themes", "risk_factor_id": rf["risk_factor_id"],
                  "unit_ids": [u["unit_id"] for u in units]}
@@ -290,10 +296,12 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     workers = max(1, int(workers or cfg.get("concurrency") or 1))
     send = new if limit is None else new[:limit]
     state = {"sent": 0, "stopped": None}
+    bar = Progress(STEP, len(send), "requests", spent=lambda: labeller.spent)
 
     def one(plan: dict) -> None:
         labeller.send(plan, STEP)
         state["sent"] += 1
+        bar.tick()
 
     try:
         if workers == 1:
@@ -313,6 +321,7 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
                                 g.cancel()
     except StopRun as err:
         state["stopped"] = str(err)
+    bar.close()
     if state["stopped"]:
         log(STEP, f"stopped: {state['stopped']}")
 

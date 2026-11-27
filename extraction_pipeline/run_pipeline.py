@@ -11,7 +11,7 @@ Steps, in order (the number is the README's):
   2b  page_breaks    page_break_decisions.jsonl: yes/no for page breaks the rules leave gray (paid)
   2   clean          remove page headers, repair paragraphs
   3   filter         section_manifest.csv: which sections to extract from
-  4b  headings       heading levels, lead sentences and tables from the filing's EDGAR HTML
+  3b  headings       heading levels, lead sentences and tables from the filing's EDGAR HTML
                      (no LLM; needs SEC_USER_AGENT to download the HTML once)
   4   segment        sentences.jsonl: sentences, list groups and headings (units)
   5   risk_factors   risk factors and risk categories of every Item 1A unit (no LLM)
@@ -104,9 +104,13 @@ def main() -> None:
         "claim_links": lambda: claim_links.run(dry_run=args.dry_run),
         "load": lambda: load.run(dry_run=args.dry_run),
     }
-    for step in STEPS:                    # always run in pipeline order
+    chosen = [s for s in STEPS if s in steps]
+    run_started = time.time()
+    for k, step in enumerate(chosen, 1):  # always run in pipeline order
         if step in steps:
             started = time.time()
+            print(f"[run] step {k}/{len(chosen)}: {step} (run time so far "
+                  f"{int(time.time() - run_started) // 60}m)", flush=True)
             actions[step]()
             print(f"  ({step} took {time.time() - started:.1f}s)\n", flush=True)
             if step == "segment":         # a check, not a step: label finds the repeats itself

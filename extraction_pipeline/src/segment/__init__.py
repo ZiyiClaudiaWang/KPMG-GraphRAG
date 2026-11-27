@@ -1,7 +1,7 @@
 """Step 4 - Segment: split kept sections into units, in source order.
 
 Input : data/interim/clean/*.jsonl, data/output/section_manifest.csv,
-        data/interim/heading_levels.jsonl and lead_sentences.jsonl (step 4b, when it has run)
+        data/interim/heading_levels.jsonl and lead_sentences.jsonl (step 3b, when it has run)
 Output: data/output/sentences.jsonl   one row per unit, in source order
         data/checks/segment/lead_summary.csv, lead_review.csv
 
@@ -10,7 +10,7 @@ fragments), a heading (in Item 1A, a level-1 heading is a risk category) or a se
 
   sentences.py   where a sentence ends (abbreviations, OPENERS)
   lists.py       bullets and lettered items, list_group or split items
-  headings.py    which lines are headings, their levels (step 4b), the heading path
+  headings.py    which lines are headings, their levels (step 3b), the heading path
   risk.py        Item 1A: rule-proposed lead sentences (rule_heading), the risk factor summary
   prefilter.py   not_a_claim by rule, before the LLM
   units.py       the unit record, unit_id, segmentation_version

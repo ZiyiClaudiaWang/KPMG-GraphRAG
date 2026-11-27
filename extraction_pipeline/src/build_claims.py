@@ -159,7 +159,8 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
     }
     record.update(entity_annotation.annotate_mentions(unit["text"], catalog_mentions,
                                                       issuer_cik=source["cik"],
-                                                      accession=source["accession_number"], catalog=catalog))
+                                                      accession=source["accession_number"], catalog=catalog,
+                                                      typed_mentions=typed_mentions))
     reviewed = source_review.entity_review(unit, source, catalog_mentions, vocabulary)
     # related_*_ids keep only matched / matched_auto links (entities/annotation.py, #91 P1);
     # anything weaker stays a candidate on the mention. Step 10 does not load them yet (#91 P3).
@@ -224,6 +225,10 @@ def run() -> None:
     held = held_ids()
     risks = {a["unit_id"]: a for a in risk_assignments()}
     from .entities import headings
+    if Paths.entity_catalog().exists() and not Paths.heading_entities().exists():
+        # a catalog from before 6b wrote heading entities (27 Nov): the heading links would be lost
+        raise SystemExit(f"{Paths.heading_entities()} is missing: rerun step 6b (--steps entity_catalog) first, "
+                         "or the Claims lose the entities named in their headings")
     under_headings = headings.inherited(list(units.values()), headings.read_rows())
     extractions = {r["unit_id"]: r for r in read_jsonl(Paths.extractions())} if Paths.extractions().exists() else {}
 

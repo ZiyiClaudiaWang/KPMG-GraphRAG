@@ -91,7 +91,7 @@ import argparse
 import time
 from collections import defaultdict
 
-from ..common import Paths, log, read_jsonl, settings, write_jsonl
+from ..common import Paths, Progress, log, read_jsonl, settings, write_jsonl
 from ..llm.client import StopRun, reserve_cost
 from .repair import plan_repair, repair_labels
 from .replies import Labeller
@@ -138,8 +138,11 @@ def usage_report() -> None:
 
 
 def run(dry_run: bool = False, filing: str | None = None, limit: int | None = None,
-        workers: int | None = None) -> None:
-    cfg = settings()["label"]
+        workers: int | None = None, model: str | None = None, compare: bool = False) -> None:
+    cfg = dict(settings()["label"])
+    if model:                              # --model: a trial with another model (its own requests)
+        from ..llm.cost import prices_for
+        cfg.update(model=model, **prices_for(model, cfg["base_url"]))
     units = list(read_jsonl(Paths.sentences()))
     reuse = reuse_plan(units, cfg)
     plans = plan_batches(units, cfg, skip=set(reuse))
@@ -160,6 +163,10 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         log(STEP, f"{len(plans)} batches, {n} sentences; "
                   + (f"about ${typical:.2f} typical, " if typical is not None else "")
                   + f"worst-case cost ${reserve:.2f} (dry run, no API calls)")
+        if compare:
+            from ..llm.cost import compare_models
+            compare_models(STEP, plans, cfg, [len(p["batch"]["unit_ids"]) * cfg["answer_tokens_per_sentence"]
+                                              for p in plans], log)
 
     if cfg.get("price_input_per_1m") is None or cfg.get("price_output_per_1m") is None:
         log(STEP, "warning: token prices are not set in config/settings.yaml, so costs are not "
@@ -178,9 +185,13 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         return (not dry_run and not state["stopped"] and selected
                 and (limit is None or state["sent"] + in_flight < limit))
 
+    progress: dict[str, Progress | None] = {"bar": None}
+
     def handle(plan: dict, reply: dict) -> None:
         nonlocal labels
         state["sent"] += reply["sent"]
+        if reply["sent"] and progress["bar"]:
+            progress["bar"].tick()
         if reply["record"] is None:
             return
         if reply["problems"]:
@@ -204,6 +215,18 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         log(STEP, f"stopped: {err}")
 
     def label_all(batch_plans: list[dict]) -> None:
+        if not dry_run:
+            pending = [p for p in batch_plans if labeller.cached(p) is None
+                       and (filing is None or p["batch"]["accession_number"] == filing)]
+            room = len(pending) if limit is None else max(0, min(len(pending), limit - state["sent"]))
+            progress["bar"] = Progress(STEP, room, "requests", spent=lambda: labeller.spent)
+        try:
+            run_batches(batch_plans)
+        finally:
+            if progress["bar"]:
+                progress["bar"].close()
+
+    def run_batches(batch_plans: list[dict]) -> None:
         if workers <= 1:
             for plan in batch_plans:
                 try:
@@ -309,11 +332,14 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="send at most this many new requests")
     parser.add_argument("--report", action="store_true", help="print token and cost totals and exit")
     parser.add_argument("--workers", type=int, help="requests in flight at once (default label.concurrency)")
+    parser.add_argument("--model", help="use this model instead of settings.yaml label.model (a trial)")
+    parser.add_argument("--compare", action="store_true", help="dry run: cost with every model in settings prices:")
     args = parser.parse_args()
     if args.report:
         usage_report()
         return
-    run(dry_run=args.dry_run, filing=args.filing, limit=args.limit, workers=args.workers)
+    run(dry_run=args.dry_run or args.compare, filing=args.filing, limit=args.limit, workers=args.workers,
+        model=args.model, compare=args.compare)
 
 
 if __name__ == "__main__":
