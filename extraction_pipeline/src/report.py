@@ -142,7 +142,9 @@ STEPS = [
                         SRC / "risk_factors.py"],
      "computed": "risk_categories.csv not written yet; the numbers here are computed from sentences.jsonl",
      "checks": [(lambda: CONFIG / "risk_theme_map.csv", "add the unmapped category texts listed in this section"),
-                (Paths.risk_categories, "one row per category heading (written by step 7a)")]},
+                (Paths.risk_categories, "one row per category heading (written by step 7a)"),
+                (risk_factors.checks_path, "are the categories complete? filter on `check` (year_gap, "
+                                           "summary_mismatch, risk_heading_below_1, suspect_category)")]},
 ]
 STEP_IDS = [s["id"] for s in STEPS]
 STEP_NAME = {s["id"]: s["name"] for s in STEPS}
@@ -482,11 +484,21 @@ def risk_numbers(units: list[dict]) -> tuple[dict, list, list]:
          "unmapped": status["unmapped"], "unmapped_texts": len(unmapped),
          "item_1a_units": len(assignments), "item_1a_units_with_theme": with_theme,
          "item_1a_with_theme_pct": pct(with_theme, len(assignments))}
-    lines = []
+    checks = Counter(r["check"] for r in risk_factors.category_checks(units, categories))
+    reasons = risk_factors.no_theme_reasons(units, categories, assignments)
+    m.update({f"check_{k}": checks[k] for k, _ in risk_factors.CATEGORY_CHECKS})
+    m.update({f"no_theme_{k}": reasons[k] for k in risk_factors.NO_THEME_REASONS})
+    lines = ["**Why Item 1A units have no theme**", "",
+             md_table(["reason", "units", "% of Item 1A units"],
+                      [[k, f"{reasons[k]:,}", pct(reasons[k], len(assignments))]
+                       for k in risk_factors.NO_THEME_REASONS]), "",
+             "**Are the categories complete?** (cases in `category_checks.csv`)", "",
+             md_table(["check", "cases", "what it means"],
+                      [[k, checks[k], why] for k, why in risk_factors.CATEGORY_CHECKS]), ""]
     if unmapped:
-        lines = ["Unmapped category texts (add them to `config/risk_theme_map.csv`):", "",
-                 md_table(["ticker", "category text", "filings"],
-                          [[t, x, n] for (t, x), n in sorted(unmapped.items())]), ""]
+        lines += ["Unmapped category texts (add them to `config/risk_theme_map.csv`):", "",
+                  md_table(["ticker", "category text", "filings"],
+                           [[t, x, n] for (t, x), n in sorted(unmapped.items())]), ""]
     return m, [], lines
 
 

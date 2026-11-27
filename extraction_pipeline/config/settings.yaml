@@ -133,3 +133,7 @@ report:                              # python -m src.report (checks of steps 1-4
     segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
     risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_theme_map.csv"}
     risk_factors.item_1a_with_theme_pct: {min: 90, level: warn, why: "share of Item 1A units that get a risk theme"}
+    risk_factors.check_year_gap: {max: 0, level: warn, why: "a category the neighbouring filings have is missing: a missed level-1 heading?"}
+    risk_factors.check_summary_mismatch: {max: 0, level: warn, why: "a category in the risk factor summary has no level-1 heading in the full text"}
+    risk_factors.check_risk_heading_below_1: {max: 0, level: warn, why: "a heading naming a group of risks sits below level 1"}
+    risk_factors.check_suspect_category: {max: 0, level: info, why: "a level-1 heading that may not be a category (few units, no 'risk')"}
