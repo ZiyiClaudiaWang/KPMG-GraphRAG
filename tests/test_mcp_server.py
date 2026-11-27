@@ -147,6 +147,10 @@ def test_the_published_schema_is_the_contract_envelope(server):
     tools = {t.name: t for t in asyncio.run(server.list_tools())}
 
     out = tools["graph_search"].output_schema
+    # The SDK publishes nothing rather than raising when it cannot read the
+    # return type. Below Python 3.12 that happens with typing's own TypedDict,
+    # and the endpoint would look fine while telling consumers nothing.
+    assert out is not None, "no output schema was published for graph_search"
     assert sorted(out["properties"]) == ["arm", "count", "graphrag_commit", "results"]
 
     published = set(out["$defs"]["Evidence"]["properties"])

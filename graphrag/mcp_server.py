@@ -46,7 +46,17 @@ import functools
 import os
 import subprocess
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any
+
+# pydantic builds the published output schema from these, and below Python
+# 3.12 it can only read a TypedDict from typing_extensions — typing's own
+# does not keep the annotations it needs. The SDK does not raise when the
+# schema cannot be built; it publishes nothing, which is exactly the silent
+# hole this module declares types to close. CI runs 3.11, and it caught it.
+try:
+    from typing_extensions import TypedDict
+except ImportError:  # pragma: no cover - 3.12+ without typing_extensions
+    from typing import TypedDict
 
 from . import backends, contract, vocabulary
 
