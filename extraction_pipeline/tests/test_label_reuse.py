@@ -1,4 +1,4 @@
-"""Step 7 label reuse (label.reuse_repeats: path) on two filings of one company: the second is
+"""Step 7 label reuse (label.reuse_repeats: label) on two filings of one company: the second is
 the fixture filing again under another accession, so every unit repeats the first filing."""
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ import sys
 import tempfile
 import types
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 import yaml
@@ -18,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURE = HERE / "fixtures" / "sections" / "TEST_0000000000-25-000001.jsonl"
 FIRST, SECOND = "0000000000-25-000001", "0000000000-26-000002"
 
-from src import build_claims, clean, filter_sections, label, load, segment, validate  # noqa: E402
+from src import build_claims, clean, extract, filter_sections, label, load, segment, validate  # noqa: E402
 from src.common import Paths, read_jsonl  # noqa: E402
 
 
@@ -47,8 +48,8 @@ class FakeOpenAI:
 def stated_fact(payload: dict) -> list[dict]:
     """Every sentence stated_fact; each cites the sentence before it in the batch, if any."""
     ids = [s["id"] for s in payload["sentences"]]
-    return [{"id": sid, "label": "stated_fact", "context_ids": ids[k - 1:k], "subject_scope": None,
-             "annotation_note": None, "is_risk_heading": False, "entity_mentions": []}
+    return [{"id": sid, "label": "stated_fact", "context_ids": ids[k - 1:k], "subject_scope": ["company"],
+             "annotation_note": None, "is_boilerplate": False, "time_reference": None}
             for k, sid in enumerate(ids)]
 
 
@@ -92,6 +93,25 @@ class LabelReuse(unittest.TestCase):
         else:
             sys.modules["openai"] = cls.saved_openai
 
+    def test_extract_sends_the_first_filing_and_copies_the_rest(self):
+        calls = len(FakeOpenAI.calls)
+        reply = FakeOpenAI.reply
+        FakeOpenAI.reply = staticmethod(lambda payload: [
+            {"id": s["id"], "entity_mentions": [], "metrics": [], "event_type": None, "affected_object": []}
+            for s in payload["sentences"]])
+        try:
+            extract.run()
+        finally:
+            FakeOpenAI.reply = reply
+        sent = {s["text"] for r in FakeOpenAI.calls[calls:]
+                for s in json.loads(r["messages"][1]["content"])["sentences"]}
+        rows = {r["unit_id"]: r for r in read_jsonl(Paths.extractions())}
+        self.assertTrue(sent)
+        self.assertTrue(all(self.units[u]["text"] in sent for u, r in rows.items() if r["source"] == "llm"))
+        copied = [r for r in rows.values() if r["source"] == "llm_reused"]
+        self.assertTrue(copied)
+        self.assertTrue(all(self.units[r["unit_id"]]["accession_number"] == SECOND for r in copied))
+
     def test_only_the_first_filing_is_sent(self):
         sent = {s["text"] for r in FakeOpenAI.calls
                 for s in json.loads(r["messages"][1]["content"])["sentences"]}
@@ -113,6 +133,39 @@ class LabelReuse(unittest.TestCase):
             self.assertEqual([self.units[c]["char_start"] for c in row["context_unit_ids"]],
                              [self.units[c]["char_start"] for c in self.labels[twin]["context_unit_ids"]])
             self.assertTrue(all(self.units[c]["accession_number"] == SECOND for c in row["context_unit_ids"]))
+
+    def test_selected_filing_with_an_uncached_donor_is_labelled(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(FakeOpenAI, "calls", []):
+            root = Path(folder)
+            shutil.copytree(self.tmp / "sections", root / "sections")
+            with patch.dict(os.environ, {"PIPELINE_DATA_DIR": folder}):
+                clean.run()
+                filter_sections.run()
+                segment.run()
+                label.run(filing=SECOND)
+                targets = {uid for uid, u in self.units.items()
+                           if u["accession_number"] == SECOND and u["prefilter"] is None}
+                direct = {row["unit_id"] for row in read_jsonl(Paths.labels()) if row["source"] == "llm"}
+                self.assertEqual(direct, targets)
+                self.assertTrue(FakeOpenAI.calls)
+
+    def test_list_intro_and_form_must_match_before_copying(self):
+        units = []
+        for acc in (FIRST, SECOND):
+            for i, text in enumerate(["Earlier risks include:", "One", "Two", "Three", "Four", "Target item"]):
+                units.append({"unit_id": f"{acc}/{i}", "ticker": "TEST", "form": "10-K",
+                              "section_key": "risk", "section_type": "risk_factors", "section_path": "Item 1A",
+                              "accession_number": acc, "role": "body", "text": text, "char_start": i,
+                              "prefilter": None, "list_intro_id": f"{acc}/0" if i == 5 else None})
+        target = units[-1]["unit_id"]
+        cfg = label.settings()["label"]
+        self.assertIn(target, label.reuse_plan(units, cfg))
+        units[6]["text"] = "Current operations include:"
+        self.assertNotIn(target, label.reuse_plan(units, cfg))
+        units[6]["text"] = units[0]["text"]
+        for unit in units[6:]:
+            unit["form"] = "10-Q"
+        self.assertNotIn(target, label.reuse_plan(units, cfg))
 
     def test_some_reused_labels_cite_context(self):
         reused = [l for l in self.labels.values() if l["source"] == "llm_reused"]

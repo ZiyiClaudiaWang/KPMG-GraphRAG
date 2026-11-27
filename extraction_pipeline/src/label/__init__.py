@@ -13,7 +13,7 @@ from ..common import settings  # noqa: F401
 from ..llm.client import StopRun, canonical, digest, parse_reply, reserve_cost, save_json, spent_so_far  # noqa: F401
 from .repair import REPAIR_PROMPT, REPAIR_VERSION, plan_repair, repair_labels  # noqa: F401
 from .replies import Labeller, context_flags, quarantine  # noqa: F401
-from .requests import (RUNNER_VERSION, STEP, batch_numbers, build_request, context_units, entity_catalog,  # noqa: F401
+from .requests import (LABEL_DEFAULTS, RUNNER_VERSION, STEP, SUBJECT_SCOPES, label_fields, batch_numbers, build_request, context_units, entity_catalog,  # noqa: F401
                        list_intros, plan_batches, request_key, response_schema, source_index, system_prompt,
                        user_payload, verify_units)
 from .reuse import reuse_plan, reused_labels, units_before  # noqa: F401

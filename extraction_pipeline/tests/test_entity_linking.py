@@ -291,3 +291,39 @@ class LoadMentions(unittest.TestCase):
         text = "Rockstar Games released a new title."
         out = annotate(text, accession=PRIOR_ACC)            # prior-year-only: a candidate
         self.assertEqual(mention_rows([{"claim_id": "c1", **out}]), {"subsidiary": [], "segment": []})
+
+
+class HeadingEntities(unittest.TestCase):
+    """Step 6b: a catalog name in a heading covers the units under it (entities/headings.py)."""
+
+    def units(self):
+        def u(uid, role, text, path):
+            return {"unit_id": uid, "role": role, "text": text, "heading_path": path,
+                    "accession_number": ACC, "section_key": "item-1"}
+        return [u("h1", "heading", "LinkedIn", ["LinkedIn"]),
+                u("b1", "body", "Revenue grew 10%.", ["LinkedIn"]),
+                u("h2", "heading", "Intelligent Cloud", ["LinkedIn", "Intelligent Cloud"]),
+                u("b2", "body", "LinkedIn members rose.", ["LinkedIn", "Intelligent Cloud"]),
+                u("h3", "heading", "Other matters", ["Other matters"]),
+                u("b3", "body", "Nothing else.", ["Other matters"])]
+
+    def test_units_inherit_linked_heading_entities(self):
+        from src.entities.headings import heading_rows, inherited
+        units = self.units()
+        rows = heading_rows(units, CATALOG, cik={ACC: MSFT})
+        self.assertEqual([r["heading_unit_id"] for r in rows], ["h1", "h2"])
+        got = inherited(units, rows)
+        self.assertEqual([l["entity_id"] for l in got["b1"]], ["linkedin"])
+        self.assertEqual([(l["entity_id"], l["heading_unit_id"]) for l in got["b2"]],
+                         [("linkedin", "h1"), ("ic", "h2")])
+        self.assertNotIn("b3", got)
+
+    def test_heading_links_load_as_mentions_found_by_heading(self):
+        from src.load import mention_rows
+        occ = {"claim_id": "c1", "related_subsidiary_ids": [], "related_segment_ids": [],
+               "heading_entity_links": [{"entity_id": "ic", "entity_type": "segment",
+                                         "mention_text": "Intelligent Cloud", "match_status": "matched_auto",
+                                         "heading_unit_id": "h2", "heading_text": "Intelligent Cloud"}]}
+        rows = mention_rows([occ])
+        self.assertEqual(rows["segment"][0]["props"]["found_by"], ["heading"])
+        self.assertEqual(rows["segment"][0]["props"]["heading_unit_id"], "h2")

@@ -1,6 +1,6 @@
 """Entity mentions: segments and subsidiaries named in a Claim (Claudia's module, P1 of #91).
 
-The LLM returns mentions in step 7 (instructions are in prompts/label_v2.txt); step 9 checks
+The LLM returns mentions in step 8b (prompts/extract_v1.txt; step 7 with label_v2 before); step 9 checks
 them against the sentence and matches them to the entity catalog (data/entity_catalog.json,
 built by step 6b, src/entities/catalog.py). Catalog IDs are assigned by code only, and nothing
 here writes to the graph.

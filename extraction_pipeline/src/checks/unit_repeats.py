@@ -4,12 +4,18 @@
 
 Only units step 7 would send to the model (prefilter is None) are counted. A repeat is the same
 unit in two or more filings of the same company; repeats inside one filing only are left out.
-Three levels, each stricter than the one before:
+Four levels, each stricter than the one before:
 
-  text          the sentence itself (whitespace normalised), as in report_claim_repeats.py
+  text          the sentence itself (whitespace normalised)
   context       the sentence and the 4 units before it (step 7's context_sentences: section
                 titles left out, headings and prefiltered units kept)
   path          the sentence, those 4 units, and section_path
+  label         path, plus the form and the text of the unit's list intro (list_intro_id): all
+                that the model sees for the unit in step 7 (#113). Step 7 reuses labels at
+                this level (label/reuse.py). A list_intro_id that is not among the units makes
+                the key unique, so such a unit is never a repeat.
+
+unit_keys() is the one definition of "the same unit" in the pipeline; every use picks a level.
 
 `context` is the middle level because section_path is not reliable yet (heading levels are
 inferred from plain text): two units with the same text and context but different paths are
@@ -35,7 +41,7 @@ from collections import Counter, defaultdict
 from ..common import Paths, checks_dir, filings, log, read_jsonl, settings, write_jsonl
 
 STEP = "repeats"
-LEVELS = ("text", "context", "path")
+LEVELS = ("text", "context", "path", "label")
 
 
 def norm(text: str) -> str:
@@ -51,6 +57,7 @@ def unit_keys(units: list[dict], context_size: int) -> list[tuple[dict, dict[str
     by_section: dict[tuple, list[dict]] = defaultdict(list)
     for u in units:
         by_section[(u["accession_number"], u["section_key"])].append(u)
+    by_id = {u["unit_id"]: u for u in units}
     out = []
     for section_units in by_section.values():
         before: list[str] = []                    # texts of the units before, titles left out
@@ -59,12 +66,23 @@ def unit_keys(units: list[dict], context_size: int) -> list[tuple[dict, dict[str
                 text = norm(u["text"])
                 context = tuple(before[-context_size:]) if context_size else ()
                 company = u["ticker"]
+                path = (company, text, context, u["section_path"])
                 out.append((u, {"text": (company, text),
                                 "context": (company, text, context),
-                                "path": (company, text, context, u["section_path"])}))
+                                "path": path,
+                                "label": path + (u.get("form"), intro_key(u, by_id))}))
             if u["role"] != "section_title":
                 before.append(norm(u["text"]))
     return out
+
+
+def intro_key(unit: dict, by_id: dict[str, dict]):
+    """The list intro's text, None without one, or the unit's own id when the intro is missing."""
+    intro_id = unit.get("list_intro_id")
+    if not intro_id:
+        return None
+    intro = by_id.get(intro_id)
+    return norm(intro["text"]) if intro else ("missing intro", unit["unit_id"])
 
 
 def group_id(level: str, key: tuple) -> str:
@@ -111,7 +129,8 @@ def samples(units: list[dict], rows: list[dict], n: int = 40, seed: int = 0) -> 
     by_id = {u["unit_id"]: u for u in units}
     out, rng = [], random.Random(seed)
     for kind, loose, strict in (("same text, other context", "text", "context"),
-                                ("same text and context, other section_path", "context", "path")):
+                                ("same text and context, other section_path", "context", "path"),
+                                ("same path, other form or list intro", "path", "label")):
         picked = [r for r in rows if r[f"{loose}_group"] and r[f"{loose}_first_unit_id"] != r["unit_id"]
                   and not r[f"{strict}_group"]]
         for r in rng.sample(picked, min(n, len(picked))):

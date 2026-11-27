@@ -65,14 +65,16 @@ Problems with single units are handled as in Claudia's run (her recovery v2 and 
   with its own context (its 4 preceding units, plus its list intro when missing). Their labels
   replace the placeholders.
 
-Repeats (label.reuse_repeats: path): a unit whose text, 4 preceding units and section_path are
-the same as a unit in an earlier filing of the same company (checks/unit_repeats.py, level
-"path") is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
+Repeats (label.reuse_repeats: label): a unit whose text, 4 preceding units, section_path, form
+and list intro are the same as a unit in an earlier filing of the same company
+(checks/unit_repeats.py, level "label": everything the model sees for it) is not sent. It gets a copy of that first occurrence's label (source "llm_reused",
 reused_from_unit_id), with context_unit_ids moved to its own units at the same distance before
 it. Batches are cut at reused units, so every sent sentence still has its own preceding units
 as context. A reused unit falls back to its own request (a second round of batches in the same
 run) when the first occurrence has no model label (held by quarantine) or cites a context unit
-whose counterpart before the reused unit has other text. Set reuse_repeats to null to label
+whose counterpart before the reused unit has other text. With --filing, a reused unit of that
+filing whose first occurrence has no saved label is sent too (#113): its first occurrence is in
+another filing, which --filing does not send. Set reuse_repeats to null to label
 every occurrence.
 
 Usage:
@@ -93,7 +95,7 @@ from ..common import Paths, log, read_jsonl, settings, write_jsonl
 from ..llm.client import StopRun, reserve_cost
 from .repair import plan_repair, repair_labels
 from .replies import Labeller
-from .requests import RUNNER_VERSION, STEP, plan_batches
+from .requests import LABEL_DEFAULTS, RUNNER_VERSION, STEP, label_fields, plan_batches
 from .reuse import reuse_plan, reused_labels
 
 
@@ -101,21 +103,22 @@ from .reuse import reuse_plan, reused_labels
 
 def rule_label(unit: dict) -> dict:
     return {"unit_id": unit["unit_id"], "label": "not_a_claim", "source": f"rule:{unit['prefilter']}",
-            "context_unit_ids": [], "subject_scope": None, "annotation_note": None, "is_risk_heading": False,
-            "entity_mentions": []}
+            "context_unit_ids": [], **LABEL_DEFAULTS}
 
 
-def llm_labels(plan: dict, record: dict, results: list[dict], held: list[dict], cfg: dict) -> list[dict]:
-    """Labels from an accepted reply, with the model's short numbers turned back into unit ids."""
+def llm_labels(plan: dict, record: dict, results: list[dict], held: list[dict], cfg: dict,
+               texts: dict[str, str] | None = None) -> list[dict]:
+    """Labels from an accepted reply, with the model's short numbers turned back into unit ids.
+    texts (unit id -> text) lets label_fields() check time_reference against the sentence."""
     batch = plan["batch"]
+    texts = texts or {}
     to_unit = dict(zip(batch["context_local_ids"] + batch["local_ids"], batch["context_unit_ids"] + batch["unit_ids"]))
     held_ids = {h["unit_id"] for h in held}
     return [{
         "unit_id": to_unit[r["id"]], "label": r["label"],
         "source": "code_quarantine" if to_unit[r["id"]] in held_ids else "llm",
         "context_unit_ids": [to_unit[c] for c in r["context_ids"]],
-        "subject_scope": r["subject_scope"], "annotation_note": r["annotation_note"],
-        "is_risk_heading": r["is_risk_heading"], "entity_mentions": r["entity_mentions"],
+        **label_fields(r, texts.get(to_unit[r["id"]])),
         "batch_id": batch["batch_id"], "request_hash": plan["request_hash"],
         "model": record["raw_response"].get("model"), "prompt_version": cfg["prompt_id"],
         "runner_version": RUNNER_VERSION,
@@ -147,8 +150,16 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
 
     if dry_run:
         reserve = sum(reserve_cost(p["request"], cfg) for p in plans)
-        log(STEP, f"{len(plans)} batches, {sum(len(p['batch']['unit_ids']) for p in plans)} sentences; "
-                  f"worst-case cost ${reserve:.2f} (dry run, no API calls)")
+        n = sum(len(p["batch"]["unit_ids"]) for p in plans)
+        typical = None
+        if cfg.get("price_input_per_1m") is not None and cfg.get("answer_tokens_per_sentence"):
+            from ..llm.client import canonical
+            inp = sum(len(canonical(p["request"]).encode("utf-8")) / 4 for p in plans)
+            typical = (inp * cfg["price_input_per_1m"]
+                       + n * cfg["answer_tokens_per_sentence"] * cfg["price_output_per_1m"]) / 1e6
+        log(STEP, f"{len(plans)} batches, {n} sentences; "
+                  + (f"about ${typical:.2f} typical, " if typical is not None else "")
+                  + f"worst-case cost ${reserve:.2f} (dry run, no API calls)")
 
     if cfg.get("price_input_per_1m") is None or cfg.get("price_output_per_1m") is None:
         log(STEP, "warning: token prices are not set in config/settings.yaml, so costs are not "
@@ -158,6 +169,7 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
     if workers > 1 and not dry_run:
         log(STEP, f"{workers} requests in flight at once")
     labels = [rule_label(u) for u in units if u["prefilter"]]
+    texts = {u["unit_id"]: u["text"] for u in units}
     state = {"sent": 0, "rejected": 0, "complete": 0, "stopped": None}
     gaps: dict[str, str] = {}              # unit id -> "missing" or "ambiguous"
 
@@ -179,7 +191,7 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
                 log(STEP, f"stopped: {state['stopped']}")
             return
         state["complete"] += 1
-        labels += llm_labels(plan, reply["record"], reply["results"], reply["held"], cfg)
+        labels += llm_labels(plan, reply["record"], reply["results"], reply["held"], cfg, texts)
         for h in reply["held"]:
             log(STEP, f"{plan['batch']['batch_id']} {h['local_id']} set aside as needs_review: "
                       f"{', '.join(h['review_flags'])}")
@@ -239,6 +251,12 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
     if reuse:
         # Second round: reused units whose first occurrence gave no label they can copy.
         copies, fallback = reused_labels(labels, reuse, units)
+        if filing is not None:
+            # --filing sends nothing for the first occurrence's filing: label these here (#113).
+            labelled = {row["unit_id"] for row in labels}
+            accession = {u["unit_id"]: u["accession_number"] for u in units}
+            fallback.update(uid for uid, first in reuse.items()
+                            if first not in labelled and accession[uid] == filing)
         second = plan_batches(units, cfg, only=fallback) if fallback else []
         if second:
             log(STEP, f"{len(fallback)} reused units cannot copy their first occurrence's label; "

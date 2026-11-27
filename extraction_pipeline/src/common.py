@@ -138,6 +138,7 @@ class Paths:
     subsidiary_catalog = staticmethod(lambda: data_dir() / "output" / "subsidiary_catalog.json")  # step 6a
     subsidiary_renames = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_renames.csv")  # step 6a
     entity_catalog = staticmethod(lambda: data_dir() / "entity_catalog.json")              # step 6b
+    heading_entities = staticmethod(lambda: data_dir() / "interim" / "heading_entities.jsonl")  # step 6b
     batches = staticmethod(lambda: data_dir() / "interim" / "label_batches.jsonl")         # step 7
     labels = staticmethod(lambda: data_dir() / "output" / "labels.jsonl")                  # step 7
     usage = staticmethod(lambda: data_dir() / "output" / "usage.jsonl")                    # step 7
@@ -146,8 +147,11 @@ class Paths:
     label_cache = staticmethod(lambda: data_dir() / "cache" / "label")                     # step 7
     errors = staticmethod(lambda: data_dir() / "output" / "errors.jsonl")                  # step 8
     review_queue = staticmethod(lambda: data_dir() / "output" / "review_queue.jsonl")      # step 8
+    extractions = staticmethod(lambda: data_dir() / "output" / "extractions.jsonl")        # step 8b
     claims = staticmethod(lambda: data_dir() / "output" / "claims.jsonl")                  # step 9
     claim_id_report = staticmethod(lambda: data_dir() / "output" / "claim_id_report.json")  # step 9
+    claim_links = staticmethod(lambda: data_dir() / "output" / "claim_links.jsonl")        # step 9b
+    usage_claim_links = staticmethod(lambda: data_dir() / "output" / "usage_claim_links.jsonl")  # step 9b
     cypher = staticmethod(lambda: data_dir() / "output" / "load_preview.cypher")           # step 10
 
 # ---------- files ----------

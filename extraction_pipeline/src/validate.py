@@ -10,19 +10,31 @@ Completeness: the same checks run inside step 7 on each reply (check_reply). A r
 reply publishes no labels, so its sentences show up here as "no label". Units set aside in
 step 7 (source "code_quarantine", label needs_review) are held here like any needs_review.
 
-Review follows Claudia's build_candidates() and source_review.py, with her reasons and
-flag names. Three kinds of queue entry:
-  held, rule flags     source_review.claim_review_flags() (list intro, mixed tense,
-                       "causes / has required ... may", "is subject to laws" as risk), plus
-                       known product-line fragments (review.known_list_fragment_prefixes)
-  held, uncertainty    label needs_review: the model could not resolve the boundary, subject or type
-  retained             the Claim is built, but its entity mentions need review
-Held units do not become Claims in step 9; they keep their label.
+Review follows Claudia's build_candidates() and source_review.py, with her flag names. Two
+kinds of queue entry:
+  held          label needs_review: the model could not resolve the boundary, subject or type
+                (also step 7's quarantine). Held units do not become Claims in step 9.
+  retained      the Claim is built, but a rule flags it: claim_review_flags
+                (source_review.claim_review_flags(): mixed tense, "causes / has required ...
+                may", "is subject to laws" as hedged_risk). The Claim carries
+                claim_review_flags too. Rule flags hold nothing since 27 Nov 2026.
+Entity mentions are not checked here: step 8b extracts them from the Claims this step keeps,
+and step 9 checks them (entity_review_flags on the Claim).
+List items and list groups are Claims like any sentence: a ":" intro among the context is no
+longer a flag, and the MSFT FY2026 product-line prefixes (review.known_list_fragment_prefixes)
+are gone.
 
 A unit made of several source fragments (a list group, or a sentence joined across a page
 break) is not held for that reason: its text is rebuilt exactly from the source in step 7,
 and whether it was joined correctly is a question for steps 2 and 4, not for the label. Its
 Claim carries multi_fragment = true and every fragment's position (step 9).
+
+Manual decisions: config/label_overrides.csv (unit_id, label, reviewer, note) sets a unit's label
+by hand, over the model's and the prefilter's: a Claim type releases a not_a_claim or held unit,
+not_a_claim drops a Claim. Steps 8, 8b and 9 read labels through reviewed_labels(), so a released
+unit is extracted in 8b and built in 9 on their next run; labels.jsonl (the model's) is never
+changed. checks/validate/not_a_claim.csv lists every unit the model labelled not_a_claim, to
+choose from. The override is per unit_id: a repeat in another filing keeps its own label.
 
 Every record here (errors, queue entries, the intro units they cite) names its unit by unit_id
 (#45), so a review decision still points at the same unit after other sentences are re-split.
@@ -30,12 +42,14 @@ Every record here (errors, queue entries, the intro units they cite) names its u
 
 from __future__ import annotations
 
+import csv
 import json
+import os
 from collections import Counter
+from pathlib import Path
 
 from . import source_review
-from .entities import annotation as entity_annotation
-from .common import Paths, data_dir, log, read_jsonl, settings, write_jsonl
+from .common import CONFIG_DIR, Paths, checks_dir, data_dir, log, read_jsonl, write_jsonl
 
 STEP = "validate"
 
@@ -43,6 +57,12 @@ CLAIM_TYPES = ("stated_fact", "forward_looking", "hedged_risk")   # ontology dec
 # Pipeline-only labels, never Claim types: not_a_claim (not a statement) and
 # needs_review (boundary, subject or type the model could not resolve).
 LABELS = CLAIM_TYPES + ("not_a_claim", "needs_review")
+# Who or what a statement is mainly about (subject_scope, 1 to 3 values, the main one first).
+SUBJECT_SCOPES = ("company", "segment", "subsidiary", "named_organization", "competitors", "suppliers",
+                  "customers", "partners", "industry", "government", "macro", "other")
+# The model's fields of a label (label_v3) besides id, label and context_ids, with the value a
+# label made by code (a prefilter rule, quarantine) gets. labels.jsonl rows carry these keys.
+LABEL_DEFAULTS = {"subject_scope": [], "annotation_note": None, "is_boilerplate": None, "time_reference": None}
 
 
 def check_reply(batch: dict, results: list[dict]) -> list[str]:
@@ -82,58 +102,43 @@ def check_reply(batch: dict, results: list[dict]) -> list[str]:
 
 # ---------- review ----------
 
-HELD_RULE_REASON = "Conservative postcheck; original model label retained"
 HELD_UNCERTAIN_REASON = "Model uncertainty; preserve for review."
-RETAINED_REASON = "Claim source is valid; entity mention evidence requires review."
+RETAINED_REASON = "Claim source is valid; rule flags for review."
 
 
 def assessment(label: dict) -> dict:
-    """The model's row for a unit in Claudia's shape; ids are unit ids."""
+    """The model's row for a unit in Claudia's shape; ids are unit ids. A label_v2 row (string
+    subject_scope, is_risk_heading, entity_mentions) is read too."""
+    scope = label.get("subject_scope")
     return {"id": label["unit_id"], "label": label["label"],
             "context_ids": list(label["context_unit_ids"]),
-            "subject_scope": label["subject_scope"], "annotation_note": label["annotation_note"],
-            "is_risk_heading": label["is_risk_heading"], "entity_mentions": label["entity_mentions"]}
+            **{k: label.get(k, v) for k, v in LABEL_DEFAULTS.items()},
+            "subject_scope": scope if isinstance(scope, list) else ([scope] if scope else []),
+            "entity_mentions": label.get("entity_mentions") or []}
 
 
-def review_entry(unit: dict, result: dict, units: dict[str, dict], neighbours: list[dict], source: dict,
-                 vocabulary: list[dict], catalog: list[dict], prefixes: tuple) -> dict | None:
-    """Claudia's per-unit decision: held (two kinds), retained with entity flags, or None (clean)."""
-    flags, intros = source_review.claim_review_flags(unit, result, units)
-    pos = next(i for i, u in enumerate(neighbours) if u["unit_id"] == unit["unit_id"])
-    if prefixes and any(u["text"].rstrip().endswith(":") for u in neighbours[max(0, pos - 4):pos]) \
-            and unit["text"].startswith(prefixes):
-        flags.append("known_product_list_fragment_boundary_review")
-    ids = {"unit_id": unit["unit_id"]}
-    if flags and result["label"] != "not_a_claim":
-        return {**ids, "assessment": result, "reason": HELD_RULE_REASON,
-                "claim_review_flags": sorted(set(flags)), "intro_unit_ids": intros}
+def review_entry(unit: dict, result: dict, source: dict) -> dict | None:
+    """Per-unit decision: held (needs_review), retained with rule flags, or None (clean).
+    Entity flags come later: step 8b extracts the mentions and step 9 checks them."""
     if result["label"] == "not_a_claim":
         return None
+    ids = {"unit_id": unit["unit_id"]}
     fragments = [{"start": a, "end": b, "quote": source["content"][a:b]} for a, b in unit["raw_spans"]]
     if result["label"] == "needs_review":
         return {**ids, "assessment": result, "source_fragments": fragments, "reason": HELD_UNCERTAIN_REASON}
-    annotated = entity_annotation.annotate_mentions(unit["text"], result["entity_mentions"],
-                                                    issuer_cik=source["cik"],
-                                                    accession=source["accession_number"], catalog=catalog)
-    reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
-    flags = sorted(set(annotated["entity_review_flags"] + reviewed["review_flags"]))
-    if flags:
-        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "flags": flags}
+    rule_flags = source_review.claim_review_flags(unit, result)
+    if rule_flags:
+        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "claim_review_flags": rule_flags}
     return None
 
 
 def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
-    from .label import entity_catalog, source_index     # imported here: the label package imports this module
+    from .label import source_index     # imported here: the label package imports this module
     sources, _ = source_index()
     vocabulary = source_review.source_vocabulary(sources)
     (data_dir() / "output").mkdir(parents=True, exist_ok=True)
     (data_dir() / "output" / "provisional_segment_definitions.json").write_text(
         json.dumps(vocabulary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    catalog = entity_catalog()
-    prefixes = tuple((settings().get("review") or {}).get("known_list_fragment_prefixes") or [])
-    sections: dict[tuple, list[dict]] = {}
-    for u in units.values():
-        sections.setdefault((u["accession_number"], u["section_key"]), []).append(u)
 
     queue = []
     for label in labels:
@@ -141,11 +146,74 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
         if unit is None or label.get("source", "").startswith("rule:"):
             continue
         key = (unit["accession_number"], unit["section_key"])
-        entry = review_entry(unit, assessment(label), units, sections[key], sources[key],
-                             vocabulary, catalog, prefixes)
+        entry = review_entry(unit, assessment(label), sources[key])
         if entry:
             queue.append(entry)
     return queue
+
+
+# ---------- manual decisions ----------
+
+def overrides_path() -> Path:
+    return Path(os.environ.get("PIPELINE_LABEL_OVERRIDES") or CONFIG_DIR / "label_overrides.csv")
+
+
+def read_overrides() -> dict[str, dict]:
+    """config/label_overrides.csv: unit_id, label, reviewer, note. A person's label for a unit
+    wins over the model's and the prefilter's: release a not_a_claim or a held needs_review unit
+    as a Claim (stated_fact, forward_looking, hedged_risk), or drop a Claim (not_a_claim)."""
+    path = overrides_path()
+    if not path.exists():
+        return {}
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        rows = [r for r in csv.DictReader(f) if (r.get("unit_id") or "").strip()]
+    out = {}
+    for r in rows:
+        label = (r.get("label") or "").strip()
+        if label not in CLAIM_TYPES + ("not_a_claim",):
+            raise SystemExit(f"{path}: {r['unit_id']}: label must be one of "
+                             f"{', '.join(CLAIM_TYPES + ('not_a_claim',))}, not {label!r}")
+        out[r["unit_id"].strip()] = {"label": label, "reviewer": (r.get("reviewer") or "").strip() or None,
+                                     "note": (r.get("note") or "").strip() or None}
+    return out
+
+
+def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
+    """labels.jsonl with label_overrides.csv applied: what steps 8, 8b and 9 read. An overridden
+    row keeps the model's label and source (model_label, model_source)."""
+    if labels is None:
+        labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
+    overrides = read_overrides()
+    if not overrides:
+        return labels
+    out = []
+    for l in labels:
+        o = overrides.get(l["unit_id"])
+        if o is None or o["label"] == l["label"]:
+            out.append(l)
+            continue
+        out.append(dict(l, label=o["label"], source="manual", model_label=l["label"],
+                        model_source=l.get("source"), reviewer=o["reviewer"], override_note=o["note"]))
+    return out
+
+
+def write_not_a_claim_review(units: dict[str, dict], labels: list[dict]) -> int:
+    """checks/validate/not_a_claim.csv: every unit the model labelled not_a_claim, to choose which
+    to release (copy its unit_id into config/label_overrides.csv with a Claim type)."""
+    rows = [{"unit_id": l["unit_id"], "ticker": units[l["unit_id"]]["ticker"],
+             "accession_number": units[l["unit_id"]]["accession_number"],
+             "section_path": units[l["unit_id"]]["section_path"], "text": units[l["unit_id"]]["text"],
+             "annotation_note": l.get("annotation_note"), "source": l.get("source")}
+            for l in labels if l["label"] == "not_a_claim" and not (l.get("source") or "").startswith("rule:")
+            and l["unit_id"] in units]
+    path = checks_dir("validate") / "not_a_claim.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=["unit_id", "ticker", "accession_number", "section_path", "text",
+                                          "annotation_note", "source"])
+        w.writeheader()
+        w.writerows(rows)
+    return len(rows)
 
 
 def held_ids() -> set[str]:
@@ -157,8 +225,10 @@ def held_ids() -> set[str]:
 
 def run() -> int:
     units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
-    labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
-    errors = []
+    model_labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
+    labels = reviewed_labels(model_labels)
+    errors = [{"unit_id": uid, "error": f"{overrides_path().name}: unknown unit"}
+              for uid in read_overrides() if uid not in units]
 
     seen = Counter(l["unit_id"] for l in labels)
     for uid in units:
@@ -182,14 +252,22 @@ def run() -> int:
     by_label = Counter(l["label"] for l in labels)
     log(STEP, "labels: " + ", ".join(f"{k}={v}" for k, v in sorted(by_label.items())))
 
+    manual = [l for l in labels if l.get("source") == "manual"]
+    if manual:
+        log(STEP, f"{len(manual)} labels set by a person ({overrides_path().name}): "
+                  + ", ".join(f"{a}->{b}={n}" for (a, b), n in
+                              Counter((l["model_label"], l["label"]) for l in manual).most_common()))
+    n = write_not_a_claim_review(units, labels)
+    log(STEP, f"{n} units the model labelled not_a_claim -> {checks_dir('validate') / 'not_a_claim.csv'}")
+
     queue = review(units, labels)
     write_jsonl(Paths.review_queue(), queue)
     held = [q for q in queue if not q.get("candidate_retained")]
-    log(STEP, f"{len(held)} units held, {len(queue) - len(held)} Claims with entity flags "
+    log(STEP, f"{len(held)} units held (needs_review), {len(queue) - len(held)} Claims with flags "
               f"-> {Paths.review_queue()}")
-    reasons = Counter(f for q in held for f in q.get("claim_review_flags") or ["needs_review"])
-    if reasons:
-        log(STEP, "held by: " + ", ".join(f"{k}={v}" for k, v in reasons.most_common()))
+    flagged = Counter(f for q in queue for f in q.get("claim_review_flags") or [])
+    if flagged:
+        log(STEP, "rule flags: " + ", ".join(f"{k}={v}" for k, v in flagged.most_common()))
     return len(errors)
 
 

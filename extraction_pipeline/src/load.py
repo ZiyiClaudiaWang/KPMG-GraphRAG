@@ -26,6 +26,12 @@ Graph (names from the ontology):
   (Company)-[:OWNS]->(Subsidiary)
   (Company)-[:HAS_SEGMENT]->(Segment)
   (Claim)-[:MENTIONS]->(Subsidiary | Segment)
+  (Claim)-[:SAME_TEXT | NEAR_TEXT | SIMILAR_TO]->(Claim)   step 9b, only layers switched on
+
+Claim links (step 9b, data/output/claim_links.jsonl): a layer is loaded only when
+load.claim_links.<layer> is true (exact, edit, semantic; all false by default). The edge points
+from the later Claim to the earlier one and carries layer, same_company, the two accessions and
+the layer's score (similarity + changes as JSON text for NEAR_TEXT, score + model for SIMILAR_TO).
 
 Segment nodes come from the XBRL segment members in data/entity_catalog.json (step 6b), keyed
 by segment_id (uuid5 of cik + normalised name). Like OWNS, HAS_SEGMENT is one edge per filing
@@ -34,7 +40,8 @@ whose facts report the segment, keyed by accession_number, so a reorganisation s
 MENTIONS (#91 P3) is one edge per Claim and entity it links to: the Claim's related_subsidiary_ids
 and related_segment_ids (step 9 keeps only matched / matched_auto links there). The edge
 carries what was matched: mention_text, match_status, found_by (dictionary, model or both),
-entity_annotation_version. A link whose Subsidiary or Segment node is not loaded is skipped by
+entity_annotation_version. An entity named only in a heading above the Claim (heading_entity_links,
+step 6b) gives a MENTIONS edge with found_by ["heading"] and heading_unit_id. A link whose Subsidiary or Segment node is not loaded is skipped by
 the MATCH, so load the subsidiaries and the catalog with the Claims.
 
 Subsidiary nodes are keyed by sub_id (parent CIK + normalised name), so one subsidiary listed
@@ -125,7 +132,10 @@ SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.acces
     c.is_lead_sentence = r.is_lead_sentence, c.risk_summary = r.risk_summary,
     c.multi_fragment = r.multi_fragment, c.risk_factor_id = r.risk_factor_id,
     c.risk_category_text = r.risk_category_text, c.risk_category_unit_id = r.risk_category_unit_id,
-    c.heading_risk_group = r.heading_risk_group, c.risk_theme_status = r.risk_theme_status
+    c.heading_risk_group = r.heading_risk_group, c.risk_theme_status = r.risk_theme_status,
+    c.is_boilerplate = r.is_boilerplate, c.time_reference = r.time_reference, c.event_type = r.event_type,
+    c.affected_object = r.affected_object, c.metrics_json = r.metrics_json,
+    c.typed_mentions_json = r.typed_mentions_json
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
 MERGE (s)-[x:SUPPORTS {pipeline_scope: $scope}]->(c)
@@ -176,6 +186,14 @@ MATCH (g:Segment {segment_id: r.entity_id, pipeline_scope: $scope})
 MERGE (c)-[m:MENTIONS {pipeline_scope: $scope}]->(g)
 SET m += r.props""",
 }
+# Step 9b Claim links: one query per layer (a relationship type cannot be a parameter).
+for _layer, _rel in (("exact", "SAME_TEXT"), ("edit", "NEAR_TEXT"), ("semantic", "SIMILAR_TO")):
+    QUERIES[f"claim_links_{_layer}"] = f"""
+UNWIND $rows AS r
+MATCH (a:Claim {{claim_id: r.from_claim_id, pipeline_scope: $scope}})
+MATCH (b:Claim {{claim_id: r.to_claim_id, pipeline_scope: $scope}})
+MERGE (a)-[x:{_rel} {{pipeline_scope: $scope}}]->(b)
+SET x += r.props"""
 
 COUNT_QUERY = """
 MATCH (n {pipeline_scope: $scope})
@@ -210,6 +228,14 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
             **{k: occ.get(k) for k in ("risk_factor_id", "risk_category_text", "risk_category_unit_id",
                                        "risk_theme_status")},
             "heading_risk_group": list(occ.get("heading_risk_group") or []),
+            # step 7 (label_v3) and 8b fields; a label_v2 subject_scope string becomes a list
+            "subject_scope": (occ.get("subject_scope") if isinstance(occ.get("subject_scope"), list)
+                              else [occ["subject_scope"]] if occ.get("subject_scope") else []),
+            "is_boilerplate": occ.get("is_boilerplate"), "time_reference": occ.get("time_reference"),
+            "event_type": occ.get("event_type"), "affected_object": list(occ.get("affected_object") or []),
+            # Neo4j: no maps in lists, so metrics and the typed mentions are JSON text
+            "metrics_json": json.dumps(occ.get("metrics") or [], ensure_ascii=False),
+            "typed_mentions_json": json.dumps(occ.get("typed_mentions") or [], ensure_ascii=False),
             "risk_themes": [dict(t) for t in occ.get("risk_themes") or []],
             "is_lead_sentence": bool(occ.get("is_lead_sentence")),
             "risk_summary": bool(occ.get("risk_summary")),
@@ -281,7 +307,31 @@ def mention_rows(occurrences: list[dict]) -> dict[str, list[dict]]:
                     "found_by": m.get("found_by") or [m.get("origin") or "model"],
                     "entity_annotation_version": occ.get("entity_annotation_version"),
                     "extraction_status": "needs_review"}}
+        for link in occ.get("heading_entity_links") or []:          # entities named in a heading above
+            key = (occ["claim_id"], link["entity_id"])
+            if link["entity_type"] in out and key not in out[link["entity_type"]]:
+                out[link["entity_type"]][key] = {"claim_id": occ["claim_id"], "entity_id": link["entity_id"], "props": {
+                    "mention_text": link["mention_text"], "match_status": link["match_status"],
+                    "found_by": ["heading"], "heading_unit_id": link["heading_unit_id"],
+                    "entity_annotation_version": occ.get("entity_annotation_version"),
+                    "extraction_status": "needs_review"}}
     return {k: list(v.values()) for k, v in out.items()}
+
+
+def claim_link_rows() -> dict[str, list[dict]]:
+    """Step 9b links of the layers switched on in load.claim_links (all off by default)."""
+    on = settings()["load"].get("claim_links") or {}
+    out: dict[str, list[dict]] = {layer: [] for layer in ("exact", "edit", "semantic")}
+    if not any(on.values()) or not Paths.claim_links().exists():
+        return out
+    for l in read_jsonl(Paths.claim_links()):
+        if on.get(l["layer"]):
+            props = {k: v for k, v in l.items() if k not in ("from_claim_id", "to_claim_id", "relationship")}
+            if "changes" in props:
+                props["changes"] = json.dumps(props["changes"], ensure_ascii=False)   # Neo4j: no maps in lists
+            out[l["layer"]].append({"from_claim_id": l["from_claim_id"], "to_claim_id": l["to_claim_id"],
+                                    "props": props})
+    return out
 
 
 def build_rows() -> dict[str, list[dict]]:
@@ -324,7 +374,8 @@ def build_rows() -> dict[str, list[dict]]:
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
     mentions = mention_rows(occurrences)
-    return {"companies": list(companies.values()), "filings": list(filing_rows.values()),
+    links = claim_link_rows()
+    return {**{f"claim_links_{layer}": rows for layer, rows in links.items()},"companies": list(companies.values()), "filings": list(filing_rows.values()),
             "sections": list(sections.values()), "risk_groups": groups, "risk_themes": themes,
             "claims": claim_rows,
             "subsidiaries": subsidiaries, "segments": segment_rows(),

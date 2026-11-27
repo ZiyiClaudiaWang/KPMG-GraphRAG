@@ -4,6 +4,5 @@
   unit_repeats.py   sentences repeated across filings, before labelling (data/checks/unit_repeats/)
   entity_inputs.py  checks of steps 6a and 6b (data/checks/entity_inputs/)
   entity_links.py   Claim-to-entity links measured on a run, without relabelling
-  claim_repeats.py  Claims whose text repeats in another filing (after step 9)
   diagnose.py       scale-up diagnostics: re-runs steps 2-4 on every section (data/checks/diagnose/)
 """

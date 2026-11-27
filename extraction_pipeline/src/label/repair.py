@@ -6,13 +6,12 @@ from copy import deepcopy
 
 from .. import source_review
 from ..llm.client import canonical, digest, parse_reply
-from .requests import (batch_numbers, context_units, entity_catalog, request_key, response_schema,
-                       source_index,
-                       system_prompt)
+from .requests import (batch_numbers, context_units, entity_catalog, label_fields, request_key,
+                       response_schema, source_index, system_prompt)
 
 
-REPAIR_VERSION = "target_repair_v1"
-REPAIR_PROMPT = "repair_v1"          # prompts/repair_v1.txt: the batch prompt with repair instructions
+REPAIR_VERSION = "target_repair_v2"
+REPAIR_PROMPT = "repair_v2"          # prompts/repair_v2.txt: the label_v3 fields with repair instructions
 
 
 def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], plans: list[dict], cfg: dict) -> dict:
@@ -60,7 +59,7 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
                 "provisional_segment_definitions": source_review.source_vocabulary(sources)}
     return {"batch": {"batch_id": "target_repair", "unit_ids": gap_ids}, "request": request,
             "identity": identity, "request_hash": digest(canonical(request_key(request, REPAIR_VERSION))),
-            "contexts": contexts, "schema": schema}
+            "contexts": contexts, "schema": schema, "texts": {u["unit_id"]: u["text"] for u in selected}}
 
 
 def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
@@ -81,8 +80,7 @@ def repair_labels(plan: dict, record: dict) -> tuple[list[str], list[dict]]:
             return [f"{key}: invalid context ids; no repair labels published"], []
         labels.append({"unit_id": uid, "label": row["label"], "source": "llm_repair",
                        "context_unit_ids": [context[c] for c in refs],
-                       "subject_scope": row["subject_scope"], "annotation_note": row["annotation_note"],
-                       "is_risk_heading": row["is_risk_heading"], "entity_mentions": row["entity_mentions"],
+                       **label_fields(row, plan["texts"].get(uid)),
                        "batch_id": "target_repair", "request_hash": plan["request_hash"],
                        "model": record["raw_response"].get("model"), "prompt_version": REPAIR_VERSION,
                        "runner_version": REPAIR_VERSION})

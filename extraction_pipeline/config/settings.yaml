@@ -31,21 +31,25 @@ label:
   model: gpt-4.1-mini                # any OpenAI model that supports structured outputs
   base_url: https://us.api.openai.com/v1   # US data-residency endpoint used in Claudia's run;
                                            # use https://api.openai.com/v1 if your key is refused
-  prompt_version: label_v2           # prompt file prompts/<prompt_version>.txt
-  prompt_id: kelly_label_v1_entity_mentions_batch_review_v3   # name recorded in Claim provenance;
-                                                             # kept from Claudia's run (same prompt text)
+  prompt_version: label_v3           # prompt file prompts/<prompt_version>.txt
+  prompt_id: kelly_label_v3          # name recorded in Claim provenance (label_v2 was Claudia's
+                                     # kelly_label_v1_entity_mentions_batch_review_v3)
   temperature: 0                     # sent only to gpt-4.1 and gpt-4o models
   batch_max_sentences: 15            # sentences labelled per request
   context_sentences: 4               # read-only units shown before each batch
-  reuse_repeats: path                # copy the label of the same sentence, 4 units before and
-                                     # section_path in an earlier filing of the company; null = send all
+  reuse_repeats: label               # copy the label of the same sentence, 4 units before,
+                                     # section_path, form and list intro in an earlier filing of
+                                     # the company (checks/unit_repeats.py level label); null = send all
   concurrency: 1                     # requests in flight at once (--workers overrides); try 8
   rate_limit_retries: 6              # waits after a 429 rate-limit reply (not billed) before stopping
   max_request_bytes: 35000           # a larger batch is halved until it fits
-  max_completion_tokens: 4000        # output limit per request
+  max_completion_tokens: 2000        # output limit per request (label_v2 used at most 1,295 for 15
+                                     # sentences, with entity mentions; label_v3 has fewer fields)
   max_retries: 0                     # per batch, when the reply fails validation
   stop_on_failure: true              # stop the run at a failed batch for a person to look
   budget_usd: 30.0                    # step 7 only: stop before a request could take its spend past this
+  answer_tokens_per_sentence: 50     # typical output a sentence, for the dry run's typical cost
+                                     # (label_v2 measured 48)
   # USD per 1M tokens for the model above (published gpt-4.1-mini rates).
   # Check https://openai.com/api/pricing when changing the model. Left empty, only tokens are
   # reported and budget_usd is not enforced (the run logs a warning).
@@ -75,6 +79,17 @@ risk_themes:                         # step 5b: themes of each Item 1A risk fact
   concurrency: 1                     # requests in flight at once (--workers overrides); try 8
   rate_limit_retries: 6
   budget_usd: 10.0                   # this step only; check the dry run's worst case first
+
+extract:                             # step 8b: entity mentions, metrics, event type of each Claim
+  model: gpt-4.1-mini                # batching (15 Claims, 4 context units) and reuse as in label:
+  prompt_version: extract_v1         # prompts/<prompt_version>.txt
+  answer_tokens_per_sentence: 120    # typical output a Claim, for the dry run's typical cost
+  max_completion_tokens: 4000        # output limit per request (the dry run's worst case); a reply
+                                     # cut short is rejected, so keep room for metric-heavy MD&A
+  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  rate_limit_retries: 6
+  stop_on_failure: true              # stop at a rejected reply (ids differ from the batch)
+  budget_usd: 35.0                   # this step only (output/usage_extract.jsonl)
 
 headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
   indent_tickers: [MCK]              # companies whose left indent marks a heading level
@@ -108,15 +123,25 @@ prices:
   gpt-5.4:      {input: 2.50, cached_input: 0.25,  output: 15.00, regional_uplift: true}
   gpt-5.5:      {input: 5.00, cached_input: 0.50,  output: 30.00, regional_uplift: true}
 
-review:
-  # Step 8 holds a Claim that starts with one of these names when a ":" intro is among the
-  # 4 units before it. Specific to Microsoft's FY2026 10-K Business section (README, [Validate]).
-  known_list_fragment_prefixes:
-    - "Windows and Devices,"
-    - "XBOX (formerly Gaming),"
+claim_links:                         # step 9b: Claims with the same or similar text (src/claim_links.py)
+  edit:                              # NEAR_TEXT (Claudia's #111): difflib on tokens
+    min_similarity: 0.90             # a link at this token similarity or more (or one token changed)
+    report_min: 0.80                 # scores.csv also counts pairs down to this, to choose min_similarity
+    min_tokens: 6                    # shorter quotes are not compared
+    max_bucket: 500                  # a 3-token anchor shared by more earlier Claims is too common to use
+  semantic:                          # SIMILAR_TO: OpenAI embeddings (paid; base_url = label.base_url)
+    compute: false                   # true, or --semantic, to build it
+    model: text-embedding-3-small    # $0.02 per 1M tokens; text-embedding-3-large $0.13
+    price_per_1m: 0.02
+    budget_usd: 2.0                  # this layer only (output/usage_claim_links.jsonl)
+    batch: 256                       # texts per request
+    top_k: 5                         # nearest Claims kept per Claim
+    min_score: 0.85                  # cosine for a link; to be set from scores.csv
+    report_min: 0.70                 # scores.csv counts pairs down to this
 
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
+  claim_links: {exact: false, edit: false, semantic: false}   # step 9b layers loaded into Neo4j
 
 report:                              # python -m src.checks.report (checks of steps 1-6, README "What to review"); read by no step
   big_change_pct: 5                  # warn when one of these moves more than this % from the last report

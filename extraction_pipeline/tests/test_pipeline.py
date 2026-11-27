@@ -24,7 +24,7 @@ os.environ["PIPELINE_RISK_CATEGORY_MAP"] = str(FIXTURES / "risk_category_map.csv
 os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
 shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
-from src import build_claims, clean, filter_sections, label, load, segment, validate  # noqa: E402
+from src import build_claims, clean, extract, filter_sections, label, load, segment, validate  # noqa: E402
 from src.risk import factors as risk_factors, themes as risk_themes  # noqa: E402
 from src.clean import ONE_FOR_ONE  # noqa: E402
 from src import common  # noqa: E402
@@ -131,42 +131,33 @@ class ReviewRules(unittest.TestCase):
         return {"unit_id": uid, "text": text, "raw_spans": spans or [[0, len(text)]],
                 "section_type": "mda", "accession_number": "A"}
 
-    def entry(self, unit, label, units=None, neighbours=None, prefixes=()):
-        result = {"label": label, "context_ids": [], "subject_scope": None, "annotation_note": None,
-                  "is_risk_heading": False, "entity_mentions": []}
+    def entry(self, unit, label, units=None):
+        result = {"label": label, "context_ids": [], "subject_scope": [], "annotation_note": None,
+                  "is_boilerplate": False, "time_reference": None, "entity_mentions": []}
         if units:
             result["context_ids"] = list(units)                       # unit ids
         source = dict(self.source, content=unit["text"])
-        return validate.review_entry(unit, result, units or {}, neighbours or [unit], source, [], [], prefixes)
+        return validate.review_entry(unit, result, source)
 
-    def test_mixed_tense_held(self):
+    def test_mixed_tense_flagged_not_held(self):
         got = self.entry(self.unit("Several jurisdictions have passed laws, and others are considering more."),
                          "stated_fact")
         self.assertEqual(got["claim_review_flags"], ["mixed_existing_and_prospective_statement_review"])
-        self.assertEqual(got["reason"], validate.HELD_RULE_REASON)
+        self.assertTrue(got["candidate_retained"])
 
     def test_not_a_claim_never_held(self):
         unit = self.unit("Several jurisdictions have passed laws, and others are considering more.")
         self.assertIsNone(self.entry(unit, "not_a_claim"))
 
-    def test_list_intro_held(self):
+    def test_list_item_citing_its_intro_is_a_claim(self):
         units = {"u1": {"text": "Revenue is affected by:", "unit_id": "u1"}}
-        got = self.entry(self.unit("Growth of the AI PC category."), "stated_fact", units)
-        self.assertEqual(got["claim_review_flags"], ["list_intro_dependency_boundary_review"])
-        self.assertEqual((got["unit_id"], got["intro_unit_ids"]), ("u2", ["u1"]))
-        self.assertNotIn("sentence_id", got)
+        self.assertIsNone(self.entry(self.unit("Growth of the AI PC category."), "stated_fact", units))
 
     def test_page_break_not_held(self):
         # several fragments are not a reason to hold a labelled unit; needs_review still is
         unit = self.unit("Growth of the AI PC category.", spans=[[0, 10], [11, 29]])
         self.assertIsNone(self.entry(unit, "stated_fact"))
         self.assertEqual(self.entry(unit, "needs_review")["reason"], validate.HELD_UNCERTAIN_REASON)
-
-    def test_known_list_fragment(self):
-        intro = self.unit("This segment primarily comprises:", "u1")
-        unit = self.unit("XBOX (formerly Gaming), including XBOX hardware.")
-        got = self.entry(unit, "stated_fact", neighbours=[intro, unit], prefixes=("XBOX (formerly Gaming),",))
-        self.assertEqual(got["claim_review_flags"], ["known_product_list_fragment_boundary_review"])
 
     def test_segment_vocabulary_and_entity_review(self):
         from src.source_review import entity_review, source_vocabulary
@@ -229,13 +220,11 @@ class EndToEnd(unittest.TestCase):
         def reply(payload, request):
             """Labels everything stated_fact. The first reply leaves its last sentence out and
             cites a later sentence as context for its first one."""
-            by_text = {u["text"]: u for u in EndToEnd.units}
-            row = {"label": "stated_fact", "context_ids": [], "subject_scope": None, "annotation_note": None,
-                   "is_risk_heading": False, "entity_mentions": []}
+            row = {"label": "stated_fact", "context_ids": [], "subject_scope": ["company"], "annotation_note": None,
+                   "is_boilerplate": False, "time_reference": None}
             if "repair_1" in payload:                                  # the targeted repair request
                 return {"repairs": {key: row for key in payload}}
-            results = [dict(row, id=s["id"], is_risk_heading=bool(by_text[s["text"]]["rule_heading"]))
-                       for s in payload["sentences"]]
+            results = [dict(row, id=s["id"]) for s in payload["sentences"]]
             if len(FakeOpenAI.calls) == 1:
                 EndToEnd.dropped = payload["sentences"][-1]["text"]
                 EndToEnd.bad_context = payload["sentences"][0]["text"]
@@ -259,6 +248,25 @@ class EndToEnd(unittest.TestCase):
             restore()
         cls.errors = validate.run()
 
+        def extracts(payload, request):
+            """Asia is a geography; "Atlantis" is not in any sentence, so code drops it."""
+            EndToEnd.extract_texts += [s["text"] for s in payload["sentences"]]
+            out = []
+            for s in payload["sentences"]:
+                found = [{"mention_text": "Asia", "entity_type": "geography", "role": "location",
+                          "reference_kind": "named", "evidence_quote": "Asia"}] if "Asia" in s["text"] else []
+                found.append({"mention_text": "Atlantis", "entity_type": "geography", "role": "location",
+                              "reference_kind": "named", "evidence_quote": "Atlantis"})
+                out.append({"id": s["id"], "entity_mentions": found, "metrics": [], "event_type": None,
+                            "affected_object": ["revenue", "revenue"]})
+            return out
+        cls.extract_texts = []
+        restore = use_fake_openai(extracts)
+        try:
+            extract.run()
+        finally:
+            restore()
+
         def themes(payload, request):
             """Every risk factor: competition, and costs_pricing_margins on its second sentence."""
             EndToEnd.theme_requests.append(payload["risk_factor"])
@@ -281,6 +289,16 @@ class EndToEnd(unittest.TestCase):
         build_claims.run()
         load.run(dry_run=True)
         cls.claims = list(read_jsonl(Paths.claims()))
+
+    def test_extract_sends_only_claims_and_checks_quotes(self):
+        quotes = {c["quote"] for c in self.claims}
+        self.assertTrue(self.extract_texts)
+        self.assertEqual(set(self.extract_texts), quotes)            # not_a_claim and held: never sent
+        typed = [m for c in self.claims for m in c["typed_mentions"]]
+        self.assertTrue(typed)
+        self.assertEqual({m["mention_text"] for m in typed}, {"Asia"})   # "Atlantis" dropped
+        self.assertTrue(all(c["affected_object"] == ["revenue"] for c in self.claims))
+        self.assertTrue(all(c["subject_scope"] == ["company"] for c in self.claims))
 
     def test_clean_removes_headers_and_joins_page_breaks(self):
         sections = {s["section_key"]: s for s in read_jsonl(Paths.cleaned({"ticker": "TEST",
@@ -541,3 +559,37 @@ class FailedReply(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class LabelOverrides(unittest.TestCase):
+    """Step 8: config/label_overrides.csv sets a unit's label by hand (validate.reviewed_labels)."""
+
+    def test_override_releases_and_drops(self):
+        labels = [{"unit_id": "a", "label": "not_a_claim", "source": "llm"},
+                  {"unit_id": "b", "label": "stated_fact", "source": "llm"},
+                  {"unit_id": "c", "label": "not_a_claim", "source": "rule:too_short"},
+                  {"unit_id": "d", "label": "hedged_risk", "source": "llm"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "overrides.csv"
+            path.write_text("unit_id,label,reviewer,note\na,stated_fact,KZ,real statement\n"
+                            "b,not_a_claim,KZ,\nc,forward_looking,,\nd,hedged_risk,,same\n", encoding="utf-8")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = str(path)
+            try:
+                got = {l["unit_id"]: l for l in validate.reviewed_labels(labels)}
+                path.write_text("unit_id,label\na,maybe\n", encoding="utf-8")
+                with self.assertRaises(SystemExit):
+                    validate.read_overrides()
+            finally:
+                os.environ.pop("PIPELINE_LABEL_OVERRIDES")
+        self.assertEqual((got["a"]["label"], got["a"]["source"], got["a"]["model_label"], got["a"]["reviewer"]),
+                         ("stated_fact", "manual", "not_a_claim", "KZ"))
+        self.assertEqual(got["b"]["label"], "not_a_claim")
+        self.assertEqual((got["c"]["label"], got["c"]["model_source"]), ("forward_looking", "rule:too_short"))
+        self.assertEqual(got["d"]["source"], "llm")                    # same label: unchanged
+
+    def test_no_file_changes_nothing(self):
+        labels = [{"unit_id": "a", "label": "not_a_claim"}]
+        os.environ["PIPELINE_LABEL_OVERRIDES"] = str(TMP / "none.csv")
+        try:
+            self.assertEqual(validate.reviewed_labels(labels), labels)
+        finally:
+            os.environ.pop("PIPELINE_LABEL_OVERRIDES")
