@@ -237,6 +237,19 @@ def test_legal_suffixes_are_not_treated_as_filer_words():
     assert "inc" not in concept_match.filer_words("NKE", "NIKE, Inc.")
 
 
+def test_a_word_spent_on_the_concept_does_not_also_buy_a_dimension():
+    """Microsoft's cash and cash equivalents returned 11,711,000,000, the
+    CashMember slice, instead of the 30,242,000,000 consolidated figure. The
+    question's word "cash" matched the member name as well as the concept."""
+    terms = concept_match.question_terms(
+        "What was Microsoft's cash and cash equivalents as of June 30, 2025")
+    alias = concept_match.aliased_concept(terms)
+    filer = concept_match.filer_words("MSFT", "MICROSOFT CORP")
+    concept = "us-gaap:CashAndCashEquivalentsAtCarryingValue"
+    slice_ = json.dumps([{"axis": "us-gaap:FinancialInstrumentAxis",
+                          "member": "us-gaap:CashMember"}])
+    assert (concept_match.score_fact(terms, concept, "[]", alias, filer)
+            > concept_match.score_fact(terms, concept, slice_, alias, filer))
 # --- The words a reader uses, and the facts that cannot answer them ---------
 
 def test_the_words_a_reader_uses_reach_the_right_tag():
