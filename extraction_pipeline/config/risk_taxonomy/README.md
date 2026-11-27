@@ -1,14 +1,15 @@
-# Risk taxonomy (draft; no step reads it yet)
+# Risk taxonomy
 
-Our own two-level risk themes for Item 1A. They will replace the 10 themes of
-`config/risk_themes.csv` once step 7a and the loader switch over. Until then
-`risk_themes.csv` and `risk_theme_map.csv` still drive step 7a, so nothing here changes a run.
+Our own two-level risk themes for Item 1A, read by step 4c (`src/risk_themes.py`, the
+classifier), step 7a (`src/risk_factors.py`) and step 8 (`src/load.py`). They replaced the 10
+themes of the old `config/risk_themes.csv` / `risk_theme_map.csv` (26 Nov 2026).
 
 | File | What it holds |
 |---|---|
-| `groups.csv` | the 7 coarse groups |
-| `themes.csv` | the 32 fine themes: `group_id`, the definition with its boundary rules (what the classifier is given), and the EY 2016 category it corresponds to |
-| `reference_labels.csv` | one row per distinct lead text in Item 1A of the 313 filings (v14), with a draft primary theme read from the title only (`source: draft_title_only`). Not a gold set: compare it with the classifier's primary theme and review the rows where they differ (`review` column). `risk_cluster` groups rewordings of the same risk across years. |
+| `groups.csv` | the 7 coarse groups (`RiskGroup` nodes) |
+| `themes.csv` | the 32 fine themes (`RiskTheme` nodes): `group_id`, the definition with its boundary rules (what the classifier is given), and the EY 2016 category it corresponds to. A change here changes every step 4c request (new replies needed) and `taxonomy_version` |
+| `risk_category_map.csv` | an Item 1A level-1 heading text -> groups. `status`: `group` (names the groups in `group_ids`), `broad` (a real category naming no area: no agrees / overrules comparison), `not_a_category` (an index table, a repeated title, the summary heading). Reviewed by hand; a new text shows up as `unmapped` in step 7a |
+| `reference_labels.csv` | one row per distinct lead text in Item 1A of the 313 filings (v14), with a draft primary theme read from the title only (`source: draft_title_only`). Not a gold set and never shown to the model: step 7a's `checks/risk_factors/risk_factor_themes.csv` marks the risk factors whose primary theme differs (`review: differs_from_reference`). `risk_cluster` groups rewordings of the same risk across years. |
 
 ## Design (26 Nov 2026)
 

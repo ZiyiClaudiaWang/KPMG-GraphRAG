@@ -16,7 +16,7 @@ following the ontology in `docs/ontology-reconciliation.md` (decisions 2.3 and 2
 
 
 ```
-Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:CONCERNS_RISK]-> RiskFactor
+Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:HAS_RISK_THEME]-> RiskTheme -[:IN_RISK_GROUP]-> RiskGroup
 ```
 
 ## Contents
@@ -82,8 +82,11 @@ flowchart TD
     CACHE -->|"checks, unit quarantine,<br/>targeted repair"| LAB["Labels"]
     UNITS -->|"prefilter: not_a_claim"| LAB
     LAB -->|"6 Validate"| REV["Label errors<br/>and review queue"]
-    UNITS -->|"7a Risk factors<br/>category above each sentence"| RF["Risk categories<br/>and themes"]
-    MAP["config/risk_theme_map.csv<br/>config/risk_themes.csv"] --> RF
+    UNITS -->|"4c Risk themes: OpenAI<br/>one request per risk factor"| RT["Themes of each<br/>risk factor"]
+    UNITS -->|"7a Risk factors<br/>category above each sentence"| RF["Risk categories, groups<br/>and themes per unit"]
+    RT --> RF
+    MAP["config/risk_taxonomy/"] --> RT
+    MAP --> RF
     LAB -->|"7b Build Claims"| CLM["Claims<br/>one line per Claim"]
     RF --> CLM
     REV -->|"held units left out"| CLM
@@ -107,9 +110,10 @@ review are in `checks/<step>/` (no step reads them).
 | 3 | [Filter](#step-3-filter) | `filter_sections.py` | `output/section_manifest.csv` | no |
 | 4 | [Segment](#step-4-segment) | `segment/` | `output/sentences.jsonl`, `checks/segment/` (`lead_summary.csv`, `lead_review.csv`) | no |
 | 4b | [Heading levels](#step-4b-heading-levels) | `headings/` | `interim/heading_levels.jsonl`, `interim/lead_sentences.jsonl`, `interim/html_tables.jsonl`, `checks/headings/` (`heading_review.csv`, `heading_summary.csv`, `heading_html_diff.csv`), `edgar/primary/` (HTML and `urls.json`) | no |
+| 4c | [Risk themes](#step-4c-risk-themes) (paid, run on purpose) | `risk_themes.py` | `interim/risk_themes.jsonl`, `output/usage_risk_themes.jsonl`, `checks/risk_themes/requests.csv`, `risk_themes/` (saved replies) | yes |
+| 7a | [Risk factors](#step-7a-risk-factors) (runs before 5) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl`, `checks/risk_factors/` (`category_checks.csv`, `risk_factor_themes.csv`) | no |
 | 5 | [Label](#step-5-label) | `label.py` | `output/labels.jsonl`, `output/usage.jsonl`, `checked_pilot/`, `targeted_repair/` | yes |
 | 6 | [Validate](#step-6-validate) | `validate.py` | `output/errors.jsonl`, `output/review_queue.jsonl` | no |
-| 7a | [Risk factors](#step-7a-risk-factors) | `risk_factors.py` | `output/risk_categories.csv`, `interim/risk_assignments.jsonl` | no |
 | 7b | [Build Claims](#step-7b-build-claims) | `build_claims.py` | `output/claims.jsonl` | no |
 | 8 | [Load](#step-8-load) | `load.py` | Neo4j | no |
 
@@ -151,10 +155,15 @@ the hold rules: [step 6](#step-6-validate).
 #### b. risk factors
 ```mermaid
 flowchart LR
-    U["each Item 1A unit<br/>below the heading"] -.->|"risk_category_id<br/>(7a: the nearest level-1 heading above)"| CH["risk category: Item 1A heading at level 1<br/>'Business Risks'"]
-    CH -->|"its text, in<br/>config/risk_theme_map.csv"| RF["risk theme<br/>business_operations<br/>(RiskFactor node)"]
-    U -->|"7b"| CL["its Claim<br/>risk_ids = the heading's themes"]
-    CL -->|"8 Load: CONCERNS_RISK"| RF
+    U["each Item 1A unit"] -.->|"risk_category_unit_id<br/>(7a: the nearest level-1 heading above)"| CH["risk category: Item 1A heading at level 1<br/>'Business Risks'"]
+    CH -->|"its text, in<br/>risk_category_map.csv"| HG["heading_risk_group<br/>(Claim property)"]
+    U -.->|"risk_factor_id<br/>(step 4 lead_unit_id)"| RFX["risk factor: a lead<br/>and the units under it"]
+    RFX -->|"4c: one request"| TH["primary theme (all its units)<br/>secondary themes (their sentences)"]
+    U -->|"7b"| CL["its Claim"]
+    TH --> CL
+    HG --> CL
+    CL -->|"8 Load: HAS_RISK_THEME<br/>{rank, scope, source, agrees_with_heading}"| RT["RiskTheme (32)"]
+    RT -->|"IN_RISK_GROUP"| RG["RiskGroup (7)"]
 ```
 
 Details: [step 7a](#step-7a-risk-factors); the themes and the map: [Appendix B](#appendix-b-risk-themes); lead
@@ -577,22 +586,41 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     - a "segment" that is not among the segment names defined in the filing, or a defined
       segment the model missed. The defined names are read by `source_review.py` and written to
       `output/provisional_segment_definitions.json`.
-- <a id="step-7a-risk-factors"></a>**[7a] Risk factors** places every Item 1A unit under a risk category and its risk themes
-  ([Appendix B](#appendix-b-risk-themes)). No model call: it needs step 4, and uses step 5 labels when they exist.
-  - **Risk category:** the Item 1A heading at level 1 above the unit in the filing, by position.
-    - Its id (`risk_category_id`) is the heading's `unit_id`, so each filing has its own.
-    - Units before the first category heading, and filings without categories (Apple's 10-Qs),
-      have none.
-  - **Risk themes:** `config/risk_theme_map.csv` maps each category text (case does not matter)
-    to zero, one or several themes of `config/risk_themes.csv`.
-    - Empty means the heading is not a theme (e.g. MCK "INDEX TO RISK FACTORS").
-    - A category missing from the map is reported as `unmapped` and gets no theme.
-  - Lead sentences are not decided here: step 4 marks them in every section (`lead_source`,
-    `lead_unit_id`, [step 4](#step-4-segment)). In Item 1A a lead's scope ends at the next
-    category heading or sub-heading. The model's `is_risk_heading` is no longer read (patch 7c).
-  - On the 20 filings:
-    - 78 category headings (46 distinct texts), all in the map: 72 with themes, 6 not a theme
-    - 5,071 of the 5,302 Item 1A units sent to the LLM have a theme
+- <a id="step-4c-risk-themes"></a>**[4c] Risk themes** (`risk_themes.py`, paid, not in a default run) asks the
+  model which themes each Item 1A risk factor is about ([Appendix B](#appendix-b-risk-themes)).
+  - A **risk factor** is one SEC risk: a lead sentence in Item 1A (step 4 `lead_source`, outside
+    the risk factor summary) and the units under it (`lead_unit_id`). `risk_factor_id` is the
+    lead's `unit_id`. Units under no lead are not classified (still open).
+  - One request per risk factor: its lead and units as `s1, s2, ...` (cross references and table
+    residue left out, at most `max_units`), and the 32 themes with their definitions. The model
+    returns one primary theme (or `unknown`) and up to two secondary themes with the sentences
+    that support each. It picks themes, never groups, and sees neither the filing's heading nor
+    `reference_labels.csv`.
+  - Separate from step 5: a taxonomy change changes only these requests, never step 5's hashes.
+  - Money rules are step 5's: saved replies (`data/risk_themes/<hash>/`) are never resent, the
+    step has its own model, `budget_usd` and ledger (`settings.yaml` `risk_themes:`,
+    `output/usage_risk_themes.jsonl`). The request holds text only, so a risk factor repeated
+    word for word in another filing reuses the reply: the cost is paid once per distinct text.
+  - `python run_pipeline.py --steps risk_themes,risk_factors --dry-run` (cost), then `--limit 3`,
+    then without `--limit` (`--workers 8`).
+- <a id="step-7a-risk-factors"></a>**[7a] Risk factors** puts the risk fields on every Item 1A unit. No model
+  call; it needs only step 4 (and step 4c's answers), so it runs before step 5.
+  - **Risk category:** the Item 1A heading at level 1 above the unit, by position
+    (`risk_category_unit_id`, `risk_category_text`). Units before the first category heading, and
+    filings without categories (Apple's 10-Qs), have none.
+  - **Heading group:** `config/risk_taxonomy/risk_category_map.csv` maps each category text (case
+    does not matter) to groups (`heading_risk_group`). `broad` headings ("Business Risks",
+    "General Risks") name no group; `not_a_category` rows are level-1 headings that are no category
+    (MCK "INDEX TO RISK FACTORS"). A text missing from the map is `unmapped`.
+  - **Themes:** from step 4c, by `risk_factor_id`: the primary theme on every unit of the risk
+    factor (`scope: risk_factor`), a secondary only on its supporting sentences (`scope: sentence`).
+    On the primary, `agrees_with_heading` says whether the theme's group is one the heading names
+    (null for a broad heading). `risk_theme_status`: `classified`, `unknown`, `not_classified` (no
+    answer from 4c, or one from before step 4 changed the risk factor), `no_risk_factor`,
+    `risk_summary`.
+  - Review: `checks/risk_factors/category_checks.csv` (are the categories complete?) and
+    `risk_factor_themes.csv` (one row per risk factor; `review`: `differs_from_reference`,
+    `overrules_heading`, `unknown`, `not_classified`).
   - All fields: [Appendix A: `risk_categories.csv`](#risk_categoriescsv-step-7a).
 - <a id="step-7b-build-claims"></a>**[7b] Build Claims** writes one record per Claim (a statement at one place in a
   section): the ontology fields, provenance (source spans, context unit ids,
@@ -614,20 +642,22 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
     ([Repeats](#step-5-label)). `python -m src.report_claim_repeats data/output/claims.jsonl --output
     data/output/claim_repeats.json` counts Claims whose text repeats in another filing of the same
     company (whitespace normalised; repeats inside one filing are left out).
-  - Ids that point at other units (`context_evidence`, `risk_category_id`,
+  - Ids that point at other units (`context_evidence`, `risk_factor_id`, `risk_category_unit_id`,
     `provenance.context_unit_ids`, `provenance.lead_unit_id`) are `unit_id`s. `lead_unit_id` is
     only recorded: the lead may not be a Claim itself (`not_a_claim`, or held).
   - Each run compares its `claim_id`s with the `claims.jsonl` it replaces and writes
     `output/claim_id_report.json`: ids added, ids gone, and ids kept whose quote changed, with
     examples. The counts are also logged.
   - Lead fields from step 4, in every section: `is_lead_sentence`, `provenance.lead_unit_id`,
-    `provenance.lead_source`. Risk fields from step 7a: `risk_ids`, `risk_category_id`; and
+    `provenance.lead_source`. Risk fields from step 7a: `risk_factor_id`, `risk_category_text`,
+    `risk_category_unit_id`, `heading_risk_group`, `risk_theme_status`, `risk_themes`; and
     `risk_summary` from step 4 ([Appendix A: `claims.jsonl`](#claimsjsonl-step-7b-input-to-step-8)).
 - <a id="step-8-load"></a>**[8] Load** writes one Claim node per `claim_id`, with its ids and source spans on `SUPPORTS`,
   and `multi_fragment` on the node.
-  - A Claim gets one `CONCERNS_RISK` edge per risk theme of its category.
-    RiskFactor nodes are the themes of `config/risk_themes.csv` that some Claim uses, keyed by
-    `risk_id`.
+  - All 32 `RiskTheme` nodes (`theme_id`) and 7 `RiskGroup` nodes (`group_id`), each theme with one
+    `IN_RISK_GROUP` edge. A Claim gets one `HAS_RISK_THEME` edge per entry of its `risk_themes`
+    (`rank`, `scope`, `source`, `agrees_with_heading`, `model`, `taxonomy_version`). No node per
+    risk factor: `risk_factor_id` and the heading fields are Claim properties.
   - Segments (step 1c): one `Segment` node per `segment_id` (XBRL members in
     `entity_catalog.json`), and one `Company -[:HAS_SEGMENT]-> Segment` edge per filing whose
     facts report it, keyed by `accession_number`.
@@ -707,8 +737,8 @@ The pipeline reads the Data team section exports, one file per filing:
 - the step 6 product names (`review.known_list_fragment_prefixes`)
 - the Neo4j scope (`load.scope`)
 
-The risk theme library and map are in `config/risk_themes.csv` and `config/risk_theme_map.csv`
-([Appendix B](#appendix-b-risk-themes)).
+The risk taxonomy (groups, themes, heading map) is in `config/risk_taxonomy/`
+([Appendix B](#appendix-b-risk-themes)); step 4c's model and budget are in `risk_themes:`.
 
 ## Run
 
@@ -754,7 +784,7 @@ python -m unittest discover tests
 They need no API key, database or network.
 
 - `test_pipeline.py` runs every step on a small synthetic filing (`tests/fixtures/`), with a
-  fake model in place of OpenAI and its own risk theme map (`tests/fixtures/risk_theme_map.csv`).
+  fake model in place of OpenAI and its own risk category map (`tests/fixtures/risk_category_map.csv`).
 - `test_headings.py` runs step 4b on a small synthetic filing (HTML and export text built from
   the same lines).
 - `test_sentence_entities.py` started as Claudia's (sentence boundaries and entity matching)
@@ -829,12 +859,13 @@ nothing, opens with a table of contents, and links every check file it names:
 | `output/section_manifest.csv` | `review` rows (Item 1C Cybersecurity); add overrides in `config/sections.yaml` |
 | `checks/headings/heading_summary.csv`, `heading_review.csv` | • companies with a low `found_in_html_pct` or many `unmatched`<br>• `risk_sentence` and `before_table` flags<br>• `level_0` reasons (`toc`, `units_line`, `no_letters`)<br>• `joined_blocks` > 1<br>• `level_4plus`: deep nesting |
 | `output/sentences.jsonl` | • sentence boundaries<br>• list groups and split items (`list_intro_id`)<br>• headings and `section_path`<br>• `prefilter` reasons<br>• `risk_summary` in MU and TTWO |
-| `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_theme_map.csv`<br>• `not_a_theme` rows<br>• `n_units` of large categories |
-| `config/risk_theme_map.csv` | rows with a `note`: categories that fit more than one theme, or none clearly ([Appendix B](#appendix-b-risk-themes)) |
+| `output/risk_categories.csv` | • `unmapped` rows: add their category text to `config/risk_taxonomy/risk_category_map.csv`<br>• `not_a_category` and `broad` rows<br>• `n_units` of large categories |
+| `checks/risk_factors/risk_factor_themes.csv` | rows with a `review`: primary theme differs from `reference_labels.csv`, or overrules the heading |
+| `config/risk_taxonomy/risk_category_map.csv` | rows with a `note`: headings that name more than one group, or none ([Appendix B](#appendix-b-risk-themes)) |
 | `output/labels.jsonl` | • units the model labelled `not_a_claim` (`source` is `llm`): they appear neither in the review queue nor in `claims.jsonl` |
 | `output/errors.jsonl` | should be empty after step 6 |
 | `output/review_queue.jsonl` | • held units (no `candidate_retained`), their `reason` and `claim_review_flags`<br>• retained Claims with entity `flags` |
-| `output/claims.jsonl` | • sample Claims per section for the type-fit test<br>• `risk_ids` of Item 1A Claims<br>• `multi_fragment` Claims: whether the list or page-break join is right |
+| `output/claims.jsonl` | • sample Claims per section for the type-fit test<br>• `risk_themes` of Item 1A Claims<br>• `multi_fragment` Claims: whether the list or page-break join is right |
 | `output/claim_id_report.json` | ids added, gone and with a changed quote since the last build; expected near 0 when only labels changed |
 
 ## Remaining issues
@@ -934,7 +965,7 @@ nothing, opens with a table of contents, and links every check file it names:
    - `TABLE_NOTES` in `segment/prefilter.py`: table notes, header pieces and table cells cut out of a
      table (MCK, NTAP, MDT, CASY, MSFT).
    - `OPENERS` in `segment/sentences.py`: sentence openers added for sentences seen in these filings.
-   - `config/risk_theme_map.csv`: the category texts of these ten companies. A new company's
+   - `config/risk_taxonomy/risk_category_map.csv`: the category texts of these companies. A new company's
      categories show up as `unmapped` in step 7a until they are added ([Appendix B](#appendix-b-risk-themes)).
 
 
@@ -976,17 +1007,17 @@ One line per unit. "Data team" fields are copied from the section export; the re
 ### `risk_categories.csv` (step 7a)
 
 One row per risk category heading in each filing. `risk_assignments.jsonl` (in `data/interim/`)
-has one line per Item 1A unit (`unit_id`) with its `risk_category_id` and `risk_ids`.
+has one line per Item 1A unit (`unit_id`) with the risk fields of `claims.jsonl` below.
 
 | Field | Meaning |
 |-------|---------|
-| `risk_category_id` | `unit_id` of the category heading |
+| `risk_category_unit_id` | `unit_id` of the category heading |
 | `accession_number`, `ticker`, `form`, `section_key` | Where the heading is |
 | `category_text` | The heading as written |
 | `risk_summary` | True if the heading is in the risk factor summary |
 | `n_units` | Units under the heading, up to the next category heading |
-| `risk_ids` | Its themes, separated by ";" |
-| `map_status` | `mapped`, `not_a_theme` (empty in the map) or `unmapped` (not in the map) |
+| `heading_risk_group` | The groups it names, separated by ";" |
+| `map_status` | `group`, `broad`, `not_a_category` (from the map) or `unmapped` (not in the map) |
 
 ### `claims.jsonl` (step 7b, input to step 8)
 
@@ -1003,8 +1034,11 @@ line. "Loaded" shows where a field ends up in Neo4j.
 | `extraction_status` | Always `needs_review` (no Claim is approved yet) | `Claim.extraction_status` |
 | `context` | Text of the context units the model cited, joined | `Claim.context` |
 | `subject_scope`, `annotation_note` | From the model | `Claim` |
-| `risk_ids` | Risk themes of the category the Claim sits under; empty outside Item 1A categories | one `Claim-[:CONCERNS_RISK]->RiskFactor` per theme |
-| `risk_category_id` | `unit_id` of that category heading, or null | no |
+| `risk_themes` | Themes from step 4c: `theme_id`, `rank` (primary / secondary), `scope` (risk_factor / sentence), `source`, `agrees_with_heading` (primary only), `model`, `taxonomy_version`; empty outside Item 1A risk factors | one `Claim-[:HAS_RISK_THEME]->RiskTheme` per entry, the rest on the edge |
+| `risk_factor_id` | `unit_id` of the lead of the risk factor the Claim is in, or null | `Claim.risk_factor_id` |
+| `risk_category_text`, `risk_category_unit_id` | The Item 1A level-1 heading above the Claim, and its `unit_id` | `Claim` |
+| `heading_risk_group` | Groups that heading names (`risk_category_map.csv`) | `Claim.heading_risk_group` |
+| `risk_theme_status` | `classified`, `unknown`, `not_classified`, `no_risk_factor`, `risk_summary`; null outside Item 1A | `Claim.risk_theme_status` |
 | `is_lead_sentence` | True if the Claim is a lead sentence (sums up the sentences under it; step 4 `lead_source`), in any section | `Claim.is_lead_sentence` |
 | `risk_summary` | True if the Claim is in the risk factor summary at the top of Item 1A | `Claim.risk_summary` |
 | `provenance` | Section key and path, XPath, Data team versions (`processing_set_id`, `report_id`, source hashes), section content hash, `raw_spans`, `context_unit_ids`, `lead_unit_id` and `lead_source` (step 4), `request_hash`, `runner_version`, `model`, `prompt_version` | Part, on `SUPPORTS`: section key and path, `context_unit_ids`, `lead_unit_id` and `lead_source` (step 4), `raw_spans` (as JSON), XPath, source file, `processing_set_id`, `model`, `prompt_version`; step 8 adds the unit's `role` |
@@ -1019,57 +1053,34 @@ line. "Loaded" shows where a field ends up in Neo4j.
 
 ## Appendix B: Risk themes
 
-The theme library (`config/risk_themes.csv`) holds coarse risk themes shared by all companies
-and filings; each theme is one `RiskFactor` node, keyed by `risk_id` (ontology decision 2.4).
-Each category heading a filing uses in Item 1A is mapped to themes in
-`config/risk_theme_map.csv` (columns `category_text`, `risk_ids`, `seen_in`, `note`). First
-version reviewed by Kelly, 4 November 2026.
+Two levels in `config/risk_taxonomy/` (decided 26 Nov 2026; sources and the deliberate differences
+from EY 2016 in its README):
 
-| `risk_id` | Name | Definition | Category texts mapped |
-|-----------|------|------------|-----------------------|
-| `business_operations` | Business and operations | Running the business day to day: operations, supply chain, suppliers and partners, people, systems, products and execution. | 9 |
-| `macro_industry` | Macroeconomic and industry conditions | Economic conditions, demand, prices, inflation, interest and exchange rates, and conditions in the company's industry. | 8 |
-| `strategy_competition` | Strategy and competition | Competitors, competitive position, changes in the business model, new products and growth strategy. | 6 |
-| `legal_regulatory` | Legal and regulatory | Laws, regulation, government action, compliance, litigation, tax rules and the company's legal structure. | 10 |
-| `intellectual_property` | Intellectual property | Protecting the company's intellectual property and claims that it infringes others'. | 2 |
-| `cybersecurity_privacy` | Cybersecurity and data privacy | Security breaches, cyberattacks, data protection, privacy and abuse of the company's platforms. | 1 |
-| `financial_capital` | Financial, capital and securities | Liquidity, debt, capital markets, investments, the company's stock and financial condition. | 6 |
-| `international_operations` | International operations | Operating across countries: geopolitics, trade, tariffs and local rules abroad. | 1 |
-| `corporate_transactions` | Corporate transactions | Acquisitions, divestitures, separations and other strategic transactions. | 2 |
-| `general` | General | Risks the filing itself lists as general: catastrophic events, stock volatility and other risks common to most companies. | 2 |
+| File | Holds | In the graph |
+|------|-------|--------------|
+| `groups.csv` | 7 coarse groups | `RiskGroup {group_id}` |
+| `themes.csv` | 32 fine themes, each in one group, with the definition the model is given | `RiskTheme {theme_id}` `-[:IN_RISK_GROUP]->` its group |
+| `risk_category_map.csv` | each Item 1A category text -> groups (`group_ids`, `status`, `seen_in`, `note`) | `Claim.heading_risk_group` |
+| `reference_labels.csv` | a draft primary theme per lead text, from the title only | not loaded; compared in `risk_factor_themes.csv` |
 
-**Categories with more than one theme** (one `CONCERNS_RISK` edge per theme):
+Each risk factor is classified once (step 4c): one primary theme for all its Claims, up to two
+secondary themes only on their supporting sentences. The filing's own heading stays a Claim
+property; its group is compared with the primary theme's group (`agrees_with_heading`).
 
-| Category | Seen in | Themes |
-|----------|---------|--------|
-| Risks Related to Our Business, Operations, and Industry | MU | `business_operations`, `macro_industry` |
-| Risks Related to Our Business and Industry | NTAP | `business_operations`, `macro_industry` |
-| Risks relating to our business and industry | TTWO | `business_operations`, `macro_industry` |
-| Risks Related to Intellectual Property and Litigation | MU | `intellectual_property`, `legal_regulatory` |
-| Risks related to financial and economic condition | TTWO | `financial_capital`, `macro_industry` |
-| Strategic Transactions Risks | PH | `corporate_transactions`, `strategy_competition` |
-
-**Headings wrongly read as risk categories.** Step 4 took these lines for category headings
-(before step 4b's levels decided categories; recheck after the next run: MCK's index is now
-level 0, and new categories may show up as `unmapped`), but they are not risk categories. They stay in the map with empty `risk_ids`, so they get no
-theme and step 7a does not report them as `unmapped`. Fixing step 4 is not needed for the
-theme links:
-
-- MCK "INDEX TO RISK FACTORS": the index table at the top of Item 1A
-- MSFT "Item 1B, 1C": page-footer navigation
-- NKE "Special Note Regarding Forward-Looking Statements and Analyst Reports": a note before
-  the risks
-- NKE "Risk Factors": the section title repeated
-- MU "Risk Factor Summary", TTWO "Summary of Risk Factors": the summary heading; the categories
-  inside the summary are mapped as usual
+**Heading map statuses.** `group`: the heading names the groups in `group_ids` (one or several,
+e.g. MU "Risks Related to Intellectual Property and Litigation" -> `technology_data;legal_regulatory`).
+`broad`: a real category that names no area ("Business Risks", "Risks Related to Our Business and
+Industry", "General Risks"): no comparison. `not_a_category`: a level-1 heading that is no category
+(MCK "INDEX TO RISK FACTORS", MSFT "Item 1B, 1C", NKE "Risk Factors", the risk factor summary
+headings); the categories inside the summary are mapped as usual.
 
 **To add a company:**
 
 1. Run step 7a. Every category of the new filings missing from the map is listed as `unmapped`
-   in the log and in `risk_categories.csv`.
-2. Add one row per category text to `config/risk_theme_map.csv`, using `risk_id`s from the
-   library (an unknown id stops the step). A new theme goes into `config/risk_themes.csv` first.
-3. Run step 7a again until no category is unmapped.
+   in the log, in `risk_categories.csv` and in the review report.
+2. Add one row per category text to `config/risk_taxonomy/risk_category_map.csv` (an unknown group,
+   a wrong status or a text listed twice stops the step).
+3. Run step 4c for the new risk factors (saved replies are reused), then 7a again.
 
 ## Appendix C: Merge notes with Claudia's code
 

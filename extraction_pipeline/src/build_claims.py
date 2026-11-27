@@ -37,8 +37,15 @@ Lead sentences come from step 4 (sentences.jsonl), in every section:
   provenance.lead_unit_id  the lead above the sentence (step 4), or null. A unit_id, only
                            recorded: the lead itself may not be a Claim (not_a_claim, held).
 Risk fields come from step 7a (data/interim/risk_assignments.jsonl), by unit id:
-  risk_ids                 risk themes of the risk category the sentence sits under (may be empty)
-  risk_category_id         that category heading's unit_id, or null outside a category
+  risk_factor_id           the lead's unit_id of the risk factor (one SEC risk) the sentence is
+                           in, or null; a unit_id, like lead_unit_id
+  risk_category_text       the filing's own level-1 Item 1A heading above it ("Business Risks")
+  risk_category_unit_id    that heading's unit_id, or null outside a category
+  heading_risk_group       the groups that heading names (config/risk_taxonomy/risk_category_map.csv)
+  risk_theme_status        classified | unknown | not_classified | no_risk_factor | risk_summary
+                           (null outside Item 1A); see risk_factors.py
+  risk_themes              the themes from step 4c, each {theme_id, rank, scope, source,
+                           agrees_with_heading, model, taxonomy_version}: one HAS_RISK_THEME edge each
   risk_summary             true if it is in the risk factor summary at the top of Item 1A (step 4)
 """
 
@@ -51,8 +58,12 @@ from collections import Counter
 from . import entity_annotation, source_review
 from .common import UNIT_IDENTITY_VERSION, Paths, log, read_jsonl, write_jsonl
 
-NO_RISK = {"risk_category_id": None, "risk_ids": []}
 from .validate import CLAIM_TYPES, assessment, held_ids
+
+RISK_FIELDS = ("risk_factor_id", "risk_category_text", "risk_category_unit_id", "heading_risk_group",
+               "risk_theme_status", "risk_themes")
+NO_RISK = {"risk_factor_id": None, "risk_category_text": None, "risk_category_unit_id": None,
+           "heading_risk_group": [], "risk_theme_status": None, "risk_themes": []}
 
 STEP = "build_claims"
 
@@ -87,7 +98,7 @@ def candidate(unit: dict, label: dict, units: dict[str, dict], source: dict, cle
         "context_evidence": context,
         "subject_scope": result["subject_scope"], "annotation_note": result["annotation_note"],
         "section_type": unit["section_type"],
-        "risk_ids": risk["risk_ids"], "risk_category_id": risk["risk_category_id"],
+        **{k: risk.get(k, NO_RISK[k]) for k in RISK_FIELDS},
         "is_lead_sentence": bool(unit.get("lead_source")), "risk_summary": unit.get("risk_summary", False),
         "source_fragments": fragments, "parent_paragraph_context": parent,
         "provenance": {"section_key": unit["section_key"],
@@ -185,7 +196,7 @@ def run() -> None:
               f"-> {Paths.claims()}")
     log(STEP, f"{sum(r['is_lead_sentence'] for r in records)} occurrences are lead sentences, "
               f"{sum(bool(r['provenance']['lead_unit_id']) for r in records)} sit under one; "
-              f"{sum(bool(r['risk_ids']) for r in records)} have a risk theme; "
+              f"{sum(bool(r['risk_themes']) for r in records)} have a risk theme; "
               f"{sum(r['multi_fragment'] for r in records)} are multi-fragment (list groups, page breaks)")
     log(STEP, f"claim_ids since the last build: {report['added']} added, {report['gone']} gone, "
               f"{report['kept']} kept ({report['quote_changed']} with a changed quote)"

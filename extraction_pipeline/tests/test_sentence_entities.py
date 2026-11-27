@@ -303,7 +303,7 @@ class RiskCategories(unittest.TestCase):
         mark_risk_summary(units)
         self.assertFalse(units[1]["risk_summary"])
 
-    def test_sentences_take_the_themes_of_their_category(self):
+    def test_sentences_take_the_group_of_their_category(self):
         def unit(n, role, text, level=None):
             u = {"unit_id": f"u{n}", "accession_number": "A", "ticker": "T", "form": "10-K",
                  "section_key": "item-1a", "section_type": "risk_factors", "role": role, "text": text,
@@ -318,16 +318,18 @@ class RiskCategories(unittest.TestCase):
                  unit(5, "heading", "Patents", 2),                  # a sub-heading: not a category
                  unit(6, "heading", "INDEX TO RISK FACTORS", 1)]
         mapping = {category_key("Risks related to intellectual property and litigation"):
-                   ["intellectual_property", "legal_regulatory"],
-                   category_key("Index to Risk Factors"): []}
+                   {"groups": ["technology_data", "legal_regulatory"], "status": "group"},
+                   category_key("Index to Risk Factors"): {"groups": [], "status": "not_a_category"}}
         categories, assignments = assign(units, mapping)
-        self.assertEqual([c["map_status"] for c in categories], ["mapped", "not_a_theme"])
+        self.assertEqual([c["map_status"] for c in categories], ["group", "not_a_category"])
         by_id = {a["unit_id"]: a for a in assignments}
-        self.assertEqual(by_id["u1"]["risk_ids"], [])                    # before any category
-        self.assertEqual(by_id["u4"]["risk_ids"], ["intellectual_property", "legal_regulatory"])
-        self.assertEqual(by_id["u4"]["risk_category_id"], "u2")
-        self.assertEqual(categories[0]["risk_category_id"], "u2")        # unit ids (#45)
-        self.assertEqual(set(by_id["u4"]), {"unit_id", "risk_category_id", "risk_ids"})   # leads: step 4 (7c)
+        self.assertEqual(by_id["u1"]["heading_risk_group"], [])          # before any category
+        self.assertEqual(by_id["u4"]["heading_risk_group"], ["technology_data", "legal_regulatory"])
+        self.assertEqual(by_id["u4"]["risk_category_unit_id"], "u2")
+        self.assertEqual(by_id["u4"]["risk_category_text"], "Risks Related to Intellectual Property and Litigation")
+        self.assertEqual(categories[0]["risk_category_unit_id"], "u2")   # unit ids (#45)
+        self.assertEqual(set(by_id["u4"]), {"unit_id", "risk_category_unit_id", "risk_category_text",
+                                            "heading_risk_group"})   # leads: step 4 (7c)
 
 
 class SourceMatching(unittest.TestCase):

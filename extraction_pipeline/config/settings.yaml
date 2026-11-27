@@ -43,17 +43,28 @@ label:
   price_cached_input_per_1m: 0.10
   price_output_per_1m: 1.60
 
-# Step 2b has its own model, budget and ledger (data/output/usage_<step>.jsonl),
+# Steps 2b and 4c each have their own model, budget and ledger (data/output/usage_<step>.jsonl),
 # separate from step 5. base_url is label.base_url unless set here. Prices come from prices: below.
 # reasoning_effort and max_reasoning_tokens apply to reasoning models only (gpt-5*, o*):
 # max_reasoning_tokens is extra output room per request; too little ends a reply early
 # ("Missing or incomplete completion"), and that reply is saved and not resent.
-# Compare models before a run:  python -m src.page_breaks --compare
+# Compare models before a run:  python -m src.page_breaks --compare  (or src.risk_themes)
 page_breaks:                         # step 2b
   model: gpt-5.4
   reasoning_effort: low              # none | low | medium | high (gpt-5 itself: minimal instead of none)
   max_reasoning_tokens: 2000
   budget_usd: 1.0
+
+risk_themes:                         # step 4c: themes of each Item 1A risk factor (one request each)
+  model: gpt-4.1-mini                # per request about $0.001 typical / $0.005 worst (gpt-5.4-mini: 0.005 / 0.02);
+                                     # try both with --model ... --limit 20 against reference_labels.csv
+  reasoning_effort: low              # reasoning models only
+  max_reasoning_tokens: 2000
+  answer_tokens: 300                 # output room for the answer itself
+  max_units: 80                      # units of one risk factor shown at most (lead first)
+  concurrency: 1                     # requests in flight at once (--workers overrides); try 8
+  rate_limit_retries: 6
+  budget_usd: 10.0                   # this step only; check the dry run's worst case first
 
 headings:                            # step 4b: heading levels from the EDGAR HTML (no LLM)
   indent_tickers: [MCK]              # companies whose left indent marks a heading level
@@ -101,7 +112,7 @@ report:                              # python -m src.report (checks of steps 1-4
   big_change_pct: 5                  # warn when one of these moves more than this % from the last report
   big_change: [clean.paragraphs, filter.sections_keep, headings.headings, headings.level_1,
                segment.units, segment.to_llm, subsidiaries.rows, risk_factors.categories,
-               risk_factors.item_1a_units_with_theme]
+               risk_factors.item_1a_units_with_group, risk_factors.risk_factors]
   checks:                            # number: max or min, level (error / warn / info), why it matters
     fetch.exports_missing: {max: 0, level: error, why: "passed filings in filings.yaml with no export"}
     subsidiaries.10k_unchecked: {max: 0, level: error, why: "10-Ks with no Exhibit 21 read: their subsidiaries are missing"}
@@ -131,8 +142,12 @@ report:                              # python -m src.report (checks of steps 1-4
     segment.check_long_heading: {max: 50, level: warn, why: "sentences read as headings never reach the LLM"}
     segment.check_risk_section_no_category: {max: 0, level: warn, why: "Item 1A sections whose Claims get no risk theme"}
     segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
-    risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_theme_map.csv"}
-    risk_factors.item_1a_with_theme_pct: {min: 90, level: warn, why: "share of Item 1A units that get a risk theme"}
+    risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_taxonomy/risk_category_map.csv"}
+    risk_factors.item_1a_in_risk_factor_pct: {min: 80, level: info, why: "share of Item 1A units under a lead: the rest get no theme (open: classify them per sentence?)"}
+    risk_factors.risk_factors_not_classified: {max: 0, level: warn, why: "risk factors with no answer from step 4c (run risk_themes; a changed unit list needs it again)"}
+    risk_factors.risk_factors_unknown: {max: 0, level: info, why: "risk factors the model found no theme for"}
+    risk_factors.risk_factors_differs_from_reference: {max: 0, level: info, why: "primary theme differs from reference_labels.csv: review these rows of risk_factor_themes.csv"}
+    risk_factors.risk_factors_overrules_heading: {max: 0, level: info, why: "primary theme's group is not one the heading names"}
     risk_factors.check_year_gap: {max: 0, level: warn, why: "a category the neighbouring filings have is missing: a missed level-1 heading?"}
     risk_factors.check_summary_mismatch: {max: 0, level: warn, why: "a category in the risk factor summary has no level-1 heading in the full text"}
     risk_factors.check_risk_heading_below_1: {max: 0, level: warn, why: "a heading naming a group of risks sits below level 1"}

@@ -1,5 +1,5 @@
 """Step 7a review: are the risk categories complete (category_checks), and why Item 1A units
-have no theme (no_theme_reasons). No network, no API."""
+have no heading group (no_group_reasons). No network, no API."""
 
 import os
 import tempfile
@@ -17,8 +17,9 @@ FILINGS = """filings:
   - {ticker: TST, form: 10-Q, reporting_period_end: "2025-06-30", accession: Q2}
   - {ticker: TST, form: 10-Q, reporting_period_end: "2025-09-30", accession: Q3}
 """
-MAP = {"business risks": ["business_operations"], "legal risks": ["legal_regulatory"],
-       "risk factor summary": []}
+MAP = {"business risks": {"groups": [], "status": "broad"},
+       "legal risks": {"groups": ["legal_regulatory"], "status": "group"},
+       "risk factor summary": {"groups": [], "status": "not_a_category"}}
 
 
 class Units:
@@ -94,19 +95,20 @@ class TestCategoryChecks(unittest.TestCase):
         self.assertEqual(by_check["risk_heading_below_1"]["text"], "Risks Related to Our Stock")
         self.assertEqual(by_check["suspect_category"]["detail"], "1 units; no 'risk'")
 
-    def test_no_theme_reasons(self):
+    def test_no_group_reasons(self):
         u = Units()
         u.add("A1", "Investing in our stock is risky.")                      # before the first category
         u.add("A1", "Risk Factor Summary", "heading", 1, risk_summary=True)
         u.add("A1", "We face many risks.", risk_summary=True)
-        u.category("A1", "Business Risks", n_body=2)
+        u.category("A1", "Business Risks", n_body=2)                         # broad: no group
+        u.category("A1", "Legal Risks", n_body=2)
         u.category("A1", "Operating Risks", n_body=2)                        # unmapped
         u.add("A2", "No material changes.", section_key="part-ii-item-1a")   # no category at all
         categories, assignments = risk_factors.assign(u.units, MAP)
-        reasons = risk_factors.no_theme_reasons(u.units, categories, assignments)
+        reasons = risk_factors.no_group_reasons(u.units, categories, assignments)
         self.assertEqual(reasons, {"before_first_category": 1, "risk_summary": 1, "unmapped": 2,
-                                   "section_without_category": 1})
-        self.assertEqual(sum(bool(a["risk_ids"]) for a in assignments), 2)
+                                   "broad": 2, "section_without_category": 1})
+        self.assertEqual(sum(bool(a["heading_risk_group"]) for a in assignments), 2)
 
 
 if __name__ == "__main__":

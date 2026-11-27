@@ -1,7 +1,7 @@
 """Step 8 - Load: write Claims and their provenance into Neo4j.
 
 Input : data/output/claims.jsonl (one line per occurrence, step 7b), data/output/sentences.jsonl,
-        config/risk_themes.csv, data/interim/clean/*.jsonl,
+        config/risk_taxonomy/ (groups.csv, themes.csv), data/interim/clean/*.jsonl,
         data/output/subsidiaries.jsonl (the subsidiaries step; optional),
         data/entity_catalog.json (step 1c; optional: the segments)
 Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher with --dry-run
@@ -9,13 +9,20 @@ Output: nodes and relationships in Neo4j, or data/output/load_preview.cypher wit
 Each Claim node is one statement at one place (claim_id = the unit's position id, #45), so
 the same sentence twice in a section is two Claim nodes. Rows that share a claim_id (only
 in files built with the old text-keyed claim_id) still become one node; the SUPPORTS
-relationship then keeps every occurrence's source spans. A Claim gets one CONCERNS_RISK edge per risk
-theme of any of its occurrences; RiskFactor nodes are the themes of config/risk_themes.csv
-that some Claim uses, keyed by risk_id. Claudia's candidate_occurrences.jsonl has
+relationship then keeps every occurrence's source spans. Claudia's candidate_occurrences.jsonl has
 the same format, so her results load by copying that file to data/output/claims.jsonl.
 
+Risk themes: every RiskTheme (32, keyed by theme_id) and RiskGroup (7, keyed by group_id) of
+config/risk_taxonomy/ is loaded, each theme with one IN_RISK_GROUP edge. A Claim gets one
+HAS_RISK_THEME edge per theme in its risk_themes (step 7b): {rank: primary | secondary,
+scope: risk_factor | sentence, source, agrees_with_heading (primary only), model,
+taxonomy_version}. There is no node per risk factor: risk_factor_id (the lead's unit_id),
+risk_category_text, risk_category_unit_id, heading_risk_group and risk_theme_status
+("unknown" when the model found no theme) are Claim properties.
+
 Graph (names from the ontology):
-  (Company)-[:FILES]->(Filing)-[:CONTAINS]->(Section)-[:SUPPORTS]->(Claim)-[:CONCERNS_RISK]->(RiskFactor)
+  (Company)-[:FILES]->(Filing)-[:CONTAINS]->(Section)-[:SUPPORTS]->(Claim)-[:HAS_RISK_THEME]->(RiskTheme)
+  (RiskTheme)-[:IN_RISK_GROUP]->(RiskGroup)
   (Company)-[:OWNS]->(Subsidiary)
   (Company)-[:HAS_SEGMENT]->(Segment)
   (Claim)-[:MENTIONS]->(Subsidiary | Segment)
@@ -69,7 +76,7 @@ import json
 import os
 
 from .common import Paths, filings, load_env, log, read_jsonl, settings
-from .risk_factors import theme_library
+from . import risk_taxonomy
 from .subsidiaries import read_rows as subsidiary_rows
 
 STEP = "load"
@@ -97,10 +104,18 @@ SET s.section_key = r.section_key, s.section_type = r.section_type, s.title = r.
 WITH s, r
 MATCH (f:Filing {accession_number: r.accession_number, pipeline_scope: $scope})
 MERGE (f)-[x:CONTAINS {pipeline_scope: $scope}]->(s)""",
-    "risk_factors": """
+    "risk_groups": """
 UNWIND $rows AS r
-MERGE (k:RiskFactor {risk_id: r.risk_id, pipeline_scope: $scope})
-SET k.name = r.name, k.definition = r.definition, k.extraction_status = 'needs_review'""",
+MERGE (g:RiskGroup {group_id: r.group_id, pipeline_scope: $scope})
+SET g.definition = r.definition, g.taxonomy_version = r.taxonomy_version""",
+    "risk_themes": """
+UNWIND $rows AS r
+MERGE (k:RiskTheme {theme_id: r.theme_id, pipeline_scope: $scope})
+SET k.group_id = r.group_id, k.definition = r.definition, k.ey_2016_category = r.ey_2016_category,
+    k.taxonomy_version = r.taxonomy_version
+WITH k, r
+MATCH (g:RiskGroup {group_id: r.group_id, pipeline_scope: $scope})
+MERGE (k)-[x:IN_RISK_GROUP {pipeline_scope: $scope}]->(g)""",
     "claims": """
 UNWIND $rows AS r
 MERGE (c:Claim {claim_id: r.claim_id, pipeline_scope: $scope})
@@ -108,15 +123,19 @@ SET c.quote = r.quote, c.claim_type = r.claim_type, c.accession_number = r.acces
     c.section_id = r.section_id, c.extraction_status = r.extraction_status, c.context = r.context,
     c.subject_scope = r.subject_scope, c.annotation_note = r.annotation_note,
     c.is_lead_sentence = r.is_lead_sentence, c.risk_summary = r.risk_summary,
-    c.multi_fragment = r.multi_fragment
+    c.multi_fragment = r.multi_fragment, c.risk_factor_id = r.risk_factor_id,
+    c.risk_category_text = r.risk_category_text, c.risk_category_unit_id = r.risk_category_unit_id,
+    c.heading_risk_group = r.heading_risk_group, c.risk_theme_status = r.risk_theme_status
 WITH c, r
 MATCH (s:Section {section_id: r.section_id, pipeline_scope: $scope})
 MERGE (s)-[x:SUPPORTS {pipeline_scope: $scope}]->(c)
 SET x += r.provenance
 WITH c, r
-UNWIND r.risk_ids AS risk_id
-MATCH (k:RiskFactor {risk_id: risk_id, pipeline_scope: $scope})
-MERGE (c)-[y:CONCERNS_RISK {pipeline_scope: $scope}]->(k)""",
+UNWIND r.risk_themes AS t
+MATCH (k:RiskTheme {theme_id: t.theme_id, pipeline_scope: $scope})
+MERGE (c)-[y:HAS_RISK_THEME {pipeline_scope: $scope}]->(k)
+SET y.rank = t.rank, y.scope = t.scope, y.source = t.source, y.agrees_with_heading = t.agrees_with_heading,
+    y.model = t.model, y.taxonomy_version = t.taxonomy_version, y.extraction_status = 'needs_review'""",
     "subsidiaries": """
 UNWIND $rows AS r
 MERGE (s:Subsidiary {sub_id: r.sub_id, pipeline_scope: $scope})
@@ -180,14 +199,18 @@ def merge_occurrences(occurrences: list[dict], roles: dict[str, str]) -> list[di
             prov = claim["provenance"]
             prov["raw_spans"].append(p["raw_spans"])
             claim["multi_fragment"] = claim["multi_fragment"] or bool(occ.get("multi_fragment"))
-            claim["risk_ids"] += [x for x in occ.get("risk_ids") or [] if x not in claim["risk_ids"]]
+            have = {t["theme_id"] for t in claim["risk_themes"]}
+            claim["risk_themes"] += [t for t in occ.get("risk_themes") or [] if t["theme_id"] not in have]
             claim["is_lead_sentence"] = claim["is_lead_sentence"] or bool(occ.get("is_lead_sentence"))
             claim["risk_summary"] = claim["risk_summary"] and bool(occ.get("risk_summary"))
             continue
         claims[occ["claim_id"]] = {
             **{k: occ.get(k) for k in ("claim_id", "quote", "claim_type", "accession_number", "section_id",
                                        "extraction_status", "context", "subject_scope", "annotation_note")},
-            "risk_ids": list(occ.get("risk_ids") or []),
+            **{k: occ.get(k) for k in ("risk_factor_id", "risk_category_text", "risk_category_unit_id",
+                                       "risk_theme_status")},
+            "heading_risk_group": list(occ.get("heading_risk_group") or []),
+            "risk_themes": [dict(t) for t in occ.get("risk_themes") or []],
             "is_lead_sentence": bool(occ.get("is_lead_sentence")),
             "risk_summary": bool(occ.get("risk_summary")),
             "multi_fragment": bool(occ.get("multi_fragment")),
@@ -291,14 +314,19 @@ def build_rows() -> dict[str, list[dict]]:
             }
             companies[sec["cik"]] = {"cik": sec["cik"], "name": sec["company_name"], "ticker": sec["ticker"]}
 
-    used_themes = {x for c in claims for x in c["risk_ids"]}
-    factors = [row for risk_id, row in theme_library().items() if risk_id in used_themes]
+    version = risk_taxonomy.version() if claims else None
+    groups = [{"group_id": g, "definition": row["definition"], "taxonomy_version": version}
+              for g, row in risk_taxonomy.groups().items()] if claims else []
+    themes = [{"theme_id": t, "group_id": row["group_id"], "definition": row["definition"],
+               "ey_2016_category": row.get("ey_2016_category"), "taxonomy_version": version}
+              for t, row in risk_taxonomy.themes().items()] if claims else []
 
     claim_rows = [{**{k: v for k, v in c.items() if k != "provenance"},
                    "provenance": flat_provenance(c["provenance"])} for c in claims]
     mentions = mention_rows(occurrences)
     return {"companies": list(companies.values()), "filings": list(filing_rows.values()),
-            "sections": list(sections.values()), "risk_factors": factors, "claims": claim_rows,
+            "sections": list(sections.values()), "risk_groups": groups, "risk_themes": themes,
+            "claims": claim_rows,
             "subsidiaries": subsidiaries, "segments": segment_rows(),
             "mentions_subsidiary": mentions["subsidiary"], "mentions_segment": mentions["segment"]}
 
