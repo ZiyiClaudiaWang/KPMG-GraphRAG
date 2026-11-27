@@ -50,6 +50,10 @@ risk_factor_id; step 5b's answers (data/interim/risk_themes.jsonl) are put on th
   risk_themes              the themes from step 5b, each {theme_id, rank, scope, source,
                            agrees_with_heading, model, taxonomy_version}: one HAS_RISK_THEME edge each
   risk_summary             true if it is in the risk factor summary at the top of Item 1A (step 4)
+Entities named in a heading above the Claim (step 6b, entities/headings.py):
+  heading_entity_links     [{entity_id, entity_type, mention_text, match_status, heading_unit_id,
+                           heading_text}], matched / matched_auto only, leaving out entities the
+                           sentence itself links; step 10: MENTIONS with found_by ["heading"]
 """
 
 from __future__ import annotations
@@ -187,6 +191,8 @@ def run() -> None:
     units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
     held = held_ids()
     risks = {a["unit_id"]: a for a in risk_assignments()}
+    from .entities import headings
+    under_headings = headings.inherited(list(units.values()), headings.read_rows())
 
     records, skipped = [], Counter()
     for label in read_jsonl(Paths.labels()):
@@ -198,8 +204,12 @@ def run() -> None:
             skipped["held for review"] += 1
             continue
         key = (unit["accession_number"], unit["section_key"])
-        records.append(candidate(unit, label, units, sources[key], cleaned[key], vocabulary, catalog,
-                                 risks.get(unit["unit_id"], NO_RISK)))
+        record = candidate(unit, label, units, sources[key], cleaned[key], vocabulary, catalog,
+                           risks.get(unit["unit_id"], NO_RISK))
+        direct = set(record["related_segment_ids"]) | set(record["related_subsidiary_ids"])
+        record["heading_entity_links"] = [l for l in under_headings.get(unit["unit_id"], [])
+                                          if l["entity_id"] not in direct]
+        records.append(record)
 
     report = id_report(records)
     write_jsonl(Paths.claims(), records)
@@ -210,7 +220,8 @@ def run() -> None:
     log(STEP, f"{sum(r['is_lead_sentence'] for r in records)} occurrences are lead sentences, "
               f"{sum(bool(r['provenance']['lead_unit_id']) for r in records)} sit under one; "
               f"{sum(bool(r['risk_themes']) for r in records)} have a risk theme; "
-              f"{sum(r['multi_fragment'] for r in records)} are multi-fragment (list groups, page breaks)")
+              f"{sum(r['multi_fragment'] for r in records)} are multi-fragment (list groups, page breaks); "
+              f"{sum(bool(r['heading_entity_links']) for r in records)} link an entity named in a heading above")
     log(STEP, f"claim_ids since the last build: {report['added']} added, {report['gone']} gone, "
               f"{report['kept']} kept ({report['quote_changed']} with a changed quote)"
               + (f"; previous build used {report['previous_identity_versions']}"

@@ -88,7 +88,7 @@ flowchart TD
 | [5](#step-5) | Risk factors (`risk_factors`) | [`risk/factors.py`](src/risk/factors.py) | `output/risk_categories.csv`, `interim/risk_factors.jsonl`, `risk_assignments.jsonl` | no |
 | [5b](#step-5b) | Risk themes (`risk_themes`) | [`risk/themes.py`](src/risk/themes.py) | `interim/risk_themes.jsonl` | paid, sends only when named |
 | [6a](#step-6a) | Subsidiaries (`subsidiaries`) | [`entities/subsidiaries.py`](src/entities/subsidiaries.py), [`entities/ex21/`](src/entities/ex21/) | `output/subsidiaries.jsonl`, `subsidiary_catalog.json` | no |
-| [6b](#step-6b) | Entity catalog (`entity_catalog`) | [`entities/catalog.py`](src/entities/catalog.py) | `entity_catalog.json` | no |
+| [6b](#step-6b) | Entity catalog (`entity_catalog`) | [`entities/catalog.py`](src/entities/catalog.py), [`entities/headings.py`](src/entities/headings.py) | `entity_catalog.json`, `interim/heading_entities.jsonl` | no |
 | [7](#step-7) | Label (`label`) | [`label/`](src/label/) | `output/labels.jsonl` | paid |
 | [8](#step-8) | Validate (`validate`) | [`validate.py`](src/validate.py), [`source_review.py`](src/source_review.py) | `output/errors.jsonl`, `review_queue.jsonl` | no |
 | [9](#step-9) | Build Claims (`build_claims`) | [`build_claims.py`](src/build_claims.py), [`entities/annotation.py`](src/entities/annotation.py) | `output/claims.jsonl` | no |
@@ -291,6 +291,9 @@ Each module's docstring has the full rules; below is what each step does and wha
   (`--facts`, `PIPELINE_FACT_STORE`, or `MSFT_FACT_DB_PATH` in `.env`), and the registrant's own names (never linked); settings in
   [`config/entity_linking.yaml`](config/entity_linking.yaml).
 - Without a fact store the catalog has no segments.
+- `interim/heading_entities.jsonl` ([`entities/headings.py`](src/entities/headings.py)): catalog names
+  found in headings (dictionary pass, no LLM). Step 9 gives every Claim under such a heading
+  `heading_entity_links`; step 10 loads them as `MENTIONS {found_by: ["heading"]}`.
 
 <a id="step-7"></a>
 **[7] Label** (paid; [`src/label/`](src/label/))
@@ -495,6 +498,7 @@ One line per unit; "Data team" fields come from the export.
 | `risk_theme_status` | `classified`, `unknown`, `not_classified`, `no_risk_factor`, `risk_summary`; null outside Item 1A | `Claim` |
 | `risk_themes` | Step 5b: `theme_id`, `rank`, `scope`, `source`, `agrees_with_heading`, `model`, `taxonomy_version` | one `HAS_RISK_THEME` edge each |
 | `related_subsidiary_ids`, `related_segment_ids` | Matched entity links (6b catalog) | `MENTIONS` edges |
+| `heading_entity_links` | Entities named in a heading above (6b), not linked by the sentence itself | `MENTIONS {found_by: ["heading"]}` |
 | `provenance` | Section path, XPath, Data team versions, `raw_spans`, `context_unit_ids`, `lead_unit_id`, `lead_source`, `request_hash`, `model`, `prompt_version` | part, on `SUPPORTS` |
 | `claim_identity_version` | `source_span_position_v1` | no |
 | `context_evidence`, `source_fragments`, `parent_paragraph_context` | Cited units; source pieces and paragraph with positions | no |

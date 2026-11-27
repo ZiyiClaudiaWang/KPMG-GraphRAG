@@ -183,6 +183,8 @@ def run(facts: str | None = None) -> None:
     counts = Counter(e["entity_type"] for e in catalog)
     log(STEP, f"{counts['subsidiary']} subsidiaries, {counts['segment']} segments, "
               f"{counts['registrant']} registrants -> {catalog_path()}")
+    from . import headings
+    headings.run(catalog)
 
 
 if __name__ == "__main__":

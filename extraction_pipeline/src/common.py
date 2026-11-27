@@ -138,6 +138,7 @@ class Paths:
     subsidiary_catalog = staticmethod(lambda: data_dir() / "output" / "subsidiary_catalog.json")  # step 6a
     subsidiary_renames = staticmethod(lambda: checks_dir("subsidiaries") / "subsidiary_renames.csv")  # step 6a
     entity_catalog = staticmethod(lambda: data_dir() / "entity_catalog.json")              # step 6b
+    heading_entities = staticmethod(lambda: data_dir() / "interim" / "heading_entities.jsonl")  # step 6b
     batches = staticmethod(lambda: data_dir() / "interim" / "label_batches.jsonl")         # step 7
     labels = staticmethod(lambda: data_dir() / "output" / "labels.jsonl")                  # step 7
     usage = staticmethod(lambda: data_dir() / "output" / "usage.jsonl")                    # step 7

@@ -5,4 +5,5 @@
                    parse.py reads an exhibit, normalize.py maps jurisdictions and builds ids
   catalog.py       step 6b: entity_catalog.json (subsidiaries + XBRL segments + registrant names)
   annotation.py    Claudia's entity matching (used by steps 7-9): model mentions vs the catalog
+  headings.py      step 6b: catalog names in headings, inherited by the units under them (step 9)
 """

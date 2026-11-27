@@ -34,7 +34,8 @@ whose facts report the segment, keyed by accession_number, so a reorganisation s
 MENTIONS (#91 P3) is one edge per Claim and entity it links to: the Claim's related_subsidiary_ids
 and related_segment_ids (step 9 keeps only matched / matched_auto links there). The edge
 carries what was matched: mention_text, match_status, found_by (dictionary, model or both),
-entity_annotation_version. A link whose Subsidiary or Segment node is not loaded is skipped by
+entity_annotation_version. An entity named only in a heading above the Claim (heading_entity_links,
+step 6b) gives a MENTIONS edge with found_by ["heading"] and heading_unit_id. A link whose Subsidiary or Segment node is not loaded is skipped by
 the MATCH, so load the subsidiaries and the catalog with the Claims.
 
 Subsidiary nodes are keyed by sub_id (parent CIK + normalised name), so one subsidiary listed
@@ -279,6 +280,14 @@ def mention_rows(occurrences: list[dict]) -> dict[str, list[dict]]:
                 out[kind][key] = {"claim_id": occ["claim_id"], "entity_id": entity_id, "props": {
                     "mention_text": m.get("mention_text"), "match_status": m.get("match_status"),
                     "found_by": m.get("found_by") or [m.get("origin") or "model"],
+                    "entity_annotation_version": occ.get("entity_annotation_version"),
+                    "extraction_status": "needs_review"}}
+        for link in occ.get("heading_entity_links") or []:          # entities named in a heading above
+            key = (occ["claim_id"], link["entity_id"])
+            if link["entity_type"] in out and key not in out[link["entity_type"]]:
+                out[link["entity_type"]][key] = {"claim_id": occ["claim_id"], "entity_id": link["entity_id"], "props": {
+                    "mention_text": link["mention_text"], "match_status": link["match_status"],
+                    "found_by": ["heading"], "heading_unit_id": link["heading_unit_id"],
                     "entity_annotation_version": occ.get("entity_annotation_version"),
                     "extraction_status": "needs_review"}}
     return {k: list(v.values()) for k, v in out.items()}
