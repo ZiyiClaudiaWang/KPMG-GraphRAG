@@ -49,6 +49,7 @@ import hashlib
 import json
 import os
 import random
+import re
 import shutil
 import statistics
 import time
@@ -59,9 +60,10 @@ from urllib.parse import quote
 
 from ..risk import factors as risk_factors, taxonomy as risk_taxonomy, themes as risk_themes
 from ..clean import ITEM_MARKER
-from ..common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
+from ..common import ROOT, Paths, checks_dir, data_dir, filings, load_config, log, read_csv, read_jsonl, settings, write_csv
 from .diagnose import BRAND, TABLE_TITLE, md_table
 from .entity_inputs import subsidiaries_by_year
+from ..entities.subsidiaries import BY_REFERENCE
 from ..segment import is_category_unit
 from ..segment.sentences import TERMINAL
 
@@ -288,14 +290,18 @@ def subsidiaries_numbers() -> tuple[dict, list, list]:
     catalog = json.loads(Paths.subsidiary_catalog().read_text(encoding="utf-8")) \
         if Paths.subsidiary_catalog().exists() else []
     ten_ks = {f["accession"]: f for f in filings() if f["form"] == "10-K"}
-    not_ok = [q for q in qa if q["status"] != "OK"]
+    not_ok = [q for q in qa if q["status"] != "OK" and not q["status"].startswith(BY_REFERENCE)]
+    by_ref = [q for q in qa if q["status"].startswith(BY_REFERENCE)]
     unchecked = [f for a, f in ten_ks.items() if a not in {q["accession"] for q in qa}]
-    big = [r for r in subsidiaries_by_year(rows) if r["flag"]]
+    big = [r for r in subsidiaries_by_year(rows) if r["flag"] == "BIG CHANGE"]
     m = {"10k_in_filings": len(ten_ks), "10k_checked": len(qa), "10k_unchecked": len(unchecked),
          "10k_not_ok": len(not_ok), "rows": len(rows), "distinct_subsidiaries": len(catalog),
          "renames": len(renames), "renames_not_reviewed": sum(1 for r in renames if not r["review"]),
          "big_year_changes": len(big)}
     notes = []
+    if by_ref:
+        notes.append("10-Ks with Exhibit 21 incorporated by reference (rows of the 10-K it points to; settings.yaml "
+                     "subsidiaries.ex21_by_reference): " + ", ".join(f"{q['ticker']} {q['accession']}" for q in by_ref))
     if not_ok:
         notes.append("10-Ks not OK in subsidiary_qa.csv: "
                      + ", ".join(f"{q['ticker']} {q['accession']} ({q['status']})" for q in not_ok[:8]))
@@ -320,7 +326,8 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     ticker = {str(f["cik"]).zfill(10): f["ticker"] for f in filings()}
     with_segments = {e["issuer_cik"] for e in catalog if e["entity_type"] == "segment"}
     with_subs = {e["issuer_cik"] for e in catalog if e["entity_type"] == "subsidiary"}
-    no_seg = sorted({t for c, t in ticker.items() if c not in with_segments})
+    single = {t.upper() for t in load_config("entity_linking").get("single_segment_companies") or []}
+    no_seg = sorted({t for c, t in ticker.items() if c not in with_segments and t.upper() not in single})
     no_sub = sorted({t for c, t in ticker.items() if c not in with_subs})
     m = {f"entries_{k}": v for k, v in sorted(kinds.items())}
     m["companies_without_segments"], m["companies_without_subsidiaries"] = len(no_seg), len(no_sub)
@@ -590,12 +597,13 @@ def risk_themes_numbers(units: list[dict]) -> tuple[dict, list, list]:
 
 UNIT_CHECKS = [
     ("lowercase_start", "Sent to the LLM, starts lower case, not a list item: a missed page-break join or a bad split."),
-    ("no_end_punct", "Sent to the LLM, no end punctuation, no ':' or '|': a cut sentence or a missed heading."),
+    ("no_end_punct", "Sent to the LLM, no end punctuation, no ':' or '|', not a lead (AMZN risk factor titles): a cut sentence or a missed heading."),
     ("very_long", "Sent to the LLM, over 1,500 characters: a missed split (often a ';' list in one sentence)."),
     ("single_pipe", "Sent to the LLM with one '|': a two-column table row."),
     ("long_heading", "Heading over 100 characters (table titles left out): often a sentence, never sent to the LLM."),
-    ("risk_section_no_category", "Item 1A with 20+ units and no category heading: its Claims get no heading group."),
+    ("risk_section_no_category", "10-K Item 1A with 20+ units and no category heading: its Claims get no heading group (10-Qs that list only updated risk factors often have none)."),
 ]
+PRODUCT_PIPE = re.compile(r"\bX\|S\b")     # "Xbox Series X|S": a product name, not a table cell
 RATE_CHECKS = ["lowercase_start", "no_end_punct", "very_long", "single_pipe"]   # per 1,000 units to the LLM
 
 
@@ -616,11 +624,11 @@ def unit_checks(units: list[dict]) -> tuple[dict, list, list, list[dict]]:
         if to_llm and not in_list and text[:1].islower() and not BRAND.match(text) and not ITEM_MARKER.match(text):
             found.append("lowercase_start")
         if (to_llm and not in_list and not TERMINAL.search(text) and not text.endswith(":")
-                and not u.get("rule_heading") and "|" not in text):
+                and not u.get("rule_heading") and not u.get("lead_source") and "|" not in text):
             found.append("no_end_punct")
         if to_llm and len(text) > 1500:
             found.append("very_long")
-        if to_llm and text.count("|") == 1:
+        if to_llm and PRODUCT_PIPE.sub("", text).count("|") == 1:
             found.append("single_pipe")
         if u["role"] == "heading" and len(text) > 100 and not TABLE_TITLE.match(text):
             found.append("long_heading")
@@ -628,7 +636,8 @@ def unit_checks(units: list[dict]) -> tuple[dict, list, list, list[dict]]:
             hits[c].append(u)
             per_filing_n[u["accession_number"]][c] += 1
     for (acc, _), us in sections.items():
-        if us[0]["section_type"] == "risk_factors" and len(us) >= 20 and not any(is_category_unit(u) for u in us):
+        if (us[0]["section_type"] == "risk_factors" and us[0]["form"] == "10-K" and len(us) >= 20
+                and not any(is_category_unit(u) for u in us)):
             hits["risk_section_no_category"].append(us[0])
             per_filing_n[acc]["risk_section_no_category"] += 1
 

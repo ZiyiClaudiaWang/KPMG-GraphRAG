@@ -116,14 +116,23 @@ def segment_members(path: Path) -> list[tuple[str, str, str]]:
 
 def segment_entries(members: list[tuple[str, str, str]]) -> list[dict]:
     """One entry per (company, segment label); only filings in filings.yaml count, and members
-    matching config/entity_linking.yaml segment_member_skip (totals, "all other") are left out."""
+    matching config/entity_linking.yaml segment_member_skip (totals, "all other") are left out.
+    segment_names gives a member its reviewed name and aliases (the XBRL name loses punctuation:
+    "SamsClubSegmentMember" is "Sam's Club" in the text); members given one name are one entry."""
     wanted = {f["accession"] for f in filings()}
-    skip = [re.compile(p) for p in load_config("entity_linking").get("segment_member_skip") or []]
+    ticker = {str(f["cik"]).zfill(10): f["ticker"].upper() for f in filings()}
+    cfg = load_config("entity_linking")
+    skip = [re.compile(p) for p in cfg.get("segment_member_skip") or []]
+    names = cfg.get("segment_names") or {}
     out: dict[tuple[str, str], dict] = {}
     for cik, accession, member in sorted(members):
-        if accession not in wanted or any(p.search(member.split(":")[-1]) for p in skip):
+        local = member.split(":")[-1]
+        if accession not in wanted or any(p.search(local) for p in skip):
             continue
-        label = segment_label(member)
+        named = (names.get(ticker.get(cik, "")) or {}).get(local)
+        if isinstance(named, str):
+            named = {"name": named}
+        label = named["name"] if named else segment_label(member)
         key = match_key(label)
         if not key:
             continue
@@ -134,7 +143,10 @@ def segment_entries(members: list[tuple[str, str, str]]) -> list[dict]:
         if member not in e["members"]:
             e["members"].append(member)
         short = re.sub(r"\s+Segments?$", "", label)
-        for alias in (label, short):
+        extra = (named or {}).get("aliases") or []
+        if named:
+            e["review_status"] = "reviewed"
+        for alias in (label, short, *extra):
             if alias != e["name"] and alias not in e["aliases"]:
                 e["aliases"].append(alias)
         if accession not in e["accessions"]:

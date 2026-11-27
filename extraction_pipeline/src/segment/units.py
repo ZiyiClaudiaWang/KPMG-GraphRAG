@@ -35,9 +35,15 @@ from .headings import HeadingPath
 #     only another run-in (NTAP "Financial and savings programs." was replacing its parent heading).
 # v15 (26 Nov 2026): a styled sentence of its own followed by a sub-heading is a lead (step 4b;
 #     MSFT "We face intense competition ..." then "Competition in the technology sector").
+# v16 (27 Nov 2026): a styled Title Case line in Item 1A too long to be a heading candidate is a
+#     lead (step 4b; AMZN "We Face Risks Related to Adequately Protecting Our Intellectual
+#     Property Rights ..."); in a names table, a cell may hold several "•" names and "&" or a
+#     "(HVAC)" abbreviation is not a word (PH Filtration and Instrumentation groups); a styled
+#     run-in whose full stop is in the plain run is a lead or run-in heading (MSFT 2024 "If our
+#     reputation or our brands are damaged, ... may be harmed" + ".": 61 more MSFT leads).
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v15"
+SEGMENTATION_VERSION = "kelly_sentence_v16"
 
 
 def section_label(sec: dict) -> str:

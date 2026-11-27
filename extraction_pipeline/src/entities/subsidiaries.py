@@ -36,7 +36,7 @@ from pathlib import Path
 
 import yaml
 
-from ..common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, write_csv, write_jsonl
+from ..common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, settings, write_csv, write_jsonl
 from .ex21 import edgar
 from .ex21.normalize import entity_key, is_registrant, normalised_name, normalize_jurisdiction, sub_id
 from .ex21.parse import assign_parents, parse_file
@@ -66,6 +66,9 @@ def ten_ks() -> list[dict]:
     return rows
 
 
+BY_REFERENCE = "BY_REFERENCE"     # a known 10-K with no EX-21 attached: not a problem
+
+
 def _check(target: dict, status: str) -> dict:
     return {**target, "local_file": "", "rows_parsed": 0, "status": status}
 
@@ -77,9 +80,12 @@ def fetch(targets: list[dict]) -> tuple[dict[str, dict], list[dict]]:
     saved = {r["accession"]: r for r in read_csv(Paths.ex21_manifest())} \
         if Paths.ex21_manifest().exists() else {}
     checks = []
+    by_reference = (settings().get("subsidiaries") or {}).get("ex21_by_reference") or {}
     for t in targets:
         row = saved.get(t["accession"])
         if row and (Paths.ex21_raw().parent / row["local_file"]).exists():
+            continue
+        if t["accession"] in by_reference:      # run() reads the 10-K it points to
             continue
         load_env()
         if not edgar.user_agent():
@@ -312,11 +318,24 @@ def run() -> None:
     saved, qa_rows = fetch(targets)
     skipped = {q["accession"] for q in qa_rows}
     alias = aliases()
+    by_reference = (settings().get("subsidiaries") or {}).get("ex21_by_reference") or {}
     rows = []
     for t in targets:
-        if t["accession"] in skipped or t["accession"] not in saved:
+        ref = by_reference.get(t["accession"])
+        source = ref or t["accession"]
+        if t["accession"] in skipped or source not in saved:
+            if ref:
+                qa_rows.append(_check(t, f"CHECK: EX-21 incorporated by reference to 10-K {ref}, "
+                                         "which is not downloaded (run step 6a for it first)"))
             continue
-        found, qa = parse(t, saved[t["accession"]], alias)
+        # Exhibit 21 incorporated by reference: the same list as the 10-K it points to, filed
+        # again for this year (rows carry this 10-K's accession and period)
+        found, qa = parse(t, saved[source], alias)
+        if ref:
+            for r in found:
+                r["flags"] = ";".join(f for f in [r["flags"], f"ex21_by_reference:{ref}"] if f)
+            if qa["status"] == "OK":
+                qa["status"] = f"{BY_REFERENCE}: rows from the Exhibit 21 of 10-K {ref} (settings.yaml subsidiaries)"
         rows += found
         qa_rows.append(qa)
     write_jsonl(Paths.subsidiaries(), rows)
@@ -340,7 +359,7 @@ def run() -> None:
     log(STEP, f"{len(targets)} 10-Ks -> {len(rows)} subsidiary rows, {len(entries)} distinct "
               f"subsidiaries -> {Paths.subsidiaries()}")
     for q in qa_rows:
-        if q["status"] != "OK":
+        if q["status"] != "OK" and not q["status"].startswith(BY_REFERENCE):
             log(STEP, f"CHECK {q['ticker']} {q['accession']}: {q['status']}")
 
 

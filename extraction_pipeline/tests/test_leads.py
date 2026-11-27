@@ -40,6 +40,10 @@ LINES = [
     ('<p style="font-style:italic">Competition among platform ecosystems</p>',
      "Competition among platform ecosystems"),
     ("<p>Our rivals build their own platforms.</p>", "Our rivals build their own platforms."),
+    # a styled run-in whose full stop is in the plain run: a lead too (MSFT 2024)
+    (f'<p><span style="{BOLD}">If our reputation is damaged, our business may be harmed</span>. '
+     'Many things could damage it.</p>',
+     "If our reputation is damaged, our business may be harmed. Many things could damage it."),
     (f'<p style="{BIG}">OTHER MATTERS</p>', "OTHER MATTERS"),
     # a run-in heading ("Flexible Work.") is a heading, not a lead
     (f'<p><span style="{BOLD}">Flexible Work.</span> We let many employees work from home.</p>',
@@ -88,7 +92,8 @@ class Leads(unittest.TestCase):
         self.assertEqual([(x["source"], x["text"]) for x in self.leads],
                          [("html", "We are subject to counterparty default risks."),
                           ("html_runin", "Competition in the technology sector may harm our business."),
-                          ("html", "We face intense competition across all of our markets.")])
+                          ("html", "We face intense competition across all of our markets."),
+                          ("html_runin", "If our reputation is damaged, our business may be harmed.")])
         self.assertEqual(self.unmatched, 0)
 
     def test_lead_units_and_the_units_under_them(self):
@@ -189,3 +194,16 @@ class RuleFallback(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TitleLines(unittest.TestCase):
+    """In Item 1A a styled Title Case line too long to be a heading candidate is a lead (AMZN)."""
+
+    def test_title_case_line_without_end_punctuation(self):
+        from src.headings.leads import is_title_line
+        amzn = ("We Face Risks Related to Adequately Protecting Our Intellectual Property Rights and "
+                "Being Accused of Infringing Intellectual Property Rights of Third Parties")
+        self.assertTrue(is_title_line(amzn, 4, 100))
+        self.assertFalse(is_title_line("Item 1A. Risk Factors", 4, 100))
+        self.assertFalse(is_title_line("We face risks related to protecting our rights", 4, 100))
+        self.assertFalse(is_title_line("We Face Risks Related to Our Rights.", 4, 100))
