@@ -183,9 +183,11 @@ class CatalogStep(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         (self.tmp / "output").mkdir()
-        self.env = {k: os.environ.get(k) for k in ("PIPELINE_DATA_DIR", "PIPELINE_FACT_STORE", "PIPELINE_FILINGS")}
+        self.env = {k: os.environ.get(k) for k in ("PIPELINE_DATA_DIR", "PIPELINE_FACT_STORE", "MSFT_FACT_DB_PATH",
+                                                   "PIPELINE_FILINGS")}
         os.environ["PIPELINE_DATA_DIR"] = str(self.tmp)
-        os.environ.pop("PIPELINE_FACT_STORE", None)
+        os.environ["PIPELINE_FACT_STORE"] = ""     # empty, not unset: a store in the real .env must not apply
+        os.environ["MSFT_FACT_DB_PATH"] = ""
         (self.tmp / "filings.yaml").write_text(
             "filings:\n"
             f"  - {{ticker: MSFT, cik: \"{MSFT}\", form: 10-K, reporting_period_end: \"2026-06-30\", accession: \"{ACC}\"}}\n")

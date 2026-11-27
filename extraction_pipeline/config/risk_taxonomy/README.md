@@ -1,15 +1,15 @@
 # Risk taxonomy
 
-Our own two-level risk themes for Item 1A, read by step 5b (`src/risk/themes.py`, the
-classifier), step 5 (`src/risk/factors.py`) and step 10 (`src/load.py`). They replaced the 10
+Our own two-level risk themes for Item 1A, read by step 5b ([`src/risk/themes.py`](../../src/risk/themes.py), the
+classifier), step 5 ([`src/risk/factors.py`](../../src/risk/factors.py)) and step 10 ([`src/load.py`](../../src/load.py)). They replaced the 10
 themes of the old `config/risk_themes.csv` / `risk_theme_map.csv` (26 Nov 2026).
 
 | File | What it holds |
 |---|---|
-| `groups.csv` | the 7 coarse groups (`RiskGroup` nodes) |
-| `themes.csv` | the 32 fine themes (`RiskTheme` nodes): `group_id`, the definition with its boundary rules (what the classifier is given), and the EY 2016 category it corresponds to. A change here changes every step 5b request (new replies needed) and `taxonomy_version` |
-| `risk_category_map.csv` | an Item 1A level-1 heading text -> groups. `status`: `group` (names the groups in `group_ids`), `broad` (a real category naming no area: no agrees / overrules comparison), `not_a_category` (an index table, a repeated title, the summary heading). Reviewed by hand; a new text shows up as `unmapped` in step 5 |
-| `reference_labels.csv` | one row per distinct lead text in Item 1A of the 313 filings (v14), with a draft primary theme read from the title only (`source: draft_title_only`). Not a gold set and never shown to the model: step 5b's `checks/risk_themes/risk_factor_themes.csv` marks the risk factors whose primary theme differs (`review: differs_from_reference`). `risk_cluster` groups rewordings of the same risk across years. |
+| [`groups.csv`](groups.csv) | the 7 coarse groups (`RiskGroup` nodes) |
+| [`themes.csv`](themes.csv) | the 32 fine themes (`RiskTheme` nodes): `group_id`, the definition with its boundary rules (what the classifier is given), and the EY 2016 category it corresponds to. A change here changes every step 5b request (new replies needed) and `taxonomy_version` |
+| [`risk_category_map.csv`](risk_category_map.csv) | an Item 1A level-1 heading text -> groups. `status`: `group` (names the groups in `group_ids`), `broad` (a real category naming no area: no agrees / overrules comparison), `not_a_category` (an index table, a repeated title, the summary heading). Reviewed by hand; a new text shows up as `unmapped` in step 5 |
+| [`reference_labels.csv`](reference_labels.csv) | one row per distinct lead text in Item 1A of the 313 filings (v14), with a draft primary theme read from the title only (`source: draft_title_only`). Not a gold set and never shown to the model: step 5b's `checks/risk_themes/risk_factor_themes.csv` marks the risk factors whose primary theme differs (`review: differs_from_reference`). `risk_cluster` groups rewordings of the same risk across years. |
 
 ## Design (26 Nov 2026)
 
@@ -23,7 +23,8 @@ themes of the old `config/risk_themes.csv` / `risk_theme_map.csv` (26 Nov 2026).
 
 ## Sources and deliberate differences
 
-Starting point: EY / IRRCi, *The Corporate Risk Factor Disclosure Landscape* (2016), 17 categories,
+Starting point: EY / IRRCi, *The Corporate Risk Factor Disclosure Landscape* (January 2016;
+[full copy as filed with the SEC](https://www.sec.gov/comments/s7-06-16/s70616-5.pdf)), 17 categories,
 fitted to our risk titles. Differences from EY, on purpose:
 
 - AI and ESG expectations have their own themes (neither is in the 2016 study).

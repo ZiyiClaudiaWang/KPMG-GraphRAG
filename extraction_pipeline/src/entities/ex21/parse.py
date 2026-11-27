@@ -2,7 +2,9 @@
 
 Exhibit 21 has no required format. Companies use:
   * an HTML table: name | (spacer) | jurisdiction   (Apple, Microsoft)
-  * an HTML table with extra columns, e.g. ownership %
+  * an HTML table with extra columns, e.g. ownership % or business segment; with a header row
+    the jurisdiction and % columns are read by header (Amazon: "100" | "%" in two cells;
+    Walmart: a last column naming the business, not the jurisdiction)
   * indentation to show which subsidiary owns which (multi-level groups)
   * plain text lines: "Name (Jurisdiction)" or "Name .... Jurisdiction"
   * described lines: "Name, an Iowa corporation" or
@@ -18,13 +20,20 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 HEADER_WORDS = re.compile(
-    r"^(name|names?\s+of\s+(subsidiar|entit|compan)|subsidiar(y|ies)|entity|company|"
+    r"^(name|legal\s+name|(subsidiary|entity|company)\s+name|names?\s+of\s+(subsidiar|entit|compan)|subsidiar(y|ies)|entity|company|"
     r"jurisdiction|where\s+incorporated|state\s+or\s+(other\s+)?(country|jurisdiction)|"
     r"(country|state|place)\s+of\s+(incorporation|organization|formation)|"
     r"incorporated\s+in|organized\s+under|percent|%\s*owned|ownership)",
     re.I,
 )
 LIST_NUMBER = re.compile(r"\(?\d{1,3}[.)]")       # a numbering cell: "1." / "(2)" / "3)"
+# Header cells, read in this order ("Percent of equity owned" is the % column, not a name).
+COLUMN_HEADERS = (
+    ("pct", re.compile(r"percent|%|owner", re.I)),
+    ("juris", re.compile(r"jurisdiction|incorporat|organi[sz]|domicile|country|\bstate\b|place\s+of|"
+                         r"where|laws\s+of|formed\s+in", re.I)),
+    ("name", re.compile(r"name|subsidiar|entit|compan", re.I)),
+)
 PCT = re.compile(r"^\(?\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)?$")
 FOOTNOTE_MARK = re.compile(r"(\s*(\*+|\(\d{1,2}\)|\[\d{1,2}\]|†|‡))+$")
 PAREN_JURIS = re.compile(r"^(?P<name>.+?)\s*\((?P<j>[^()]+)\)\s*$")
@@ -107,9 +116,63 @@ def _indent_of(cell) -> int:
     return int(round(px / 12)) if px >= 9 else 0
 
 
+def _spans(cells) -> list[tuple[int, int]]:
+    """Grid columns [start, end) of each cell, from colspan."""
+    out, col = [], 0
+    for c in cells:
+        try:
+            n = max(1, int(c.get("colspan") or 1))
+        except ValueError:
+            n = 1
+        out.append((col, col + n))
+        col += n
+    return out
+
+
+def _header_columns(cells, texts) -> dict | None:
+    """{"name"/"juris"/"pct"/"other_<i>": (start, end)} when the row is a header row naming a
+    jurisdiction or % column; None otherwise. Columns it cannot name (Walmart's segment) are
+    "other_<i>", so their cells are never read as the jurisdiction."""
+    filled = [(span, t) for span, t in zip(_spans(cells), texts) if t]
+    if len(filled) < 2 or not HEADER_WORDS.match(filled[0][1]) or any(len(t) >= 60 for _, t in filled):
+        return None
+    cols = {}
+    for i, (span, t) in enumerate(filled):
+        kind = next((k for k, rx in COLUMN_HEADERS if rx.search(t)), None)
+        cols[kind if kind and kind not in cols else f"other_{i}"] = span   # other: read by nobody
+    return cols if ("juris" in cols or "pct" in cols) else None
+
+
+def _column_of(span, header: dict) -> str | None:
+    """The header column a data cell sits under: the one it overlaps, else the nearest header
+    column starting at or before it (spacer cells shift data cells by a column or two)."""
+    over = [k for k, (a, b) in header.items() if span[0] < b and a < span[1]]
+    if over:
+        return over[0]
+    before = [(a, k) for k, (a, _) in header.items() if a <= span[0]]
+    return max(before)[1] if before else None
+
+
+def _join_pct(texts: list[str]) -> list[str]:
+    """ "100" | "%" in two cells -> "100%" (Amazon)."""
+    out = []
+    for t in texts:
+        if t == "%" and out and re.fullmatch(r"\(?\d{1,3}(?:\.\d+)?", out[-1]):
+            out[-1] += "%"
+        else:
+            out.append(t)
+    return out
+
+
+def _pct_value(text: str) -> float | None:
+    m = PCT.match(text) or re.fullmatch(r"(\d{1,3}(?:\.\d+)?)", text)
+    return float(m.group(1)) if m else None
+
+
 def parse_html(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
     rows: list[dict] = []
+    header, header_width = None, 0          # kept across tables of the same width (page breaks)
     for table in soup.find_all("table"):
         for tr in table.find_all("tr"):
             cells = tr.find_all(["td", "th"])
@@ -117,7 +180,29 @@ def parse_html(html: str) -> list[dict]:
             filled = [(c, t) for c, t in zip(cells, texts) if t]
             if not filled:
                 continue
+            found = _header_columns(cells, texts)
+            if found:
+                header, header_width = found, _spans(cells)[-1][1]
+                continue
             if HEADER_WORDS.match(filled[0][1]) and len(filled[0][1]) < 60:
+                continue
+            width = _spans(cells)[-1][1]
+            if header and width == header_width and len(filled) > 1 \
+                    and not LIST_NUMBER.fullmatch(filled[0][1]) and not _split_stacked_row(filled):
+                by_col: dict[str, list[str]] = {}
+                for (c, t), span in zip(filled[1:], [sp for sp, t in zip(_spans(cells), texts) if t][1:]):
+                    by_col.setdefault(_column_of(span, header) or "", []).append(t)
+                pct_text = "".join(by_col.get("pct", []))
+                pct = _pct_value(pct_text) if pct_text else None
+                juris = " ".join(t for t in _join_pct(by_col.get("juris", [])) if not PCT.match(t))
+                first_cell, name = filled[0]
+                if not juris:
+                    m = DESCRIBED.match(name) or PAREN_JURIS.match(name)
+                    if m:
+                        name, juris = m.group("name"), m.group("j")
+                if not _not_a_subsidiary(name, juris):
+                    rows.append(_row(len(rows) + 1, name, juris, pct, _indent_of(first_cell),
+                                     "html_table:header"))
                 continue
             if len(filled) > 1 and LIST_NUMBER.fullmatch(filled[0][1]):
                 filled = filled[1:]                 # Casey's 2021: "1." | "Name, an Iowa corporation"
@@ -129,7 +214,7 @@ def parse_html(html: str) -> list[dict]:
                                          "html_table:stacked"))
                 continue
             first_cell, name = filled[0]
-            rest = [t for _, t in filled[1:]]
+            rest = _join_pct([t for _, t in filled[1:]])
             pct = next((float(PCT.match(t).group(1)) for t in rest if PCT.match(t)), None)
             juris_cells = [t for t in rest if not PCT.match(t)]
             juris = juris_cells[-1] if juris_cells else ""

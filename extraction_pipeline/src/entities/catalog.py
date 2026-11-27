@@ -2,7 +2,9 @@
 
 Input : data/output/subsidiary_catalog.json   step 6a (Exhibit 21), already scoped per filing
         a fact store (.duckdb with financial_facts_v1), optional: the XBRL segment members.
-            Path from --facts, PIPELINE_FACT_STORE, or settings.yaml entity_catalog.fact_store.
+            Path from --facts, PIPELINE_FACT_STORE, MSFT_FACT_DB_PATH (the structured arm's store,
+            the same .duckdb), or settings.yaml entity_catalog.fact_store; the two variables are
+            read from the environment or extraction_pipeline/.env.
             Without one the catalog has no segments, and the log says so.
         config/entity_linking.yaml              the registrant's own names
 Output: data/entity_catalog.json                read by steps 7 (recorded only), 8 and 9
@@ -39,7 +41,7 @@ import uuid
 from collections import Counter
 from pathlib import Path
 
-from ..common import ROOT, Paths, filings, load_config, log, settings
+from ..common import ROOT, Paths, filings, load_config, load_env, log, settings
 from .annotation import entry_keys, match_key, validate_catalog
 from .ex21.normalize import normalised_name
 
@@ -86,7 +88,9 @@ def registrant_entries() -> list[dict]:
 
 
 def fact_store_path(arg: str | None = None) -> Path | None:
-    raw = arg or os.environ.get("PIPELINE_FACT_STORE") or (settings().get("entity_catalog") or {}).get("fact_store")
+    load_env()                                # the variables may be set in .env (a personal path)
+    raw = (arg or os.environ.get("PIPELINE_FACT_STORE") or os.environ.get("MSFT_FACT_DB_PATH")
+           or (settings().get("entity_catalog") or {}).get("fact_store"))
     if not raw:
         return None
     p = Path(raw).expanduser()
@@ -148,7 +152,7 @@ def build(facts: str | None = None) -> list[dict]:
     if store and store.exists():
         segments = segment_entries(segment_members(store))
     else:
-        log(STEP, "no fact store (--facts / PIPELINE_FACT_STORE / settings entity_catalog.fact_store): "
+        log(STEP, "no fact store (--facts / PIPELINE_FACT_STORE / MSFT_FACT_DB_PATH / settings entity_catalog.fact_store): "
                   "no segments in the catalog")
     registrants = registrant_entries()
     own = {(r["issuer_cik"], k) for r in registrants for k in entry_keys(r)}

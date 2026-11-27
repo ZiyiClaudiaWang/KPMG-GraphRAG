@@ -79,12 +79,13 @@ def connect():
     import psycopg
     from psycopg.rows import dict_row
 
-    conn = psycopg.connect(row_factory=dict_row)
+    # Fail fast when the database cannot be reached (VPN, IP allowlist) instead of hanging.
+    conn = psycopg.connect(row_factory=dict_row, connect_timeout=int(os.environ.get("PGCONNECT_TIMEOUT", "15")))
     conn.read_only = True
     return conn
 
 
-def prefix_map(conn) -> dict[str, str]:
+def prefix_map(conn, accessions=None) -> dict[str, str]:
     """namespace -> prefix, learned from their own data.
 
     Every fact carries `concept_namespace` and a `source_reference.qname` whose
@@ -92,19 +93,25 @@ def prefix_map(conn) -> dict[str, str]:
     have to guess. It is 1:1 across all 891,986 facts, checked before writing
     this; the query still takes the most common prefix per namespace so a single
     odd row cannot flip a mapping.
+
+    With `accessions`, only the facts of those filings are read: the whole table is far larger
+    than our corpus, and scanning it all takes a very long time. A namespace none of these facts
+    names as a concept is then left out and printed as unresolved.
     """
-    sql = """
-        SELECT concept_namespace AS ns,
-               split_part(source_reference->>'qname', ':', 1) AS prefix,
+    only = ("JOIN sec.filings f ON f.id = ff.filing_id WHERE f.accession_number = ANY(%(accessions)s) AND"
+            if accessions else "WHERE")
+    sql = f"""
+        SELECT ff.concept_namespace AS ns,
+               split_part(ff.source_reference->>'qname', ':', 1) AS prefix,
                count(*) AS n
-        FROM sec.financial_facts
-        WHERE source_reference ? 'qname' AND concept_namespace IS NOT NULL
+        FROM sec.financial_facts ff
+        {only} ff.source_reference ? 'qname' AND ff.concept_namespace IS NOT NULL
         GROUP BY 1, 2
         ORDER BY ns, n DESC
     """
     out: dict[str, str] = {}
     with conn.cursor() as cur:
-        cur.execute(sql)
+        cur.execute(sql, {"accessions": list(accessions)} if accessions else None)
         for row in cur.fetchall():
             if row["prefix"] and row["ns"] not in out:
                 out[row["ns"]] = row["prefix"]
@@ -203,10 +210,19 @@ _RAW = """
 """
 
 
-def fetch(conn, accessions, source):
-    with conn.cursor() as cur:
-        cur.execute(_READY if source == "ready" else _RAW, {"accessions": list(accessions)})
-        return cur.fetchall()
+def fetch(conn, accessions, source, batch_size: int = 20):
+    """Every fact of the accessions, in batches of `batch_size` filings, with progress: one query
+    for hundreds of filings returns hundreds of thousands of rows at once and prints nothing."""
+    import time
+    accessions, out, started = list(accessions), [], time.time()
+    for i in range(0, len(accessions), batch_size):
+        batch = accessions[i:i + batch_size]
+        with conn.cursor() as cur:
+            cur.execute(_READY if source == "ready" else _RAW, {"accessions": batch})
+            out.extend(cur.fetchall())
+        print(f"  {min(i + batch_size, len(accessions))}/{len(accessions)} accessions, {len(out):,} rows, "
+              f"{time.time() - started:.0f}s", flush=True)
+    return out
 
 
 def to_rows(records, prefixes):
@@ -332,7 +348,9 @@ def main():
     p.add_argument("--accessions", nargs="+", help="accession numbers to load")
     p.add_argument("--all-of", metavar="FILINGS_YAML",
                    help="load every accession in a filing list, e.g. config/filings.yaml")
-    p.add_argument("--dry-run", action="store_true", help="report what would be written, write nothing")
+    p.add_argument("--dry-run", action="store_true",
+                   help="report what would be written, write nothing (still reads every fact: as slow as a real run)")
+    p.add_argument("--batch-size", type=int, default=20, help="filings per query (default 20)")
     args = p.parse_args()
 
     if args.accessions and args.all_of:
@@ -348,8 +366,10 @@ def main():
 
     conn = connect()
     try:
-        prefixes = prefix_map(conn)
-        records = fetch(conn, args.accessions, args.source)
+        print(f"reading the namespace prefixes of the {len(args.accessions)} accessions ...", flush=True)
+        prefixes = prefix_map(conn, args.accessions)
+        print(f"reading facts of {len(args.accessions)} accessions in batches of {args.batch_size} ...", flush=True)
+        records = fetch(conn, args.accessions, args.source, args.batch_size)
     finally:
         conn.close()
 
