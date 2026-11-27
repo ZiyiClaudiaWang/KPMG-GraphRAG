@@ -183,11 +183,13 @@ def read_overrides() -> dict[str, dict]:
     return out
 
 
-def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
+def reviewed_labels(labels: list[dict] | None = None, unit_ids=None) -> list[dict]:
     """labels.jsonl with label_overrides.csv applied: what steps 8, 8b and 9 read. An overridden
     row keeps the model's label and source (model_label, model_source). An override for a unit
     with no label at all (its batch's reply was rejected, stop_on_failure: false) adds a manual
-    row with no model label, so a person can fill that gap."""
+    row with no model label, so a person can fill that gap; only for ids in unit_ids (the units
+    of this run), so an override for a unit that no longer exists adds nothing (validate reports
+    it as an unknown unit)."""
     if labels is None:
         labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
     overrides = read_overrides()
@@ -206,7 +208,7 @@ def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
     out += [{"unit_id": uid, "label": o["label"], "source": "manual", **LABEL_DEFAULTS,
              "context_unit_ids": o["context_unit_ids"] or [],
              "model_label": None, "model_source": None, "reviewer": o["reviewer"], "override_note": o["note"]}
-            for uid, o in overrides.items() if uid not in labelled]
+            for uid, o in overrides.items() if uid not in labelled and unit_ids is not None and uid in unit_ids]
     return out
 
 
@@ -239,7 +241,7 @@ def held_ids() -> set[str]:
 def run() -> int:
     units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
     model_labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
-    labels = reviewed_labels(model_labels)
+    labels = reviewed_labels(model_labels, units)
     errors = [{"unit_id": uid, "error": f"{overrides_path().name}: unknown unit"}
               for uid in read_overrides() if uid not in units]
 

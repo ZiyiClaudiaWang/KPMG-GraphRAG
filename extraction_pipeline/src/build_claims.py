@@ -233,7 +233,7 @@ def run() -> None:
     extractions = {r["unit_id"]: r for r in read_jsonl(Paths.extractions())} if Paths.extractions().exists() else {}
 
     records, skipped = [], Counter()
-    for label in reviewed_labels():
+    for label in reviewed_labels(unit_ids=units):
         unit = units[label["unit_id"]]
         if label["label"] not in CLAIM_TYPES:
             skipped[label["label"]] += 1
