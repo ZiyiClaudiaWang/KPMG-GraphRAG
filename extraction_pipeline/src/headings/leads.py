@@ -97,6 +97,12 @@ def runin_prefix(block: Block) -> str | None:
             prefix.append(r.text)
             continue
         rest = "".join(x.text for x in block.runs[k:])
+        # the styled sentence's own full stop in the plain run (MSFT 2024 "If our reputation or our
+        # brands are damaged, our business and results of operations may be harmed" + ".")
+        stop = re.match(r"([.?!][\"'”’)]*)(?=\s|$)", rest)
+        if stop and prefix and not SENTENCE_END.search("".join(prefix).rstrip()):
+            prefix.append(stop.group(1))
+            rest = rest[stop.end():]
         break
     if rest is None or not HAS_LETTER.search(rest) or not HAS_LETTER.search("".join(prefix)):
         return None

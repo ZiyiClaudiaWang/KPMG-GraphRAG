@@ -40,6 +40,10 @@ LINES = [
     ('<p style="font-style:italic">Competition among platform ecosystems</p>',
      "Competition among platform ecosystems"),
     ("<p>Our rivals build their own platforms.</p>", "Our rivals build their own platforms."),
+    # a styled run-in whose full stop is in the plain run: a lead too (MSFT 2024)
+    (f'<p><span style="{BOLD}">If our reputation is damaged, our business may be harmed</span>. '
+     'Many things could damage it.</p>',
+     "If our reputation is damaged, our business may be harmed. Many things could damage it."),
     (f'<p style="{BIG}">OTHER MATTERS</p>', "OTHER MATTERS"),
     # a run-in heading ("Flexible Work.") is a heading, not a lead
     (f'<p><span style="{BOLD}">Flexible Work.</span> We let many employees work from home.</p>',
@@ -88,7 +92,8 @@ class Leads(unittest.TestCase):
         self.assertEqual([(x["source"], x["text"]) for x in self.leads],
                          [("html", "We are subject to counterparty default risks."),
                           ("html_runin", "Competition in the technology sector may harm our business."),
-                          ("html", "We face intense competition across all of our markets.")])
+                          ("html", "We face intense competition across all of our markets."),
+                          ("html_runin", "If our reputation is damaged, our business may be harmed.")])
         self.assertEqual(self.unmatched, 0)
 
     def test_lead_units_and_the_units_under_them(self):
