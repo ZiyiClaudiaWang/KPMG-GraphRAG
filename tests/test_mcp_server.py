@@ -16,7 +16,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from graphrag import contract, mcp_server  # noqa: E402
+from graphrag import contract, mcp_server, retrieve  # noqa: E402
 
 ENVELOPE = [{
     "rank": 1,
@@ -40,7 +40,8 @@ ENVELOPE = [{
     # Arm-specific keys the published schema does not name. If declaring a
     # schema trimmed these, the endpoint would hand out a different envelope
     # than the arm returned.
-    "metadata": {"trace_id": "t-1", "hops": 3, "section_title": "Risk Factors"},
+    "metadata": {"trace_id": "t-1", "hops": 3, "section_title": "Risk Factors",
+                 "retrieval_method": "stub"},
 }]
 
 # The stub stands in for an arm, so what it returns has to be something an arm
@@ -50,25 +51,44 @@ contract.validate_evidence(ENVELOPE[0])
 
 @pytest.fixture
 def stub_arms(monkeypatch):
-    """Both arms replaced by one that records how it was called."""
+    """Stub backends registered where the real ones register.
+
+    At the backend seam, not over the tool functions, so every call still goes
+    through retrieve.py's validation, decision and conformance check — which is
+    the layer this endpoint exists to stay behind.
+    """
     seen = {}
 
-    def fake(name):
+    def fake(name, returns=ENVELOPE):
         def arm(query, filters=None, top_k=10, trace_id=None):
             seen[name] = {"query": query, "filters": filters,
                           "top_k": top_k, "trace_id": trace_id}
-            return ENVELOPE
+            return returns
         return arm
 
-    monkeypatch.setattr(mcp_server.backends, "graph_search", fake("graph"))
-    monkeypatch.setattr(mcp_server.backends, "structured_search", fake("structured"))
-    return seen
+    retrieve.configure_graph_backend(fake("graph"))
+    retrieve.configure_structured_backend(fake("structured"))
+    yield seen
+    retrieve.configure_graph_backend(None)
+    retrieve.configure_structured_backend(None)
+
+
+@pytest.fixture
+def arm_returning():
+    """Register one graph backend that returns whatever a test hands it."""
+    def register(value):
+        retrieve.configure_graph_backend(lambda q, f=None, k=10, t=None: value)
+    yield register
+    retrieve.configure_graph_backend(None)
 
 
 def test_the_envelope_goes_out_untouched(stub_arms):
-    out = mcp_server.graph_search("revenue", filters={"ticker": "MSFT"}, top_k=3)
-    assert out["results"] == ENVELOPE
-    assert out["results"][0] is ENVELOPE[0], "an item was copied or rebuilt"
+    # trace_id is sent as the stub's own, because retrieve.py stamps every row
+    # with the call's trace_id. That is its job, and the only thing between the
+    # arm and the caller that touches a row.
+    out = mcp_server.graph_search("revenue", filters={"ticker": "MSFT"},
+                                  top_k=3, trace_id="t-1")
+    assert out["results"] == ENVELOPE, "a field was reshaped, renamed or dropped"
     assert out["count"] == 1
     assert out["arm"] == "graph"
 
@@ -80,6 +100,33 @@ def test_every_argument_reaches_the_arm(stub_arms):
         "query": "revenue", "filters": {"ticker": "MSFT"},
         "top_k": 7, "trace_id": "eval-q-017",
     }
+
+
+def test_the_decision_travels_with_the_evidence(stub_arms):
+    """Empty results alone cannot say whether the arm looked and found nothing
+    or declined to look. An agent deciding whether to answer needs the
+    difference more than it needs the rows."""
+    out = mcp_server.graph_search("revenue")
+    assert out["status"] == "answer"
+    assert out["reason"] is None
+    assert out["request_id"]
+
+
+def test_an_arm_with_nothing_to_say_abstains_with_a_reason(arm_returning):
+    arm_returning([])
+    out = mcp_server.graph_search("who will win next year")
+    assert out["status"] == "abstain"
+    assert out["reason"] == "missing_fact"
+    assert out["results"] == []
+
+
+def test_a_richer_abstention_passes_through_untouched(arm_returning):
+    """An arm that knows why it is declining says so, and #86's non-score
+    triggers land on this seam — so they reach a caller here with no change
+    to the server."""
+    arm_returning({"status": "abstain", "reason": "out_of_scope", "results": []})
+    out = mcp_server.graph_search("what is the weather")
+    assert (out["status"], out["reason"]) == ("abstain", "out_of_scope")
 
 
 def test_every_response_names_the_commit(stub_arms):
@@ -151,7 +198,9 @@ def test_the_published_schema_is_the_contract_envelope(server):
     # return type. Below Python 3.12 that happens with typing's own TypedDict,
     # and the endpoint would look fine while telling consumers nothing.
     assert out is not None, "no output schema was published for graph_search"
-    assert sorted(out["properties"]) == ["arm", "count", "graphrag_commit", "results"]
+    assert sorted(out["properties"]) == [
+        "arm", "count", "graphrag_commit", "reason", "request_id", "results", "status",
+    ]
 
     published = set(out["$defs"]["Evidence"]["properties"])
     assert published == set(contract.EVIDENCE_FIELDS), (
@@ -165,7 +214,7 @@ def test_output_validation_does_not_trim_the_envelope(server, stub_arms):
     does not name, the endpoint would quietly return a different envelope than
     the arm did — which is the whole thing it promises not to do."""
     import asyncio
-    result = asyncio.run(server.call_tool("graph_search", {"query": "x"}))
+    result = asyncio.run(server.call_tool("graph_search", {"query": "x", "trace_id": "t-1"}))
     assert result.structured_content["results"] == ENVELOPE
 
 
@@ -181,24 +230,53 @@ def test_a_refusal_keeps_its_reason(server, monkeypatch):
     def refuses(query, filters=None, top_k=10, trace_id=None):
         raise contract.FilterNotSupportedError("the graph arm cannot filter on max_hops")
 
-    monkeypatch.setattr(mcp_server.backends, "graph_search", refuses)
+    retrieve.configure_graph_backend(refuses)
+    try:
+        with pytest.raises(ToolError, match="cannot filter on max_hops"):
+            asyncio.run(server.call_tool("graph_search", {"query": "x"}))
+    finally:
+        retrieve.configure_graph_backend(None)
 
-    with pytest.raises(ToolError, match="cannot filter on max_hops"):
-        asyncio.run(server.call_tool("graph_search",
-                                     {"query": "x", "filters": {"max_hops": 3}}))
 
-
-def test_a_crash_stays_masked(server, monkeypatch):
-    """A driver error can carry the URI. Only anticipated failures explain
-    themselves."""
+def test_an_outage_says_so_without_saying_where(server, monkeypatch):
+    """An outage has to be loud — a caller must not read it as no evidence —
+    but retrieve.py folds the driver's own message into the error it raises,
+    and a driver error carries the URI."""
     import asyncio
-    from mcp.server.mcpserver.exceptions import UnexpectedToolError
+    from mcp.server.mcpserver.exceptions import ToolError
 
     def crashes(query, filters=None, top_k=10, trace_id=None):
         raise RuntimeError("neo4j+s://12345678.databases.neo4j.io refused the connection")
 
-    monkeypatch.setattr(mcp_server.backends, "graph_search", crashes)
+    retrieve.configure_graph_backend(crashes)
+    try:
+        with pytest.raises(ToolError) as caught:
+            asyncio.run(server.call_tool("graph_search", {"query": "x"}))
+        said = str(caught.value)
+        assert "12345678" not in said, "the endpoint named the host"
+        assert "neo4j" not in said.lower(), "the endpoint named the driver"
+        assert "not an absence of evidence" in said
+    finally:
+        retrieve.configure_graph_backend(None)
 
-    with pytest.raises(UnexpectedToolError) as caught:
-        asyncio.run(server.call_tool("graph_search", {"query": "x"}))
-    assert "12345678" not in str(caught.value)
+
+def test_the_mock_arms_serve_the_same_tools(server):
+    """Another team can integrate before the credentials question is settled.
+
+    Same three tools, same schemas, same envelope, three fixed Microsoft rows.
+    It registers at the backend seam, so the call still goes through
+    retrieve.py — the mock stands in for a backend, not for the contract.
+    """
+    import asyncio
+    mcp_server._configure_mock()
+    try:
+        result = asyncio.run(server.call_tool(
+            "structured_search", {"query": "Intelligent Cloud revenue"}))
+        body = result.structured_content
+        assert body["status"] == "answer"
+        assert body["count"] > 0
+        contract.validate_evidence(body["results"][0])
+        assert body["results"][0]["metadata"]["fact_id"]
+    finally:
+        retrieve.configure_graph_backend(None)
+        retrieve.configure_structured_backend(None)

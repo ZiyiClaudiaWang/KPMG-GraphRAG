@@ -2,22 +2,24 @@
 
 Three tools, each one a thin layer over something that already exists:
 
-    graph_search(query, filters, top_k, trace_id)       -> backends.graph_search
-    structured_search(query, filters, top_k, trace_id)  -> backends.structured_search
+    graph_search(query, filters, top_k, trace_id)       -> retrieve.search(tool="graph")
+    structured_search(query, filters, top_k, trace_id)  -> retrieve.search(tool="structured")
     describe_filters()                                  -> vocabulary.filters()
 
 Run it:
 
     python3 -m graphrag.mcp_server                       # stdio, for a local agent
     python3 -m graphrag.mcp_server --transport streamable-http --port 8000
+    python3 -m graphrag.mcp_server --mock                # no credentials needed
 
 Four things this module is careful about, each one a defect we already paid for.
 
-**It routes through `backends`, never through a backend module.** `retrieve.py`
+**It routes through `retrieve.py`, never a backend module.** That module
 owns input validation, trace propagation, ranking and the final conformance
-check. Calling `graph_backend.search` directly skips all four. The Agent team's
-own adapter calls past it today, which is the mistake this exists to stop
-spreading.
+check, and `backends.py` is what registers the real arms into it from the
+environment. Calling `graph_backend.search` directly skips all four checks.
+The Agent team's own adapter calls past it today, which is the mistake this
+exists to stop spreading.
 
 **The envelope is unchanged.** A tool returns the arm's own list of evidence
 under `results`, item for item. Nothing is reshaped, renamed or re-sorted on
@@ -33,6 +35,13 @@ found nothing. A refused filter, an unconfigured arm or a graph that is down
 raises, and the message carries the reason. An agent that reads a failure as
 "no evidence exists" abstains confidently and wrongly, which is the worst thing
 this endpoint could do quietly.
+
+**The decision travels with the evidence.** `retrieve.search` carries a
+`status` and a `reason`; the evidence-list API beside it drops both. An agent
+is the one consumer that needs them most, so the tools call the decision API
+and pass `status`, `reason` and `request_id` out whole. Non-score abstention
+triggers (#86) land on the same seam, so they will reach a caller here with no
+change to this file.
 
 `cypher_search` is deliberately absent. The seam is on `main` since #67 but it
 raises until something registers a backend, and a tool that always fails is
@@ -59,7 +68,7 @@ try:
 except ImportError:  # pragma: no cover - 3.12+ without typing_extensions
     from typing import TypedDict
 
-from . import backends, contract, vocabulary
+from . import backends, contract, retrieve, vocabulary
 
 _ROOT = Path(__file__).resolve().parent.parent
 
@@ -141,8 +150,22 @@ class Evidence(TypedDict):
 
 
 class SearchResponse(TypedDict):
-    """What a search tool returns: the envelope, and the stamp beside it."""
+    """What a search tool returns: the decision, the envelope, and the stamp.
 
+    `status` is `answer`, `abstain` or `clarify`, and `reason` says which kind
+    when it is not an answer — `missing_fact`, `out_of_scope`, `false_premise`,
+    `fabricated_relationship`, or `ambiguous` for a clarify. An answer always
+    carries evidence and never a reason; everything else carries a reason and
+    no evidence.
+
+    Empty `results` on its own does not say whether the arm looked and found
+    nothing or declined to look. The decision does, and an agent deciding
+    whether to answer needs it more than it needs the rows.
+    """
+
+    request_id: str
+    status: str
+    reason: str | None
     results: list[Evidence]
     count: int
     arm: str
@@ -181,11 +204,22 @@ def _redacted_status() -> dict[str, str]:
     return safe
 
 
-def _response(results: list[dict], arm: str) -> SearchResponse:
-    """The arm's evidence, untouched, with the stamp beside it."""
+def _search(arm: str, query, filters, top_k, trace_id) -> SearchResponse:
+    """One arm, through the decision API, with the stamp beside its answer.
+
+    `retrieve.search` is the layer that carries the decision. The evidence-list
+    API next to it drops `status` and `reason` on the floor — literally
+    `_, _, results = _run(...)` — which is right for a caller that only wants
+    rows and wrong for an agent deciding whether to answer at all.
+    """
+    envelope = retrieve.search(query, tool=arm, filters=filters,
+                               top_k=top_k, trace_id=trace_id)
     return {
-        "results": results,
-        "count": len(results),
+        "request_id": envelope["request_id"],
+        "status": envelope["status"],
+        "reason": envelope["reason"],
+        "results": envelope["results"],
+        "count": len(envelope["results"]),
         "arm": arm,
         "graphrag_commit": commit(),
     }
@@ -205,10 +239,7 @@ def graph_search(
     filters: see `describe_filters`. The arm refuses a key it cannot serve
     rather than ignoring it, so a refusal is information, not a bug.
     """
-    return _response(
-        backends.graph_search(query, filters=filters, top_k=top_k, trace_id=trace_id),
-        "graph",
-    )
+    return _search("graph", query, filters, top_k, trace_id)
 
 
 def structured_search(
@@ -225,10 +256,7 @@ def structured_search(
     A fact with no dimensions is the consolidated figure; one with dimensions
     is a slice of it. Summing both double-counts.
     """
-    return _response(
-        backends.structured_search(query, filters=filters, top_k=top_k, trace_id=trace_id),
-        "structured",
-    )
+    return _search("structured", query, filters, top_k, trace_id)
 
 
 def describe_filters() -> FiltersResponse:
@@ -279,10 +307,66 @@ def _carries_its_reason(fn):
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
+        except contract.RetrievalUnavailableError as exc:
+            # An outage is worth saying out loud — a caller must not read it as
+            # an absence of evidence — but retrieve.py folds the backend's own
+            # message into this one, and a driver error carries the URI. Say
+            # that the arm is down, keep what the driver said in the log.
+            print(f"retrieval unavailable: {exc}", file=sys.stderr, flush=True)
+            raise ToolError(_without_the_driver_text(str(exc))) from exc
         except ANTICIPATED as exc:
             raise ToolError(str(exc)) from exc
 
     return wrapper
+
+
+_FAILED = "retrieval backend failed"
+
+
+def _without_the_driver_text(message: str) -> str:
+    """Keep the arm and the fact it is down, drop what the driver said.
+
+    "graph retrieval backend is not configured" is the whole message and is
+    safe. "graph retrieval backend failed: <driver error>" is not — the error
+    can name the host, and the instance id in it is the username on Aura.
+    """
+    if _FAILED not in message:
+        return message
+    arm = message.split(_FAILED, 1)[0].strip()
+    return (
+        f"{arm} {_FAILED}. This is an outage, not an absence of evidence — do "
+        "not answer as though nothing was found. The underlying error is in "
+        "the server log."
+    )
+
+
+def _configure_mock() -> dict[str, str]:
+    """Serve the mock arms instead of the real ones.
+
+    So another team can integrate today. They get the same three tools, the
+    same schemas and the same envelope, against three fixed Microsoft rows,
+    with no credentials and no graph to reach. Since #103 the mock's shape
+    matches the real arm field for field, so code written against this does
+    not change when the credentials arrive.
+
+    It is registered at the same seam the real arms use, so the call still
+    goes through retrieve.py — the mock stands in for a backend, not for the
+    contract.
+    """
+    sys.path.insert(0, str(_ROOT / "mock"))
+    import mock_retrieval_tools as mock
+
+    retrieve.configure_graph_backend(mock.graph_search)
+    retrieve.configure_structured_backend(mock.structured_search)
+    backends.status.clear()
+    backends.status.update({
+        "graph": "registered: mock",
+        "structured": "registered: mock",
+        "cypher": "skipped: not served by the mock",
+    })
+    return {"graph": "registered: mock arm, three fixed rows",
+            "structured": "registered: mock arm, three fixed rows",
+            "cypher": "skipped: not served by the mock"}
 
 
 def build_server():
@@ -309,6 +393,10 @@ def main(argv: list[str] | None = None) -> None:
                         choices=("stdio", "sse", "streamable-http"))
     parser.add_argument("--port", type=int, default=8000,
                         help="HTTP transports only; ignored on stdio")
+    parser.add_argument("--mock", action="store_true",
+                        help="serve the mock arms, so a consumer can integrate "
+                             "against the same tools and schemas with no "
+                             "credentials and no graph")
     args = parser.parse_args(argv)
 
     # Register whatever the environment describes, and say so before serving.
@@ -322,9 +410,13 @@ def main(argv: list[str] | None = None) -> None:
     # channel, and a plain line on it reaches the client as a malformed
     # message — three parse errors in its log before the handshake even
     # finishes. Every client recovers; a stricter one would not have to.
-    backends.configure_from_env()
-    for arm, state in _redacted_status().items():
-        print(f"{arm}: {state}", file=sys.stderr, flush=True)
+    if args.mock:
+        for arm, state in _configure_mock().items():
+            print(f"{arm}: {state}", file=sys.stderr, flush=True)
+    else:
+        backends.configure_from_env()
+        for arm, state in _redacted_status().items():
+            print(f"{arm}: {state}", file=sys.stderr, flush=True)
 
     server = build_server()
     if args.transport == "stdio":

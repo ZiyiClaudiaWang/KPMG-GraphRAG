@@ -67,12 +67,28 @@ The arm's own envelope, item for item, under `results`. Nothing is renamed, resh
 
 ```json
 {
+  "request_id": "6f1c…",
+  "status": "answer",
+  "reason": null,
   "results": [ ... the contract envelope, unchanged ... ],
   "count": 5,
   "arm": "graph",
   "graphrag_commit": "2af8050..."
 }
 ```
+
+**`status` and `reason` are the abstention decision, and you want them.** `status` is `answer`, `abstain` or `clarify`. An answer always carries evidence and never a reason. Everything else carries a reason and no evidence:
+
+| status | reason | what it means |
+| --- | --- | --- |
+| `answer` | `null` | evidence found, compose from it |
+| `abstain` | `missing_fact` | the arm looked and the corpus does not hold it |
+| `abstain` | `out_of_scope` | not the kind of question this corpus answers |
+| `abstain` | `false_premise` | the question assumes something the filings contradict |
+| `abstain` | `fabricated_relationship` | it asserts a link that does not exist |
+| `clarify` | `ambiguous` | more than one reading, ask the user which |
+
+An empty `results` on its own cannot tell you whether the arm looked and found nothing or declined to look. The decision can. Richer non-score triggers are in review on #86 and land on this same seam, so they will appear here without the response shape changing.
 
 `graphrag_commit` is the commit that served the call — same key the round 1 result files use. Eval already lags `main`, and with a second agent on the same endpoint there would otherwise be three parties disagreeing about which version produced a result. Quote it with any number you report.
 
@@ -98,7 +114,15 @@ Hybrid is scoped on #105/#106 and is a freeze decision rather than built work. W
 
 The stdio transport works today: point an MCP client at `python3 -m graphrag.mcp_server` with the environment above and all three tools answer. What it needs is the repo and the credentials, so the practical question is not whether the endpoint works but whose machine it runs on.
 
-Until hosting is settled, the two ways to test against real data are: run it yourself with credentials shared out of band, or run against the mock arms, which need neither — `mock/mock_retrieval_tools.py` returns the same envelope with three fixed Microsoft rows, and since #103 the mock's shape matches the real arm's field for field.
+**You can start today with no credentials:**
+
+```bash
+python3 -m graphrag.mcp_server --mock
+```
+
+Same three tools, same schemas, same envelope, same `status`/`reason` decision — served from three fixed Microsoft rows instead of the graph and the fact store. The mock registers at the same seam the real arms do, so a call still goes through `retrieve.py`: it stands in for a backend, not for the contract. Since #103 its shape matches the real arm field for field, so code written against `--mock` does not change when the credentials arrive.
+
+Against real data it needs either credentials shared out of band or a hosted endpoint, and hosting is still the open decision.
 
 ## Errors
 
