@@ -600,6 +600,21 @@ class LabelOverrides(unittest.TestCase):
         self.assertEqual((got["z"]["label"], got["z"]["source"], got["z"]["model_label"], got["z"]["reviewer"]),
                          ("stated_fact", "manual", None, "KZ"))
 
+    def test_override_sets_context_ids(self):
+        labels = [{"unit_id": "a", "label": "needs_review", "source": "code_quarantine", "context_unit_ids": []},
+                  {"unit_id": "b", "label": "stated_fact", "source": "llm", "context_unit_ids": ["x"]}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "overrides.csv"
+            path.write_text("unit_id,label,reviewer,note,context_unit_ids\na,stated_fact,KZ,held,p; q\n"
+                            "b,hedged_risk,KZ,,\n", encoding="utf-8")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = str(path)
+            try:
+                got = {l["unit_id"]: l for l in validate.reviewed_labels(labels)}
+            finally:
+                os.environ.pop("PIPELINE_LABEL_OVERRIDES")
+        self.assertEqual((got["a"]["label"], got["a"]["context_unit_ids"]), ("stated_fact", ["p", "q"]))
+        self.assertEqual((got["b"]["label"], got["b"]["context_unit_ids"]), ("hedged_risk", ["x"]))  # empty keeps
+
     def test_no_file_changes_nothing(self):
         labels = [{"unit_id": "a", "label": "not_a_claim"}]
         os.environ["PIPELINE_LABEL_OVERRIDES"] = str(TMP / "none.csv")
