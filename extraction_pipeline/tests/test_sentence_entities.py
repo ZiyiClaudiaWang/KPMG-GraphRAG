@@ -1,9 +1,9 @@
 import unittest
 from src.segment import (split_sentences, prefilter, is_bullet, merge_list, is_period_heading, is_heading_like,
                          is_category, is_colon_heading, mark_risk_summary, segment_section)
-from src.entity_annotation import annotate_mentions
+from src.entities.annotation import annotate_mentions
 from src.clean import drop_rule, has_table_cells, should_join
-from src.risk_factors import assign, category_key
+from src.risk.factors import assign, category_key
 from src.common import source_text, unit_id
 
 

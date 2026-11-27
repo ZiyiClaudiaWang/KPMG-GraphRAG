@@ -84,7 +84,7 @@ def match_key(name: str) -> str:
 @functools.lru_cache(maxsize=1)
 def settings() -> dict:
     """config/entity_linking.yaml, with guard terms as match keys."""
-    from .common import load_config     # imported here so the module stays importable alone
+    from ..common import load_config     # imported here so the module stays importable alone
     try:
         cfg = load_config("entity_linking") or {}
     except FileNotFoundError:

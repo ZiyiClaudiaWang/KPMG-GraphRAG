@@ -7,7 +7,7 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
-from src import risk_factors
+from src.risk import factors as risk_factors
 
 FILINGS = """filings:
   - {ticker: TST, form: 10-K, reporting_period_end: "2022-12-31", accession: A1}

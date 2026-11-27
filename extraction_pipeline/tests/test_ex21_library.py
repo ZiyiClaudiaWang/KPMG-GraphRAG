@@ -4,9 +4,9 @@ with no data folder. Moved from ex21_pipeline/tests/test_parse.py when that fold
 import ast
 from pathlib import Path
 
-from src.ex21.normalize import (entity_key, is_registrant, normalised_name, normalize_jurisdiction,
+from src.entities.ex21.normalize import (entity_key, is_registrant, normalised_name, normalize_jurisdiction,
                                 sub_id)
-from src.ex21.parse import assign_parents, parse_html, parse_text
+from src.entities.ex21.parse import assign_parents, parse_html, parse_text
 
 NESTED_HTML = """
 <table>

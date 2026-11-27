@@ -56,7 +56,8 @@ import hashlib
 import json
 from collections import Counter
 
-from . import entity_annotation, source_review
+from . import source_review
+from .entities import annotation as entity_annotation
 from .common import UNIT_IDENTITY_VERSION, Paths, log, read_jsonl, write_jsonl
 
 from .validate import CLAIM_TYPES, assessment, held_ids

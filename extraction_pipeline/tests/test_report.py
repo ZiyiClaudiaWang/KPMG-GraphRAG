@@ -9,7 +9,8 @@ import time
 import unittest
 from pathlib import Path
 
-from src import report, subsidiaries
+from src.checks import report
+from src.entities import subsidiaries
 from src.common import Paths, write_jsonl
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ex21"

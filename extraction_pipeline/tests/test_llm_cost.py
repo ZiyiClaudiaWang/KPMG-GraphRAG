@@ -2,7 +2,7 @@
 
 import unittest
 
-from src import llm_cost
+from src.llm import cost as llm_cost
 
 
 class LlmCostTest(unittest.TestCase):

@@ -52,13 +52,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
-from . import risk_factors, risk_taxonomy
-from .clean import ITEM_MARKER
-from .common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
+from ..risk import factors as risk_factors, taxonomy as risk_taxonomy
+from ..clean import ITEM_MARKER
+from ..common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
 from .diagnose import BRAND, TABLE_TITLE, md_table
-from .report_entity_inputs import subsidiaries_by_year
-from .segment import is_category_unit
-from .segment.sentences import TERMINAL
+from .entity_inputs import subsidiaries_by_year
+from ..segment import is_category_unit
+from ..segment.sentences import TERMINAL
 
 STEP = "report"
 SRC = ROOT / "src"
@@ -434,7 +434,7 @@ def headings_numbers() -> tuple[dict, list, list]:
         kinds = Counter(x["kind"] for r in read_jsonl(Paths.html_tables()) for x in r["rows"])
         m.update({f"table_rows_{k}": v for k, v in kinds.items()})
     notes, lines = [], []
-    from .headings.step import read_output
+    from ..headings.step import read_output
     if Paths.heading_html_diff().exists():
         diff = read_output(Paths.heading_html_diff())
         if "kind" in diff:

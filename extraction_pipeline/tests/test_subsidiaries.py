@@ -10,9 +10,10 @@ from pathlib import Path
 
 import yaml
 
-from src import entity_annotation, load, subsidiaries
+from src import load
+from src.entities import annotation as entity_annotation, subsidiaries
 from src.common import ROOT, Paths, read_csv, read_jsonl
-from src.ex21 import edgar
+from src.entities.ex21 import edgar
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ex21"
 TBL_10K, TBL_10Q, DSC_10K = "0000000001-25-000001", "0000000001-26-000002", "0000000002-26-000003"

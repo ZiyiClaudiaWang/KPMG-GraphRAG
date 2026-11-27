@@ -39,8 +39,8 @@ import uuid
 from collections import Counter
 from pathlib import Path
 
-from .common import ROOT, Paths, filings, load_config, log, settings
-from .entity_annotation import entry_keys, match_key, validate_catalog
+from ..common import ROOT, Paths, filings, load_config, log, settings
+from .annotation import entry_keys, match_key, validate_catalog
 from .ex21.normalize import normalised_name
 
 STEP = "entity_catalog"

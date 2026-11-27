@@ -36,7 +36,7 @@ from pathlib import Path
 
 import yaml
 
-from .common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, write_csv, write_jsonl
+from ..common import CONFIG_DIR, Paths, filings, load_env, log, read_csv, read_jsonl, write_csv, write_jsonl
 from .ex21 import edgar
 from .ex21.normalize import entity_key, is_registrant, normalised_name, normalize_jurisdiction, sub_id
 from .ex21.parse import assign_parents, parse_file

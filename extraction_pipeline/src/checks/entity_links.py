@@ -27,8 +27,8 @@ import random
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from .common import Paths, data_dir, log, read_jsonl, write_csv
-from .entity_annotation import LINKED, VERSION, annotate_mentions, validate_catalog
+from ..common import Paths, data_dir, log, read_jsonl, write_csv
+from ..entities.annotation import LINKED, VERSION, annotate_mentions, validate_catalog
 
 STEP = "report_entity_links"
 MODEL_FIELDS = ("mention_text", "entity_type", "reference_kind", "evidence_quote")

@@ -32,7 +32,7 @@ import hashlib
 import random
 from collections import Counter, defaultdict
 
-from .common import Paths, checks_dir, filings, log, read_jsonl, settings, write_jsonl
+from ..common import Paths, checks_dir, filings, log, read_jsonl, settings, write_jsonl
 
 STEP = "repeats"
 LEVELS = ("text", "context", "path")

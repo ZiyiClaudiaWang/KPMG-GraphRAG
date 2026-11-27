@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from .common import Paths, read_jsonl, settings
+from ..common import Paths, read_jsonl, settings
 
 # Models that think before answering. They take reasoning_effort, not temperature, and their
 # reasoning tokens are billed as output and count against max_completion_tokens.
@@ -79,7 +79,7 @@ def estimate(plans: list[dict], cfg: dict, answer_tokens_per_request: list[int])
     typical: input = request bytes / 3.5 (JSON, mostly English), output = the expected answer plus
     REASONING_GUESS for the effort. Both are rough; measure with --limit before a large run.
     """
-    from .label import canonical, reserve_cost
+    from .client import canonical, reserve_cost
     p_in, p_out = cfg.get("price_input_per_1m"), cfg.get("price_output_per_1m")
     if p_in is None or p_out is None:
         return {"worst": None, "typical": None, "input_tokens": None}
@@ -141,5 +141,5 @@ def report(step: str, cfg: dict, build_plans, answer_tokens, log, compare: bool 
 
 
 def _spent(step: str) -> float:
-    from .label import spent_so_far
+    from .client import spent_so_far
     return spent_so_far(Paths.step_usage(step))

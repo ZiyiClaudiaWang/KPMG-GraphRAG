@@ -3,8 +3,9 @@
 import os
 import unittest
 
-from src import llm_cost, risk_taxonomy, risk_themes
-from src.risk_taxonomy import category_key
+from src.llm import cost as llm_cost
+from src.risk import taxonomy as risk_taxonomy, themes as risk_themes
+from src.risk.taxonomy import category_key
 
 
 def unit(n, acc, text, lead=None, **kw):

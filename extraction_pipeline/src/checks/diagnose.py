@@ -25,10 +25,10 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
-from . import clean as C
-from . import segment as S
-from .common import Paths, checks_dir, filings, load_config, log, read_jsonl, settings, write_csv
-from .filter_sections import decide, text_stats
+from .. import clean as C
+from .. import segment as S
+from ..common import Paths, checks_dir, filings, load_config, log, read_jsonl, settings, write_csv
+from ..filter_sections import decide, text_stats
 
 STEP = "diagnose"
 
@@ -203,10 +203,10 @@ def run() -> None:
     random.seed(0)
     cfg_clean, cfg_seg = settings()["clean"], settings()["segment"]
     rules = load_config("sections")
-    from .risk_taxonomy import category_key, category_map
+    from ..risk.taxonomy import category_key, category_map
     mapped = set(category_map())
 
-    from .page_breaks import load_decisions
+    from ..page_breaks import load_decisions
     decisions = load_decisions()
     col = Collector()
     hits: dict[str, Counter] = defaultdict(Counter)        # bucket -> check -> n

@@ -33,7 +33,8 @@ from __future__ import annotations
 import json
 from collections import Counter
 
-from . import entity_annotation, source_review
+from . import source_review
+from .entities import annotation as entity_annotation
 from .common import Paths, data_dir, log, read_jsonl, settings, write_jsonl
 
 STEP = "validate"

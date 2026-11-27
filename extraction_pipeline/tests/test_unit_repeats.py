@@ -1,6 +1,6 @@
 """Step-4 repeat levels: text, text + context, text + context + section_path."""
 
-from src.report_unit_repeats import build
+from src.checks.unit_repeats import build
 
 
 def unit(uid, acc, text, path="Item 7 > Results", role="body", prefilter=None, ticker="AAA", start=0):

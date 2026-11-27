@@ -45,8 +45,10 @@ import argparse
 import sys
 import time
 
-from src import (build_claims, clean, entity_catalog, fetch, filter_sections, headings, label, load,
-                 page_breaks, report, risk_factors, risk_themes, segment, subsidiaries, validate)
+from src import build_claims, clean, fetch, filter_sections, headings, label, load, page_breaks, segment, validate
+from src.checks import report
+from src.entities import catalog as entity_catalog, subsidiaries
+from src.risk import factors as risk_factors, themes as risk_themes
 
 STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings", "segment",
          "risk_themes", "risk_factors", "label", "validate", "build_claims", "load"]

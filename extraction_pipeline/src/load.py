@@ -76,8 +76,8 @@ import json
 import os
 
 from .common import Paths, filings, load_env, log, read_jsonl, settings
-from . import risk_taxonomy
-from .subsidiaries import read_rows as subsidiary_rows
+from .risk import taxonomy as risk_taxonomy
+from .entities.subsidiaries import read_rows as subsidiary_rows
 
 STEP = "load"
 BATCH = 500

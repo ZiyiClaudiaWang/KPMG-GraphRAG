@@ -26,7 +26,7 @@ import csv
 import json
 from collections import Counter, defaultdict
 
-from .common import Paths, checks_dir, filings, log, read_jsonl, write_csv
+from ..common import Paths, checks_dir, filings, log, read_jsonl, write_csv
 
 STEP = "report_entity_inputs"
 BIG_CHANGE = 0.5        # a 10-K whose row count moves by more than half from the year before

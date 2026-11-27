@@ -24,8 +24,8 @@ os.environ["PIPELINE_RISK_CATEGORY_MAP"] = str(FIXTURES / "risk_category_map.csv
 os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
 shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
-from src import (build_claims, clean, filter_sections, label, load, risk_factors, risk_themes,  # noqa: E402
-                 segment, validate)
+from src import build_claims, clean, filter_sections, label, load, segment, validate  # noqa: E402
+from src.risk import factors as risk_factors, themes as risk_themes  # noqa: E402
 from src.clean import ONE_FOR_ONE  # noqa: E402
 from src import common  # noqa: E402
 from src.common import Paths, read_jsonl  # noqa: E402
@@ -510,9 +510,9 @@ class FailedReply(unittest.TestCase):
         shutil.copytree(FIXTURES / "sections", tmp / "sections")
         bad = [{"id": "s9999", "label": "maybe"}]                   # off the schema
         restore = use_fake_openai(lambda payload, request: bad)
-        original_settings = label.settings
+        original_settings = label.step.settings
         cfg = dict(original_settings()["label"], max_retries=max_retries)
-        label.settings = lambda: {**original_settings(), "label": cfg}
+        label.step.settings = lambda: {**original_settings(), "label": cfg}
         os.environ["PIPELINE_DATA_DIR"] = str(tmp)
         try:
             clean.run()
@@ -522,7 +522,7 @@ class FailedReply(unittest.TestCase):
             return list(read_jsonl(Paths.labels())), list(FakeOpenAI.calls)
         finally:
             restore()
-            label.settings = original_settings
+            label.step.settings = original_settings
             os.environ["PIPELINE_DATA_DIR"] = str(TMP)
 
     def test_default_stops(self):

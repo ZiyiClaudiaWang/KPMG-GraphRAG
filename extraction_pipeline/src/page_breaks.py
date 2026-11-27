@@ -31,7 +31,7 @@ from __future__ import annotations
 import argparse
 
 from . import clean as C
-from . import llm_cost
+from .llm import cost as llm_cost
 from .common import Paths, filings, load_config, log, read_jsonl, settings, write_jsonl
 from .filter_sections import decide
 
@@ -100,7 +100,7 @@ def plans(boundaries: list[dict], cfg: dict) -> list[dict]:
     A request holds the boundaries of one section only, so adding, removing or changing a section
     leaves every other section's request (and its saved reply) as it was.
     """
-    from .label import canonical, digest
+    from .llm.client import canonical, digest
     by_section: dict[str, list[dict]] = {}
     for b in boundaries:                          # boundary_id = accession|section_key|start
         by_section.setdefault(b["boundary_id"].rsplit("|", 1)[0], []).append(b)
@@ -124,7 +124,7 @@ def plans(boundaries: list[dict], cfg: dict) -> list[dict]:
 
 def answers(plan: dict, record: dict) -> tuple[list[str], dict[str, bool]]:
     """Problems with a reply, and boundary id -> same_sentence for the ids it answered once."""
-    from .label import parse_reply
+    from .llm.client import parse_reply
     problems, parsed = parse_reply(record["raw_response"], schema()["schema"], "results",
                                    duplicate_keys_ok=False)
     if problems:
@@ -148,7 +148,7 @@ def expected_answer_tokens(todo: list[dict]) -> list[int]:
 
 def run(dry_run: bool = False, limit: int | None = None, model: str | None = None,
         compare: bool = False) -> None:
-    from .label import Labeller, StopRun
+    from .llm.client import Client, StopRun
     cfg = llm_cost.step_cfg(STEP, model)
     boundaries = gray_boundaries()
     todo = plans(boundaries, cfg)
@@ -158,7 +158,7 @@ def run(dry_run: bool = False, limit: int | None = None, model: str | None = Non
     if dry_run:
         write_jsonl(Paths.page_break_candidates(), boundaries)
         return
-    labeller, sent, decided = Labeller(cfg, Paths.step_usage(STEP)), 0, {}
+    labeller, sent, decided = Client(cfg, Paths.step_usage(STEP)), 0, {}
     try:
         for plan in todo:
             record = labeller.cached(plan, "page_breaks")

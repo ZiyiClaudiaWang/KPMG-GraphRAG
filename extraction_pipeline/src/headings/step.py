@@ -35,7 +35,7 @@ from pathlib import Path
 from lxml import etree
 
 from ..common import Paths, filings, load_env, log, read_jsonl, settings
-from ..ex21 import edgar
+from ..entities.ex21 import edgar
 from .candidates import levels_path, section_headings
 from .compare import body_size, html_only, step4_plain
 from .leads import in_lead, runin_headings, section_leads

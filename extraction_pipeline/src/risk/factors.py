@@ -37,12 +37,12 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from . import risk_taxonomy, risk_themes
-from .common import Paths, checks_dir, filings, log, read_jsonl, write_csv, write_jsonl
-from .risk_taxonomy import category_key
-from .segment import is_category_unit
-from .segment.headings import RISK_CATEGORY_START
-from .segment.risk import RISK_SUMMARY
+from . import taxonomy as risk_taxonomy, themes as risk_themes
+from ..common import Paths, checks_dir, filings, log, read_jsonl, write_csv, write_jsonl
+from .taxonomy import category_key
+from ..segment import is_category_unit
+from ..segment.headings import RISK_CATEGORY_START
+from ..segment.risk import RISK_SUMMARY
 
 STEP = "risk_factors"
 THEME_SOURCE = "llm"           # HAS_RISK_THEME.source: themes come from the classifier (step 4c)

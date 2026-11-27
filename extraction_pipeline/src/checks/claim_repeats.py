@@ -8,7 +8,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
 
-from .common import read_jsonl
+from ..common import read_jsonl
 
 
 def build_report(claims: Iterable[dict]) -> dict:

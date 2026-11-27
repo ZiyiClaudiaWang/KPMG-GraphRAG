@@ -39,8 +39,9 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 
-from . import llm_cost, risk_taxonomy
-from .common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, write_jsonl
+from . import taxonomy as risk_taxonomy
+from ..llm import cost as llm_cost
+from ..common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, write_jsonl
 
 STEP = "risk_themes"
 RUNNER_VERSION = "kelly_risk_themes_v1"
@@ -134,7 +135,7 @@ def shown(rf: dict, max_units: int) -> list[dict]:
 
 def plans(factors: list[dict], cfg: dict) -> list[dict]:
     """One request per risk factor. The request has text only, so identical risk text shares a hash."""
-    from .label import canonical, digest
+    from ..llm.client import canonical, digest
     system, ids = system_prompt(), list(risk_taxonomy.themes())
     version = risk_taxonomy.version()
     out = []
@@ -181,7 +182,7 @@ def answer(plan: dict, record: dict) -> tuple[list[str], list[str], dict | None]
     Dropped, with a note: a secondary equal to the primary or to an earlier secondary, more than
     two, sentence ids that were not sent, a secondary left with no sentence.
     """
-    from .label import parse_reply
+    from ..llm.client import parse_reply
     problems, parsed = parse_reply(record["raw_response"], schema(list(risk_taxonomy.themes()))["schema"],
                                    "result", duplicate_keys_ok=False)
     if problems:
@@ -218,12 +219,12 @@ def load_results() -> dict[str, dict]:
 
 def run(dry_run: bool = False, limit: int | None = None, model: str | None = None,
         compare: bool = False, workers: int | None = None) -> None:
-    from .label import Labeller, StopRun
+    from ..llm.client import Client, StopRun
     cfg = llm_cost.step_cfg(STEP, model)
     factors = risk_factors(list(read_jsonl(Paths.sentences())))
     todo = plans(factors, cfg)
     distinct = unique(todo)
-    labeller = Labeller(cfg, Paths.step_usage(STEP))
+    labeller = Client(cfg, Paths.step_usage(STEP))
     saved = {p["request_hash"] for p in distinct if labeller.cached(p, STEP) is not None}
     log(STEP, f"{len(factors)} risk factors, {len(distinct)} distinct requests ({len(saved)} with a saved "
               f"reply), model {cfg['model']}"

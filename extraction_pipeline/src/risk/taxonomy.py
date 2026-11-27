@@ -23,7 +23,7 @@ import hashlib
 import os
 from pathlib import Path
 
-from .common import CONFIG_DIR, read_csv
+from ..common import CONFIG_DIR, read_csv
 
 MAP_STATUSES = ("group", "broad", "not_a_category")
 UNKNOWN = "unknown"           # the model's answer when no theme fits: a Claim property, not a node
