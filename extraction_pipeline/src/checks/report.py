@@ -327,8 +327,8 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     notes = []
     if no_seg:
         notes.append(f"companies with no segment in the catalog: {', '.join(no_seg)}"
-                     + (" (no segment at all: was step 6b run without a fact store, `--facts` or "
-                        "`PIPELINE_FACT_STORE`?)" if not with_segments else ""))
+                     + (" (no segment at all: was step 6b run without a fact store: `--facts`, "
+                        "`PIPELINE_FACT_STORE` or `MSFT_FACT_DB_PATH`?)" if not with_segments else ""))
     if no_sub:
         notes.append(f"companies with no subsidiary in the catalog: {', '.join(no_sub)}")
     return m, notes, []
@@ -523,11 +523,13 @@ def risk_numbers(units: list[dict]) -> tuple[dict, list, list]:
     unmapped = Counter((c["ticker"], c["category_text"]) for c in categories if c["map_status"] == "unmapped")
     with_group = sum(bool(a["heading_risk_group"]) for a in assignments)
     in_factor = sum(bool(a["risk_factor_id"]) for a in assignments)
+    members = [a for a in assignments if a.get("prefilter") in risk_factors.MEMBER_PREFILTERS]
     m = {"categories": len(categories), **{f"categories_{k}": status[k] for k in risk_taxonomy.MAP_STATUSES},
          "unmapped": status["unmapped"], "unmapped_texts": len(unmapped),
          "item_1a_units": len(assignments), "item_1a_units_with_group": with_group,
          "item_1a_with_group_pct": pct(with_group, len(assignments)),
-         "item_1a_in_risk_factor_pct": pct(in_factor, len(assignments)),
+         "item_1a_member_units": len(members),
+         "item_1a_in_risk_factor_pct": pct(in_factor, len(members)),
          "risk_factors": len(factors)}
     checks = Counter(r["check"] for r in risk_factors.category_checks(units, categories))
     reasons = risk_factors.no_group_reasons(units, categories, assignments)

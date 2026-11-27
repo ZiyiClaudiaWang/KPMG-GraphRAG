@@ -143,7 +143,7 @@ report:                              # python -m src.checks.report (checks of st
     segment.check_risk_section_no_category: {max: 0, level: warn, why: "Item 1A sections with no category heading: their Claims get no heading_risk_group"}
     segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
     risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_taxonomy/risk_category_map.csv"}
-    risk_factors.item_1a_in_risk_factor_pct: {min: 80, level: info, why: "share of Item 1A units in a risk factor: the rest (intros, no material changes) get no theme (decided)"}
+    risk_factors.item_1a_in_risk_factor_pct: {min: 80, level: info, why: "share of Item 1A units that can be members (no prefilter, list_intro, heading) in a risk factor: the rest (intros, no material changes) get no theme (decided)"}
     risk_themes.risk_factors_not_classified: {max: 0, level: warn, why: "risk factors with no answer from step 5b (run risk_themes; a changed unit list needs it again)"}
     risk_themes.risk_factors_unknown: {max: 0, level: info, why: "risk factors the model found no theme for"}
     risk_themes.risk_factors_differs_from_reference: {max: 0, level: info, why: "primary theme differs from reference_labels.csv: review these rows of risk_factor_themes.csv"}

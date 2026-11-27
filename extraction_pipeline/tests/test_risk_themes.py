@@ -28,9 +28,25 @@ class TestRiskFactors(unittest.TestCase):
         units[2]["prefilter"] = "cross_reference"
         [rf] = risk_factors.risk_factors(units)
         self.assertEqual(rf["risk_factor_id"], "A1-u1")
-        self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u1", "A1-u2", "A1-u3"])
+        self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u1", "A1-u2"])   # not the cross reference
         self.assertEqual([u["text"] for u in risk_themes.shown(rf, 80)],          # no cross reference
                          ["Competition could harm our results.", "Rivals cut prices."])
+
+    def test_members_list_intros_and_sub_headings_not_other_not_a_claim(self):
+        """Members: the lead, units step 7 labels, list intros, sub-headings. Tables, definitions,
+        cross references and too_short units stay out, and do not end the risk factor."""
+        units = factor("A1", ["Our suppliers include:", "a table row", "Rivals cut prices.", "Note 5.", "x"])
+        units[1]["prefilter"], units[2]["prefilter"] = "list_intro", "table_residue"
+        units[4]["prefilter"], units[5]["prefilter"] = "definition", "too_short"
+        units.insert(4, unit(9, "A1", "Pricing", role="heading", heading_level=2, prefilter="heading"))
+        [rf] = risk_factors.risk_factors(units)
+        self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u1", "A1-u2", "A1-u4", "A1-u9"])
+        self.assertEqual([u["unit_id"] for u in risk_themes.shown(rf, 80)], ["A1-u1", "A1-u2", "A1-u4", "A1-u9"])
+        _, assignments = risk_factors.assign(units, {})
+        risk_themes.apply(assignments, risk_factors.factor_rows([rf]), {})
+        status = {a["unit_id"]: a["risk_theme_status"] for a in assignments}
+        self.assertEqual(status["A1-u3"], "not_a_claim")
+        self.assertEqual(status["A1-u4"], "not_classified")
 
     def test_sub_headings_below_a_lead_stay_inside(self):
         """Microsoft: category (1) > bold lead > italic sub-topics (2) > text; the next lead is a sibling."""

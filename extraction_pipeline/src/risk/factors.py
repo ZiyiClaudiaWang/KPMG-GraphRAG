@@ -36,6 +36,11 @@ from ..segment.risk import RISK_SUMMARY
 
 STEP = "risk_factors"
 UNIT_ROLES = ("body", "list_group")          # besides headings, the roles a risk factor covers
+# Members of a risk factor besides its lead: units step 7 labels (no prefilter), list intros and
+# sub-headings (decided 26 Nov: content). Other not_a_claim units (table_residue, definition,
+# cross_reference, too_short) stay out: they never become Claims, and leaving them out keeps a
+# saved step 5b answer valid when only they change.
+MEMBER_PREFILTERS = (None, "list_intro", "heading")
 
 CATEGORY_FIELDS = ["risk_category_unit_id", "accession_number", "ticker", "form", "section_key",
                    "category_text", "risk_summary", "n_units", "heading_risk_group", "map_status"]
@@ -74,7 +79,7 @@ def risk_factors(units: list[dict]) -> list[dict]:
                 if current is not None and level <= current["level"]:
                     current = None
                 heading_level = level
-            if current is not None:
+            if current is not None and u.get("prefilter") in MEMBER_PREFILTERS:
                 current["units"].append(u)
             continue
         if u["role"] not in UNIT_ROLES:
@@ -85,7 +90,7 @@ def risk_factors(units: list[dict]) -> list[dict]:
                        "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
                        "lead_text": u["text"], "level": level, "units": [u]}
             out.append(current)
-        elif current is not None:
+        elif current is not None and u.get("prefilter") in MEMBER_PREFILTERS:
             current["units"].append(u)
     return out
 
@@ -125,6 +130,7 @@ def assign(units: list[dict], mapping: dict[str, dict]) -> tuple[list[dict], lis
             "risk_category_text": category["category_text"] if category else None,
             "heading_risk_group": list(category["heading_risk_group"]) if category else [],
             "risk_summary": bool(u.get("risk_summary")),
+            "prefilter": u.get("prefilter"),
         })
     of = risk_factor_of(units)
     for a in assignments:
@@ -286,7 +292,9 @@ def run() -> None:
     log(STEP, f"{len(categories)} risk categories ({dict(status)}); {with_group} of {len(assignments)} "
               f"Item 1A units have a heading group -> {Paths.risk_categories()}")
     in_factor = sum(bool(a["risk_factor_id"]) for a in assignments)
-    log(STEP, f"{len(factors)} risk factors; {in_factor} of {len(assignments)} Item 1A units are in one "
+    members = sum(a["prefilter"] in MEMBER_PREFILTERS for a in assignments)
+    log(STEP, f"{len(factors)} risk factors; {in_factor} of {members} Item 1A units that can be members "
+              f"(of {len(assignments)}; other not_a_claim units are left out) are in one "
               f"-> {Paths.risk_factors()}, {Paths.risk_assignments()}")
     for c in categories:
         if c["map_status"] == "unmapped":

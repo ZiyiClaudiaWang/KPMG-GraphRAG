@@ -255,6 +255,9 @@ Each module's docstring has the full rules; below is what each step does and wha
   [`config/risk_taxonomy/risk_category_map.csv`](config/risk_taxonomy/risk_category_map.csv) (`heading_risk_group`; `broad` headings name none).
 - **Risk factor:** a lead sentence and the units after it, up to the next lead or heading at its
   level (sub-headings below the lead stay inside; wider than `lead_unit_id`).
+- **Members:** the lead, the units step 7 labels, list intros and sub-headings (all shown in
+  step 5b). Other `not_a_claim` units (`table_residue`, `definition`, `cross_reference`,
+  `too_short`) are left out (`risk_theme_status: not_a_claim`) but do not end the risk factor.
 - Units under no lead get no risk factor and no theme.
 - Review: `checks/risk_factors/category_checks.csv` (missing or doubtful categories); a new
   company's categories show up as `unmapped` ([#125][pr-125]).
@@ -285,7 +288,7 @@ Each module's docstring has the full rules; below is what each step does and wha
 <a id="step-6b"></a>
 **[6b] Entity catalog** ([`src/entities/catalog.py`](src/entities/catalog.py))
 - `entity_catalog.json`: the subsidiaries of 6a, the XBRL segment members of a fact store
-  (`--facts`, `PIPELINE_FACT_STORE`), and the registrant's own names (never linked); settings in
+  (`--facts`, `PIPELINE_FACT_STORE`, or `MSFT_FACT_DB_PATH` in `.env`), and the registrant's own names (never linked); settings in
   [`config/entity_linking.yaml`](config/entity_linking.yaml).
 - Without a fact store the catalog has no segments.
 
@@ -473,8 +476,8 @@ One line per unit; "Data team" fields come from the export.
 | File | One row per | Fields |
 |---|---|---|
 | `output/risk_categories.csv` | category heading | `risk_category_unit_id`, `category_text`, `risk_summary`, `n_units`, `heading_risk_group`, `map_status` (`group`, `broad`, `not_a_category`, `unmapped`) |
-| `interim/risk_factors.jsonl` | risk factor | `risk_factor_id`, filing and section, `lead_text`, `level`, `unit_ids` |
-| `interim/risk_assignments.jsonl` | Item 1A unit | `unit_id`, `risk_category_unit_id`, `risk_category_text`, `heading_risk_group`, `risk_factor_id`, `risk_summary` |
+| `interim/risk_factors.jsonl` | risk factor | `risk_factor_id`, filing and section, `lead_text`, `level`, `unit_ids` (members, the lead first) |
+| `interim/risk_assignments.jsonl` | Item 1A unit | `unit_id`, `risk_category_unit_id`, `risk_category_text`, `heading_risk_group`, `risk_factor_id` (null for a unit left out), `risk_summary`, `prefilter` |
 | `interim/risk_themes.jsonl` | answered risk factor | `risk_factor_id`, `unit_ids`, `primary_theme`, `secondary_themes` (with `unit_ids`), `notes`, `request_hash`, `model`, `taxonomy_version` |
 
 ### `claims.jsonl` (step 9, input to step 10)

@@ -48,11 +48,11 @@ from .taxonomy import category_key
 STEP = "risk_themes"
 RUNNER_VERSION = "kelly_risk_themes_v1"
 PROMPT_VERSION = "risk_themes_v1"
-SHOWN_PREFILTERS = (None, "list_intro", "heading")   # shown to the model; cross references, tables etc. are not
+SHOWN_PREFILTERS = risk_factors.MEMBER_PREFILTERS   # shown to the model = the members of the risk factor
 MAX_SECONDARY = 2
 
 THEME_SOURCE = "llm"           # HAS_RISK_THEME.source: themes come from this step
-THEME_STATUSES = ["classified", "unknown", "not_classified", "no_risk_factor", "risk_summary"]
+THEME_STATUSES = ["classified", "unknown", "not_classified", "no_risk_factor", "not_a_claim", "risk_summary"]
 FACTOR_FIELDS = ["risk_factor_id", "ticker", "form", "accession_number", "category_text", "heading_risk_group",
                  "lead_text", "n_units", "primary_theme", "primary_group", "secondary_themes",
                  "agrees_with_heading", "reference_theme", "review"]
@@ -195,7 +195,9 @@ def apply(assignments: list[dict], factors: list[dict], results: dict[str, dict]
     for a in assignments:
         a["risk_themes"] = []
         if a.get("risk_factor_id") is None:
-            a["risk_theme_status"] = "risk_summary" if a.get("risk_summary") else "no_risk_factor"
+            a["risk_theme_status"] = ("risk_summary" if a.get("risk_summary")
+                                      else "not_a_claim" if a.get("prefilter") not in SHOWN_PREFILTERS
+                                      else "no_risk_factor")
             continue
         r = answered.get(a["risk_factor_id"])
         if r is None:
