@@ -38,7 +38,8 @@ Lead sentences come from step 4 (sentences.jsonl), in every section:
                            recorded: the lead itself may not be a Claim (not_a_claim, held).
 Risk fields come from step 7a (data/interim/risk_assignments.jsonl), by unit id:
   risk_factor_id           the lead's unit_id of the risk factor (one SEC risk) the sentence is
-                           in, or null; a unit_id, like lead_unit_id
+                           in, or null; a unit_id. Can differ from lead_unit_id: a risk factor
+                           also covers the sub-headings below its lead (risk_themes.py)
   risk_category_text       the filing's own level-1 Item 1A heading above it ("Business Risks")
   risk_category_unit_id    that heading's unit_id, or null outside a category
   heading_risk_group       the groups that heading names (config/risk_taxonomy/risk_category_map.csv)

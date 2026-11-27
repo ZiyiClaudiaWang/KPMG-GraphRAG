@@ -8,8 +8,9 @@ Output: data/interim/risk_themes.jsonl              one row per risk factor the 
         data/output/usage_risk_themes.jsonl         this step's spend (its own budget_usd)
 
 A risk factor is one SEC risk: a lead sentence in Item 1A (step 4 lead_source, outside the
-risk factor summary) and the units under it (lead_unit_id). Its id, risk_factor_id, is the
-lead's unit_id. Units under no lead are not classified here (step 7a counts them).
+risk factor summary) and the units after it, sub-headings below the lead included, up to the
+next lead or heading at its level (risk_factors()). Its id, risk_factor_id, is the lead's
+unit_id. Units under no lead are not classified here (step 7a counts them).
 
 One request per risk factor: the lead and its units as s1, s2, ... and the 32 themes of
 themes.csv with their definitions. The model returns one primary theme (or "unknown") and up
@@ -44,7 +45,8 @@ from .common import PROMPTS_DIR, Paths, checks_dir, log, read_jsonl, write_csv, 
 STEP = "risk_themes"
 RUNNER_VERSION = "kelly_risk_themes_v1"
 PROMPT_VERSION = "risk_themes_v1"
-SHOWN_PREFILTERS = (None, "list_intro")      # units shown to the model; cross references, tables etc. are not
+SHOWN_PREFILTERS = (None, "list_intro", "heading")   # shown to the model; cross references, tables etc. are not
+UNIT_ROLES = ("body", "list_group")          # besides headings, the roles a risk factor covers
 MAX_SECONDARY = 2
 
 REQUEST_FIELDS = ["risk_factor_id", "ticker", "form", "accession_number", "section_key", "n_units", "n_shown",
@@ -54,22 +56,49 @@ REQUEST_FIELDS = ["risk_factor_id", "ticker", "form", "accession_number", "secti
 # ---------- risk factors ----------
 
 def risk_factors(units: list[dict]) -> list[dict]:
-    """One entry per Item 1A lead outside the risk factor summary, with the units under it, in order.
+    """One entry per Item 1A lead outside the risk factor summary, with the units it covers, in order.
+
+    A risk factor runs from its lead to the next lead, the next heading at its own level or above,
+    or the end of the section. Its own level is that of the heading above the lead (at least 1,
+    so a category heading always ends it); a lead that follows another open risk factor is its
+    sibling and takes the same level. So a sub-heading below the lead, such as Microsoft's italic
+    sub-topics ("Competition in the technology sector") under a bold lead, stays inside the risk
+    factor, and so do the sentences under it.
+
+    This is wider than step 4's lead_unit_id, which stops at any heading (kept as decided on
+    26 Nov: the sentences under a sub-topic need no link to the lead). risk_factor_id is only
+    the risk factor's id, used for its themes.
 
     units: the entry's units, the lead first (unit_ids of every unit that takes its themes).
     """
-    out, by_lead = [], {}
+    out, current, section, heading_level = [], None, None, 0
     for u in units:
-        if u["section_type"] != "risk_factors" or u.get("risk_summary"):
+        if u["section_type"] != "risk_factors":
+            continue
+        if (u["accession_number"], u["section_key"]) != section:
+            section, current, heading_level = (u["accession_number"], u["section_key"]), None, 0
+        if u.get("risk_summary") or u["role"] == "section_title":
+            current = None
+            continue
+        if u["role"] == "heading":
+            level = u.get("heading_level")
+            if isinstance(level, int) and level > 0:
+                if current is not None and level <= current["level"]:
+                    current = None
+                heading_level = level
+            if current is not None:
+                current["units"].append(u)
+            continue
+        if u["role"] not in UNIT_ROLES:
             continue
         if u.get("lead_source"):
-            rf = {"risk_factor_id": u["unit_id"], "accession_number": u["accession_number"],
-                  "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
-                  "lead_text": u["text"], "units": [u]}
-            out.append(rf)
-            by_lead[u["unit_id"]] = rf
-        elif u.get("lead_unit_id") in by_lead:
-            by_lead[u["lead_unit_id"]]["units"].append(u)
+            level = current["level"] if current is not None else max(heading_level, 1)
+            current = {"risk_factor_id": u["unit_id"], "accession_number": u["accession_number"],
+                       "ticker": u["ticker"], "form": u["form"], "section_key": u["section_key"],
+                       "lead_text": u["text"], "level": level, "units": [u]}
+            out.append(current)
+        elif current is not None:
+            current["units"].append(u)
     return out
 
 
@@ -98,7 +127,7 @@ def schema(theme_ids: list[str]) -> dict:
 
 
 def shown(rf: dict, max_units: int) -> list[dict]:
-    """The units the model reads: the lead, then the units under it that step 5 would label."""
+    """The units the model reads: the lead, then the units step 5 would label and the sub-headings."""
     lead, rest = rf["units"][0], [u for u in rf["units"][1:] if u.get("prefilter") in SHOWN_PREFILTERS]
     return ([lead] + rest)[:max_units]
 

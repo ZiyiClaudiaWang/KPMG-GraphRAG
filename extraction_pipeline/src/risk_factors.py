@@ -9,8 +9,9 @@ Output: data/output/risk_categories.csv      one row per risk category heading i
         data/checks/risk_factors/category_checks.csv     are the categories complete?
         data/checks/risk_factors/risk_factor_themes.csv  one row per risk factor, for review
 
-Names: a "risk factor" is one SEC risk, a lead sentence and the units under it (step 4
-lead_unit_id); its id, risk_factor_id, is the lead's unit_id. A "risk category" is the filing's
+Names: a "risk factor" is one SEC risk, a lead sentence and the units after it up to the next
+lead or heading at its level, sub-headings below the lead included (risk_themes.risk_factors();
+wider than step 4's lead_unit_id); its id, risk_factor_id, is the lead's unit_id. A "risk category" is the filing's
 own level-1 heading in Item 1A ("Business Risks"); its id, risk_category_unit_id, is that
 heading's unit_id. Every id here is a unit_id.
 

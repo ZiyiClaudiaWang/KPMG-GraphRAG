@@ -6,6 +6,8 @@ looks count as a lead (source):
 
   html         a block of its own whose whole text is bold, italic or underlined, a full sentence
                (lead_min_words..lead_max_words, ends in . ? !), followed by a plain block of text
+               or by a block step 4b reads as a heading (MSFT: a bold lead, then an italic
+               sub-topic heading "Competition in the technology sector")
                (blocks without a letter in between, such as a page number, are passed over)
                (MU "We are subject to counterparty default risks." / "We have numerous
                arrangements ..."). The Item 1A headings step 4b reads as sentences (level -1,
@@ -138,7 +140,10 @@ def section_leads(section: dict, blocks: list[Block], text: str, rows: list[dict
             continue
         if emphasised(b):
             nxt, prv = neighbour(blocks, b, 1), neighbour(blocks, b, -1)
-            plain_next = nxt is not None and not nxt.in_table and not emphasised(nxt)
+            # the next block is plain text, or a sub-heading (MSFT: the bold lead "We face intense
+            # competition ..." then the italic sub-topic "Competition in the technology sector")
+            plain_next = nxt is not None and not nxt.in_table and (
+                not emphasised(nxt) or (lo <= nxt.start and nxt.end <= hi and is_heading(nxt.start - lo, nxt.end - lo)))
             styled_before = (prv is not None and not prv.in_table and emphasised(prv)
                              and is_full_sentence(" ".join(prv.text.split()), min_words, max_words))
             if plain_next and not styled_before and is_full_sentence(line, min_words, max_words):

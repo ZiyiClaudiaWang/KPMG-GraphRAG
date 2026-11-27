@@ -589,8 +589,10 @@ sees its intro, even when a batch boundary cuts the list ([step 5](#step-5-label
 - <a id="step-4c-risk-themes"></a>**[4c] Risk themes** (`risk_themes.py`, paid, not in a default run) asks the
   model which themes each Item 1A risk factor is about ([Appendix B](#appendix-b-risk-themes)).
   - A **risk factor** is one SEC risk: a lead sentence in Item 1A (step 4 `lead_source`, outside
-    the risk factor summary) and the units under it (`lead_unit_id`). `risk_factor_id` is the
-    lead's `unit_id`. Units under no lead are not classified (still open).
+    the risk factor summary) and the units after it, up to the next lead or heading at its
+    level. Sub-headings below the lead stay inside (Microsoft's italic sub-topics under a bold
+    lead), so this is wider than `lead_unit_id`, which stops at any heading. `risk_factor_id` is
+    the lead's `unit_id`. Units under no lead are not classified (still open).
   - One request per risk factor: its lead and units as `s1, s2, ...` (cross references and table
     residue left out, at most `max_units`), and the 32 themes with their definitions. The model
     returns one primary theme (or `unknown`) and up to two secondary themes with the sentences

@@ -21,7 +21,8 @@ def factor(acc, body):
 class TestRiskFactors(unittest.TestCase):
     def test_lead_and_units_under_it(self):
         units = (factor("A1", ["Rivals cut prices.", "See Note 5."])
-                 + [unit(9, "A1", "Under no lead."), unit(10, "A1", "Summary.", risk_summary=True,
+                 + [unit(8, "A1", "Legal Risks", role="heading", heading_level=1, prefilter="heading"),
+                    unit(9, "A1", "Under no lead."), unit(10, "A1", "Summary.", risk_summary=True,
                                                           lead_source="html")])
         units[2]["prefilter"] = "cross_reference"
         [rf] = risk_themes.risk_factors(units)
@@ -29,6 +30,32 @@ class TestRiskFactors(unittest.TestCase):
         self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u1", "A1-u2", "A1-u3"])
         self.assertEqual([u["text"] for u in risk_themes.shown(rf, 80)],          # no cross reference
                          ["Competition could harm our results.", "Rivals cut prices."])
+
+    def test_sub_headings_below_a_lead_stay_inside(self):
+        """Microsoft: category (1) > bold lead > italic sub-topics (2) > text; the next lead is a sibling."""
+        def h(n, text, level):
+            return unit(n, "A1", text, role="heading", heading_level=level, prefilter="heading")
+        units = [h(1, "STRATEGIC AND COMPETITIVE RISKS", 1),
+                 unit(2, "A1", "We face intense competition.", lead_source="html"),
+                 h(3, "Competition in the technology sector", 2), unit(4, "A1", "Rivals are large."),
+                 h(5, "Business model competition", 2), unit(6, "A1", "Models shift."),
+                 unit(7, "A1", "Our focus on AI may not succeed.", lead_source="html"),
+                 h(8, "AI investments", 2), unit(9, "A1", "Costs are high."),
+                 h(10, "OPERATIONAL RISKS", 1), unit(11, "A1", "Text under no lead.")]
+        a, b = risk_themes.risk_factors(units)
+        self.assertEqual([u["unit_id"] for u in a["units"]], [f"A1-u{n}" for n in (2, 3, 4, 5, 6)])
+        self.assertEqual([u["unit_id"] for u in b["units"]], [f"A1-u{n}" for n in (7, 8, 9)])
+        self.assertIn("Competition in the technology sector", [u["text"] for u in risk_themes.shown(a, 80)])
+
+    def test_heading_at_the_lead_level_ends_it(self):
+        """Level-2 group headings with leads under them: the next level-2 heading ends the risk factor."""
+        def h(n, text, level):
+            return unit(n, "A1", text, role="heading", heading_level=level, prefilter="heading")
+        units = [h(1, "Business Risks", 1), h(2, "Risks Related to Our Products", 2),
+                 unit(3, "A1", "Demand may fall.", lead_source="html"), unit(4, "A1", "Prices drop."),
+                 h(5, "Risks Related to Our Stock", 2), unit(6, "A1", "Intro under no lead.")]
+        [rf] = risk_themes.risk_factors(units)
+        self.assertEqual([u["unit_id"] for u in rf["units"]], ["A1-u3", "A1-u4"])
 
     def test_identical_risk_text_shares_one_request(self):
         cfg = llm_cost.step_cfg("risk_themes")
