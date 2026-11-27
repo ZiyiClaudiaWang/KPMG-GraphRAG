@@ -150,6 +150,17 @@ class GroupLists(unittest.TestCase):
         self.assertNotIn("Agriculture", got)
         self.assertIsNone(got["We sell through distributors."]["prefilter"])
 
+    def test_names_with_ampersand_abbreviation_or_several_bullets(self):
+        # PH 2021: "Heading, ventilation & air conditioning (HVAC)" and a cell of several names
+        got = units("Filtration Group: | • Aerospace & defense • Agriculture\n\n"
+                    "Heating, ventilation & air conditioning (HVAC)\n\nIndustrial machinery\n\n"
+                    "Life sciences | • Microelectronics • Oil & gas • Refining\n\n"
+                    "We sell through distributors.")
+        groups = [u["text"] for u in got.values() if u["role"] == "list_group"]
+        self.assertEqual(groups, ["Filtration Group: | • Aerospace & defense • Agriculture "
+                                  "Heating, ventilation & air conditioning (HVAC) Industrial machinery "
+                                  "Life sciences | • Microelectronics • Oil & gas • Refining"])
+
     def test_a_label_row_alone_is_not_a_group(self):
         got = units("Revenue: | • Services\n\nWe grew in every market this year.")
         self.assertFalse(any(u["role"] == "list_group" for u in got.values()))

@@ -189,3 +189,16 @@ class RuleFallback(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TitleLines(unittest.TestCase):
+    """In Item 1A a styled Title Case line too long to be a heading candidate is a lead (AMZN)."""
+
+    def test_title_case_line_without_end_punctuation(self):
+        from src.headings.leads import is_title_line
+        amzn = ("We Face Risks Related to Adequately Protecting Our Intellectual Property Rights and "
+                "Being Accused of Infringing Intellectual Property Rights of Third Parties")
+        self.assertTrue(is_title_line(amzn, 4, 100))
+        self.assertFalse(is_title_line("Item 1A. Risk Factors", 4, 100))
+        self.assertFalse(is_title_line("We face risks related to protecting our rights", 4, 100))
+        self.assertFalse(is_title_line("We Face Risks Related to Our Rights.", 4, 100))

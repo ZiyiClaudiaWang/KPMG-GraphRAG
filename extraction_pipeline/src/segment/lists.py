@@ -75,9 +75,13 @@ GROUP_ROW = re.compile(r"^([^|:]{2,60}):\s*\|\s*(.+)$")
 
 
 def group_name(cell: str) -> bool:
-    """A cell holding one short name: letters and no digits, so table rows of amounts
-    ("Products | $ | 36,512") are never names."""
-    return short_item(cell) and bool(re.search(r"[A-Za-z]", cell)) and not re.search(r"\d", cell)
+    """A cell holding short names: letters and no digits, so table rows of amounts
+    ("Products | $ | 36,512") are never names. Several names in one cell split on "•"
+    ("• Microelectronics • Oil & gas • Refining"); "&" and a "(...)" abbreviation are not words
+    ("Heating, ventilation & air conditioning (HVAC)")."""
+    names = [n for n in re.split(r"\s*•\s*", cell) if n.strip()]
+    return bool(names) and all(short_item(re.sub(r"\([^()]*\)|\s&\s", " ", n)) for n in names) \
+        and bool(re.search(r"[A-Za-z]", cell)) and not re.search(r"\d", cell)
 
 
 def group_label(text: str) -> bool:

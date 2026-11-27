@@ -145,7 +145,7 @@ report:                              # python -m src.checks.report (checks of st
     segment.check_very_long_per_1k: {max: 0.5, level: warn, why: "missed sentence splits"}
     segment.check_single_pipe_per_1k: {max: 1, level: warn, why: "table rows sent to the LLM as text"}
     segment.check_long_heading: {max: 50, level: warn, why: "sentences read as headings never reach the LLM"}
-    segment.check_risk_section_no_category: {max: 0, level: warn, why: "Item 1A sections with no category heading: their Claims get no heading_risk_group"}
+    segment.check_risk_section_no_category: {max: 0, level: warn, why: "10-K Item 1A sections with no category heading: their Claims get no heading_risk_group"}
     segment.check_outlier_filings: {max: 0, level: warn, why: "filings at 3x a check's usual rate: usually one company's format"}
     risk_factors.unmapped: {max: 0, level: warn, why: "Item 1A categories missing from risk_taxonomy/risk_category_map.csv"}
     risk_factors.item_1a_in_risk_factor_pct: {min: 80, level: info, why: "share of Item 1A units that can be members (no prefilter, list_intro, heading) in a risk factor: the rest (intros, no material changes) get no theme (decided)"}

@@ -12,7 +12,8 @@ looks count as a lead (source):
                (MU "We are subject to counterparty default risks." / "We have numerous
                arrangements ..."). The Item 1A headings step 4b reads as sentences (level -1,
                reason lead_sentence: AMZN "Our International Operations Expose Us to a Number of
-               Risks") are leads too.
+               Risks") are leads too, and so is a styled Title Case line in Item 1A too long to be
+               a heading candidate (is_title_line).
   html_runin   the first sentence of a block is bold, italic or underlined and the rest is plain
                (MSFT "Competition in the technology sector may harm our business." then the text
                about it in the same paragraph); at least runin_min_words words.
@@ -60,6 +61,18 @@ def is_full_sentence(text: str, min_words: int, max_words: int) -> bool:
     n = len(text.split())
     return (bool(SENTENCE_END.search(text)) and min_words <= n <= max_words
             and not is_period_heading(text))
+
+
+def is_title_line(text: str, min_words: int, max_words: int) -> bool:
+    """A Title Case line with no end punctuation: every word of 4+ letters capitalised. In Item 1A
+    such a styled block is a risk factor's title, a lead (AMZN "We Face Risks Related to Adequately
+    Protecting Our Intellectual Property Rights and Being Accused of Infringing Intellectual Property
+    Rights of Third Parties": over the 150 characters of a heading candidate, so step 4b never sees it)."""
+    words = re.findall(r"[A-Za-z][A-Za-z'’-]*", text)
+    return (not re.search(r"[.?!:;,]$", text.strip()) and min_words <= len(text.split()) <= max_words
+            and not re.match(r"(?i)(?:part\s+[iv]+\W*)?item\s+\d", text)
+            and bool(words) and text[:1].isupper()
+            and all(w[0].isupper() for w in words if len(w) >= 4))
 
 
 def neighbour(blocks: list[Block], block: Block, step: int) -> Block | None:
@@ -146,7 +159,9 @@ def section_leads(section: dict, blocks: list[Block], text: str, rows: list[dict
                 not emphasised(nxt) or (lo <= nxt.start and nxt.end <= hi and is_heading(nxt.start - lo, nxt.end - lo)))
             styled_before = (prv is not None and not prv.in_table and emphasised(prv)
                              and is_full_sentence(" ".join(prv.text.split()), min_words, max_words))
-            if plain_next and not styled_before and is_full_sentence(line, min_words, max_words):
+            risk_title = (section.get("section_type") == "risk_factors"
+                          and is_title_line(line, min_words, max_words))
+            if plain_next and not styled_before and (is_full_sentence(line, min_words, max_words) or risk_title):
                 out.append({"start": s, "end": e, "source": "html", "text": line})
             continue
         prefix = runin_prefix(b)

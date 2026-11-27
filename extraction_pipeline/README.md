@@ -6,7 +6,7 @@
   [2.3](../docs/ontology-reconciliation.md#23-claim-with-a-type--take-it-from-the-proposal) and
   [2.4](../docs/ontology-reconciliation.md#24-riskfactor--its-own-node-or-a-label-on-a-section)).
 - Code does everything that must be exact and repeatable; the LLM only judges meaning.
-- Last updated 26 Nov 2026 by Kelly Zhou (segmentation `kelly_sentence_v15`).
+- Last updated 27 Nov 2026 by Kelly Zhou (segmentation `kelly_sentence_v16`).
 
 ```
 Company -[:FILES]-> Filing -[:CONTAINS]-> Section -[:SUPPORTS]-> Claim -[:HAS_RISK_THEME]-> RiskTheme -[:IN_RISK_GROUP]-> RiskGroup
@@ -469,7 +469,7 @@ One line per unit; "Data team" fields come from the export.
 | `rule_heading`, `lead_source`, `lead_unit_id` | Rule-proposed lead; lead source (`html`, `html_runin`, `rule`); the lead above |
 | `risk_summary` | Inside the risk factor summary of Item 1A |
 | `processing_set_id`, `source_locator` | Data team parse version; XPath of the section |
-| `segmentation_version` | The splitting rules (`kelly_sentence_v15`) |
+| `segmentation_version` | The splitting rules (`kelly_sentence_v16`) |
 
 ### Risk files (steps 5 and 5b)
 
