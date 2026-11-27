@@ -184,8 +184,8 @@ flowchart TD
     LLM -->|"not_a_claim"| X["no Claim"]
     LLM -->|"needs_review"| H["8: held (review_queue)"]
     LLM -->|"stated_fact, forward_looking,<br/>hedged_risk"| V{"8 Validate"}
-    V -->|"held by a rule"| H
     V -->|"kept"| C["9: Claim<br/>claim_id = unit_id"]
+    V -->|"rule flags: kept, flagged"| C
 ```
 
 #### f. Illustration
@@ -308,8 +308,9 @@ Each module's docstring has the full rules; below is what each step does and wha
 <a id="step-8"></a>
 **[8] Validate** ([`src/validate.py`](src/validate.py))
 - `errors.jsonl`: every unit has exactly one valid label (should be empty).
-- `review_queue.jsonl`: held units (no Claim) with `claim_review_flags` (Claudia's rules in
-  [`source_review.py`](src/source_review.py)), and retained Claims with doubtful entity mentions.
+- `review_queue.jsonl`: held units (`needs_review`, no Claim), and retained Claims with rule flags
+  (`claim_review_flags`, Claudia's rules in [`source_review.py`](src/source_review.py); flag only,
+  they hold nothing) or doubtful entity mentions. List items and list groups are Claims.
 
 <a id="step-9"></a>
 **[9] Build Claims** ([`src/build_claims.py`](src/build_claims.py))
@@ -414,8 +415,8 @@ uv run python -m pytest tests -q
 1. **Sections to extract** (step 3): undecided for legal proceedings (concrete legal events vs
    MSFT refers to notes), market risk (mostly numbers for `Fact`) and cybersecurity Item 1C
    (process descriptions; the risks are already in Item 1A).
-2. **Release held units** (step 8): a held unit stays out of `claims.jsonl`, and the next run
-   holds it again. To do: a release list by `unit_id`, and who signs off.
+2. **Release held units** (step 8): a held unit (`needs_review`) stays out of `claims.jsonl`,
+   and the next run holds it again. To do: a release list by `unit_id`, and who signs off.
 3. **Id changes counted too late:** `claim_id_report.json` comes in step 9, after paying for
    step 7. To do: the same report in step 4 (units added, gone, changed).
 4. **Old Claims after a rebuild** (step 10): load only MERGEs, so Claims whose ids changed stay.
@@ -437,11 +438,9 @@ uv run python -m pytest tests -q
 
 ### Note: rules that fit only this data
 
-1. `review.known_list_fragment_prefixes` ([`config/settings.yaml`](config/settings.yaml)): MSFT product names that step 8 holds after a
-   ":" intro. To do: a general fix for list fragments.
-2. [`source_review.py`](src/source_review.py) reads segment names from Apple's and Microsoft's Business text only; other
+1. [`source_review.py`](src/source_review.py) reads segment names from Apple's and Microsoft's Business text only; other
    companies' segment mentions are all flagged. To do: check against the entity catalog.
-3. Hand-written lists: `TABLE_NOTES` ([`segment/prefilter.py`](src/segment/prefilter.py)), `OPENERS`
+2. Hand-written lists: `TABLE_NOTES` ([`segment/prefilter.py`](src/segment/prefilter.py)), `OPENERS`
    ([`segment/sentences.py`](src/segment/sentences.py)),
    [`risk_category_map.csv`](config/risk_taxonomy/risk_category_map.csv) (a new company's categories are `unmapped` until added).
 
@@ -499,6 +498,7 @@ One line per unit; "Data team" fields come from the export.
 | `provenance` | Section path, XPath, Data team versions, `raw_spans`, `context_unit_ids`, `lead_unit_id`, `lead_source`, `request_hash`, `model`, `prompt_version` | part, on `SUPPORTS` |
 | `claim_identity_version` | `source_span_position_v1` | no |
 | `context_evidence`, `source_fragments`, `parent_paragraph_context` | Cited units; source pieces and paragraph with positions | no |
+| `claim_review_flags` | Step 8 rule flags (mixed tense, "is subject to laws" as risk, ...): flag only | no |
 | `entity_mentions`, `entity_review_flags`, `proposed_entity_mentions`, `entity_review` | Model mentions checked against sentence and catalog | no |
 
 ## Appendix B: Risk taxonomy

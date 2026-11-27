@@ -109,13 +109,6 @@ prices:
   gpt-5.4:      {input: 2.50, cached_input: 0.25,  output: 15.00, regional_uplift: true}
   gpt-5.5:      {input: 5.00, cached_input: 0.50,  output: 30.00, regional_uplift: true}
 
-review:
-  # Step 8 holds a Claim that starts with one of these names when a ":" intro is among the
-  # 4 units before it. Specific to Microsoft's FY2026 10-K Business section (README, [Validate]).
-  known_list_fragment_prefixes:
-    - "Windows and Devices,"
-    - "XBOX (formerly Gaming),"
-
 load:
   scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
 

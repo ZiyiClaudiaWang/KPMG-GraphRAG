@@ -10,14 +10,17 @@ Completeness: the same checks run inside step 7 on each reply (check_reply). A r
 reply publishes no labels, so its sentences show up here as "no label". Units set aside in
 step 7 (source "code_quarantine", label needs_review) are held here like any needs_review.
 
-Review follows Claudia's build_candidates() and source_review.py, with her reasons and
-flag names. Three kinds of queue entry:
-  held, rule flags     source_review.claim_review_flags() (list intro, mixed tense,
-                       "causes / has required ... may", "is subject to laws" as risk), plus
-                       known product-line fragments (review.known_list_fragment_prefixes)
-  held, uncertainty    label needs_review: the model could not resolve the boundary, subject or type
-  retained             the Claim is built, but its entity mentions need review
-Held units do not become Claims in step 9; they keep their label.
+Review follows Claudia's build_candidates() and source_review.py, with her flag names. Two
+kinds of queue entry:
+  held          label needs_review: the model could not resolve the boundary, subject or type
+                (also step 7's quarantine). Held units do not become Claims in step 9.
+  retained      the Claim is built, but a rule flags it: claim_review_flags
+                (source_review.claim_review_flags(): mixed tense, "causes / has required ...
+                may", "is subject to laws" as hedged_risk) and / or entity flags. The Claim
+                carries claim_review_flags too. Rule flags hold nothing since 27 Nov 2026.
+List items and list groups are Claims like any sentence: a ":" intro among the context is no
+longer a flag, and the MSFT FY2026 product-line prefixes (review.known_list_fragment_prefixes)
+are gone.
 
 A unit made of several source fragments (a list group, or a sentence joined across a page
 break) is not held for that reason: its text is rebuilt exactly from the source in step 7,
@@ -35,7 +38,7 @@ from collections import Counter
 
 from . import source_review
 from .entities import annotation as entity_annotation
-from .common import Paths, data_dir, log, read_jsonl, settings, write_jsonl
+from .common import Paths, data_dir, log, read_jsonl, write_jsonl
 
 STEP = "validate"
 
@@ -82,9 +85,8 @@ def check_reply(batch: dict, results: list[dict]) -> list[str]:
 
 # ---------- review ----------
 
-HELD_RULE_REASON = "Conservative postcheck; original model label retained"
 HELD_UNCERTAIN_REASON = "Model uncertainty; preserve for review."
-RETAINED_REASON = "Claim source is valid; entity mention evidence requires review."
+RETAINED_REASON = "Claim source is valid; rule or entity flags for review."
 
 
 def assessment(label: dict) -> dict:
@@ -95,20 +97,12 @@ def assessment(label: dict) -> dict:
             "is_risk_heading": label["is_risk_heading"], "entity_mentions": label["entity_mentions"]}
 
 
-def review_entry(unit: dict, result: dict, units: dict[str, dict], neighbours: list[dict], source: dict,
-                 vocabulary: list[dict], catalog: list[dict], prefixes: tuple) -> dict | None:
-    """Claudia's per-unit decision: held (two kinds), retained with entity flags, or None (clean)."""
-    flags, intros = source_review.claim_review_flags(unit, result, units)
-    pos = next(i for i, u in enumerate(neighbours) if u["unit_id"] == unit["unit_id"])
-    if prefixes and any(u["text"].rstrip().endswith(":") for u in neighbours[max(0, pos - 4):pos]) \
-            and unit["text"].startswith(prefixes):
-        flags.append("known_product_list_fragment_boundary_review")
-    ids = {"unit_id": unit["unit_id"]}
-    if flags and result["label"] != "not_a_claim":
-        return {**ids, "assessment": result, "reason": HELD_RULE_REASON,
-                "claim_review_flags": sorted(set(flags)), "intro_unit_ids": intros}
+def review_entry(unit: dict, result: dict, source: dict, vocabulary: list[dict],
+                 catalog: list[dict]) -> dict | None:
+    """Per-unit decision: held (needs_review), retained with rule or entity flags, or None (clean)."""
     if result["label"] == "not_a_claim":
         return None
+    ids = {"unit_id": unit["unit_id"]}
     fragments = [{"start": a, "end": b, "quote": source["content"][a:b]} for a, b in unit["raw_spans"]]
     if result["label"] == "needs_review":
         return {**ids, "assessment": result, "source_fragments": fragments, "reason": HELD_UNCERTAIN_REASON}
@@ -117,8 +111,10 @@ def review_entry(unit: dict, result: dict, units: dict[str, dict], neighbours: l
                                                     accession=source["accession_number"], catalog=catalog)
     reviewed = source_review.entity_review(unit, source, result["entity_mentions"], vocabulary)
     flags = sorted(set(annotated["entity_review_flags"] + reviewed["review_flags"]))
-    if flags:
-        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "flags": flags}
+    rule_flags = source_review.claim_review_flags(unit, result)
+    if flags or rule_flags:
+        return {**ids, "candidate_retained": True, "reason": RETAINED_REASON, "flags": flags,
+                "claim_review_flags": rule_flags}
     return None
 
 
@@ -130,10 +126,6 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
     (data_dir() / "output" / "provisional_segment_definitions.json").write_text(
         json.dumps(vocabulary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     catalog = entity_catalog()
-    prefixes = tuple((settings().get("review") or {}).get("known_list_fragment_prefixes") or [])
-    sections: dict[tuple, list[dict]] = {}
-    for u in units.values():
-        sections.setdefault((u["accession_number"], u["section_key"]), []).append(u)
 
     queue = []
     for label in labels:
@@ -141,8 +133,7 @@ def review(units: dict[str, dict], labels: list[dict]) -> list[dict]:
         if unit is None or label.get("source", "").startswith("rule:"):
             continue
         key = (unit["accession_number"], unit["section_key"])
-        entry = review_entry(unit, assessment(label), units, sections[key], sources[key],
-                             vocabulary, catalog, prefixes)
+        entry = review_entry(unit, assessment(label), sources[key], vocabulary, catalog)
         if entry:
             queue.append(entry)
     return queue
@@ -185,11 +176,11 @@ def run() -> int:
     queue = review(units, labels)
     write_jsonl(Paths.review_queue(), queue)
     held = [q for q in queue if not q.get("candidate_retained")]
-    log(STEP, f"{len(held)} units held, {len(queue) - len(held)} Claims with entity flags "
+    log(STEP, f"{len(held)} units held (needs_review), {len(queue) - len(held)} Claims with flags "
               f"-> {Paths.review_queue()}")
-    reasons = Counter(f for q in held for f in q.get("claim_review_flags") or ["needs_review"])
-    if reasons:
-        log(STEP, "held by: " + ", ".join(f"{k}={v}" for k, v in reasons.most_common()))
+    flagged = Counter(f for q in queue for f in q.get("claim_review_flags") or [])
+    if flagged:
+        log(STEP, "rule flags: " + ", ".join(f"{k}={v}" for k, v in flagged.most_common()))
     return len(errors)
 
 

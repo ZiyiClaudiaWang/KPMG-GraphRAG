@@ -131,42 +131,33 @@ class ReviewRules(unittest.TestCase):
         return {"unit_id": uid, "text": text, "raw_spans": spans or [[0, len(text)]],
                 "section_type": "mda", "accession_number": "A"}
 
-    def entry(self, unit, label, units=None, neighbours=None, prefixes=()):
+    def entry(self, unit, label, units=None):
         result = {"label": label, "context_ids": [], "subject_scope": None, "annotation_note": None,
                   "is_risk_heading": False, "entity_mentions": []}
         if units:
             result["context_ids"] = list(units)                       # unit ids
         source = dict(self.source, content=unit["text"])
-        return validate.review_entry(unit, result, units or {}, neighbours or [unit], source, [], [], prefixes)
+        return validate.review_entry(unit, result, source, [], [])
 
-    def test_mixed_tense_held(self):
+    def test_mixed_tense_flagged_not_held(self):
         got = self.entry(self.unit("Several jurisdictions have passed laws, and others are considering more."),
                          "stated_fact")
         self.assertEqual(got["claim_review_flags"], ["mixed_existing_and_prospective_statement_review"])
-        self.assertEqual(got["reason"], validate.HELD_RULE_REASON)
+        self.assertTrue(got["candidate_retained"])
 
     def test_not_a_claim_never_held(self):
         unit = self.unit("Several jurisdictions have passed laws, and others are considering more.")
         self.assertIsNone(self.entry(unit, "not_a_claim"))
 
-    def test_list_intro_held(self):
+    def test_list_item_citing_its_intro_is_a_claim(self):
         units = {"u1": {"text": "Revenue is affected by:", "unit_id": "u1"}}
-        got = self.entry(self.unit("Growth of the AI PC category."), "stated_fact", units)
-        self.assertEqual(got["claim_review_flags"], ["list_intro_dependency_boundary_review"])
-        self.assertEqual((got["unit_id"], got["intro_unit_ids"]), ("u2", ["u1"]))
-        self.assertNotIn("sentence_id", got)
+        self.assertIsNone(self.entry(self.unit("Growth of the AI PC category."), "stated_fact", units))
 
     def test_page_break_not_held(self):
         # several fragments are not a reason to hold a labelled unit; needs_review still is
         unit = self.unit("Growth of the AI PC category.", spans=[[0, 10], [11, 29]])
         self.assertIsNone(self.entry(unit, "stated_fact"))
         self.assertEqual(self.entry(unit, "needs_review")["reason"], validate.HELD_UNCERTAIN_REASON)
-
-    def test_known_list_fragment(self):
-        intro = self.unit("This segment primarily comprises:", "u1")
-        unit = self.unit("XBOX (formerly Gaming), including XBOX hardware.")
-        got = self.entry(unit, "stated_fact", neighbours=[intro, unit], prefixes=("XBOX (formerly Gaming),",))
-        self.assertEqual(got["claim_review_flags"], ["known_product_list_fragment_boundary_review"])
 
     def test_segment_vocabulary_and_entity_review(self):
         from src.source_review import entity_review, source_vocabulary

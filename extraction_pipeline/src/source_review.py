@@ -209,15 +209,12 @@ def entity_review(unit, source, model_mentions, catalog):
     }
 
 
-def claim_review_flags(unit, label, lookup):
+def claim_review_flags(unit, label):
+    """Flags for a person to look at; since 27 Nov 2026 they hold nothing (step 8)."""
     text = unit["text"]
     flags = []
-    intros = []
-    for context in label["context_ids"]:  # unit ids since #45 (were local ids joined to a prefix)
-        if lookup[context]["text"].rstrip().endswith(":"):
-            intros.append(context)
-    if intros and label["label"] in {"stated_fact", "hedged_risk", "forward_looking"}:
-        flags.append("list_intro_dependency_boundary_review")
+    if label["label"] not in {"stated_fact", "hedged_risk", "forward_looking"}:
+        return flags
     if (
         label["label"] == "hedged_risk"
         and re.search(r"\bis subject to\b.*\b(?:laws|regulations)\b", text, re.I)
@@ -228,4 +225,4 @@ def claim_review_flags(unit, label, lookup):
         flags.append("mixed_existing_and_prospective_statement_review")
     if re.search(r"\b(?:causes|has required)\b.*\bmay\b", text, re.I):
         flags.append("current_cost_or_past_action_with_possible_future_review")
-    return flags, intros
+    return sorted(flags)
