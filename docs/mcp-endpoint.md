@@ -11,6 +11,7 @@ pip install -r requirements-dev.txt          # the MCP SDK is in there now
 
 python3 -m graphrag.mcp_server               # stdio, for an agent on the same machine
 python3 -m graphrag.mcp_server --transport streamable-http --port 8000
+python3 -m graphrag.mcp_server --mock        # no credentials, no graph
 ```
 
 It prints which arms it registered before it starts serving, so a missing credential is something you see at startup rather than mid-question:
@@ -136,7 +137,9 @@ run upward to fill the evidence envelope rather than outward to find anything...
 
 Do not treat a failure as "no evidence exists". An agent that abstains on an error abstains confidently and wrongly, and nothing in the transcript says why.
 
-A crash is masked to `Error executing tool <name>` with nothing after it, on purpose: a driver error can carry the Neo4j URI, and on Aura the instance id in it is also the username.
+An arm being **down** is reported loudly, because you must not read an outage as an absence of evidence — but only that it is down. What the driver said goes to the server log: `retrieve.py` folds the backend's own message into the error it raises, and a driver error names the host, whose instance id is the username on Aura.
+
+A crash in the server itself is masked to `Error executing tool <name>` with nothing after it, for the same reason.
 
 ## What is not here, and why
 
