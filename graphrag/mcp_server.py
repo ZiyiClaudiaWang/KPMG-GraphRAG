@@ -45,6 +45,7 @@ import argparse
 import functools
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -317,9 +318,13 @@ def main(argv: list[str] | None = None) -> None:
     # Redacted here too: this line lands in whatever log the host keeps, and
     # the raw status names the Neo4j URI, whose instance id is also the
     # username on Aura.
+    # To stderr, never stdout. On the stdio transport stdout *is* the JSON-RPC
+    # channel, and a plain line on it reaches the client as a malformed
+    # message — three parse errors in its log before the handshake even
+    # finishes. Every client recovers; a stricter one would not have to.
     backends.configure_from_env()
     for arm, state in _redacted_status().items():
-        print(f"{arm}: {state}", flush=True)
+        print(f"{arm}: {state}", file=sys.stderr, flush=True)
 
     server = build_server()
     if args.transport == "stdio":
