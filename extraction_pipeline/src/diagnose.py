@@ -19,13 +19,11 @@ Rule ids: C = step 2 clean, F = step 3 filter, S = step 4 segment (README rule t
 
 from __future__ import annotations
 
-import csv
 import random
 import re
 import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from pathlib import Path
 
 from . import clean as C
 from . import segment as S
@@ -102,8 +100,8 @@ CHECKS = [
     Check("S13_bullet_outside_list", "S13", "Unit from a bullet paragraph with no list_intro_id (no ':' intro, heading or 'the following' before the list). Mostly full sentences, which read alone.", "info"),
     Check("S13_fragment_bullet_no_intro", "S13", "Same, and the item is cut ('tariffs;', lower case, no end punctuation): it cannot be read alone."),
     Check("S13_colon_list_without_bullets", "S6, S13", "Paragraph ends in ':' and the next is prose, not a bullet or a table: an unbulleted list."),
-    Check("S9_risk_section_no_category", "S9", "Item 1A with 20+ units and no category heading: its Claims get no risk theme."),
-    Check("S9_unmapped_category", "S9", "Category heading not in config/risk_theme_map.csv: step 7a reports it unmapped."),
+    Check("S9_risk_section_no_category", "S9", "Item 1A with 20+ units and no category heading: its Claims get no heading group."),
+    Check("S9_unmapped_category", "S9", "Category heading not in config/risk_taxonomy/risk_category_map.csv: step 7a reports it unmapped."),
     Check("S2_split_after_abbr", "S2", "Split right after U.S./Inc./... because the next word is in OPENERS. Check that these are real sentence ends.", "info"),
 ]
 CHECK_IDS = [c.id for c in CHECKS]
@@ -205,9 +203,8 @@ def run() -> None:
     random.seed(0)
     cfg_clean, cfg_seg = settings()["clean"], settings()["segment"]
     rules = load_config("sections")
-    theme_map = Path(__file__).resolve().parents[1] / "config" / "risk_theme_map.csv"
-    with open(theme_map, encoding="utf-8", newline="") as fh:
-        mapped = {r["category_text"].strip().lower() for r in csv.DictReader(fh)}
+    from .risk_taxonomy import category_key, category_map
+    mapped = set(category_map())
 
     from .page_breaks import load_decisions
     decisions = load_decisions()
@@ -352,7 +349,7 @@ def run() -> None:
                     hit("S8_heading_after_heading", f"{prev_u['text']}  >  {text}", p, before, after)
                 if S.is_category_unit(u):
                     n_cat += 1
-                    key = text.rstrip(":").strip().lower()
+                    key = category_key(text)
                     if stype == "risk_factors" and key not in mapped:
                         unmapped[f"{f['ticker']}: {text.rstrip(':').strip()}"] += 1
                         hit("S9_unmapped_category", text, p)
@@ -527,7 +524,7 @@ def run() -> None:
           f"'no material changes'): {risk_stubs}; these need no theme.",
           f"- Item 1A sections with 20+ units and no category heading: {hits['keep']['S9_risk_section_no_category']} "
           "(their Claims get no theme).",
-          f"- Category headings not in `config/risk_theme_map.csv`: {len(unmapped)} distinct texts.", ""]
+          f"- Category headings not in `config/risk_taxonomy/risk_category_map.csv`: {len(unmapped)} distinct texts.", ""]
     if unmapped:
         L += [md_table(["category text", "times"], [[k, v] for k, v in unmapped.most_common(30)]), ""]
 

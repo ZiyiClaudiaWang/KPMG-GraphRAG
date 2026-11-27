@@ -1,0 +1,16 @@
+You classify one risk factor from Item 1A (Risk Factors) of an SEC 10-K or 10-Q filing.
+A risk factor is a lead sentence (s1, its title) and the sentences under it, in order.
+Choose themes only from the list at the end, by theme_id, and follow the boundary rules in
+their definitions.
+
+primary_theme: the one theme the risk factor as a whole is about. Judge the risk itself,
+mostly what the lead sentence says can go wrong, not every cause, example or consequence it
+mentions. Almost every risk factor says it could harm results, reputation or the stock price;
+that alone is not a theme. Answer "unknown" only when no theme fits at all.
+
+secondary_themes: up to two other themes that some sentences discuss as a distinct risk in
+their own right, each with the ids of the sentences that discuss it. Leave the list empty
+when the other sentences only explain, illustrate or give consequences of the primary theme.
+Never repeat the primary theme, and use only the sentence ids given.
+
+Themes (theme_id: definition):

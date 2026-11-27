@@ -39,6 +39,7 @@ in memory on every section, also the ones the filter drops; run it for a deeper 
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -51,7 +52,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
-from . import risk_factors
+from . import risk_factors, risk_taxonomy
 from .clean import ITEM_MARKER
 from .common import ROOT, Paths, checks_dir, data_dir, filings, log, read_csv, read_jsonl, settings, write_csv
 from .diagnose import BRAND, TABLE_TITLE, md_table
@@ -136,13 +137,23 @@ STEPS = [
                 (Paths.lead_review, "one row per lead; `rule_heading` rows the HTML does not confirm"),
                 (lambda: checks_dir("unit_repeats"), "`python -m src.report_unit_repeats`: repeats across "
                                                      "filings, before labelling")]},
-    {"id": "risk_factors", "name": "7a Risk categories (needs no labels)",
-     "results": lambda: [Paths.risk_categories()],
-     "inputs": lambda: [Paths.sentences(), CONFIG / "risk_theme_map.csv", CONFIG / "risk_themes.csv",
-                        SRC / "risk_factors.py"],
+    {"id": "risk_themes", "name": "4c Risk themes (paid, run on purpose)",
+     "results": lambda: [Paths.risk_themes()],
+     "inputs": lambda: [],            # never re-run by a default run: 7a reports risk factors it lacks
+     "checks": [(lambda: checks_dir("risk_themes") / "requests.csv",
+                 "one row per risk factor: its request, `reply_saved`, `truncated`"),
+                (Paths.risk_themes, "the model's primary and secondary themes per risk factor")]},
+    {"id": "risk_factors", "name": "7a Risk categories and themes (needs no labels)",
+     "results": lambda: [Paths.risk_categories(), Paths.risk_assignments()],
+     "inputs": lambda: [Paths.sentences(), Paths.risk_themes(), risk_taxonomy.folder(),
+                        SRC / "risk_factors.py", SRC / "risk_taxonomy.py"],
      "computed": "risk_categories.csv not written yet; the numbers here are computed from sentences.jsonl",
-     "checks": [(lambda: CONFIG / "risk_theme_map.csv", "add the unmapped category texts listed in this section"),
-                (Paths.risk_categories, "one row per category heading (written by step 7a)")]},
+     "checks": [(risk_taxonomy.category_map_path, "add the unmapped category texts listed in this section"),
+                (Paths.risk_categories, "one row per category heading (written by step 7a)"),
+                (risk_factors.checks_path, "are the categories complete? filter on `check` (year_gap, "
+                                           "summary_mismatch, risk_heading_below_1, suspect_category)"),
+                (risk_factors.factors_path, "one row per risk factor; filter on `review` (differs_from_reference, "
+                                            "overrules_heading, unknown, not_classified)")]},
 ]
 STEP_IDS = [s["id"] for s in STEPS]
 STEP_NAME = {s["id"]: s["name"] for s in STEPS}
@@ -289,6 +300,22 @@ def entity_catalog_numbers() -> tuple[dict, list, list]:
     if no_sub:
         notes.append(f"companies with no subsidiary in the catalog: {', '.join(no_sub)}")
     return m, notes, []
+
+
+def risk_themes_numbers() -> tuple[dict, list, list]:
+    m = {}
+    requests = checks_dir("risk_themes") / "requests.csv"
+    if requests.exists():
+        rows = list(csv.DictReader(open(requests, encoding="utf-8")))
+        m["risk_factors"] = len(rows)
+        m["distinct_requests"] = len({r["request_hash"] for r in rows})
+        m["truncated"] = sum(r["truncated"] == "True" for r in rows)
+    if Paths.risk_themes().exists():
+        m["answered"] = sum(1 for _ in read_jsonl(Paths.risk_themes()))
+    ledger = Paths.step_usage("risk_themes")
+    if ledger.exists():
+        m["cost_usd"] = round(sum(r.get("estimated_cost_usd") or 0 for r in read_jsonl(ledger)), 4)
+    return m, [], []
 
 
 def page_breaks_numbers() -> tuple[dict, list, list]:
@@ -474,19 +501,44 @@ def segment_numbers(units: list[dict]) -> tuple[dict, list, list]:
 def risk_numbers(units: list[dict]) -> tuple[dict, list, list]:
     if not units:
         return {}, [], []
-    categories, assignments = risk_factors.assign(units, risk_factors.theme_map(risk_factors.theme_library()))
+    categories, assignments, factors = risk_factors.build(units)
     status = Counter(c["map_status"] for c in categories)
     unmapped = Counter((c["ticker"], c["category_text"]) for c in categories if c["map_status"] == "unmapped")
-    with_theme = sum(bool(a["risk_ids"]) for a in assignments)
-    m = {"categories": len(categories), "mapped": status["mapped"], "not_a_theme": status["not_a_theme"],
+    with_group = sum(bool(a["heading_risk_group"]) for a in assignments)
+    themed = Counter(a["risk_theme_status"] for a in assignments)
+    in_factor = sum(bool(a["risk_factor_id"]) for a in assignments)
+    review = Counter(x for f in factors for x in f["review"].split(";") if x)
+    m = {"categories": len(categories), **{f"categories_{k}": status[k] for k in risk_taxonomy.MAP_STATUSES},
          "unmapped": status["unmapped"], "unmapped_texts": len(unmapped),
-         "item_1a_units": len(assignments), "item_1a_units_with_theme": with_theme,
-         "item_1a_with_theme_pct": pct(with_theme, len(assignments))}
-    lines = []
+         "item_1a_units": len(assignments), "item_1a_units_with_group": with_group,
+         "item_1a_with_group_pct": pct(with_group, len(assignments)),
+         "item_1a_in_risk_factor_pct": pct(in_factor, len(assignments)),
+         "risk_factors": len(factors),
+         **{f"risk_factors_{k}": review[k] for k in ("not_classified", "unknown", "differs_from_reference",
+                                                      "overrules_heading")},
+         **{f"units_{k}": themed[k] for k in risk_factors.THEME_STATUSES}}
+    checks = Counter(r["check"] for r in risk_factors.category_checks(units, categories))
+    reasons = risk_factors.no_group_reasons(units, categories, assignments)
+    m.update({f"check_{k}": checks[k] for k, _ in risk_factors.CATEGORY_CHECKS})
+    m.update({f"no_group_{k}": reasons[k] for k in risk_factors.NO_GROUP_REASONS})
+    primary = Counter(f["primary_theme"] for f in factors if f["primary_theme"])
+    lines = ["**Item 1A units by risk theme status** (themes come from step 4c)", "",
+             md_table(["status", "units", "% of Item 1A units"],
+                      [[k, f"{themed[k]:,}", pct(themed[k], len(assignments))] for k in risk_factors.THEME_STATUSES]),
+             "", "**Why Item 1A units have no heading group**", "",
+             md_table(["reason", "units", "% of Item 1A units"],
+                      [[k, f"{reasons[k]:,}", pct(reasons[k], len(assignments))]
+                       for k in risk_factors.NO_GROUP_REASONS]), "",
+             "**Are the categories complete?** (cases in `category_checks.csv`)", "",
+             md_table(["check", "cases", "what it means"],
+                      [[k, checks[k], why] for k, why in risk_factors.CATEGORY_CHECKS]), ""]
+    if primary:
+        lines += ["**Primary themes** (risk factors)", "",
+                  md_table(["theme", "risk factors"], [[t, n] for t, n in primary.most_common()]), ""]
     if unmapped:
-        lines = ["Unmapped category texts (add them to `config/risk_theme_map.csv`):", "",
-                 md_table(["ticker", "category text", "filings"],
-                          [[t, x, n] for (t, x), n in sorted(unmapped.items())]), ""]
+        lines += ["Unmapped category texts (add them to `config/risk_taxonomy/risk_category_map.csv`):", "",
+                  md_table(["ticker", "category text", "filings"],
+                           [[t, x, n] for (t, x), n in sorted(unmapped.items())]), ""]
     return m, [], lines
 
 
@@ -498,7 +550,7 @@ UNIT_CHECKS = [
     ("very_long", "Sent to the LLM, over 1,500 characters: a missed split (often a ';' list in one sentence)."),
     ("single_pipe", "Sent to the LLM with one '|': a two-column table row."),
     ("long_heading", "Heading over 100 characters (table titles left out): often a sentence, never sent to the LLM."),
-    ("risk_section_no_category", "Item 1A with 20+ units and no category heading: its Claims get no risk theme."),
+    ("risk_section_no_category", "Item 1A with 20+ units and no category heading: its Claims get no heading group."),
 ]
 RATE_CHECKS = ["lowercase_start", "no_end_punct", "very_long", "single_pipe"]   # per 1,000 units to the LLM
 
@@ -660,6 +712,7 @@ def build(last: dict | None, before: dict | None) -> tuple[dict, dict, list[dict
     numbers = {
         "fetch": fetch_numbers(), "subsidiaries": subsidiaries_numbers(),
         "entity_catalog": entity_catalog_numbers(), "page_breaks": page_breaks_numbers(),
+        "risk_themes": risk_themes_numbers(),
         "clean": clean_numbers(), "filter": filter_numbers(), "headings": headings_numbers(),
         "segment": segment_numbers(units), "risk_factors": risk_numbers(units),
     }

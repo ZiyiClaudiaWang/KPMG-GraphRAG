@@ -20,11 +20,12 @@ FIXTURES = HERE / "fixtures"
 TMP = Path(tempfile.mkdtemp(prefix="pipeline-test-"))
 os.environ["PIPELINE_DATA_DIR"] = str(TMP)
 os.environ["PIPELINE_FILINGS"] = str(FIXTURES / "filings.yaml")
-os.environ["PIPELINE_RISK_THEME_MAP"] = str(FIXTURES / "risk_theme_map.csv")
+os.environ["PIPELINE_RISK_CATEGORY_MAP"] = str(FIXTURES / "risk_category_map.csv")
 os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
 shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
-from src import build_claims, clean, filter_sections, label, load, risk_factors, segment, validate  # noqa: E402
+from src import (build_claims, clean, filter_sections, label, load, risk_factors, risk_themes,  # noqa: E402
+                 segment, validate)
 from src.clean import ONE_FOR_ONE  # noqa: E402
 from src import common  # noqa: E402
 from src.common import Paths, read_jsonl  # noqa: E402
@@ -257,6 +258,23 @@ class EndToEnd(unittest.TestCase):
         finally:
             restore()
         cls.errors = validate.run()
+
+        def themes(payload, request):
+            """Every risk factor: competition, and costs_pricing_margins on its second sentence."""
+            EndToEnd.theme_requests.append(payload["risk_factor"])
+            second = ["s2"] if len(payload["risk_factor"]) > 1 else []
+            return {"result": {"primary_theme": "competition", "secondary_themes": [
+                {"theme_id": "costs_pricing_margins", "sentence_ids": second},
+                {"theme_id": "competition", "sentence_ids": ["s1"]}]}}       # repeats the primary: dropped
+        cls.theme_requests = []
+        restore = use_fake_openai(themes)
+        try:
+            risk_themes.run()
+            cls.theme_calls = len(FakeOpenAI.calls)
+            risk_themes.run()                               # second run: from the saved replies
+            cls.theme_rerun_calls = len(FakeOpenAI.calls) - cls.theme_calls
+        finally:
+            restore()
         risk_factors.run()
         build_claims.run()
         load.run(dry_run=True)
@@ -309,7 +327,8 @@ class EndToEnd(unittest.TestCase):
             self.assertTrue(required <= set(c))
             self.assertEqual(c["extraction_status"], "needs_review")
         body = next(c for c in self.claims if c["quote"].startswith("Competitors may cut prices."))
-        self.assertEqual(body["risk_ids"], ["macro_industry", "business_operations"])   # from "Industry Risks"
+        self.assertEqual(body["heading_risk_group"], ["external", "strategy_market"])   # from "Industry Risks"
+        self.assertEqual(body["risk_category_text"], "Industry Risks")
         self.assertFalse(body["risk_summary"])
         self.assertEqual(body["quote"], body["source_fragments"][0]["quote"])
         self.assertEqual(body["provenance"]["section_path"], "Part I Item 1A > Industry Risks")
@@ -365,16 +384,45 @@ class EndToEnd(unittest.TestCase):
     def test_load_preview_written(self):
         self.assertIn("MERGE (s)-[x:SUPPORTS", Paths.cypher().read_text(encoding="utf-8"))
 
-    def test_claims_concern_risk_themes(self):
+    def test_risk_themes_requests(self):
+        self.assertTrue(self.theme_calls)
+        self.assertEqual(self.theme_rerun_calls, 0)                       # saved replies are reused
+        for sentences in self.theme_requests:                              # text only, no unit ids
+            self.assertEqual([s["id"] for s in sentences], [f"s{k + 1}" for k in range(len(sentences))])
+        rows = list(read_jsonl(Paths.risk_themes()))
+        self.assertEqual(len(rows), self.theme_calls)
+        for r in rows:
+            self.assertNotIn("competition", [s["theme_id"] for s in r["secondary_themes"]])
+            self.assertTrue(r["notes"])                                     # the repeat was noted
+
+    def test_claims_have_risk_themes(self):
         rows = load.build_rows()
-        self.assertEqual({r["risk_id"] for r in rows["risk_factors"]}, {"macro_industry", "business_operations"})
-        under = [c for c in rows["claims"] if c["risk_ids"]]
+        self.assertEqual(len(rows["risk_themes"]), 32)
+        self.assertEqual(len(rows["risk_groups"]), 7)
+        leads = {u["unit_id"]: u for u in self.units if u["lead_source"] and u["section_type"] == "risk_factors"}
+        under = [c for c in rows["claims"] if c["risk_themes"]]
         self.assertTrue(under)
+        for c in under:
+            primary = [t for t in c["risk_themes"] if t["rank"] == "primary"]
+            self.assertEqual([(t["theme_id"], t["scope"], t["source"]) for t in primary],
+                             [("competition", "risk_factor", "llm")])
+            self.assertTrue(primary[0]["agrees_with_heading"])            # strategy_market is a heading group
+            self.assertIn(c["risk_factor_id"], leads)
+            self.assertEqual(c["risk_theme_status"], "classified")
+        secondary = [c for c in rows["claims"] if any(t["rank"] == "secondary" for t in c["risk_themes"])]
+        for c in secondary:                                                # only on the sentence given (s2)
+            self.assertNotEqual(c["claim_id"], c["risk_factor_id"])
         outside = [c for c in rows["claims"] if c["provenance"]["section_key"] != "part-i-item-1a"]
-        self.assertTrue(outside and all(c["risk_ids"] == [] for c in outside))     # MD&A: no theme
-        self.assertIn("MERGE (c)-[y:CONCERNS_RISK", Paths.cypher().read_text(encoding="utf-8"))
+        self.assertTrue(outside and all(c["risk_themes"] == [] and c["risk_theme_status"] is None
+                                        for c in outside))                 # MD&A: no theme
+        cypher = Paths.cypher().read_text(encoding="utf-8")
+        self.assertIn("MERGE (c)-[y:HAS_RISK_THEME", cypher)
+        self.assertIn("MERGE (k)-[x:IN_RISK_GROUP", cypher)
+        self.assertNotIn("RiskFactor", cypher)
         categories = list(csv.DictReader(open(Paths.risk_categories(), encoding="utf-8")))
-        self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "mapped")])
+        self.assertEqual([(c["category_text"], c["map_status"]) for c in categories], [("Industry Risks", "group")])
+        factors = list(csv.DictReader(open(risk_factors.factors_path(), encoding="utf-8")))
+        self.assertEqual(len(factors), len(leads))
 
     def test_claims_take_leads_from_step_4(self):
         # patch 7c: is_lead_sentence and lead_unit_id / lead_source come from the step 4 unit,

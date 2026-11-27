@@ -33,9 +33,11 @@ from .headings import HeadingPath
 # v14 (26 Nov 2026): a run-in heading whose level the HTML does not give (not listed, or only the
 #     sibling's level) is at least one level below the line heading it sits under, so it replaces
 #     only another run-in (NTAP "Financial and savings programs." was replacing its parent heading).
+# v15 (26 Nov 2026): a styled sentence of its own followed by a sub-heading is a lead (step 4b;
+#     MSFT "We face intense competition ..." then "Competition in the technology sector").
 # A code change that leaves every unit the same (such as splitting segment.py into this package)
 # keeps the version.
-SEGMENTATION_VERSION = "kelly_sentence_v14"
+SEGMENTATION_VERSION = "kelly_sentence_v15"
 
 
 def section_label(sec: dict) -> str:

@@ -30,7 +30,7 @@ python run_pipeline.py --steps risk_factors,build_claims
 python run_pipeline.py --steps load --dry-run
 ```
 
-Run these in order and stop if validation exits with an error. The standalone validator returns a failing exit status for label errors. It also writes a review queue. The risk step maps recognized categories to themes using `config/risk_theme_map.csv` and `config/risk_themes.csv`. The builder writes `output/claims.jsonl` and leaves held units out. The separate Exhibit 21 path produces `output/subsidiaries.jsonl`.
+Run these in order and stop if validation exits with an error. The standalone validator returns a failing exit status for label errors. It also writes a review queue. The risk step (7a) maps each Item 1A category heading to groups using `config/risk_taxonomy/risk_category_map.csv` and puts the themes of step 4c (`risk_themes`, paid, run on purpose) on every unit of a risk factor. The builder writes `output/claims.jsonl` and leaves held units out. The separate Exhibit 21 path produces `output/subsidiaries.jsonl`.
 
 A Claim is one statement at one source position. Its `claim_id` is the `unit_id`, derived from accession, section key and raw spans. Compare `output/claim_id_report.json` between builds before relying on older Claim references. Repeated wording can belong to several source positions or filings, each with its own citation.
 

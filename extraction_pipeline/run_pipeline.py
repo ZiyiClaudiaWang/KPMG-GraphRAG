@@ -16,21 +16,27 @@ Steps, in order:
   headings      heading_levels.jsonl: how the sub-headings of a section nest, from the
                 filing's EDGAR HTML (no LLM; needs SEC_USER_AGENT to download the HTML once)
   segment       sentences.jsonl: numbered sentences and list groups
+  risk_themes   risk_themes.jsonl: primary and secondary themes of each Item 1A risk factor (OpenAI)
+  risk_factors  risk_assignments.jsonl: each Item 1A unit's category heading, its group (no LLM)
+                and the themes of its risk factor (from risk_themes)
   label         labels.jsonl: one label per sentence (OpenAI)
   validate      errors.jsonl: every sentence has exactly one valid label
-  risk_factors  risk_categories.csv: risk category and themes of each Item 1A sentence
   build_claims  claims.jsonl
   load          Neo4j (Claims and subsidiaries)
 
   python run_pipeline.py --steps subsidiaries,load --dry-run   subsidiaries only, no database
 
-A run that includes any step up to segment (or risk_factors) ends with the review report,
+A run that includes any step up to risk_factors ends with the review report,
 data/checks/report/report.md (python -m src.report): stale steps, numbers changed since the last
 report, and the check files to open.
 
-page_breaks is not in a default run: it costs money, and its output file, once written, is
-read by clean on every later run. Run it on purpose:
+page_breaks and risk_themes are not in a default run: they cost money, and their output file,
+once written, is read by the next step on every later run. Run them on purpose:
   python run_pipeline.py --steps page_breaks,clean,filter          (clean must have run once)
+  python run_pipeline.py --steps risk_themes,risk_factors --dry-run   (requests and cost only)
+  python run_pipeline.py --steps risk_themes,risk_factors --limit 3   (then without --limit)
+risk_themes and risk_factors need only step 4's output, so they run before label; Claims pick
+the themes up by unit_id in build_claims.
 """
 
 from __future__ import annotations
@@ -40,23 +46,24 @@ import sys
 import time
 
 from src import (build_claims, clean, entity_catalog, fetch, filter_sections, headings, label, load,
-                 page_breaks, report, risk_factors, segment, subsidiaries, validate)
+                 page_breaks, report, risk_factors, risk_themes, segment, subsidiaries, validate)
 
-STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings", "segment", "label",
-         "validate", "risk_factors", "build_claims", "load"]
-OPT_IN = {"page_breaks"}       # paid; only when named in --steps
+STEPS = ["fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings", "segment",
+         "risk_themes", "risk_factors", "label", "validate", "build_claims", "load"]
+OPT_IN = {"page_breaks", "risk_themes"}       # paid; only when named in --steps
 # Steps the review report covers (no labels needed): a run with any of them ends with the report.
 REPORTED = {"fetch", "subsidiaries", "entity_catalog", "page_breaks", "clean", "filter", "headings",
-            "segment", "risk_factors"}
+            "segment", "risk_themes", "risk_factors"}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--steps", help="comma-separated steps to run, e.g. clean,filter")
     parser.add_argument("--until", choices=STEPS, help="run from the first step up to this one")
-    parser.add_argument("--dry-run", action="store_true", help="label and load without API or database")
+    parser.add_argument("--dry-run", action="store_true", help="paid steps and load without API or database")
     parser.add_argument("--filing", metavar="ACCESSION", help="label: only call the API for this filing")
-    parser.add_argument("--limit", type=int, help="label: at most this many API batches")
+    parser.add_argument("--limit", type=int, help="paid steps: at most this many new API requests")
+    parser.add_argument("--workers", type=int, help="label, risk_themes: requests in flight at once")
     parser.add_argument("--from-db", metavar="FOLDER", help="fetch: export from the database via this folder")
     args = parser.parse_args()
 
@@ -78,7 +85,9 @@ def main() -> None:
         "filter": filter_sections.run,
         "headings": headings.run,
         "segment": segment.run,
-        "label": lambda: label.run(dry_run=args.dry_run, filing=args.filing, limit=args.limit),
+        "risk_themes": lambda: risk_themes.run(dry_run=args.dry_run, limit=args.limit, workers=args.workers),
+        "label": lambda: label.run(dry_run=args.dry_run, filing=args.filing, limit=args.limit,
+                                   workers=args.workers),
         "validate": validate.run,
         "risk_factors": risk_factors.run,
         "build_claims": build_claims.run,

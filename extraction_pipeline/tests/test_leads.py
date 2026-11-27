@@ -34,6 +34,13 @@ LINES = [
     (f'<p style="{BIG}">CAPITAL RESOURCES</p>', "CAPITAL RESOURCES"),
     ("<p>We hold cash and short-term investments of $10 billion.</p>",
      "We hold cash and short-term investments of $10 billion."),
+    # a styled sentence of its own, then a sub-heading: a lead too (MSFT)
+    (f'<p style="{BOLD}">We face intense competition across all of our markets.</p>',
+     "We face intense competition across all of our markets."),
+    ('<p style="font-style:italic">Competition among platform ecosystems</p>',
+     "Competition among platform ecosystems"),
+    ("<p>Our rivals build their own platforms.</p>", "Our rivals build their own platforms."),
+    (f'<p style="{BIG}">OTHER MATTERS</p>', "OTHER MATTERS"),
     # a run-in heading ("Flexible Work.") is a heading, not a lead
     (f'<p><span style="{BOLD}">Flexible Work.</span> We let many employees work from home.</p>',
      "Flexible Work. We let many employees work from home."),
@@ -80,7 +87,8 @@ class Leads(unittest.TestCase):
     def test_leads_found_in_the_html(self):
         self.assertEqual([(x["source"], x["text"]) for x in self.leads],
                          [("html", "We are subject to counterparty default risks."),
-                          ("html_runin", "Competition in the technology sector may harm our business.")])
+                          ("html_runin", "Competition in the technology sector may harm our business."),
+                          ("html", "We face intense competition across all of our markets.")])
         self.assertEqual(self.unmatched, 0)
 
     def test_lead_units_and_the_units_under_them(self):
@@ -93,6 +101,13 @@ class Leads(unittest.TestCase):
         self.assertEqual(runin["lead_source"], "html_runin")
         for text in ("Our competitors are many and well funded.", "Prices may fall as a result of this competition."):
             self.assertEqual(self.by_text[text]["lead_unit_id"], runin["unit_id"])
+
+    def test_a_lead_before_a_sub_heading(self):
+        lead = self.by_text["We face intense competition across all of our markets."]
+        self.assertEqual(lead["lead_source"], "html")
+        self.assertEqual(self.by_text["Competition among platform ecosystems"]["role"], "heading")
+        # step 4's lead_unit_id stops at the sub-heading (decided 26 Nov); step 4c's risk factor does not
+        self.assertIsNone(self.by_text["Our rivals build their own platforms."]["lead_unit_id"])
 
     def test_a_heading_ends_the_scope(self):
         unit = self.by_text["We hold cash and short-term investments of $10 billion."]
@@ -127,8 +142,9 @@ class Leads(unittest.TestCase):
 
     def test_html_only_leads_leave_the_coverage(self):
         lead_rows = [r for r in self.diff if r["kind"] == "html_only" and r.get("lead") == "yes"]
-        self.assertEqual([r["text"] for r in lead_rows], ["We are subject to counterparty default risks."])
-        self.assertEqual(self.info["html_only_lead"], 1)
+        self.assertEqual([r["text"] for r in lead_rows], ["We are subject to counterparty default risks.",
+                                                          "We face intense competition across all of our markets."])
+        self.assertEqual(self.info["html_only_lead"], 2)
 
 
 class RuleFallback(unittest.TestCase):
