@@ -1,4 +1,4 @@
-"""Settings, prices and request fields of the small LLM steps (2b)."""
+"""Settings, prices and request fields of the LLM steps (2b, 5b; 7 and 8b request fields)."""
 
 import unittest
 
@@ -25,6 +25,18 @@ class LlmCostTest(unittest.TestCase):
         new = llm_cost.model_params({}, {"model": "gpt-5.4", "reasoning_effort": "low",
                                          "max_reasoning_tokens": 2000}, 100)
         self.assertEqual(new, {"max_completion_tokens": 2100, "reasoning_effort": "low"})
+
+    def test_label_request_fields_by_model_family(self):
+        """Steps 7 / 8b: reasoning keys reach reasoning models only, so a gpt-4.1-mini request
+        (and its request hash) is the same with or without them in settings."""
+        from src.label.requests import model_fields
+        base = {"temperature": 0, "reasoning_effort": "low", "max_reasoning_tokens": 2000}
+        old = model_fields({"max_completion_tokens": 2000}, dict(base, model="gpt-4.1-mini"))
+        self.assertEqual(old, {"max_completion_tokens": 2000, "temperature": 0})
+        new = model_fields({"max_completion_tokens": 2000}, dict(base, model="gpt-5.4-mini"))
+        self.assertEqual(new, {"max_completion_tokens": 4000, "reasoning_effort": "low"})
+        none = model_fields({"max_completion_tokens": 2000}, {"model": "gpt-5-mini", "temperature": 0})
+        self.assertEqual(none, {"max_completion_tokens": 2000})
 
 
 if __name__ == "__main__":

@@ -46,7 +46,7 @@ from .common import PROMPTS_DIR, Paths, Progress, checks_dir, log, read_jsonl, s
 from .label.requests import plan_batches
 from .label.reuse import reuse_plan
 from .llm.client import Client, StopRun, canonical, parse_reply
-from .llm.cost import step_cfg
+from .llm.cost import REASONING_GUESS, is_reasoning, step_cfg
 from .validate import CLAIM_TYPES, held_ids, reviewed_labels
 
 STEP = "extract"
@@ -159,6 +159,8 @@ def estimate(plans: list[dict], cfg: dict) -> tuple[float, float]:
         return float("nan"), float("nan")
     inp = sum(len(canonical(p["request"]).encode("utf-8")) / 4 for p in plans)
     typical = sum(len(p["batch"]["unit_ids"]) for p in plans) * cfg["answer_tokens_per_sentence"]
+    if is_reasoning(cfg["model"]):            # the request's max_completion_tokens already has the room
+        typical += REASONING_GUESS.get(cfg.get("reasoning_effort") or "none", 0) * len(plans)
     worst = sum(p["request"]["max_completion_tokens"] for p in plans)
     return (inp * p_in + typical * p_out) / 1e6, (inp * p_in + worst * p_out) / 1e6
 

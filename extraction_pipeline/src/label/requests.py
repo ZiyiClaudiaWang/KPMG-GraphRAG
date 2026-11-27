@@ -10,6 +10,7 @@ from .. import source_review
 from ..common import PROMPTS_DIR, Paths, filings, load_config, read_jsonl, source_text, unit_id
 from ..entities import annotation as entity_annotation
 from ..llm.client import canonical, digest
+from ..llm.cost import is_reasoning
 from ..validate import LABEL_DEFAULTS, LABELS, SUBJECT_SCOPES  # noqa: F401  (LABEL_DEFAULTS re-exported)
 
 STEP = "label"
@@ -157,9 +158,20 @@ def build_request(batch: dict, units: dict[str, dict], cfg: dict, system: str, s
         "max_completion_tokens": cfg["max_completion_tokens"],
         "store": False,                          # OpenAI does not keep the request
     }
-    # Only these model families take temperature; newer reasoning models may reject it.
+    model_fields(request, cfg)
+    return request
+
+
+def model_fields(request: dict, cfg: dict) -> dict:
+    """temperature for gpt-4.1 / gpt-4o; reasoning_effort and max_reasoning_tokens of output room
+    for reasoning models (gpt-5*, o*). Other models get neither, so a gpt-4.1-mini request, and its
+    request hash, is unchanged by the reasoning keys."""
     if cfg["model"].startswith(("gpt-4.1", "gpt-4o")):
         request["temperature"] = cfg["temperature"]
+    elif is_reasoning(cfg["model"]):
+        if cfg.get("reasoning_effort"):
+            request["reasoning_effort"] = cfg["reasoning_effort"]
+        request["max_completion_tokens"] += int(cfg.get("max_reasoning_tokens") or 0)
     return request
 
 

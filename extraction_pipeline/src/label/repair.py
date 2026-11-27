@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from .. import source_review
 from ..llm.client import canonical, digest, parse_reply
-from .requests import (batch_numbers, context_units, entity_catalog, label_fields, request_key,
+from .requests import (batch_numbers, model_fields, context_units, entity_catalog, label_fields, request_key,
                        response_schema, source_index, system_prompt)
 
 
@@ -49,8 +49,7 @@ def plan_repair(gap_ids: list[str], gaps: dict[str, str], units: list[dict], pla
                             {"role": "user", "content": canonical(payload)}],
                "response_format": {"type": "json_schema", "json_schema": schema},
                "max_completion_tokens": cfg["max_completion_tokens"], "store": False}
-    if cfg["model"].startswith(("gpt-4.1", "gpt-4o")):
-        request["temperature"] = cfg["temperature"]
+    model_fields(request, cfg)
     identity = {"version": REPAIR_VERSION, "batch_request_hashes": [p["request_hash"] for p in plans],
                 "request": request, "targets": targets, "selected_units": selected, "contexts": contexts,
                 "source_metadata": [{k: v for k, v in sources[(u["accession_number"], u["section_key"])].items()
