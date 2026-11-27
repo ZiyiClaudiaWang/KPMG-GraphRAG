@@ -20,12 +20,32 @@ from graphrag import contract, mcp_server  # noqa: E402
 
 ENVELOPE = [{
     "rank": 1,
-    "score": 1.0,
-    "text": "Total revenue was 82,886.",
-    "section_id": "sec-1",
     "chunk_id": None,
-    "metadata": {"fact_id": None, "trace_id": "t-1", "hops": 3},
+    "section_id": "sec-1",
+    "text": "We face risks from cybersecurity incidents.",
+    "quote": "We face risks from cybersecurity incidents.",
+    "score": 1.0,
+    "section": "Part I Item 1A",
+    "ticker": "MSFT",
+    "cik": "0000789019",
+    "company_name": "MICROSOFT CORP",
+    "form": "10-K",
+    "accession_number": "0000950170-25-100235",
+    "filing_date": "2025-07-30",
+    "reporting_period_end": "2025-06-30",
+    "source_url": None,
+    "chunking_version": None,
+    "extraction_version": "claims-v1",
+    "index_version": "neo4j-v1",
+    # Arm-specific keys the published schema does not name. If declaring a
+    # schema trimmed these, the endpoint would hand out a different envelope
+    # than the arm returned.
+    "metadata": {"trace_id": "t-1", "hops": 3, "section_title": "Risk Factors"},
 }]
+
+# The stub stands in for an arm, so what it returns has to be something an arm
+# could have returned.
+contract.validate_evidence(ENVELOPE[0])
 
 
 @pytest.fixture
@@ -118,6 +138,31 @@ def test_cypher_is_not_published(server):
     import asyncio
     names = {t.name for t in asyncio.run(server.list_tools())}
     assert "cypher_search" not in names
+
+
+def test_the_published_schema_is_the_contract_envelope(server):
+    """A tool returning a bare dict publishes {"type": "object"}, which tells
+    a consumer nothing. The Agent team asked for the contract first."""
+    import asyncio
+    tools = {t.name: t for t in asyncio.run(server.list_tools())}
+
+    out = tools["graph_search"].output_schema
+    assert sorted(out["properties"]) == ["arm", "count", "graphrag_commit", "results"]
+
+    published = set(out["$defs"]["Evidence"]["properties"])
+    assert published == set(contract.EVIDENCE_FIELDS), (
+        "the published schema and the envelope have drifted: "
+        f"{published ^ set(contract.EVIDENCE_FIELDS)}"
+    )
+
+
+def test_output_validation_does_not_trim_the_envelope(server, stub_arms):
+    """metadata keys differ by arm. If declaring a schema dropped the ones it
+    does not name, the endpoint would quietly return a different envelope than
+    the arm did — which is the whole thing it promises not to do."""
+    import asyncio
+    result = asyncio.run(server.call_tool("graph_search", {"query": "x"}))
+    assert result.structured_content["results"] == ENVELOPE
 
 
 def test_a_refusal_keeps_its_reason(server, monkeypatch):

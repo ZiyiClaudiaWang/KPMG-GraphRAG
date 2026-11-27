@@ -46,7 +46,7 @@ import functools
 import os
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 from . import backends, contract, vocabulary
 
@@ -91,6 +91,61 @@ def commit() -> str:
     return out.stdout.strip() if out.returncode == 0 else "unknown"
 
 
+class Evidence(TypedDict):
+    """One item of the contract envelope, exactly as an arm returns it.
+
+    Declared so the endpoint publishes a real output schema. A tool that
+    returns a bare dict publishes `{"type": "object"}`, which tells a consumer
+    nothing — and the first thing the Agent team asked for was the contract.
+
+    `contract.EVIDENCE_FIELDS` is the source of truth and a test holds this to
+    it field for field, so the published schema cannot drift from the envelope
+    it describes.
+
+    `metadata` stays a free-form mapping on purpose: its keys differ by arm
+    (`fact_id`, `concept` and `dimensions` on the structured arm, `hops` and
+    `section_title` on the graph arm), and pinning them here would either go
+    stale or quietly drop the ones not listed.
+    """
+
+    rank: int
+    chunk_id: str | None
+    section_id: str | None
+    text: str
+    quote: str | None
+    score: float
+    section: str | None
+    ticker: str | None
+    cik: str
+    company_name: str
+    form: str
+    accession_number: str
+    filing_date: str
+    reporting_period_end: str | None
+    source_url: str | None
+    chunking_version: str | None
+    extraction_version: str
+    index_version: str
+    metadata: dict[str, Any]
+
+
+class SearchResponse(TypedDict):
+    """What a search tool returns: the envelope, and the stamp beside it."""
+
+    results: list[Evidence]
+    count: int
+    arm: str
+    graphrag_commit: str
+
+
+class FiltersResponse(TypedDict):
+    """What `describe_filters` returns."""
+
+    filters: dict[str, dict[str, list[str]]]
+    arms: dict[str, str]
+    graphrag_commit: str
+
+
 def _redacted_status() -> dict[str, str]:
     """Which arms are configured, without saying what they are configured with.
 
@@ -115,7 +170,7 @@ def _redacted_status() -> dict[str, str]:
     return safe
 
 
-def _response(results: list[dict], arm: str) -> dict[str, Any]:
+def _response(results: list[dict], arm: str) -> SearchResponse:
     """The arm's evidence, untouched, with the stamp beside it."""
     return {
         "results": results,
@@ -130,7 +185,7 @@ def graph_search(
     filters: dict | None = None,
     top_k: int = 10,
     trace_id: str | None = None,
-) -> dict[str, Any]:
+) -> SearchResponse:
     """Search claims extracted from filing prose.
 
     Returns the sentence a filer wrote, with `section_id` naming where it came
@@ -150,7 +205,7 @@ def structured_search(
     filters: dict | None = None,
     top_k: int = 10,
     trace_id: str | None = None,
-) -> dict[str, Any]:
+) -> SearchResponse:
     """Search the XBRL fact table.
 
     Returns a tagged number with its concept, period and dimensions, and
@@ -165,7 +220,7 @@ def structured_search(
     )
 
 
-def describe_filters() -> dict[str, Any]:
+def describe_filters() -> FiltersResponse:
     """What each arm does with every filter key it is offered.
 
     `applied` reaches the query and narrows the result. `ignored` is accepted

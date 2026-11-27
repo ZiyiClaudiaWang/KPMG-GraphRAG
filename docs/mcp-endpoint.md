@@ -76,6 +76,30 @@ The arm's own envelope, item for item, under `results`. Nothing is renamed, resh
 
 `graphrag_commit` is the commit that served the call — same key the round 1 result files use. Eval already lags `main`, and with a second agent on the same endpoint there would otherwise be three parties disagreeing about which version produced a result. Quote it with any number you report.
 
+**The output schema is published, so you can generate against it.** Each `results` item is the full contract envelope — all nineteen fields, held to `contract.EVIDENCE_FIELDS` by a test, so the schema cannot drift from the envelope it describes:
+
+```
+rank · chunk_id · section_id · text · quote · score · section · ticker · cik
+company_name · form · accession_number · filing_date · reporting_period_end
+source_url · chunking_version · extraction_version · index_version · metadata
+```
+
+`metadata` is deliberately an open mapping: its keys differ by arm — `fact_id`, `concept`, `dimensions`, `period_start`, `period_end`, `value_num` on the structured arm; `hops` and `section_title` on the graph arm — and both carry `trace_id`, always present and null when you send none. Pinning those keys in the schema would either go stale or silently drop the ones not listed. Nothing is trimmed on the way out; there is a test for that too.
+
+## Hybrid retrieval
+
+**There is no hybrid arm, and no routing between the two.** Each tool is one retrieval strategy, and choosing between them is the caller's decision today — `graph_search` for what a company said, `structured_search` for what it reported. A question needing both takes two calls, and composing the two sets of evidence is the agent's job.
+
+Hybrid is scoped on #105/#106 and is a freeze decision rather than built work. When the GraphRAG-owned agent lands (#108), it joins this server as a fourth tool and *that* is where tool selection lives — so an agent calling it gets our routing rather than writing its own. The arms stay exposed alongside it, because Eval score them directly.
+
+`cypher_search` — generated Cypher — is a third strategy, not a hybrid one, and is not exposed yet. See below.
+
+## Integration testing
+
+The stdio transport works today: point an MCP client at `python3 -m graphrag.mcp_server` with the environment above and all three tools answer. What it needs is the repo and the credentials, so the practical question is not whether the endpoint works but whose machine it runs on.
+
+Until hosting is settled, the two ways to test against real data are: run it yourself with credentials shared out of band, or run against the mock arms, which need neither — `mock/mock_retrieval_tools.py` returns the same envelope with three fixed Microsoft rows, and since #103 the mock's shape matches the real arm's field for field.
+
 ## Errors
 
 **An empty `results` means the arm looked and found nothing. Anything else raises.** A refused filter, an unconfigured arm, a query or `top_k` outside the contract — all of them come back as a `ToolError` whose text is the reason:
