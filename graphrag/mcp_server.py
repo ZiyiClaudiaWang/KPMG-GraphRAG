@@ -399,6 +399,28 @@ def _without_the_driver_text(message: str) -> str:
     )
 
 
+def _mock_corpus(mock) -> dict:
+    """The one filing the mock stands on, described the same way as a real one."""
+    filing = mock._FILING
+    return {
+        "filers": [{
+            "ticker": filing["ticker"],
+            "cik": filing["cik"],
+            "company_name": filing["company_name"],
+            "forms": [filing["form"]],
+            "filings": 1,
+            "fiscal_years": [2026],
+            "reporting_period_end": {"earliest": filing["reporting_period_end"],
+                                     "latest": filing["reporting_period_end"]},
+        }],
+        "tickers": [filing["ticker"]],
+        "filings": 1,
+        "corpus_version": "mock",
+        "source": "mock",
+        "loader_version": "mock",
+    }
+
+
 def _configure_mock() -> dict[str, str]:
     """Serve the mock arms instead of the real ones.
 
@@ -417,6 +439,12 @@ def _configure_mock() -> dict[str, str]:
 
     retrieve.configure_graph_backend(mock.graph_search)
     retrieve.configure_structured_backend(mock.structured_search)
+    # describe_corpus has to describe the arms this server is actually
+    # serving. Left alone it reads the live graph and store, so a consumer
+    # integrating against --mock would be told both arms are unavailable
+    # while the search tools answer.
+    for arm in ("graph", "structured"):
+        corpus_module.configure_reader(arm, lambda: _mock_corpus(mock))
     backends.status.clear()
     backends.status.update({
         "graph": "registered: mock",

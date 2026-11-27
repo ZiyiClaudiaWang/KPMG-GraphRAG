@@ -28,6 +28,22 @@ from pathlib import Path
 _STRUCTURED_DIR = Path(__file__).resolve().parent.parent / "structured"
 
 
+# A reader per arm, so a server can serve a corpus that matches the arms it
+# registered. retrieve.py takes backends the same way. Without this the tools
+# can answer from the mock while this module describes the real graph, and a
+# consumer integrating against the mock reads "we hold nothing" beside rows
+# that plainly exist.
+_READERS: dict[str, object] = {}
+
+
+def configure_reader(arm: str, reader) -> None:
+    """Read one arm's corpus from `reader` instead of from the live store."""
+    if reader is None:
+        _READERS.pop(arm, None)
+    else:
+        _READERS[arm] = reader
+
+
 def _structured_module():
     if str(_STRUCTURED_DIR) not in sys.path:
         sys.path.insert(0, str(_STRUCTURED_DIR))
@@ -136,18 +152,34 @@ def _assemble(rows, calendar: dict) -> dict:
     }
 
 
+def _why(exc: Exception) -> str:
+    """Enough to act on, without saying where the arm lives.
+
+    The exception text names the Neo4j URI or the store path: a driver error
+    carries the host, and on Aura the instance id in the host is also the
+    username. This report is read by other teams at startup and logged by
+    whoever runs it, so the detail goes to stderr and the caller gets the
+    kind of failure.
+    """
+    print(f"corpus: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
+    return (f"{type(exc).__name__}: the arm could not be read. This is a "
+            "configuration or connection problem, not an empty corpus. The "
+            "reason is in the server log.")
+
+
 def corpus(arm: str | None = None) -> dict:
     """What each arm holds. Read from the arms, so it cannot go stale."""
     report: dict[str, dict] = {}
 
-    for name, read in (("graph", _graph_corpus), ("structured", _structured_corpus)):
+    for name, default in (("graph", _graph_corpus), ("structured", _structured_corpus)):
+        read = _READERS.get(name, default)
         try:
             report[name] = read()
         except Exception as exc:
             # One arm being unreachable is not a reason to answer nothing
-            # about the other. Name the reason rather than return an empty
-            # list, which would read as "we hold nothing".
-            report[name] = {"unavailable": f"{type(exc).__name__}: {exc}"}
+            # about the other. Name the kind of failure rather than return an
+            # empty list, which would read as "we hold nothing".
+            report[name] = {"unavailable": _why(exc)}
 
     if arm is not None:
         if arm not in report:

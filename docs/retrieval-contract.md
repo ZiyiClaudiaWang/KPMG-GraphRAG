@@ -193,8 +193,12 @@ and `loader_version`. ⚠️ **`source: data-api:raw` means Data's unvalidated s
 quoted from it carries that caveat. The EDGAR loader writes no `source` at all, so its absence
 identifies that path.
 
-An arm that could not be reached reports `unavailable` with the reason, rather than an empty filer
-list — an empty list would read as "we do not hold that company".
+An arm that could not be reached reports `unavailable` naming the kind of failure, rather than an
+empty filer list — an empty list would read as "we do not hold that company". The detail stays in
+the server log, because a driver error names the host and a store error names a path.
+
+Under `--mock` it describes the mock corpus — one Microsoft 10-Q, `source: mock` — so a consumer
+integrating against the mock is never told both arms are empty while the search tools answer.
 
 ## A call and its answer, over the wire
 
