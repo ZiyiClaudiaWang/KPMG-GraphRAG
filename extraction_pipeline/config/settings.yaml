@@ -145,8 +145,8 @@ claim_links:                         # step 9b: Claims with the same or similar 
     report_min: 0.70                 # scores.csv counts pairs down to this
 
 load:
-  scope: kelly-extraction-pilot-v1   # stamped on every node and edge, so the pilot can be deleted cleanly
-  claim_links: {exact: false, edit: false, semantic: false}   # step 9b layers loaded into Neo4j
+  scope: kelly-extraction-pilot-v2   # stamped on every node and edge, so the pilot can be deleted cleanly
+  claim_links: {exact: true, edit: true, semantic: false}   # step 9b layers loaded into Neo4j
 
 report:                              # python -m src.checks.report (checks of steps 1-6, README "What to review"); read by no step
   big_change_pct: 5                  # warn when one of these moves more than this % from the last report
