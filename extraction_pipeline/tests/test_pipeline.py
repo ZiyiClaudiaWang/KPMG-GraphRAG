@@ -22,6 +22,9 @@ os.environ["PIPELINE_DATA_DIR"] = str(TMP)
 os.environ["PIPELINE_FILINGS"] = str(FIXTURES / "filings.yaml")
 os.environ["PIPELINE_RISK_CATEGORY_MAP"] = str(FIXTURES / "risk_category_map.csv")
 os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
+# never the real config/label_overrides.csv (a person's decisions for the real data)
+NO_OVERRIDES = str(TMP / "no_label_overrides.csv")
+os.environ["PIPELINE_LABEL_OVERRIDES"] = NO_OVERRIDES
 shutil.copytree(FIXTURES / "sections", TMP / "sections")
 
 from src import build_claims, clean, extract, filter_sections, label, load, segment, validate  # noqa: E402
@@ -299,6 +302,17 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual({m["mention_text"] for m in typed}, {"Asia"})   # "Atlantis" dropped
         self.assertTrue(all(c["affected_object"] == ["revenue"] for c in self.claims))
         self.assertTrue(all(c["subject_scope"] == ["company"] for c in self.claims))
+
+    def test_extract_keeps_what_it_can_of_a_reply(self):
+        batch = {"local_ids": ["s1", "s2", "s3"]}
+        ids = lambda *x: [{"id": i} for i in x]                                         # noqa: E731
+        self.assertEqual(extract.salvage(batch, ids("s1", "s2")), ({"s1", "s2"}, ["s3"]))       # left out
+        self.assertEqual(extract.salvage(batch, ids("s1", "s2", "s2", "s3")), ({"s1", "s3"}, ["s2"]))  # repeated
+        self.assertEqual(extract.salvage(batch, ids("s2", "s1")), ({"s1", "s2"}, ["s3"]))       # order free
+        self.assertEqual(extract.salvage(batch, ids("s3", "s1", "s2")), ({"s1", "s2", "s3"}, []))  # order only
+        self.assertIsNone(extract.salvage(batch, ids("s1", "s9")))                               # unknown id
+        self.assertIsNone(extract.salvage(batch, []))
+        self.assertIn("s2", extract.check_reply(batch, ids("s1", "s2", "s2", "s3"))[0])        # named as repeated
 
     def test_clean_removes_headers_and_joins_page_breaks(self):
         sections = {s["section_key"]: s for s in read_jsonl(Paths.cleaned({"ticker": "TEST",
@@ -579,12 +593,43 @@ class LabelOverrides(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     validate.read_overrides()
             finally:
-                os.environ.pop("PIPELINE_LABEL_OVERRIDES")
+                os.environ["PIPELINE_LABEL_OVERRIDES"] = NO_OVERRIDES
         self.assertEqual((got["a"]["label"], got["a"]["source"], got["a"]["model_label"], got["a"]["reviewer"]),
                          ("stated_fact", "manual", "not_a_claim", "KZ"))
         self.assertEqual(got["b"]["label"], "not_a_claim")
         self.assertEqual((got["c"]["label"], got["c"]["model_source"]), ("forward_looking", "rule:too_short"))
         self.assertEqual(got["d"]["source"], "llm")                    # same label: unchanged
+
+    def test_override_fills_a_unit_with_no_label(self):
+        labels = [{"unit_id": "a", "label": "stated_fact", "source": "llm"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "overrides.csv"
+            path.write_text("unit_id,label,reviewer,note\nz,stated_fact,KZ,reply rejected\n", encoding="utf-8")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = str(path)
+            try:
+                got = {l["unit_id"]: l for l in validate.reviewed_labels(labels, {"a", "z"})}
+                gone = {l["unit_id"] for l in validate.reviewed_labels(labels, {"a"})}   # z no longer a unit
+            finally:
+                os.environ["PIPELINE_LABEL_OVERRIDES"] = NO_OVERRIDES
+        self.assertEqual(gone, {"a"})
+        self.assertEqual(set(got), {"a", "z"})
+        self.assertEqual((got["z"]["label"], got["z"]["source"], got["z"]["model_label"], got["z"]["reviewer"]),
+                         ("stated_fact", "manual", None, "KZ"))
+
+    def test_override_sets_context_ids(self):
+        labels = [{"unit_id": "a", "label": "needs_review", "source": "code_quarantine", "context_unit_ids": []},
+                  {"unit_id": "b", "label": "stated_fact", "source": "llm", "context_unit_ids": ["x"]}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "overrides.csv"
+            path.write_text("unit_id,label,reviewer,note,context_unit_ids\na,stated_fact,KZ,held,p; q\n"
+                            "b,hedged_risk,KZ,,\n", encoding="utf-8")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = str(path)
+            try:
+                got = {l["unit_id"]: l for l in validate.reviewed_labels(labels)}
+            finally:
+                os.environ["PIPELINE_LABEL_OVERRIDES"] = NO_OVERRIDES
+        self.assertEqual((got["a"]["label"], got["a"]["context_unit_ids"]), ("stated_fact", ["p", "q"]))
+        self.assertEqual((got["b"]["label"], got["b"]["context_unit_ids"]), ("hedged_risk", ["x"]))  # empty keeps
 
     def test_no_file_changes_nothing(self):
         labels = [{"unit_id": "a", "label": "not_a_claim"}]
@@ -592,4 +637,4 @@ class LabelOverrides(unittest.TestCase):
         try:
             self.assertEqual(validate.reviewed_labels(labels), labels)
         finally:
-            os.environ.pop("PIPELINE_LABEL_OVERRIDES")
+            os.environ["PIPELINE_LABEL_OVERRIDES"] = NO_OVERRIDES

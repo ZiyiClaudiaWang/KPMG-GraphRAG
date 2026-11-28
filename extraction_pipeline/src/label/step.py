@@ -158,8 +158,11 @@ def run(dry_run: bool = False, filing: str | None = None, limit: int | None = No
         if cfg.get("price_input_per_1m") is not None and cfg.get("answer_tokens_per_sentence"):
             from ..llm.client import canonical
             inp = sum(len(canonical(p["request"]).encode("utf-8")) / 4 for p in plans)
+            from ..llm.cost import REASONING_GUESS, is_reasoning
+            reasoning = (REASONING_GUESS.get(cfg.get("reasoning_effort") or "none", 0) * len(plans)
+                         if is_reasoning(cfg["model"]) else 0)
             typical = (inp * cfg["price_input_per_1m"]
-                       + n * cfg["answer_tokens_per_sentence"] * cfg["price_output_per_1m"]) / 1e6
+                       + (n * cfg["answer_tokens_per_sentence"] + reasoning) * cfg["price_output_per_1m"]) / 1e6
         log(STEP, f"{len(plans)} batches, {n} sentences; "
                   + (f"about ${typical:.2f} typical, " if typical is not None else "")
                   + f"worst-case cost ${reserve:.2f} (dry run, no API calls)")

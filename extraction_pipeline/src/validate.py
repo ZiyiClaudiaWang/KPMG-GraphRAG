@@ -29,7 +29,7 @@ break) is not held for that reason: its text is rebuilt exactly from the source 
 and whether it was joined correctly is a question for steps 2 and 4, not for the label. Its
 Claim carries multi_fragment = true and every fragment's position (step 9).
 
-Manual decisions: config/label_overrides.csv (unit_id, label, reviewer, note) sets a unit's label
+Manual decisions: config/label_overrides.csv (unit_id, label, reviewer, note[, context_unit_ids]) sets a unit's label
 by hand, over the model's and the prefilter's: a Claim type releases a not_a_claim or held unit,
 not_a_claim drops a Claim. Steps 8, 8b and 9 read labels through reviewed_labels(), so a released
 unit is extracted in 8b and built in 9 on their next run; labels.jsonl (the model's) is never
@@ -161,7 +161,9 @@ def overrides_path() -> Path:
 def read_overrides() -> dict[str, dict]:
     """config/label_overrides.csv: unit_id, label, reviewer, note. A person's label for a unit
     wins over the model's and the prefilter's: release a not_a_claim or a held needs_review unit
-    as a Claim (stated_fact, forward_looking, hedged_risk), or drop a Claim (not_a_claim)."""
+    as a Claim (stated_fact, forward_looking, hedged_risk), or drop a Claim (not_a_claim).
+    Optional column context_unit_ids (unit ids separated by ";") replaces the unit's context ids,
+    e.g. the model's own context for a unit code held for its context ids; empty keeps them."""
     path = overrides_path()
     if not path.exists():
         return {}
@@ -173,14 +175,21 @@ def read_overrides() -> dict[str, dict]:
         if label not in CLAIM_TYPES + ("not_a_claim",):
             raise SystemExit(f"{path}: {r['unit_id']}: label must be one of "
                              f"{', '.join(CLAIM_TYPES + ('not_a_claim',))}, not {label!r}")
+        context = (r.get("context_unit_ids") or "").strip()
         out[r["unit_id"].strip()] = {"label": label, "reviewer": (r.get("reviewer") or "").strip() or None,
-                                     "note": (r.get("note") or "").strip() or None}
+                                     "note": (r.get("note") or "").strip() or None,
+                                     "context_unit_ids": [c.strip() for c in context.split(";") if c.strip()]
+                                     if context else None}
     return out
 
 
-def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
+def reviewed_labels(labels: list[dict] | None = None, unit_ids=None) -> list[dict]:
     """labels.jsonl with label_overrides.csv applied: what steps 8, 8b and 9 read. An overridden
-    row keeps the model's label and source (model_label, model_source)."""
+    row keeps the model's label and source (model_label, model_source). An override for a unit
+    with no label at all (its batch's reply was rejected, stop_on_failure: false) adds a manual
+    row with no model label, so a person can fill that gap; only for ids in unit_ids (the units
+    of this run), so an override for a unit that no longer exists adds nothing (validate reports
+    it as an unknown unit)."""
     if labels is None:
         labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
     overrides = read_overrides()
@@ -189,11 +198,17 @@ def reviewed_labels(labels: list[dict] | None = None) -> list[dict]:
     out = []
     for l in labels:
         o = overrides.get(l["unit_id"])
-        if o is None or o["label"] == l["label"]:
+        if o is None or (o["label"] == l["label"] and o["context_unit_ids"] is None):
             out.append(l)
             continue
+        context = {} if o["context_unit_ids"] is None else {"context_unit_ids": o["context_unit_ids"]}
         out.append(dict(l, label=o["label"], source="manual", model_label=l["label"],
-                        model_source=l.get("source"), reviewer=o["reviewer"], override_note=o["note"]))
+                        model_source=l.get("source"), reviewer=o["reviewer"], override_note=o["note"], **context))
+    labelled = {l["unit_id"] for l in labels}
+    out += [{"unit_id": uid, "label": o["label"], "source": "manual", **LABEL_DEFAULTS,
+             "context_unit_ids": o["context_unit_ids"] or [],
+             "model_label": None, "model_source": None, "reviewer": o["reviewer"], "override_note": o["note"]}
+            for uid, o in overrides.items() if uid not in labelled and unit_ids is not None and uid in unit_ids]
     return out
 
 
@@ -226,7 +241,7 @@ def held_ids() -> set[str]:
 def run() -> int:
     units = {u["unit_id"]: u for u in read_jsonl(Paths.sentences())}
     model_labels = list(read_jsonl(Paths.labels())) if Paths.labels().exists() else []
-    labels = reviewed_labels(model_labels)
+    labels = reviewed_labels(model_labels, units)
     errors = [{"unit_id": uid, "error": f"{overrides_path().name}: unknown unit"}
               for uid in read_overrides() if uid not in units]
 

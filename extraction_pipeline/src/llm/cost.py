@@ -1,12 +1,12 @@
-"""Model settings and cost estimates for the small LLM steps (now only 2b page breaks).
+"""Model settings and cost estimates for the small LLM steps (2b page breaks, 5b risk themes).
 
 Each step has its own block in config/settings.yaml (page_breaks:) with its own
 model, reasoning effort and budget_usd, and its own ledger (data/output/usage_<step>.jsonl), so it
 never spends step 7's budget and step 7 never spends its budget. Token prices come from the
 shared `prices:` table, so changing a step's model needs no other edit.
 
-Step 7 (label.py) is not changed by this module: its request, and so its request hashes, are
-built from the label: block as before.
+Step 7 (label/) and step 8b (extract.py) build their requests in label/requests.py from their own
+blocks (label:, extract:), including reasoning_effort and max_reasoning_tokens for reasoning models.
 """
 
 from __future__ import annotations
@@ -143,9 +143,12 @@ def report(step: str, cfg: dict, build_plans, answer_tokens, log, compare: bool 
 def compare_models(step: str, plans: list[dict], cfg: dict, answer_tokens_per_request: list[int], log,
                    estimator=None) -> None:
     """Cost of the same requests with every model in the prices table (steps 7 and 8b, whose
-    batches do not depend on the model). Reasoning models also spend reasoning tokens, which
-    these numbers leave out: measure them with --model <name> --limit 20."""
-    log(step, f"{'model':<14}{'typical':>10}{'worst case':>12}   ({len(plans)} requests; budget ${cfg.get('budget_usd')})")
+    batches do not depend on the model). For reasoning models, typical has REASONING_GUESS for
+    the step's reasoning_effort a request and worst case has max_reasoning_tokens a request (the
+    room their requests get); measure the real number with --model <name> --limit 20."""
+    effort = cfg.get("reasoning_effort") or "none"
+    log(step, f"{'model':<14}{'typical':>10}{'worst case':>12}   ({len(plans)} requests; reasoning_effort "
+              f"{effort} for reasoning models; budget ${cfg.get('budget_usd')})")
     for model in settings().get("prices") or {}:
         c = dict(cfg, model=model, **prices_for(model, cfg.get("base_url") or settings()["label"]["base_url"]))
         if estimator is not None:                  # the step's own estimate (typical, worst)
@@ -153,8 +156,13 @@ def compare_models(step: str, plans: list[dict], cfg: dict, answer_tokens_per_re
             e = {"typical": typical, "worst": worst}
         else:
             e = estimate(plans, c, answer_tokens_per_request)
+        # typical already has REASONING_GUESS (estimate / the step's estimator, per model). The
+        # plans were built for the configured model: their max_completion_tokens has the reasoning
+        # room only when that model reasons, so the worst case is moved by the difference.
+        room = int(cfg.get("max_reasoning_tokens") or 0) * len(plans) * (c.get("price_output_per_1m") or 0) / 1e6
+        e = dict(e, worst=e["worst"] + room * (is_reasoning(model) - is_reasoning(cfg["model"])))
+        note = f" (incl. ~{REASONING_GUESS.get(effort, 0)} reasoning tokens a request, a guess)" if is_reasoning(model) else ""
         mark = " <- configured" if model == cfg["model"] else ""
-        note = " (+ reasoning tokens)" if is_reasoning(model) else ""
         log(step, f"{model:<14}{'$%.2f' % e['typical']:>10}{'$%.2f' % e['worst']:>12}{mark}{note}")
 
 

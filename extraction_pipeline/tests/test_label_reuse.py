@@ -56,7 +56,8 @@ def stated_fact(payload: dict) -> list[dict]:
 class LabelReuse(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.saved_env = {k: os.environ.get(k) for k in ("PIPELINE_DATA_DIR", "PIPELINE_FILINGS")}
+        cls.saved_env = {k: os.environ.get(k) for k in ("PIPELINE_DATA_DIR", "PIPELINE_FILINGS",
+                                                        "PIPELINE_LABEL_OVERRIDES")}
         cls.tmp = Path(tempfile.mkdtemp(prefix="label-reuse-"))
         (cls.tmp / "sections").mkdir()
         shutil.copy(FIXTURE, cls.tmp / "sections" / FIXTURE.name)
@@ -68,6 +69,7 @@ class LabelReuse(unittest.TestCase):
         (cls.tmp / "filings.yaml").write_text(yaml.safe_dump(filings), encoding="utf-8")
         os.environ["PIPELINE_DATA_DIR"] = str(cls.tmp)
         os.environ["PIPELINE_FILINGS"] = str(cls.tmp / "filings.yaml")
+        os.environ["PIPELINE_LABEL_OVERRIDES"] = str(cls.tmp / "no_label_overrides.csv")   # not the real one
         os.environ.setdefault("OPENAI_API_KEY", "test-key-not-used")
         cls.saved_openai = sys.modules.get("openai")
         sys.modules["openai"] = types.SimpleNamespace(OpenAI=FakeOpenAI)
